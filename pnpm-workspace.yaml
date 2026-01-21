@@ -8,5 +8,6 @@ ignoredBuiltDependencies:
 onlyBuiltDependencies:
   - '@apollo/protobufjs'
   - '@prisma/engines'
+  - bcrypt
   - esbuild
   - prisma
