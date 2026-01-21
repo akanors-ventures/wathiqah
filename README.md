@@ -1,10 +1,10 @@
-# Haafizh
+# Wathȋqah
 
 ## 🔖 Project Title & Description
 
-**Haafizh — Your digital ledger for personal and shared finances.**
+**Wathȋqah — Your digital ledger for personal and shared finances.**
 
-Haafizh is a secure, user-friendly application for recording, tracking, and managing funds—whether personal savings or money entrusted by others. Users can log amounts given, received, or collected, with transparent running balances and transaction histories per contact.
+Wathȋqah is a secure, user-friendly application for recording, tracking, and managing funds—whether personal savings or money entrusted by others. Users can log amounts given, received, or collected, with transparent running balances and transaction histories per contact.
 
 **Who it's for:**
 
@@ -13,7 +13,7 @@ Haafizh is a secure, user-friendly application for recording, tracking, and mana
 * Anyone who wants peace of mind through organized tracking
 
 **Why it matters:**
-Financial exchanges between people are often undocumented, leading to confusion or disputes. Haafizh provides clarity, accountability, and trust with a well-structured digital ledger.
+Financial exchanges between people are often undocumented, leading to confusion or disputes. Wathȋqah provides clarity, accountability, and trust with a well-structured digital ledger.
 
 ---
 
@@ -76,7 +76,7 @@ Financial exchanges between people are often undocumented, leading to confusion 
 ## 🏗️ Architecture
 
 ```
-haafizh/                          # Monorepo root
+wathiqah/                          # Monorepo root
 ├── apps/
 │   ├── api/                      # NestJS GraphQL Backend
 │   └── web/                      # TanStack Start Frontend
@@ -109,8 +109,8 @@ haafizh/                          # Monorepo root
 ### Clone Repository
 
 ```bash
-git clone https://github.com/fawazabdganiyu/haafizh.git
-cd haafizh
+git clone https://github.com/fawazabdganiyu/wathiqah.git
+cd wathiqah
 ```
 
 ### Install Dependencies
@@ -131,7 +131,7 @@ cd apps/api
 cp .env.example .env
 
 # Edit .env with your database credentials
-# DATABASE_URL="postgresql://user:password@localhost:5432/haafizh"
+# DATABASE_URL="postgresql://user:password@localhost:5432/wathiqah"
 # JWT_SECRET="your-secret-key"
 ```
 
@@ -304,7 +304,7 @@ cd apps/web && pnpm build
 
 ## 🧠 AI Integration Strategy
 
-Haafizh leverages AI tools throughout development to boost productivity and ensure maintainability.
+Wathȋqah leverages AI tools throughout development to boost productivity and ensure maintainability.
 
 ### Code Generation
 Use AI-powered IDE tools (e.g., Zed with GitHub Copilot, Gemini AI, CodeRabbit) to scaffold React components, backend endpoints, and database models.
@@ -351,4 +351,4 @@ Feed API specs (via GraphQL schema), database schemas, and file diffs into AI wo
 
 ---
 
-✨ With Haafizh, financial clarity is just a record away.
+✨ With Wathȋqah, financial clarity is just a record away.

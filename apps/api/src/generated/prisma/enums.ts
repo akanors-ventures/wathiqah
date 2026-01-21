@@ -29,4 +29,5 @@ export const TransactionType = {
   COLLECTED: 'COLLECTED',
 } as const;
 
-export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType];
+export type TransactionType =
+  (typeof TransactionType)[keyof typeof TransactionType];

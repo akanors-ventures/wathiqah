@@ -15,7 +15,8 @@ import type * as Prisma from '../internal/prismaNamespace';
  * Model Contact
  *
  */
-export type ContactModel = runtime.Types.Result.DefaultSelection<Prisma.$ContactPayload>;
+export type ContactModel =
+  runtime.Types.Result.DefaultSelection<Prisma.$ContactPayload>;
 
 export type AggregateContact = {
   _count: ContactCountAggregateOutputType | null;
@@ -80,7 +81,8 @@ export type ContactCountAggregateInputType = {
 };
 
 export type ContactAggregateArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Filter which Contact to aggregate.
@@ -91,7 +93,9 @@ export type ContactAggregateArgs<
    *
    * Determine the order of Contacts to fetch.
    */
-  orderBy?: Prisma.ContactOrderByWithRelationInput | Prisma.ContactOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.ContactOrderByWithRelationInput
+    | Prisma.ContactOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -139,10 +143,13 @@ export type GetContactAggregateType<T extends ContactAggregateArgs> = {
 };
 
 export type ContactGroupByArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   where?: Prisma.ContactWhereInput;
-  orderBy?: Prisma.ContactOrderByWithAggregationInput | Prisma.ContactOrderByWithAggregationInput[];
+  orderBy?:
+    | Prisma.ContactOrderByWithAggregationInput
+    | Prisma.ContactOrderByWithAggregationInput[];
   by: Prisma.ContactScalarFieldEnum[] | Prisma.ContactScalarFieldEnum;
   having?: Prisma.ContactScalarWhereWithAggregatesInput;
   take?: number;
@@ -164,17 +171,18 @@ export type ContactGroupByOutputType = {
   _max: ContactMaxAggregateOutputType | null;
 };
 
-type GetContactGroupByPayload<T extends ContactGroupByArgs> = Prisma.PrismaPromise<
-  Array<
-    Prisma.PickEnumerable<ContactGroupByOutputType, T['by']> & {
-      [P in keyof T & keyof ContactGroupByOutputType]: P extends '_count'
-        ? T[P] extends boolean
-          ? number
-          : Prisma.GetScalarType<T[P], ContactGroupByOutputType[P]>
-        : Prisma.GetScalarType<T[P], ContactGroupByOutputType[P]>;
-    }
-  >
->;
+type GetContactGroupByPayload<T extends ContactGroupByArgs> =
+  Prisma.PrismaPromise<
+    Array<
+      Prisma.PickEnumerable<ContactGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof ContactGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : Prisma.GetScalarType<T[P], ContactGroupByOutputType[P]>
+          : Prisma.GetScalarType<T[P], ContactGroupByOutputType[P]>;
+      }
+    >
+  >;
 
 export type ContactWhereInput = {
   AND?: Prisma.ContactWhereInput | Prisma.ContactWhereInput[];
@@ -231,13 +239,20 @@ export type ContactOrderByWithAggregationInput = {
 };
 
 export type ContactScalarWhereWithAggregatesInput = {
-  AND?: Prisma.ContactScalarWhereWithAggregatesInput | Prisma.ContactScalarWhereWithAggregatesInput[];
+  AND?:
+    | Prisma.ContactScalarWhereWithAggregatesInput
+    | Prisma.ContactScalarWhereWithAggregatesInput[];
   OR?: Prisma.ContactScalarWhereWithAggregatesInput[];
-  NOT?: Prisma.ContactScalarWhereWithAggregatesInput | Prisma.ContactScalarWhereWithAggregatesInput[];
+  NOT?:
+    | Prisma.ContactScalarWhereWithAggregatesInput
+    | Prisma.ContactScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<'Contact'> | string;
   name?: Prisma.StringWithAggregatesFilter<'Contact'> | string;
   email?: Prisma.StringNullableWithAggregatesFilter<'Contact'> | string | null;
-  phoneNumber?: Prisma.StringNullableWithAggregatesFilter<'Contact'> | string | null;
+  phoneNumber?:
+    | Prisma.StringNullableWithAggregatesFilter<'Contact'>
+    | string
+    | null;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<'Contact'> | Date | string;
   userId?: Prisma.StringWithAggregatesFilter<'Contact'> | string;
 };
@@ -352,56 +367,96 @@ export type ContactScalarRelationFilter = {
 
 export type ContactCreateNestedManyWithoutUserInput = {
   create?:
-    | Prisma.XOR<Prisma.ContactCreateWithoutUserInput, Prisma.ContactUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.ContactCreateWithoutUserInput,
+        Prisma.ContactUncheckedCreateWithoutUserInput
+      >
     | Prisma.ContactCreateWithoutUserInput[]
     | Prisma.ContactUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutUserInput | Prisma.ContactCreateOrConnectWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.ContactCreateOrConnectWithoutUserInput
+    | Prisma.ContactCreateOrConnectWithoutUserInput[];
   createMany?: Prisma.ContactCreateManyUserInputEnvelope;
   connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
 };
 
 export type ContactUncheckedCreateNestedManyWithoutUserInput = {
   create?:
-    | Prisma.XOR<Prisma.ContactCreateWithoutUserInput, Prisma.ContactUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.ContactCreateWithoutUserInput,
+        Prisma.ContactUncheckedCreateWithoutUserInput
+      >
     | Prisma.ContactCreateWithoutUserInput[]
     | Prisma.ContactUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutUserInput | Prisma.ContactCreateOrConnectWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.ContactCreateOrConnectWithoutUserInput
+    | Prisma.ContactCreateOrConnectWithoutUserInput[];
   createMany?: Prisma.ContactCreateManyUserInputEnvelope;
   connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
 };
 
 export type ContactUpdateManyWithoutUserNestedInput = {
   create?:
-    | Prisma.XOR<Prisma.ContactCreateWithoutUserInput, Prisma.ContactUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.ContactCreateWithoutUserInput,
+        Prisma.ContactUncheckedCreateWithoutUserInput
+      >
     | Prisma.ContactCreateWithoutUserInput[]
     | Prisma.ContactUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutUserInput | Prisma.ContactCreateOrConnectWithoutUserInput[];
-  upsert?: Prisma.ContactUpsertWithWhereUniqueWithoutUserInput | Prisma.ContactUpsertWithWhereUniqueWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.ContactCreateOrConnectWithoutUserInput
+    | Prisma.ContactCreateOrConnectWithoutUserInput[];
+  upsert?:
+    | Prisma.ContactUpsertWithWhereUniqueWithoutUserInput
+    | Prisma.ContactUpsertWithWhereUniqueWithoutUserInput[];
   createMany?: Prisma.ContactCreateManyUserInputEnvelope;
   set?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
-  disconnect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
+  disconnect?:
+    | Prisma.ContactWhereUniqueInput
+    | Prisma.ContactWhereUniqueInput[];
   delete?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
   connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
-  update?: Prisma.ContactUpdateWithWhereUniqueWithoutUserInput | Prisma.ContactUpdateWithWhereUniqueWithoutUserInput[];
-  updateMany?: Prisma.ContactUpdateManyWithWhereWithoutUserInput | Prisma.ContactUpdateManyWithWhereWithoutUserInput[];
-  deleteMany?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[];
+  update?:
+    | Prisma.ContactUpdateWithWhereUniqueWithoutUserInput
+    | Prisma.ContactUpdateWithWhereUniqueWithoutUserInput[];
+  updateMany?:
+    | Prisma.ContactUpdateManyWithWhereWithoutUserInput
+    | Prisma.ContactUpdateManyWithWhereWithoutUserInput[];
+  deleteMany?:
+    | Prisma.ContactScalarWhereInput
+    | Prisma.ContactScalarWhereInput[];
 };
 
 export type ContactUncheckedUpdateManyWithoutUserNestedInput = {
   create?:
-    | Prisma.XOR<Prisma.ContactCreateWithoutUserInput, Prisma.ContactUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.ContactCreateWithoutUserInput,
+        Prisma.ContactUncheckedCreateWithoutUserInput
+      >
     | Prisma.ContactCreateWithoutUserInput[]
     | Prisma.ContactUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutUserInput | Prisma.ContactCreateOrConnectWithoutUserInput[];
-  upsert?: Prisma.ContactUpsertWithWhereUniqueWithoutUserInput | Prisma.ContactUpsertWithWhereUniqueWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.ContactCreateOrConnectWithoutUserInput
+    | Prisma.ContactCreateOrConnectWithoutUserInput[];
+  upsert?:
+    | Prisma.ContactUpsertWithWhereUniqueWithoutUserInput
+    | Prisma.ContactUpsertWithWhereUniqueWithoutUserInput[];
   createMany?: Prisma.ContactCreateManyUserInputEnvelope;
   set?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
-  disconnect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
+  disconnect?:
+    | Prisma.ContactWhereUniqueInput
+    | Prisma.ContactWhereUniqueInput[];
   delete?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
   connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[];
-  update?: Prisma.ContactUpdateWithWhereUniqueWithoutUserInput | Prisma.ContactUpdateWithWhereUniqueWithoutUserInput[];
-  updateMany?: Prisma.ContactUpdateManyWithWhereWithoutUserInput | Prisma.ContactUpdateManyWithWhereWithoutUserInput[];
-  deleteMany?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[];
+  update?:
+    | Prisma.ContactUpdateWithWhereUniqueWithoutUserInput
+    | Prisma.ContactUpdateWithWhereUniqueWithoutUserInput[];
+  updateMany?:
+    | Prisma.ContactUpdateManyWithWhereWithoutUserInput
+    | Prisma.ContactUpdateManyWithWhereWithoutUserInput[];
+  deleteMany?:
+    | Prisma.ContactScalarWhereInput
+    | Prisma.ContactScalarWhereInput[];
 };
 
 export type ContactCreateNestedOneWithoutTransactionsInput = {
@@ -450,7 +505,10 @@ export type ContactUncheckedCreateWithoutUserInput = {
 
 export type ContactCreateOrConnectWithoutUserInput = {
   where: Prisma.ContactWhereUniqueInput;
-  create: Prisma.XOR<Prisma.ContactCreateWithoutUserInput, Prisma.ContactUncheckedCreateWithoutUserInput>;
+  create: Prisma.XOR<
+    Prisma.ContactCreateWithoutUserInput,
+    Prisma.ContactUncheckedCreateWithoutUserInput
+  >;
 };
 
 export type ContactCreateManyUserInputEnvelope = {
@@ -460,18 +518,30 @@ export type ContactCreateManyUserInputEnvelope = {
 
 export type ContactUpsertWithWhereUniqueWithoutUserInput = {
   where: Prisma.ContactWhereUniqueInput;
-  update: Prisma.XOR<Prisma.ContactUpdateWithoutUserInput, Prisma.ContactUncheckedUpdateWithoutUserInput>;
-  create: Prisma.XOR<Prisma.ContactCreateWithoutUserInput, Prisma.ContactUncheckedCreateWithoutUserInput>;
+  update: Prisma.XOR<
+    Prisma.ContactUpdateWithoutUserInput,
+    Prisma.ContactUncheckedUpdateWithoutUserInput
+  >;
+  create: Prisma.XOR<
+    Prisma.ContactCreateWithoutUserInput,
+    Prisma.ContactUncheckedCreateWithoutUserInput
+  >;
 };
 
 export type ContactUpdateWithWhereUniqueWithoutUserInput = {
   where: Prisma.ContactWhereUniqueInput;
-  data: Prisma.XOR<Prisma.ContactUpdateWithoutUserInput, Prisma.ContactUncheckedUpdateWithoutUserInput>;
+  data: Prisma.XOR<
+    Prisma.ContactUpdateWithoutUserInput,
+    Prisma.ContactUncheckedUpdateWithoutUserInput
+  >;
 };
 
 export type ContactUpdateManyWithWhereWithoutUserInput = {
   where: Prisma.ContactScalarWhereInput;
-  data: Prisma.XOR<Prisma.ContactUpdateManyMutationInput, Prisma.ContactUncheckedUpdateManyWithoutUserInput>;
+  data: Prisma.XOR<
+    Prisma.ContactUpdateManyMutationInput,
+    Prisma.ContactUncheckedUpdateManyWithoutUserInput
+  >;
 };
 
 export type ContactScalarWhereInput = {
@@ -526,7 +596,10 @@ export type ContactUpsertWithoutTransactionsInput = {
 
 export type ContactUpdateToOneWithWhereWithoutTransactionsInput = {
   where?: Prisma.ContactWhereInput;
-  data: Prisma.XOR<Prisma.ContactUpdateWithoutTransactionsInput, Prisma.ContactUncheckedUpdateWithoutTransactionsInput>;
+  data: Prisma.XOR<
+    Prisma.ContactUpdateWithoutTransactionsInput,
+    Prisma.ContactUncheckedUpdateWithoutTransactionsInput
+  >;
 };
 
 export type ContactUpdateWithoutTransactionsInput = {
@@ -590,7 +663,8 @@ export type ContactCountOutputType = {
 };
 
 export type ContactCountOutputTypeSelect<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   transactions?: boolean | ContactCountOutputTypeCountTransactionsArgs;
 };
@@ -599,7 +673,8 @@ export type ContactCountOutputTypeSelect<
  * ContactCountOutputType without action
  */
 export type ContactCountOutputTypeDefaultArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the ContactCountOutputType
@@ -611,13 +686,15 @@ export type ContactCountOutputTypeDefaultArgs<
  * ContactCountOutputType without action
  */
 export type ContactCountOutputTypeCountTransactionsArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   where?: Prisma.TransactionWhereInput;
 };
 
 export type ContactSelect<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
@@ -634,7 +711,8 @@ export type ContactSelect<
 >;
 
 export type ContactSelectCreateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
@@ -649,7 +727,8 @@ export type ContactSelectCreateManyAndReturn<
 >;
 
 export type ContactSelectUpdateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
@@ -672,31 +751,37 @@ export type ContactSelectScalar = {
   userId?: boolean;
 };
 
-export type ContactOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> =
-  runtime.Types.Extensions.GetOmit<
-    'id' | 'name' | 'email' | 'phoneNumber' | 'createdAt' | 'userId',
-    ExtArgs['result']['contact']
-  >;
+export type ContactOmit<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = runtime.Types.Extensions.GetOmit<
+  'id' | 'name' | 'email' | 'phoneNumber' | 'createdAt' | 'userId',
+  ExtArgs['result']['contact']
+>;
 export type ContactInclude<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
   transactions?: boolean | Prisma.Contact$transactionsArgs<ExtArgs>;
   _count?: boolean | Prisma.ContactCountOutputTypeDefaultArgs<ExtArgs>;
 };
 export type ContactIncludeCreateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 export type ContactIncludeUpdateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 
 export type $ContactPayload<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   name: 'Contact';
   objects: {
@@ -717,20 +802,26 @@ export type $ContactPayload<
   composites: {};
 };
 
-export type ContactGetPayload<S extends boolean | null | undefined | ContactDefaultArgs> =
-  runtime.Types.Result.GetResult<Prisma.$ContactPayload, S>;
+export type ContactGetPayload<
+  S extends boolean | null | undefined | ContactDefaultArgs,
+> = runtime.Types.Result.GetResult<Prisma.$ContactPayload, S>;
 
 export type ContactCountArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = Omit<ContactFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
   select?: ContactCountAggregateInputType | true;
 };
 
 export interface ContactDelegate<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
   GlobalOmitOptions = {},
 > {
-  [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Contact']; meta: { name: 'Contact' } };
+  [K: symbol]: {
+    types: Prisma.TypeMap<ExtArgs>['model']['Contact'];
+    meta: { name: 'Contact' };
+  };
   /**
    * Find zero or one Contact that matches the filter.
    * @param {ContactFindUniqueArgs} args - Arguments to find a Contact
@@ -745,7 +836,12 @@ export interface ContactDelegate<
   findUnique<T extends ContactFindUniqueArgs>(
     args: Prisma.SelectSubset<T, ContactFindUniqueArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'findUnique', GlobalOmitOptions> | null,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'findUnique',
+      GlobalOmitOptions
+    > | null,
     null,
     ExtArgs,
     GlobalOmitOptions
@@ -766,7 +862,12 @@ export interface ContactDelegate<
   findUniqueOrThrow<T extends ContactFindUniqueOrThrowArgs>(
     args: Prisma.SelectSubset<T, ContactFindUniqueOrThrowArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -788,7 +889,12 @@ export interface ContactDelegate<
   findFirst<T extends ContactFindFirstArgs>(
     args?: Prisma.SelectSubset<T, ContactFindFirstArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'findFirst', GlobalOmitOptions> | null,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'findFirst',
+      GlobalOmitOptions
+    > | null,
     null,
     ExtArgs,
     GlobalOmitOptions
@@ -811,7 +917,12 @@ export interface ContactDelegate<
   findFirstOrThrow<T extends ContactFindFirstOrThrowArgs>(
     args?: Prisma.SelectSubset<T, ContactFindFirstOrThrowArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'findFirstOrThrow', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'findFirstOrThrow',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -836,7 +947,12 @@ export interface ContactDelegate<
   findMany<T extends ContactFindManyArgs>(
     args?: Prisma.SelectSubset<T, ContactFindManyArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'findMany',
+      GlobalOmitOptions
+    >
   >;
 
   /**
@@ -854,7 +970,12 @@ export interface ContactDelegate<
   create<T extends ContactCreateArgs>(
     args: Prisma.SelectSubset<T, ContactCreateArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'create',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -901,7 +1022,12 @@ export interface ContactDelegate<
   createManyAndReturn<T extends ContactCreateManyAndReturnArgs>(
     args?: Prisma.SelectSubset<T, ContactCreateManyAndReturnArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'createManyAndReturn', GlobalOmitOptions>
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'createManyAndReturn',
+      GlobalOmitOptions
+    >
   >;
 
   /**
@@ -919,7 +1045,12 @@ export interface ContactDelegate<
   delete<T extends ContactDeleteArgs>(
     args: Prisma.SelectSubset<T, ContactDeleteArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'delete',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -943,7 +1074,12 @@ export interface ContactDelegate<
   update<T extends ContactUpdateArgs>(
     args: Prisma.SelectSubset<T, ContactUpdateArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'update',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -1017,7 +1153,12 @@ export interface ContactDelegate<
   updateManyAndReturn<T extends ContactUpdateManyAndReturnArgs>(
     args: Prisma.SelectSubset<T, ContactUpdateManyAndReturnArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'updateManyAndReturn', GlobalOmitOptions>
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'updateManyAndReturn',
+      GlobalOmitOptions
+    >
   >;
 
   /**
@@ -1040,7 +1181,12 @@ export interface ContactDelegate<
   upsert<T extends ContactUpsertArgs>(
     args: Prisma.SelectSubset<T, ContactUpsertArgs<ExtArgs>>,
   ): Prisma.Prisma__ContactClient<
-    runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$ContactPayload<ExtArgs>,
+      T,
+      'upsert',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -1117,11 +1263,16 @@ export interface ContactDelegate<
    **/
   groupBy<
     T extends ContactGroupByArgs,
-    HasSelectOrTake extends Prisma.Or<Prisma.Extends<'skip', Prisma.Keys<T>>, Prisma.Extends<'take', Prisma.Keys<T>>>,
+    HasSelectOrTake extends Prisma.Or<
+      Prisma.Extends<'skip', Prisma.Keys<T>>,
+      Prisma.Extends<'take', Prisma.Keys<T>>
+    >,
     OrderByArg extends Prisma.True extends HasSelectOrTake
       ? { orderBy: ContactGroupByArgs['orderBy'] }
       : { orderBy?: ContactGroupByArgs['orderBy'] },
-    OrderFields extends Prisma.ExcludeUnderscoreKeys<Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>>,
+    OrderFields extends Prisma.ExcludeUnderscoreKeys<
+      Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>
+    >,
     ByFields extends Prisma.MaybeTupleToUnion<T['by']>,
     ByValid extends Prisma.Has<ByFields, OrderFields>,
     HavingFields extends Prisma.GetHavingFields<T['having']>,
@@ -1135,7 +1286,12 @@ export interface ContactDelegate<
               ? never
               : P extends string
                 ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-                : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+                : [
+                    Error,
+                    'Field ',
+                    P,
+                    ` in "having" needs to be provided in "by"`,
+                  ];
           }[HavingFields]
         : 'take' extends Prisma.Keys<T>
           ? 'orderBy' extends Prisma.Keys<T>
@@ -1165,8 +1321,11 @@ export interface ContactDelegate<
                     : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
                 }[OrderFields],
   >(
-    args: Prisma.SubsetIntersection<T, ContactGroupByArgs, OrderByArg> & InputErrors,
-  ): {} extends InputErrors ? GetContactGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    args: Prisma.SubsetIntersection<T, ContactGroupByArgs, OrderByArg> &
+      InputErrors,
+  ): {} extends InputErrors
+    ? GetContactGroupByPayload<T>
+    : Prisma.PrismaPromise<InputErrors>;
   /**
    * Fields of the Contact model
    */
@@ -1182,14 +1341,21 @@ export interface ContactDelegate<
 export interface Prisma__ContactClient<
   T,
   Null = never,
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
   GlobalOmitOptions = {},
 > extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise';
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>,
   ): Prisma.Prisma__UserClient<
-    runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions> | Null,
+    | runtime.Types.Result.GetResult<
+        Prisma.$UserPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >
+    | Null,
     Null,
     ExtArgs,
     GlobalOmitOptions
@@ -1197,7 +1363,13 @@ export interface Prisma__ContactClient<
   transactions<T extends Prisma.Contact$transactionsArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.Contact$transactionsArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions> | Null
+    | runtime.Types.Result.GetResult<
+        Prisma.$TransactionPayload<ExtArgs>,
+        T,
+        'findMany',
+        GlobalOmitOptions
+      >
+    | Null
   >;
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1206,8 +1378,14 @@ export interface Prisma__ContactClient<
    * @returns A Promise for the completion of which ever callback is executed.
    */
   then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    onfulfilled?:
+      | ((value: T) => TResult1 | PromiseLike<TResult1>)
+      | undefined
+      | null,
+    onrejected?:
+      | ((reason: any) => TResult2 | PromiseLike<TResult2>)
+      | undefined
+      | null,
   ): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
   /**
    * Attaches a callback for only the rejection of the Promise.
@@ -1215,7 +1393,10 @@ export interface Prisma__ContactClient<
    * @returns A Promise for the completion of the callback.
    */
   catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+    onrejected?:
+      | ((reason: any) => TResult | PromiseLike<TResult>)
+      | undefined
+      | null,
   ): runtime.Types.Utils.JsPromise<T | TResult>;
   /**
    * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
@@ -1223,7 +1404,9 @@ export interface Prisma__ContactClient<
    * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
    * @returns A Promise for the completion of the callback.
    */
-  finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
+  finally(
+    onfinally?: (() => void) | undefined | null,
+  ): runtime.Types.Utils.JsPromise<T>;
 }
 
 /**
@@ -1243,7 +1426,8 @@ export interface ContactFieldRefs {
  * Contact findUnique
  */
 export type ContactFindUniqueArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1267,7 +1451,8 @@ export type ContactFindUniqueArgs<
  * Contact findUniqueOrThrow
  */
 export type ContactFindUniqueOrThrowArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1291,7 +1476,8 @@ export type ContactFindUniqueOrThrowArgs<
  * Contact findFirst
  */
 export type ContactFindFirstArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1314,7 +1500,9 @@ export type ContactFindFirstArgs<
    *
    * Determine the order of Contacts to fetch.
    */
-  orderBy?: Prisma.ContactOrderByWithRelationInput | Prisma.ContactOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.ContactOrderByWithRelationInput
+    | Prisma.ContactOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -1345,7 +1533,8 @@ export type ContactFindFirstArgs<
  * Contact findFirstOrThrow
  */
 export type ContactFindFirstOrThrowArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1368,7 +1557,9 @@ export type ContactFindFirstOrThrowArgs<
    *
    * Determine the order of Contacts to fetch.
    */
-  orderBy?: Prisma.ContactOrderByWithRelationInput | Prisma.ContactOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.ContactOrderByWithRelationInput
+    | Prisma.ContactOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -1399,7 +1590,8 @@ export type ContactFindFirstOrThrowArgs<
  * Contact findMany
  */
 export type ContactFindManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1422,7 +1614,9 @@ export type ContactFindManyArgs<
    *
    * Determine the order of Contacts to fetch.
    */
-  orderBy?: Prisma.ContactOrderByWithRelationInput | Prisma.ContactOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.ContactOrderByWithRelationInput
+    | Prisma.ContactOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -1448,7 +1642,8 @@ export type ContactFindManyArgs<
  * Contact create
  */
 export type ContactCreateArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1465,14 +1660,18 @@ export type ContactCreateArgs<
   /**
    * The data needed to create a Contact.
    */
-  data: Prisma.XOR<Prisma.ContactCreateInput, Prisma.ContactUncheckedCreateInput>;
+  data: Prisma.XOR<
+    Prisma.ContactCreateInput,
+    Prisma.ContactUncheckedCreateInput
+  >;
 };
 
 /**
  * Contact createMany
  */
 export type ContactCreateManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * The data used to create many Contacts.
@@ -1485,7 +1684,8 @@ export type ContactCreateManyArgs<
  * Contact createManyAndReturn
  */
 export type ContactCreateManyAndReturnArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1510,7 +1710,8 @@ export type ContactCreateManyAndReturnArgs<
  * Contact update
  */
 export type ContactUpdateArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1527,7 +1728,10 @@ export type ContactUpdateArgs<
   /**
    * The data needed to update a Contact.
    */
-  data: Prisma.XOR<Prisma.ContactUpdateInput, Prisma.ContactUncheckedUpdateInput>;
+  data: Prisma.XOR<
+    Prisma.ContactUpdateInput,
+    Prisma.ContactUncheckedUpdateInput
+  >;
   /**
    * Choose, which Contact to update.
    */
@@ -1538,12 +1742,16 @@ export type ContactUpdateArgs<
  * Contact updateMany
  */
 export type ContactUpdateManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * The data used to update Contacts.
    */
-  data: Prisma.XOR<Prisma.ContactUpdateManyMutationInput, Prisma.ContactUncheckedUpdateManyInput>;
+  data: Prisma.XOR<
+    Prisma.ContactUpdateManyMutationInput,
+    Prisma.ContactUncheckedUpdateManyInput
+  >;
   /**
    * Filter which Contacts to update
    */
@@ -1558,7 +1766,8 @@ export type ContactUpdateManyArgs<
  * Contact updateManyAndReturn
  */
 export type ContactUpdateManyAndReturnArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1571,7 +1780,10 @@ export type ContactUpdateManyAndReturnArgs<
   /**
    * The data used to update Contacts.
    */
-  data: Prisma.XOR<Prisma.ContactUpdateManyMutationInput, Prisma.ContactUncheckedUpdateManyInput>;
+  data: Prisma.XOR<
+    Prisma.ContactUpdateManyMutationInput,
+    Prisma.ContactUncheckedUpdateManyInput
+  >;
   /**
    * Filter which Contacts to update
    */
@@ -1590,7 +1802,8 @@ export type ContactUpdateManyAndReturnArgs<
  * Contact upsert
  */
 export type ContactUpsertArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1611,18 +1824,25 @@ export type ContactUpsertArgs<
   /**
    * In case the Contact found by the `where` argument doesn't exist, create a new Contact with this data.
    */
-  create: Prisma.XOR<Prisma.ContactCreateInput, Prisma.ContactUncheckedCreateInput>;
+  create: Prisma.XOR<
+    Prisma.ContactCreateInput,
+    Prisma.ContactUncheckedCreateInput
+  >;
   /**
    * In case the Contact was found with the provided `where` argument, update it with this data.
    */
-  update: Prisma.XOR<Prisma.ContactUpdateInput, Prisma.ContactUncheckedUpdateInput>;
+  update: Prisma.XOR<
+    Prisma.ContactUpdateInput,
+    Prisma.ContactUncheckedUpdateInput
+  >;
 };
 
 /**
  * Contact delete
  */
 export type ContactDeleteArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact
@@ -1646,7 +1866,8 @@ export type ContactDeleteArgs<
  * Contact deleteMany
  */
 export type ContactDeleteManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Filter which Contacts to delete
@@ -1662,7 +1883,8 @@ export type ContactDeleteManyArgs<
  * Contact.transactions
  */
 export type Contact$transactionsArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Transaction
@@ -1677,18 +1899,23 @@ export type Contact$transactionsArgs<
    */
   include?: Prisma.TransactionInclude<ExtArgs> | null;
   where?: Prisma.TransactionWhereInput;
-  orderBy?: Prisma.TransactionOrderByWithRelationInput | Prisma.TransactionOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.TransactionOrderByWithRelationInput
+    | Prisma.TransactionOrderByWithRelationInput[];
   cursor?: Prisma.TransactionWhereUniqueInput;
   take?: number;
   skip?: number;
-  distinct?: Prisma.TransactionScalarFieldEnum | Prisma.TransactionScalarFieldEnum[];
+  distinct?:
+    | Prisma.TransactionScalarFieldEnum
+    | Prisma.TransactionScalarFieldEnum[];
 };
 
 /**
  * Contact without action
  */
 export type ContactDefaultArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Contact

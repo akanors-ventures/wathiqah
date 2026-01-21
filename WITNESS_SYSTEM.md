@@ -7,6 +7,7 @@ The **Witness System** adds accountability and trust to financial transactions b
 ## 🔑 Key Capabilities
 
 ### For Transaction Creators
+
 1. **Add Witnesses** when creating a transaction:
    - Select existing users from the system
    - Invite new users via email (they'll receive an invitation link)
@@ -18,6 +19,7 @@ The **Witness System** adds accountability and trust to financial transactions b
    - See if any witnesses declined
 
 ### For Witnesses
+
 1. **Easy Onboarding**:
    - New users receive an invitation link
    - Simple signup process (just set a password)
@@ -52,12 +54,14 @@ PENDING → User creates transaction with witnesses
 ### Acknowledging as a Witness
 
 **For Existing Users:**
+
 1. Log in to account
 2. Navigate to "My Witness Requests"
 3. Review transaction details
 4. Click "Acknowledge" or "Decline"
 
 **For New Users (Invited):**
+
 1. Click invitation link from email
 2. See transaction details
 3. Create account (set password)
@@ -73,30 +77,37 @@ PENDING → User creates transaction with witnesses
 ## 💡 Use Cases
 
 ### Personal Loans
+
 > "I lent $500 to John. I added Sarah as a witness. She acknowledged seeing me hand John the cash."
 
 ### Shared Expenses
+
 > "I paid $200 for groceries. I added my roommates as witnesses so everyone knows I covered it."
 
 ### Business Transactions
+
 > "I received $1000 from a client. I added my business partner as a witness for our records."
 
 ### Family Finances
+
 > "I gave my son $100 for school supplies. I added my spouse as a witness for our budget tracking."
 
 ## 🛠️ Technical Implementation
 
 ### Database Models
+
 - **User**: Stores user information (including invited witnesses)
 - **Transaction**: Stores transaction details
 - **Witness**: Links users to transactions with status tracking
 
 ### GraphQL API
+
 - `createTransaction(input)`: Create transaction with witnesses
 - `acknowledgeWitness(witnessId, status)`: Acknowledge or decline
 - `myWitnessRequests(status)`: Query pending witness requests
 
 ### Frontend Components
+
 - `WitnessInviteForm`: Add witnesses to transactions
 - `WitnessStatusBadge`: Display witness status with color coding
 - `WitnessList`: Show all witnesses for a transaction
@@ -105,11 +116,13 @@ PENDING → User creates transaction with witnesses
 ## 📈 Future Enhancements
 
 ### Phase 2
+
 - Email notifications for witness invitations
 - SMS notifications (optional)
 - Witness invitation expiration (7 days)
 
 ### Phase 3
+
 - Real-time notifications (GraphQL subscriptions)
 - Witness activity timeline
 - Bulk witness management
@@ -118,11 +131,13 @@ PENDING → User creates transaction with witnesses
 ## 🎓 Why This Matters
 
 Financial disputes often arise from:
+
 - "I don't remember receiving that money"
 - "I never agreed to that amount"
 - "There's no proof this happened"
 
 The witness system provides:
+
 - ✅ **Accountability**: Third-party verification
 - ✅ **Trust**: Transparent record-keeping
 - ✅ **Peace of Mind**: Clear documentation

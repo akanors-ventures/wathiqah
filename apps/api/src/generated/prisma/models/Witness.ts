@@ -15,7 +15,8 @@ import type * as Prisma from '../internal/prismaNamespace';
  * Model Witness
  *
  */
-export type WitnessModel = runtime.Types.Result.DefaultSelection<Prisma.$WitnessPayload>;
+export type WitnessModel =
+  runtime.Types.Result.DefaultSelection<Prisma.$WitnessPayload>;
 
 export type AggregateWitness = {
   _count: WitnessCountAggregateOutputType | null;
@@ -86,7 +87,8 @@ export type WitnessCountAggregateInputType = {
 };
 
 export type WitnessAggregateArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Filter which Witness to aggregate.
@@ -97,7 +99,9 @@ export type WitnessAggregateArgs<
    *
    * Determine the order of Witnesses to fetch.
    */
-  orderBy?: Prisma.WitnessOrderByWithRelationInput | Prisma.WitnessOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.WitnessOrderByWithRelationInput
+    | Prisma.WitnessOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -145,10 +149,13 @@ export type GetWitnessAggregateType<T extends WitnessAggregateArgs> = {
 };
 
 export type WitnessGroupByArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   where?: Prisma.WitnessWhereInput;
-  orderBy?: Prisma.WitnessOrderByWithAggregationInput | Prisma.WitnessOrderByWithAggregationInput[];
+  orderBy?:
+    | Prisma.WitnessOrderByWithAggregationInput
+    | Prisma.WitnessOrderByWithAggregationInput[];
   by: Prisma.WitnessScalarFieldEnum[] | Prisma.WitnessScalarFieldEnum;
   having?: Prisma.WitnessScalarWhereWithAggregatesInput;
   take?: number;
@@ -171,17 +178,18 @@ export type WitnessGroupByOutputType = {
   _max: WitnessMaxAggregateOutputType | null;
 };
 
-type GetWitnessGroupByPayload<T extends WitnessGroupByArgs> = Prisma.PrismaPromise<
-  Array<
-    Prisma.PickEnumerable<WitnessGroupByOutputType, T['by']> & {
-      [P in keyof T & keyof WitnessGroupByOutputType]: P extends '_count'
-        ? T[P] extends boolean
-          ? number
-          : Prisma.GetScalarType<T[P], WitnessGroupByOutputType[P]>
-        : Prisma.GetScalarType<T[P], WitnessGroupByOutputType[P]>;
-    }
-  >
->;
+type GetWitnessGroupByPayload<T extends WitnessGroupByArgs> =
+  Prisma.PrismaPromise<
+    Array<
+      Prisma.PickEnumerable<WitnessGroupByOutputType, T['by']> & {
+        [P in keyof T & keyof WitnessGroupByOutputType]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : Prisma.GetScalarType<T[P], WitnessGroupByOutputType[P]>
+          : Prisma.GetScalarType<T[P], WitnessGroupByOutputType[P]>;
+      }
+    >
+  >;
 
 export type WitnessWhereInput = {
   AND?: Prisma.WitnessWhereInput | Prisma.WitnessWhereInput[];
@@ -190,11 +198,18 @@ export type WitnessWhereInput = {
   id?: Prisma.StringFilter<'Witness'> | string;
   status?: Prisma.EnumWitnessStatusFilter<'Witness'> | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFilter<'Witness'> | Date | string;
-  acknowledgedAt?: Prisma.DateTimeNullableFilter<'Witness'> | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.DateTimeNullableFilter<'Witness'>
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.StringNullableFilter<'Witness'> | string | null;
   transactionId?: Prisma.StringFilter<'Witness'> | string;
   userId?: Prisma.StringFilter<'Witness'> | string;
-  transaction?: Prisma.XOR<Prisma.TransactionScalarRelationFilter, Prisma.TransactionWhereInput>;
+  transaction?: Prisma.XOR<
+    Prisma.TransactionScalarRelationFilter,
+    Prisma.TransactionWhereInput
+  >;
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
 };
 
@@ -220,10 +235,17 @@ export type WitnessWhereUniqueInput = Prisma.AtLeast<
     NOT?: Prisma.WitnessWhereInput | Prisma.WitnessWhereInput[];
     status?: Prisma.EnumWitnessStatusFilter<'Witness'> | $Enums.WitnessStatus;
     invitedAt?: Prisma.DateTimeFilter<'Witness'> | Date | string;
-    acknowledgedAt?: Prisma.DateTimeNullableFilter<'Witness'> | Date | string | null;
+    acknowledgedAt?:
+      | Prisma.DateTimeNullableFilter<'Witness'>
+      | Date
+      | string
+      | null;
     transactionId?: Prisma.StringFilter<'Witness'> | string;
     userId?: Prisma.StringFilter<'Witness'> | string;
-    transaction?: Prisma.XOR<Prisma.TransactionScalarRelationFilter, Prisma.TransactionWhereInput>;
+    transaction?: Prisma.XOR<
+      Prisma.TransactionScalarRelationFilter,
+      Prisma.TransactionWhereInput
+    >;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
   },
   'id' | 'inviteToken' | 'transactionId_userId'
@@ -243,14 +265,27 @@ export type WitnessOrderByWithAggregationInput = {
 };
 
 export type WitnessScalarWhereWithAggregatesInput = {
-  AND?: Prisma.WitnessScalarWhereWithAggregatesInput | Prisma.WitnessScalarWhereWithAggregatesInput[];
+  AND?:
+    | Prisma.WitnessScalarWhereWithAggregatesInput
+    | Prisma.WitnessScalarWhereWithAggregatesInput[];
   OR?: Prisma.WitnessScalarWhereWithAggregatesInput[];
-  NOT?: Prisma.WitnessScalarWhereWithAggregatesInput | Prisma.WitnessScalarWhereWithAggregatesInput[];
+  NOT?:
+    | Prisma.WitnessScalarWhereWithAggregatesInput
+    | Prisma.WitnessScalarWhereWithAggregatesInput[];
   id?: Prisma.StringWithAggregatesFilter<'Witness'> | string;
-  status?: Prisma.EnumWitnessStatusWithAggregatesFilter<'Witness'> | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusWithAggregatesFilter<'Witness'>
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeWithAggregatesFilter<'Witness'> | Date | string;
-  acknowledgedAt?: Prisma.DateTimeNullableWithAggregatesFilter<'Witness'> | Date | string | null;
-  inviteToken?: Prisma.StringNullableWithAggregatesFilter<'Witness'> | string | null;
+  acknowledgedAt?:
+    | Prisma.DateTimeNullableWithAggregatesFilter<'Witness'>
+    | Date
+    | string
+    | null;
+  inviteToken?:
+    | Prisma.StringNullableWithAggregatesFilter<'Witness'>
+    | string
+    | null;
   transactionId?: Prisma.StringWithAggregatesFilter<'Witness'> | string;
   userId?: Prisma.StringWithAggregatesFilter<'Witness'> | string;
 };
@@ -277,9 +312,15 @@ export type WitnessUncheckedCreateInput = {
 
 export type WitnessUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transaction?: Prisma.TransactionUpdateOneRequiredWithoutWitnessesNestedInput;
   user?: Prisma.UserUpdateOneRequiredWithoutWitnessRecordsNestedInput;
@@ -287,9 +328,15 @@ export type WitnessUpdateInput = {
 
 export type WitnessUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -307,17 +354,29 @@ export type WitnessCreateManyInput = {
 
 export type WitnessUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 
 export type WitnessUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
@@ -370,61 +429,104 @@ export type WitnessMinOrderByAggregateInput = {
 
 export type WitnessCreateNestedManyWithoutUserInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutUserInput, Prisma.WitnessUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutUserInput,
+        Prisma.WitnessUncheckedCreateWithoutUserInput
+      >
     | Prisma.WitnessCreateWithoutUserInput[]
     | Prisma.WitnessUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.WitnessCreateOrConnectWithoutUserInput | Prisma.WitnessCreateOrConnectWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.WitnessCreateOrConnectWithoutUserInput
+    | Prisma.WitnessCreateOrConnectWithoutUserInput[];
   createMany?: Prisma.WitnessCreateManyUserInputEnvelope;
   connect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
 };
 
 export type WitnessUncheckedCreateNestedManyWithoutUserInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutUserInput, Prisma.WitnessUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutUserInput,
+        Prisma.WitnessUncheckedCreateWithoutUserInput
+      >
     | Prisma.WitnessCreateWithoutUserInput[]
     | Prisma.WitnessUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.WitnessCreateOrConnectWithoutUserInput | Prisma.WitnessCreateOrConnectWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.WitnessCreateOrConnectWithoutUserInput
+    | Prisma.WitnessCreateOrConnectWithoutUserInput[];
   createMany?: Prisma.WitnessCreateManyUserInputEnvelope;
   connect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
 };
 
 export type WitnessUpdateManyWithoutUserNestedInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutUserInput, Prisma.WitnessUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutUserInput,
+        Prisma.WitnessUncheckedCreateWithoutUserInput
+      >
     | Prisma.WitnessCreateWithoutUserInput[]
     | Prisma.WitnessUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.WitnessCreateOrConnectWithoutUserInput | Prisma.WitnessCreateOrConnectWithoutUserInput[];
-  upsert?: Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput | Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.WitnessCreateOrConnectWithoutUserInput
+    | Prisma.WitnessCreateOrConnectWithoutUserInput[];
+  upsert?:
+    | Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput
+    | Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput[];
   createMany?: Prisma.WitnessCreateManyUserInputEnvelope;
   set?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
-  disconnect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
+  disconnect?:
+    | Prisma.WitnessWhereUniqueInput
+    | Prisma.WitnessWhereUniqueInput[];
   delete?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
   connect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
-  update?: Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput | Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput[];
-  updateMany?: Prisma.WitnessUpdateManyWithWhereWithoutUserInput | Prisma.WitnessUpdateManyWithWhereWithoutUserInput[];
-  deleteMany?: Prisma.WitnessScalarWhereInput | Prisma.WitnessScalarWhereInput[];
+  update?:
+    | Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput
+    | Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput[];
+  updateMany?:
+    | Prisma.WitnessUpdateManyWithWhereWithoutUserInput
+    | Prisma.WitnessUpdateManyWithWhereWithoutUserInput[];
+  deleteMany?:
+    | Prisma.WitnessScalarWhereInput
+    | Prisma.WitnessScalarWhereInput[];
 };
 
 export type WitnessUncheckedUpdateManyWithoutUserNestedInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutUserInput, Prisma.WitnessUncheckedCreateWithoutUserInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutUserInput,
+        Prisma.WitnessUncheckedCreateWithoutUserInput
+      >
     | Prisma.WitnessCreateWithoutUserInput[]
     | Prisma.WitnessUncheckedCreateWithoutUserInput[];
-  connectOrCreate?: Prisma.WitnessCreateOrConnectWithoutUserInput | Prisma.WitnessCreateOrConnectWithoutUserInput[];
-  upsert?: Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput | Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput[];
+  connectOrCreate?:
+    | Prisma.WitnessCreateOrConnectWithoutUserInput
+    | Prisma.WitnessCreateOrConnectWithoutUserInput[];
+  upsert?:
+    | Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput
+    | Prisma.WitnessUpsertWithWhereUniqueWithoutUserInput[];
   createMany?: Prisma.WitnessCreateManyUserInputEnvelope;
   set?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
-  disconnect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
+  disconnect?:
+    | Prisma.WitnessWhereUniqueInput
+    | Prisma.WitnessWhereUniqueInput[];
   delete?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
   connect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
-  update?: Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput | Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput[];
-  updateMany?: Prisma.WitnessUpdateManyWithWhereWithoutUserInput | Prisma.WitnessUpdateManyWithWhereWithoutUserInput[];
-  deleteMany?: Prisma.WitnessScalarWhereInput | Prisma.WitnessScalarWhereInput[];
+  update?:
+    | Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput
+    | Prisma.WitnessUpdateWithWhereUniqueWithoutUserInput[];
+  updateMany?:
+    | Prisma.WitnessUpdateManyWithWhereWithoutUserInput
+    | Prisma.WitnessUpdateManyWithWhereWithoutUserInput[];
+  deleteMany?:
+    | Prisma.WitnessScalarWhereInput
+    | Prisma.WitnessScalarWhereInput[];
 };
 
 export type WitnessCreateNestedManyWithoutTransactionInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutTransactionInput, Prisma.WitnessUncheckedCreateWithoutTransactionInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutTransactionInput,
+        Prisma.WitnessUncheckedCreateWithoutTransactionInput
+      >
     | Prisma.WitnessCreateWithoutTransactionInput[]
     | Prisma.WitnessUncheckedCreateWithoutTransactionInput[];
   connectOrCreate?:
@@ -436,7 +538,10 @@ export type WitnessCreateNestedManyWithoutTransactionInput = {
 
 export type WitnessUncheckedCreateNestedManyWithoutTransactionInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutTransactionInput, Prisma.WitnessUncheckedCreateWithoutTransactionInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutTransactionInput,
+        Prisma.WitnessUncheckedCreateWithoutTransactionInput
+      >
     | Prisma.WitnessCreateWithoutTransactionInput[]
     | Prisma.WitnessUncheckedCreateWithoutTransactionInput[];
   connectOrCreate?:
@@ -448,7 +553,10 @@ export type WitnessUncheckedCreateNestedManyWithoutTransactionInput = {
 
 export type WitnessUpdateManyWithoutTransactionNestedInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutTransactionInput, Prisma.WitnessUncheckedCreateWithoutTransactionInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutTransactionInput,
+        Prisma.WitnessUncheckedCreateWithoutTransactionInput
+      >
     | Prisma.WitnessCreateWithoutTransactionInput[]
     | Prisma.WitnessUncheckedCreateWithoutTransactionInput[];
   connectOrCreate?:
@@ -459,7 +567,9 @@ export type WitnessUpdateManyWithoutTransactionNestedInput = {
     | Prisma.WitnessUpsertWithWhereUniqueWithoutTransactionInput[];
   createMany?: Prisma.WitnessCreateManyTransactionInputEnvelope;
   set?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
-  disconnect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
+  disconnect?:
+    | Prisma.WitnessWhereUniqueInput
+    | Prisma.WitnessWhereUniqueInput[];
   delete?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
   connect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
   update?:
@@ -468,12 +578,17 @@ export type WitnessUpdateManyWithoutTransactionNestedInput = {
   updateMany?:
     | Prisma.WitnessUpdateManyWithWhereWithoutTransactionInput
     | Prisma.WitnessUpdateManyWithWhereWithoutTransactionInput[];
-  deleteMany?: Prisma.WitnessScalarWhereInput | Prisma.WitnessScalarWhereInput[];
+  deleteMany?:
+    | Prisma.WitnessScalarWhereInput
+    | Prisma.WitnessScalarWhereInput[];
 };
 
 export type WitnessUncheckedUpdateManyWithoutTransactionNestedInput = {
   create?:
-    | Prisma.XOR<Prisma.WitnessCreateWithoutTransactionInput, Prisma.WitnessUncheckedCreateWithoutTransactionInput>
+    | Prisma.XOR<
+        Prisma.WitnessCreateWithoutTransactionInput,
+        Prisma.WitnessUncheckedCreateWithoutTransactionInput
+      >
     | Prisma.WitnessCreateWithoutTransactionInput[]
     | Prisma.WitnessUncheckedCreateWithoutTransactionInput[];
   connectOrCreate?:
@@ -484,7 +599,9 @@ export type WitnessUncheckedUpdateManyWithoutTransactionNestedInput = {
     | Prisma.WitnessUpsertWithWhereUniqueWithoutTransactionInput[];
   createMany?: Prisma.WitnessCreateManyTransactionInputEnvelope;
   set?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
-  disconnect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
+  disconnect?:
+    | Prisma.WitnessWhereUniqueInput
+    | Prisma.WitnessWhereUniqueInput[];
   delete?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
   connect?: Prisma.WitnessWhereUniqueInput | Prisma.WitnessWhereUniqueInput[];
   update?:
@@ -493,7 +610,9 @@ export type WitnessUncheckedUpdateManyWithoutTransactionNestedInput = {
   updateMany?:
     | Prisma.WitnessUpdateManyWithWhereWithoutTransactionInput
     | Prisma.WitnessUpdateManyWithWhereWithoutTransactionInput[];
-  deleteMany?: Prisma.WitnessScalarWhereInput | Prisma.WitnessScalarWhereInput[];
+  deleteMany?:
+    | Prisma.WitnessScalarWhereInput
+    | Prisma.WitnessScalarWhereInput[];
 };
 
 export type EnumWitnessStatusFieldUpdateOperationsInput = {
@@ -524,7 +643,10 @@ export type WitnessUncheckedCreateWithoutUserInput = {
 
 export type WitnessCreateOrConnectWithoutUserInput = {
   where: Prisma.WitnessWhereUniqueInput;
-  create: Prisma.XOR<Prisma.WitnessCreateWithoutUserInput, Prisma.WitnessUncheckedCreateWithoutUserInput>;
+  create: Prisma.XOR<
+    Prisma.WitnessCreateWithoutUserInput,
+    Prisma.WitnessUncheckedCreateWithoutUserInput
+  >;
 };
 
 export type WitnessCreateManyUserInputEnvelope = {
@@ -534,18 +656,30 @@ export type WitnessCreateManyUserInputEnvelope = {
 
 export type WitnessUpsertWithWhereUniqueWithoutUserInput = {
   where: Prisma.WitnessWhereUniqueInput;
-  update: Prisma.XOR<Prisma.WitnessUpdateWithoutUserInput, Prisma.WitnessUncheckedUpdateWithoutUserInput>;
-  create: Prisma.XOR<Prisma.WitnessCreateWithoutUserInput, Prisma.WitnessUncheckedCreateWithoutUserInput>;
+  update: Prisma.XOR<
+    Prisma.WitnessUpdateWithoutUserInput,
+    Prisma.WitnessUncheckedUpdateWithoutUserInput
+  >;
+  create: Prisma.XOR<
+    Prisma.WitnessCreateWithoutUserInput,
+    Prisma.WitnessUncheckedCreateWithoutUserInput
+  >;
 };
 
 export type WitnessUpdateWithWhereUniqueWithoutUserInput = {
   where: Prisma.WitnessWhereUniqueInput;
-  data: Prisma.XOR<Prisma.WitnessUpdateWithoutUserInput, Prisma.WitnessUncheckedUpdateWithoutUserInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateWithoutUserInput,
+    Prisma.WitnessUncheckedUpdateWithoutUserInput
+  >;
 };
 
 export type WitnessUpdateManyWithWhereWithoutUserInput = {
   where: Prisma.WitnessScalarWhereInput;
-  data: Prisma.XOR<Prisma.WitnessUpdateManyMutationInput, Prisma.WitnessUncheckedUpdateManyWithoutUserInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateManyMutationInput,
+    Prisma.WitnessUncheckedUpdateManyWithoutUserInput
+  >;
 };
 
 export type WitnessScalarWhereInput = {
@@ -555,7 +689,11 @@ export type WitnessScalarWhereInput = {
   id?: Prisma.StringFilter<'Witness'> | string;
   status?: Prisma.EnumWitnessStatusFilter<'Witness'> | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFilter<'Witness'> | Date | string;
-  acknowledgedAt?: Prisma.DateTimeNullableFilter<'Witness'> | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.DateTimeNullableFilter<'Witness'>
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.StringNullableFilter<'Witness'> | string | null;
   transactionId?: Prisma.StringFilter<'Witness'> | string;
   userId?: Prisma.StringFilter<'Witness'> | string;
@@ -581,28 +719,45 @@ export type WitnessUncheckedCreateWithoutTransactionInput = {
 
 export type WitnessCreateOrConnectWithoutTransactionInput = {
   where: Prisma.WitnessWhereUniqueInput;
-  create: Prisma.XOR<Prisma.WitnessCreateWithoutTransactionInput, Prisma.WitnessUncheckedCreateWithoutTransactionInput>;
+  create: Prisma.XOR<
+    Prisma.WitnessCreateWithoutTransactionInput,
+    Prisma.WitnessUncheckedCreateWithoutTransactionInput
+  >;
 };
 
 export type WitnessCreateManyTransactionInputEnvelope = {
-  data: Prisma.WitnessCreateManyTransactionInput | Prisma.WitnessCreateManyTransactionInput[];
+  data:
+    | Prisma.WitnessCreateManyTransactionInput
+    | Prisma.WitnessCreateManyTransactionInput[];
   skipDuplicates?: boolean;
 };
 
 export type WitnessUpsertWithWhereUniqueWithoutTransactionInput = {
   where: Prisma.WitnessWhereUniqueInput;
-  update: Prisma.XOR<Prisma.WitnessUpdateWithoutTransactionInput, Prisma.WitnessUncheckedUpdateWithoutTransactionInput>;
-  create: Prisma.XOR<Prisma.WitnessCreateWithoutTransactionInput, Prisma.WitnessUncheckedCreateWithoutTransactionInput>;
+  update: Prisma.XOR<
+    Prisma.WitnessUpdateWithoutTransactionInput,
+    Prisma.WitnessUncheckedUpdateWithoutTransactionInput
+  >;
+  create: Prisma.XOR<
+    Prisma.WitnessCreateWithoutTransactionInput,
+    Prisma.WitnessUncheckedCreateWithoutTransactionInput
+  >;
 };
 
 export type WitnessUpdateWithWhereUniqueWithoutTransactionInput = {
   where: Prisma.WitnessWhereUniqueInput;
-  data: Prisma.XOR<Prisma.WitnessUpdateWithoutTransactionInput, Prisma.WitnessUncheckedUpdateWithoutTransactionInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateWithoutTransactionInput,
+    Prisma.WitnessUncheckedUpdateWithoutTransactionInput
+  >;
 };
 
 export type WitnessUpdateManyWithWhereWithoutTransactionInput = {
   where: Prisma.WitnessScalarWhereInput;
-  data: Prisma.XOR<Prisma.WitnessUpdateManyMutationInput, Prisma.WitnessUncheckedUpdateManyWithoutTransactionInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateManyMutationInput,
+    Prisma.WitnessUncheckedUpdateManyWithoutTransactionInput
+  >;
 };
 
 export type WitnessCreateManyUserInput = {
@@ -616,27 +771,45 @@ export type WitnessCreateManyUserInput = {
 
 export type WitnessUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transaction?: Prisma.TransactionUpdateOneRequiredWithoutWitnessesNestedInput;
 };
 
 export type WitnessUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
 export type WitnessUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
@@ -652,33 +825,52 @@ export type WitnessCreateManyTransactionInput = {
 
 export type WitnessUpdateWithoutTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   user?: Prisma.UserUpdateOneRequiredWithoutWitnessRecordsNestedInput;
 };
 
 export type WitnessUncheckedUpdateWithoutTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
 export type WitnessUncheckedUpdateManyWithoutTransactionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  status?: Prisma.EnumWitnessStatusFieldUpdateOperationsInput | $Enums.WitnessStatus;
+  status?:
+    | Prisma.EnumWitnessStatusFieldUpdateOperationsInput
+    | $Enums.WitnessStatus;
   invitedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
-  acknowledgedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  acknowledgedAt?:
+    | Prisma.NullableDateTimeFieldUpdateOperationsInput
+    | Date
+    | string
+    | null;
   inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
 export type WitnessSelect<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
@@ -695,7 +887,8 @@ export type WitnessSelect<
 >;
 
 export type WitnessSelectCreateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
@@ -712,7 +905,8 @@ export type WitnessSelectCreateManyAndReturn<
 >;
 
 export type WitnessSelectUpdateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
@@ -738,32 +932,44 @@ export type WitnessSelectScalar = {
   userId?: boolean;
 };
 
-export type WitnessOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> =
-  runtime.Types.Extensions.GetOmit<
-    'id' | 'status' | 'invitedAt' | 'acknowledgedAt' | 'inviteToken' | 'transactionId' | 'userId',
-    ExtArgs['result']['witness']
-  >;
+export type WitnessOmit<
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
+> = runtime.Types.Extensions.GetOmit<
+  | 'id'
+  | 'status'
+  | 'invitedAt'
+  | 'acknowledgedAt'
+  | 'inviteToken'
+  | 'transactionId'
+  | 'userId',
+  ExtArgs['result']['witness']
+>;
 export type WitnessInclude<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   transaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>;
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 export type WitnessIncludeCreateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   transaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>;
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 export type WitnessIncludeUpdateManyAndReturn<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   transaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>;
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
 };
 
 export type $WitnessPayload<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   name: 'Witness';
   objects: {
@@ -785,20 +991,26 @@ export type $WitnessPayload<
   composites: {};
 };
 
-export type WitnessGetPayload<S extends boolean | null | undefined | WitnessDefaultArgs> =
-  runtime.Types.Result.GetResult<Prisma.$WitnessPayload, S>;
+export type WitnessGetPayload<
+  S extends boolean | null | undefined | WitnessDefaultArgs,
+> = runtime.Types.Result.GetResult<Prisma.$WitnessPayload, S>;
 
 export type WitnessCountArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = Omit<WitnessFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
   select?: WitnessCountAggregateInputType | true;
 };
 
 export interface WitnessDelegate<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
   GlobalOmitOptions = {},
 > {
-  [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Witness']; meta: { name: 'Witness' } };
+  [K: symbol]: {
+    types: Prisma.TypeMap<ExtArgs>['model']['Witness'];
+    meta: { name: 'Witness' };
+  };
   /**
    * Find zero or one Witness that matches the filter.
    * @param {WitnessFindUniqueArgs} args - Arguments to find a Witness
@@ -813,7 +1025,12 @@ export interface WitnessDelegate<
   findUnique<T extends WitnessFindUniqueArgs>(
     args: Prisma.SelectSubset<T, WitnessFindUniqueArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'findUnique', GlobalOmitOptions> | null,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'findUnique',
+      GlobalOmitOptions
+    > | null,
     null,
     ExtArgs,
     GlobalOmitOptions
@@ -834,7 +1051,12 @@ export interface WitnessDelegate<
   findUniqueOrThrow<T extends WitnessFindUniqueOrThrowArgs>(
     args: Prisma.SelectSubset<T, WitnessFindUniqueOrThrowArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'findUniqueOrThrow',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -856,7 +1078,12 @@ export interface WitnessDelegate<
   findFirst<T extends WitnessFindFirstArgs>(
     args?: Prisma.SelectSubset<T, WitnessFindFirstArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'findFirst', GlobalOmitOptions> | null,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'findFirst',
+      GlobalOmitOptions
+    > | null,
     null,
     ExtArgs,
     GlobalOmitOptions
@@ -879,7 +1106,12 @@ export interface WitnessDelegate<
   findFirstOrThrow<T extends WitnessFindFirstOrThrowArgs>(
     args?: Prisma.SelectSubset<T, WitnessFindFirstOrThrowArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'findFirstOrThrow', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'findFirstOrThrow',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -904,7 +1136,12 @@ export interface WitnessDelegate<
   findMany<T extends WitnessFindManyArgs>(
     args?: Prisma.SelectSubset<T, WitnessFindManyArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'findMany', GlobalOmitOptions>
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'findMany',
+      GlobalOmitOptions
+    >
   >;
 
   /**
@@ -922,7 +1159,12 @@ export interface WitnessDelegate<
   create<T extends WitnessCreateArgs>(
     args: Prisma.SelectSubset<T, WitnessCreateArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'create', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'create',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -969,7 +1211,12 @@ export interface WitnessDelegate<
   createManyAndReturn<T extends WitnessCreateManyAndReturnArgs>(
     args?: Prisma.SelectSubset<T, WitnessCreateManyAndReturnArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'createManyAndReturn', GlobalOmitOptions>
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'createManyAndReturn',
+      GlobalOmitOptions
+    >
   >;
 
   /**
@@ -987,7 +1234,12 @@ export interface WitnessDelegate<
   delete<T extends WitnessDeleteArgs>(
     args: Prisma.SelectSubset<T, WitnessDeleteArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'delete', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'delete',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -1011,7 +1263,12 @@ export interface WitnessDelegate<
   update<T extends WitnessUpdateArgs>(
     args: Prisma.SelectSubset<T, WitnessUpdateArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'update', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'update',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -1085,7 +1342,12 @@ export interface WitnessDelegate<
   updateManyAndReturn<T extends WitnessUpdateManyAndReturnArgs>(
     args: Prisma.SelectSubset<T, WitnessUpdateManyAndReturnArgs<ExtArgs>>,
   ): Prisma.PrismaPromise<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'updateManyAndReturn', GlobalOmitOptions>
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'updateManyAndReturn',
+      GlobalOmitOptions
+    >
   >;
 
   /**
@@ -1108,7 +1370,12 @@ export interface WitnessDelegate<
   upsert<T extends WitnessUpsertArgs>(
     args: Prisma.SelectSubset<T, WitnessUpsertArgs<ExtArgs>>,
   ): Prisma.Prisma__WitnessClient<
-    runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, 'upsert', GlobalOmitOptions>,
+    runtime.Types.Result.GetResult<
+      Prisma.$WitnessPayload<ExtArgs>,
+      T,
+      'upsert',
+      GlobalOmitOptions
+    >,
     never,
     ExtArgs,
     GlobalOmitOptions
@@ -1185,11 +1452,16 @@ export interface WitnessDelegate<
    **/
   groupBy<
     T extends WitnessGroupByArgs,
-    HasSelectOrTake extends Prisma.Or<Prisma.Extends<'skip', Prisma.Keys<T>>, Prisma.Extends<'take', Prisma.Keys<T>>>,
+    HasSelectOrTake extends Prisma.Or<
+      Prisma.Extends<'skip', Prisma.Keys<T>>,
+      Prisma.Extends<'take', Prisma.Keys<T>>
+    >,
     OrderByArg extends Prisma.True extends HasSelectOrTake
       ? { orderBy: WitnessGroupByArgs['orderBy'] }
       : { orderBy?: WitnessGroupByArgs['orderBy'] },
-    OrderFields extends Prisma.ExcludeUnderscoreKeys<Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>>,
+    OrderFields extends Prisma.ExcludeUnderscoreKeys<
+      Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>
+    >,
     ByFields extends Prisma.MaybeTupleToUnion<T['by']>,
     ByValid extends Prisma.Has<ByFields, OrderFields>,
     HavingFields extends Prisma.GetHavingFields<T['having']>,
@@ -1203,7 +1475,12 @@ export interface WitnessDelegate<
               ? never
               : P extends string
                 ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-                : [Error, 'Field ', P, ` in "having" needs to be provided in "by"`];
+                : [
+                    Error,
+                    'Field ',
+                    P,
+                    ` in "having" needs to be provided in "by"`,
+                  ];
           }[HavingFields]
         : 'take' extends Prisma.Keys<T>
           ? 'orderBy' extends Prisma.Keys<T>
@@ -1233,8 +1510,11 @@ export interface WitnessDelegate<
                     : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`;
                 }[OrderFields],
   >(
-    args: Prisma.SubsetIntersection<T, WitnessGroupByArgs, OrderByArg> & InputErrors,
-  ): {} extends InputErrors ? GetWitnessGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>;
+    args: Prisma.SubsetIntersection<T, WitnessGroupByArgs, OrderByArg> &
+      InputErrors,
+  ): {} extends InputErrors
+    ? GetWitnessGroupByPayload<T>
+    : Prisma.PrismaPromise<InputErrors>;
   /**
    * Fields of the Witness model
    */
@@ -1250,14 +1530,20 @@ export interface WitnessDelegate<
 export interface Prisma__WitnessClient<
   T,
   Null = never,
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
   GlobalOmitOptions = {},
 > extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise';
   transaction<T extends Prisma.TransactionDefaultArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.TransactionDefaultArgs<ExtArgs>>,
   ): Prisma.Prisma__TransactionClient<
-    | runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions>
+    | runtime.Types.Result.GetResult<
+        Prisma.$TransactionPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >
     | Null,
     Null,
     ExtArgs,
@@ -1266,7 +1552,13 @@ export interface Prisma__WitnessClient<
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(
     args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>,
   ): Prisma.Prisma__UserClient<
-    runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'findUniqueOrThrow', GlobalOmitOptions> | Null,
+    | runtime.Types.Result.GetResult<
+        Prisma.$UserPayload<ExtArgs>,
+        T,
+        'findUniqueOrThrow',
+        GlobalOmitOptions
+      >
+    | Null,
     Null,
     ExtArgs,
     GlobalOmitOptions
@@ -1278,8 +1570,14 @@ export interface Prisma__WitnessClient<
    * @returns A Promise for the completion of which ever callback is executed.
    */
   then<TResult1 = T, TResult2 = never>(
-    onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null,
-    onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null,
+    onfulfilled?:
+      | ((value: T) => TResult1 | PromiseLike<TResult1>)
+      | undefined
+      | null,
+    onrejected?:
+      | ((reason: any) => TResult2 | PromiseLike<TResult2>)
+      | undefined
+      | null,
   ): runtime.Types.Utils.JsPromise<TResult1 | TResult2>;
   /**
    * Attaches a callback for only the rejection of the Promise.
@@ -1287,7 +1585,10 @@ export interface Prisma__WitnessClient<
    * @returns A Promise for the completion of the callback.
    */
   catch<TResult = never>(
-    onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null,
+    onrejected?:
+      | ((reason: any) => TResult | PromiseLike<TResult>)
+      | undefined
+      | null,
   ): runtime.Types.Utils.JsPromise<T | TResult>;
   /**
    * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
@@ -1295,7 +1596,9 @@ export interface Prisma__WitnessClient<
    * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
    * @returns A Promise for the completion of the callback.
    */
-  finally(onfinally?: (() => void) | undefined | null): runtime.Types.Utils.JsPromise<T>;
+  finally(
+    onfinally?: (() => void) | undefined | null,
+  ): runtime.Types.Utils.JsPromise<T>;
 }
 
 /**
@@ -1316,7 +1619,8 @@ export interface WitnessFieldRefs {
  * Witness findUnique
  */
 export type WitnessFindUniqueArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1340,7 +1644,8 @@ export type WitnessFindUniqueArgs<
  * Witness findUniqueOrThrow
  */
 export type WitnessFindUniqueOrThrowArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1364,7 +1669,8 @@ export type WitnessFindUniqueOrThrowArgs<
  * Witness findFirst
  */
 export type WitnessFindFirstArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1387,7 +1693,9 @@ export type WitnessFindFirstArgs<
    *
    * Determine the order of Witnesses to fetch.
    */
-  orderBy?: Prisma.WitnessOrderByWithRelationInput | Prisma.WitnessOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.WitnessOrderByWithRelationInput
+    | Prisma.WitnessOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -1418,7 +1726,8 @@ export type WitnessFindFirstArgs<
  * Witness findFirstOrThrow
  */
 export type WitnessFindFirstOrThrowArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1441,7 +1750,9 @@ export type WitnessFindFirstOrThrowArgs<
    *
    * Determine the order of Witnesses to fetch.
    */
-  orderBy?: Prisma.WitnessOrderByWithRelationInput | Prisma.WitnessOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.WitnessOrderByWithRelationInput
+    | Prisma.WitnessOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -1472,7 +1783,8 @@ export type WitnessFindFirstOrThrowArgs<
  * Witness findMany
  */
 export type WitnessFindManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1495,7 +1807,9 @@ export type WitnessFindManyArgs<
    *
    * Determine the order of Witnesses to fetch.
    */
-  orderBy?: Prisma.WitnessOrderByWithRelationInput | Prisma.WitnessOrderByWithRelationInput[];
+  orderBy?:
+    | Prisma.WitnessOrderByWithRelationInput
+    | Prisma.WitnessOrderByWithRelationInput[];
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
    *
@@ -1521,7 +1835,8 @@ export type WitnessFindManyArgs<
  * Witness create
  */
 export type WitnessCreateArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1538,14 +1853,18 @@ export type WitnessCreateArgs<
   /**
    * The data needed to create a Witness.
    */
-  data: Prisma.XOR<Prisma.WitnessCreateInput, Prisma.WitnessUncheckedCreateInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessCreateInput,
+    Prisma.WitnessUncheckedCreateInput
+  >;
 };
 
 /**
  * Witness createMany
  */
 export type WitnessCreateManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * The data used to create many Witnesses.
@@ -1558,7 +1877,8 @@ export type WitnessCreateManyArgs<
  * Witness createManyAndReturn
  */
 export type WitnessCreateManyAndReturnArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1583,7 +1903,8 @@ export type WitnessCreateManyAndReturnArgs<
  * Witness update
  */
 export type WitnessUpdateArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1600,7 +1921,10 @@ export type WitnessUpdateArgs<
   /**
    * The data needed to update a Witness.
    */
-  data: Prisma.XOR<Prisma.WitnessUpdateInput, Prisma.WitnessUncheckedUpdateInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateInput,
+    Prisma.WitnessUncheckedUpdateInput
+  >;
   /**
    * Choose, which Witness to update.
    */
@@ -1611,12 +1935,16 @@ export type WitnessUpdateArgs<
  * Witness updateMany
  */
 export type WitnessUpdateManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * The data used to update Witnesses.
    */
-  data: Prisma.XOR<Prisma.WitnessUpdateManyMutationInput, Prisma.WitnessUncheckedUpdateManyInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateManyMutationInput,
+    Prisma.WitnessUncheckedUpdateManyInput
+  >;
   /**
    * Filter which Witnesses to update
    */
@@ -1631,7 +1959,8 @@ export type WitnessUpdateManyArgs<
  * Witness updateManyAndReturn
  */
 export type WitnessUpdateManyAndReturnArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1644,7 +1973,10 @@ export type WitnessUpdateManyAndReturnArgs<
   /**
    * The data used to update Witnesses.
    */
-  data: Prisma.XOR<Prisma.WitnessUpdateManyMutationInput, Prisma.WitnessUncheckedUpdateManyInput>;
+  data: Prisma.XOR<
+    Prisma.WitnessUpdateManyMutationInput,
+    Prisma.WitnessUncheckedUpdateManyInput
+  >;
   /**
    * Filter which Witnesses to update
    */
@@ -1663,7 +1995,8 @@ export type WitnessUpdateManyAndReturnArgs<
  * Witness upsert
  */
 export type WitnessUpsertArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1684,18 +2017,25 @@ export type WitnessUpsertArgs<
   /**
    * In case the Witness found by the `where` argument doesn't exist, create a new Witness with this data.
    */
-  create: Prisma.XOR<Prisma.WitnessCreateInput, Prisma.WitnessUncheckedCreateInput>;
+  create: Prisma.XOR<
+    Prisma.WitnessCreateInput,
+    Prisma.WitnessUncheckedCreateInput
+  >;
   /**
    * In case the Witness was found with the provided `where` argument, update it with this data.
    */
-  update: Prisma.XOR<Prisma.WitnessUpdateInput, Prisma.WitnessUncheckedUpdateInput>;
+  update: Prisma.XOR<
+    Prisma.WitnessUpdateInput,
+    Prisma.WitnessUncheckedUpdateInput
+  >;
 };
 
 /**
  * Witness delete
  */
 export type WitnessDeleteArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness
@@ -1719,7 +2059,8 @@ export type WitnessDeleteArgs<
  * Witness deleteMany
  */
 export type WitnessDeleteManyArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Filter which Witnesses to delete
@@ -1735,7 +2076,8 @@ export type WitnessDeleteManyArgs<
  * Witness without action
  */
 export type WitnessDefaultArgs<
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > = {
   /**
    * Select specific fields to fetch from the Witness

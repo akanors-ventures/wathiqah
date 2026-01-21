@@ -1,9 +1,9 @@
-# Haafizh - Architecture & Folder Structure
+# Wathȋqah - Architecture & Folder Structure
 
 ## 📁 Monorepo Structure
 
 ```
-haafizh/
+wathiqah/
 ├── apps/
 │   ├── api/          # NestJS GraphQL Backend
 │   └── web/          # TanStack Start Frontend
@@ -114,7 +114,7 @@ apps/api/
 ### Key Principles (Backend)
 
 1. **Module-based Architecture**: Each feature is a self-contained module
-2. **Separation of Concerns**: 
+2. **Separation of Concerns**:
    - `Resolvers` handle GraphQL queries/mutations
    - `Services` contain business logic
    - `Entities` define GraphQL schema
@@ -275,12 +275,12 @@ model User {
   name          String
   passwordHash  String?   // Null for invited witnesses who haven't set password
   createdAt     DateTime  @default(now())
-  
+
   // Relations
   transactions  Transaction[]  @relation("TransactionCreator")
   contacts      Contact[]
   witnessRecords Witness[]     @relation("WitnessUser")
-  
+
   @@map("users")
 }
 
@@ -290,12 +290,12 @@ model Contact {
   email        String?
   phoneNumber  String?
   createdAt    DateTime  @default(now())
-  
+
   // Relations
   userId       String
   user         User      @relation(fields: [userId], references: [id])
   transactions Transaction[]
-  
+
   @@map("contacts")
 }
 
@@ -309,14 +309,14 @@ model Transaction {
   date        DateTime
   description String?
   createdAt   DateTime  @default(now())
-  
+
   // Relations
   contactId   String
   contact     Contact   @relation(fields: [contactId], references: [id])
   createdById String
   createdBy   User      @relation("TransactionCreator", fields: [createdById], references: [id])
   witnesses   Witness[]
-  
+
   @@map("transactions")
 }
 
@@ -331,13 +331,13 @@ model Witness {
   invitedAt       DateTime       @default(now())
   acknowledgedAt  DateTime?
   inviteToken     String?        @unique  // For new user invitations
-  
+
   // Relations
   transactionId   String
   transaction     Transaction    @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   userId          String
   user            User           @relation("WitnessUser", fields: [userId], references: [id])
-  
+
   @@unique([transactionId, userId])  // Prevent duplicate witnesses
   @@map("witnesses")
 }
@@ -442,8 +442,8 @@ input CreateTransactionInput {
   type: TransactionType!
   date: DateTime!
   description: String
-  witnessUserIds: [ID!]      # Existing users
-  witnessInvites: [WitnessInviteInput!]  # New users
+  witnessUserIds: [ID!] # Existing users
+  witnessInvites: [WitnessInviteInput!] # New users
 }
 
 type Mutation {
@@ -460,6 +460,7 @@ type Query {
 ### Frontend Components
 
 #### WitnessInviteForm.tsx
+
 ```typescript
 // Used in TransactionForm to add witnesses
 - Search existing users (autocomplete)
@@ -468,6 +469,7 @@ type Query {
 ```
 
 #### WitnessStatusBadge.tsx
+
 ```typescript
 // Display witness status with color coding
 - PENDING: Yellow/Orange
@@ -476,6 +478,7 @@ type Query {
 ```
 
 #### WitnessList.tsx
+
 ```typescript
 // Show all witnesses for a transaction
 - User avatar/name
@@ -484,6 +487,7 @@ type Query {
 ```
 
 #### Witness Request Page (routes/witnesses/index.tsx)
+
 ```typescript
 // Show all pending witness requests for current user
 - List of transactions awaiting acknowledgment
@@ -492,6 +496,7 @@ type Query {
 ```
 
 #### Witness Invitation Page (routes/witnesses/invite.$token.tsx)
+
 ```typescript
 // Handle witness invitation acceptance
 1. Validate token
@@ -564,6 +569,7 @@ packages/
 ## 🎯 Best Practices
 
 ### Backend (NestJS)
+
 - ✅ Use DTOs for input validation
 - ✅ Use Guards for authentication/authorization
 - ✅ Use Interceptors for logging and transformations
@@ -571,6 +577,7 @@ packages/
 - ✅ Use Prisma for type-safe database access
 
 ### Frontend (TanStack Start)
+
 - ✅ Use Apollo Client for GraphQL queries
 - ✅ Use TanStack Query for caching
 - ✅ Keep components small and focused
@@ -578,6 +585,7 @@ packages/
 - ✅ Use Shadcn for consistent UI
 
 ### Monorepo
+
 - ✅ Use Turborepo for task orchestration
 - ✅ Share types via `packages/types`
 - ✅ Keep dependencies isolated per app

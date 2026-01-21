@@ -8,15 +8,20 @@ export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createTransactionInput: CreateTransactionInput, userId: string) {
-    const { category, amount, itemName, quantity, ...rest } = createTransactionInput;
+    const { category, amount, itemName, quantity, ...rest } =
+      createTransactionInput;
 
     // Validation logic for category
     if (category === AssetCategory.FUNDS && !amount) {
-      throw new BadRequestException('Amount is required for financial transactions');
+      throw new BadRequestException(
+        'Amount is required for financial transactions',
+      );
     }
 
     if (category === AssetCategory.ITEM && !itemName) {
-      throw new BadRequestException('Item name is required for physical item tracking');
+      throw new BadRequestException(
+        'Item name is required for physical item tracking',
+      );
     }
 
     return this.prisma.transaction.create({

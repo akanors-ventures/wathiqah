@@ -22,9 +22,15 @@ export type * from './prismaNamespace';
 export const Decimal = runtime.Decimal;
 
 export const NullTypes = {
-  DbNull: runtime.NullTypes.DbNull as new (secret: never) => typeof runtime.DbNull,
-  JsonNull: runtime.NullTypes.JsonNull as new (secret: never) => typeof runtime.JsonNull,
-  AnyNull: runtime.NullTypes.AnyNull as new (secret: never) => typeof runtime.AnyNull,
+  DbNull: runtime.NullTypes.DbNull as new (
+    secret: never,
+  ) => typeof runtime.DbNull,
+  JsonNull: runtime.NullTypes.JsonNull as new (
+    secret: never,
+  ) => typeof runtime.JsonNull,
+  AnyNull: runtime.NullTypes.AnyNull as new (
+    secret: never,
+  ) => typeof runtime.AnyNull,
 };
 /**
  * Helper for filtering JSON entries that have `null` on the database (empty on the db)
@@ -67,7 +73,8 @@ export const TransactionIsolationLevel = {
   Serializable: 'Serializable',
 } as const;
 
-export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel];
+export type TransactionIsolationLevel =
+  (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel];
 
 export const UserScalarFieldEnum = {
   id: 'id',
@@ -77,7 +84,8 @@ export const UserScalarFieldEnum = {
   createdAt: 'createdAt',
 } as const;
 
-export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum];
+export type UserScalarFieldEnum =
+  (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum];
 
 export const ContactScalarFieldEnum = {
   id: 'id',
@@ -88,7 +96,8 @@ export const ContactScalarFieldEnum = {
   userId: 'userId',
 } as const;
 
-export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum];
+export type ContactScalarFieldEnum =
+  (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum];
 
 export const TransactionScalarFieldEnum = {
   id: 'id',
@@ -104,7 +113,8 @@ export const TransactionScalarFieldEnum = {
   createdById: 'createdById',
 } as const;
 
-export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum];
+export type TransactionScalarFieldEnum =
+  (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum];
 
 export const WitnessScalarFieldEnum = {
   id: 'id',
@@ -116,7 +126,8 @@ export const WitnessScalarFieldEnum = {
   userId: 'userId',
 } as const;
 
-export type WitnessScalarFieldEnum = (typeof WitnessScalarFieldEnum)[keyof typeof WitnessScalarFieldEnum];
+export type WitnessScalarFieldEnum =
+  (typeof WitnessScalarFieldEnum)[keyof typeof WitnessScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',

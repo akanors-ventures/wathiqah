@@ -1,5 +1,15 @@
-import { ObjectType, Field, ID, Float, Int, registerEnumType } from '@nestjs/graphql';
-import { AssetCategory, TransactionType } from '../../../generated/prisma/client';
+import {
+  ObjectType,
+  Field,
+  ID,
+  Float,
+  Int,
+  registerEnumType,
+} from '@nestjs/graphql';
+import {
+  AssetCategory,
+  TransactionType,
+} from '../../../generated/prisma/client';
 
 registerEnumType(AssetCategory, {
   name: 'AssetCategory',

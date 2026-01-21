@@ -11,7 +11,10 @@ export class TransactionsResolver {
 
   @Mutation(() => Transaction)
   @UseGuards(/* JwtAuthGuard */)
-  async createTransaction(@Args('input') createTransactionInput: CreateTransactionInput, @Context() context) {
+  async createTransaction(
+    @Args('input') createTransactionInput: CreateTransactionInput,
+    @Context() context,
+  ) {
     // Mock user ID until Auth is implemented
     const userId = context.req?.user?.id || 'mock-user-id';
     return this.transactionsService.create(createTransactionInput, userId);

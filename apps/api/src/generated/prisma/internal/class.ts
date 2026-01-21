@@ -31,26 +31,31 @@ config.runtimeDataModel = JSON.parse(
   '{"models":{"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"passwordHash","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"transactions","kind":"object","type":"Transaction","relationName":"TransactionCreator"},{"name":"contacts","kind":"object","type":"Contact","relationName":"ContactToUser"},{"name":"witnessRecords","kind":"object","type":"Witness","relationName":"WitnessUser"}],"dbName":"users"},"Contact":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"phoneNumber","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"ContactToUser"},{"name":"transactions","kind":"object","type":"Transaction","relationName":"ContactToTransaction"}],"dbName":"contacts"},"Transaction":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"category","kind":"enum","type":"AssetCategory"},{"name":"amount","kind":"scalar","type":"Decimal"},{"name":"itemName","kind":"scalar","type":"String"},{"name":"quantity","kind":"scalar","type":"Int"},{"name":"type","kind":"enum","type":"TransactionType"},{"name":"date","kind":"scalar","type":"DateTime"},{"name":"description","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"contactId","kind":"scalar","type":"String"},{"name":"contact","kind":"object","type":"Contact","relationName":"ContactToTransaction"},{"name":"createdById","kind":"scalar","type":"String"},{"name":"createdBy","kind":"object","type":"User","relationName":"TransactionCreator"},{"name":"witnesses","kind":"object","type":"Witness","relationName":"TransactionToWitness"}],"dbName":"transactions"},"Witness":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"status","kind":"enum","type":"WitnessStatus"},{"name":"invitedAt","kind":"scalar","type":"DateTime"},{"name":"acknowledgedAt","kind":"scalar","type":"DateTime"},{"name":"inviteToken","kind":"scalar","type":"String"},{"name":"transactionId","kind":"scalar","type":"String"},{"name":"transaction","kind":"object","type":"Transaction","relationName":"TransactionToWitness"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"WitnessUser"}],"dbName":"witnesses"}},"enums":{},"types":{}}',
 );
 
-async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+async function decodeBase64AsWasm(
+  wasmBase64: string,
+): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer');
   const wasmArray = Buffer.from(wasmBase64, 'base64');
   return new WebAssembly.Module(wasmArray);
 }
 
 config.compilerWasm = {
-  getRuntime: async () => await import('@prisma/client/runtime/query_compiler_bg.postgresql.js'),
+  getRuntime: async () =>
+    await import('@prisma/client/runtime/query_compiler_bg.postgresql.js'),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import('@prisma/client/runtime/query_compiler_bg.postgresql.wasm-base64.js');
+    const { wasm } =
+      await import('@prisma/client/runtime/query_compiler_bg.postgresql.wasm-base64.js');
     return await decodeBase64AsWasm(wasm);
   },
 };
 
-export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> = 'log' extends keyof ClientOptions
-  ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition>
-    ? Prisma.GetEvents<ClientOptions['log']>
-    : never
-  : never;
+export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
+  'log' extends keyof ClientOptions
+    ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition>
+      ? Prisma.GetEvents<ClientOptions['log']>
+      : never
+    : never;
 
 export interface PrismaClientConstructor {
   /**
@@ -70,10 +75,13 @@ export interface PrismaClientConstructor {
   new <
     Options extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
     LogOpts extends LogOptions<Options> = LogOptions<Options>,
-    OmitOpts extends Prisma.PrismaClientOptions['omit'] = Options extends { omit: infer U }
+    OmitOpts extends Prisma.PrismaClientOptions['omit'] = Options extends {
+      omit: infer U;
+    }
       ? U
       : Prisma.PrismaClientOptions['omit'],
-    ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+    ExtArgs extends runtime.Types.Extensions.InternalArgs =
+      runtime.Types.Extensions.DefaultArgs,
   >(
     options: Prisma.Subset<Options, Prisma.PrismaClientOptions>,
   ): PrismaClient<LogOpts, OmitOpts, ExtArgs>;
@@ -96,13 +104,16 @@ export interface PrismaClientConstructor {
 export interface PrismaClient<
   in LogOpts extends Prisma.LogLevel = never,
   in out OmitOpts extends Prisma.PrismaClientOptions['omit'] = undefined,
-  in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
+  in out ExtArgs extends runtime.Types.Extensions.InternalArgs =
+    runtime.Types.Extensions.DefaultArgs,
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] };
 
   $on<V extends LogOpts>(
     eventType: V,
-    callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void,
+    callback: (
+      event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent,
+    ) => void,
   ): PrismaClient;
 
   /**
@@ -124,7 +135,10 @@ export interface PrismaClient<
    *
    * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
+  $executeRaw<T = unknown>(
+    query: TemplateStringsArray | Prisma.Sql,
+    ...values: any[]
+  ): Prisma.PrismaPromise<number>;
 
   /**
    * Executes a raw query and returns the number of affected rows.
@@ -136,7 +150,10 @@ export interface PrismaClient<
    *
    * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
+  $executeRawUnsafe<T = unknown>(
+    query: string,
+    ...values: any[]
+  ): Prisma.PrismaPromise<number>;
 
   /**
    * Performs a prepared raw query and returns the `SELECT` data.
@@ -147,7 +164,10 @@ export interface PrismaClient<
    *
    * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
-  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
+  $queryRaw<T = unknown>(
+    query: TemplateStringsArray | Prisma.Sql,
+    ...values: any[]
+  ): Prisma.PrismaPromise<T>;
 
   /**
    * Performs a raw query and returns the `SELECT` data.
@@ -159,7 +179,10 @@ export interface PrismaClient<
    *
    * Read more in our [docs](https://pris.ly/d/raw-queries).
    */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
+  $queryRawUnsafe<T = unknown>(
+    query: string,
+    ...values: any[]
+  ): Prisma.PrismaPromise<T>;
 
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
@@ -180,8 +203,14 @@ export interface PrismaClient<
   ): runtime.Types.Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>;
 
   $transaction<R>(
-    fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => runtime.Types.Utils.JsPromise<R>,
-    options?: { maxWait?: number; timeout?: number; isolationLevel?: Prisma.TransactionIsolationLevel },
+    fn: (
+      prisma: Omit<PrismaClient, runtime.ITXClientDenyList>,
+    ) => runtime.Types.Utils.JsPromise<R>,
+    options?: {
+      maxWait?: number;
+      timeout?: number;
+      isolationLevel?: Prisma.TransactionIsolationLevel;
+    },
   ): runtime.Types.Utils.JsPromise<R>;
 
   $extends: runtime.Types.Extensions.ExtendsHook<

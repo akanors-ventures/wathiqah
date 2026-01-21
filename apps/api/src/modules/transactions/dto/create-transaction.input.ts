@@ -1,5 +1,8 @@
 import { InputType, Field, Float, Int, ID } from '@nestjs/graphql';
-import { AssetCategory, TransactionType } from '../../../generated/prisma/client';
+import {
+  AssetCategory,
+  TransactionType,
+} from '../../../generated/prisma/client';
 import { IsEnum, IsOptional, IsString, IsNumber, Min } from 'class-validator';
 
 @InputType()
