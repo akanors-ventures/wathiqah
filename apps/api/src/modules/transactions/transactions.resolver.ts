@@ -7,23 +7,20 @@ import { UseGuards } from '@nestjs/common';
 
 @Resolver(() => Transaction)
 export class TransactionsResolver {
-    constructor(private readonly transactionsService: TransactionsService) { }
+  constructor(private readonly transactionsService: TransactionsService) {}
 
-    @Mutation(() => Transaction)
-    @UseGuards(/* JwtAuthGuard */)
-    async createTransaction(
-        @Args('input') createTransactionInput: CreateTransactionInput,
-        @Context() context,
-    ) {
-        // Mock user ID until Auth is implemented
-        const userId = context.req?.user?.id || 'mock-user-id';
-        return this.transactionsService.create(createTransactionInput, userId);
-    }
+  @Mutation(() => Transaction)
+  @UseGuards(/* JwtAuthGuard */)
+  async createTransaction(@Args('input') createTransactionInput: CreateTransactionInput, @Context() context) {
+    // Mock user ID until Auth is implemented
+    const userId = context.req?.user?.id || 'mock-user-id';
+    return this.transactionsService.create(createTransactionInput, userId);
+  }
 
-    @Query(() => [Transaction], { name: 'transactions' })
-    @UseGuards(/* JwtAuthGuard */)
-    async findAll(@Context() context) {
-        const userId = context.req?.user?.id || 'mock-user-id';
-        return this.transactionsService.findAll(userId);
-    }
+  @Query(() => [Transaction], { name: 'transactions' })
+  @UseGuards(/* JwtAuthGuard */)
+  async findAll(@Context() context) {
+    const userId = context.req?.user?.id || 'mock-user-id';
+    return this.transactionsService.findAll(userId);
+  }
 }

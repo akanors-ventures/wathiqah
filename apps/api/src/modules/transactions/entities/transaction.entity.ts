@@ -2,45 +2,45 @@ import { ObjectType, Field, ID, Float, Int, registerEnumType } from '@nestjs/gra
 import { AssetCategory, TransactionType } from '../../../generated/prisma/client';
 
 registerEnumType(AssetCategory, {
-    name: 'AssetCategory',
+  name: 'AssetCategory',
 });
 
 registerEnumType(TransactionType, {
-    name: 'TransactionType',
+  name: 'TransactionType',
 });
 
 @ObjectType()
 export class Transaction {
-    @Field(() => ID)
-    id: string;
+  @Field(() => ID)
+  id: string;
 
-    @Field(() => AssetCategory)
-    category: AssetCategory;
+  @Field(() => AssetCategory)
+  category: AssetCategory;
 
-    @Field(() => Float, { nullable: true })
-    amount?: number;
+  @Field(() => Float, { nullable: true })
+  amount?: number;
 
-    @Field({ nullable: true })
-    itemName?: string;
+  @Field({ nullable: true })
+  itemName?: string;
 
-    @Field(() => Int, { defaultValue: 1 })
-    quantity: number;
+  @Field(() => Int, { defaultValue: 1 })
+  quantity: number;
 
-    @Field(() => TransactionType)
-    type: TransactionType;
+  @Field(() => TransactionType)
+  type: TransactionType;
 
-    @Field()
-    date: Date;
+  @Field()
+  date: Date;
 
-    @Field({ nullable: true })
-    description?: string;
+  @Field({ nullable: true })
+  description?: string;
 
-    @Field()
-    createdAt: Date;
+  @Field()
+  createdAt: Date;
 
-    @Field()
-    contactId: string;
+  @Field()
+  contactId: string;
 
-    @Field()
-    createdById: string;
+  @Field()
+  createdById: string;
 }
