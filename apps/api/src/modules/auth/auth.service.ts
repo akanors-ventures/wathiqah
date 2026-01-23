@@ -22,12 +22,10 @@ export class AuthService {
 
   private async generateTokens(userId: string, email: string) {
     const accessExpiry = ms(
-      this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRY') as StringValue,
+      this.configService.getOrThrow<string>('jwt.accessExpiry') as StringValue,
     );
     const refreshExpiry = ms(
-      this.configService.getOrThrow<string>(
-        'JWT_REFRESH_EXPIRY',
-      ) as StringValue,
+      this.configService.getOrThrow<string>('jwt.refreshExpiry') as StringValue,
     );
 
     const accessToken = await this.jwtService.signAsync(
@@ -128,7 +126,7 @@ export class AuthService {
         user,
       };
     } catch (error) {
-      throw new UnauthorizedException('Access Denied');
+      throw new UnauthorizedException('Access Denied: ', error.message);
     }
   }
 

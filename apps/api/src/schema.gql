@@ -13,6 +13,23 @@ type AuthPayload {
   user: User!
 }
 
+type Contact {
+  createdAt: DateTime!
+  email: String
+  id: ID!
+  name: String!
+  phoneNumber: String
+  transactions: [Transaction]!
+  user: User!
+  userId: String!
+}
+
+input CreateContactInput {
+  email: String
+  name: String!
+  phoneNumber: String
+}
+
 input CreateTransactionInput {
   amount: Float
   category: AssetCategory!
@@ -29,20 +46,32 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 input LoginInput {
   email: String!
   password: String!
 }
 
 type Mutation {
+  createContact(createContactInput: CreateContactInput!): Contact!
   createTransaction(input: CreateTransactionInput!): Transaction!
   login(loginInput: LoginInput!): AuthPayload!
   refreshToken(refreshToken: String!): AuthPayload!
+  removeContact(id: ID!): Contact!
   signup(signupInput: SignupInput!): AuthPayload!
+  updateContact(updateContactInput: UpdateContactInput!): Contact!
+  updateTransaction(input: UpdateTransactionInput!): Transaction!
 }
 
 type Query {
+  contact(id: ID!): Contact!
+  contacts: [Contact!]!
   me: User!
+  transaction(id: ID!): Transaction!
   transactions: [Transaction!]!
   user(id: String!): User
 }
@@ -56,15 +85,30 @@ input SignupInput {
 type Transaction {
   amount: Float
   category: AssetCategory!
+  contact: Contact!
   contactId: String!
   createdAt: DateTime!
+  createdBy: User!
   createdById: String!
   date: DateTime!
   description: String
+  history: [TransactionHistory]!
   id: ID!
   itemName: String
-  quantity: Int!
+  quantity: Int
   type: TransactionType!
+  witnesses: [Witness]!
+}
+
+type TransactionHistory {
+  changeType: String!
+  createdAt: DateTime!
+  id: ID!
+  newState: JSON!
+  previousState: JSON!
+  transactionId: String!
+  user: User!
+  userId: String!
 }
 
 enum TransactionType {
@@ -73,10 +117,47 @@ enum TransactionType {
   RECEIVED
 }
 
+input UpdateContactInput {
+  email: String
+  id: ID!
+  name: String
+  phoneNumber: String
+}
+
+input UpdateTransactionInput {
+  amount: Float
+  category: AssetCategory
+  contactId: ID
+  date: DateTime
+  description: String
+  id: ID!
+  itemName: String
+  quantity: Int = 1
+  type: TransactionType
+}
+
 type User {
   createdAt: DateTime!
   email: String!
   id: ID!
   name: String!
   passwordHash: String
+}
+
+type Witness {
+  acknowledgedAt: DateTime
+  id: ID!
+  invitedAt: DateTime!
+  status: WitnessStatus!
+  transaction: Transaction!
+  transactionId: String!
+  user: User!
+  userId: String!
+}
+
+enum WitnessStatus {
+  ACKNOWLEDGED
+  DECLINED
+  MODIFIED
+  PENDING
 }
