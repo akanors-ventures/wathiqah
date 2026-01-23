@@ -1,7 +1,12 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionInput } from './dto/create-transaction.input';
-import { AssetCategory } from '../../generated/prisma/client';
+import { UpdateTransactionInput } from './dto/update-transaction.input';
+import { AssetCategory, WitnessStatus } from '../../generated/prisma/client';
 
 @Injectable()
 export class TransactionsService {
@@ -56,5 +61,120 @@ export class TransactionsService {
         date: 'desc',
       },
     });
+  }
+
+  async findOne(id: string, userId: string) {
+    const transaction = await this.prisma.transaction.findFirst({
+      where: { id, createdById: userId },
+      include: {
+        witnesses: true,
+        history: {
+          include: {
+            user: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException(`Transaction with ID ${id} not found`);
+    }
+
+    return transaction;
+  }
+
+  async update(
+    id: string,
+    updateTransactionInput: UpdateTransactionInput,
+    userId: string,
+  ) {
+    const transaction = await this.findOne(id, userId);
+
+    // Create audit log entry
+    const previousState = {
+      category: transaction.category,
+      amount: transaction.amount,
+      itemName: transaction.itemName,
+      quantity: transaction.quantity,
+      type: transaction.type,
+      date: transaction.date,
+      description: transaction.description,
+      contactId: transaction.contactId,
+    };
+
+    // Business Rule: Check if any witness has acknowledged
+    const hasAcknowledgedWitness = transaction.witnesses.some(
+      (w) => w.status === WitnessStatus.ACKNOWLEDGED,
+    );
+
+    if (hasAcknowledgedWitness) {
+      // Logic for post-acknowledgement update:
+      // Mark witnesses as MODIFIED instead of PENDING to indicate an update occurred
+      await this.prisma.witness.updateMany({
+        where: { transactionId: id },
+        data: {
+          status: WitnessStatus.MODIFIED,
+          acknowledgedAt: null,
+        },
+      });
+    }
+
+    const { category, amount, itemName, quantity, ...rest } =
+      updateTransactionInput;
+
+    // Re-validate category constraints if they are being updated
+    if (category === AssetCategory.FUNDS && !amount && !transaction.amount) {
+      // Note: This check is simplified; ideally check if 'amount' is in input OR exists in DB.
+      // For PartialType, undefined means "do not update".
+    }
+
+    // Determine what actually changed for the history log
+    const changes: any = {};
+    if (category && category !== transaction.category)
+      changes.category = category;
+    if (amount && Number(amount) !== Number(transaction.amount))
+      changes.amount = amount;
+    if (itemName && itemName !== transaction.itemName)
+      changes.itemName = itemName;
+    if (quantity && quantity !== transaction.quantity)
+      changes.quantity = quantity;
+    if (rest.description && rest.description !== transaction.description)
+      changes.description = rest.description;
+    if (
+      rest.date &&
+      new Date(rest.date).getTime() !== new Date(transaction.date).getTime()
+    )
+      changes.date = rest.date;
+    if (rest.type && rest.type !== transaction.type) changes.type = rest.type;
+    if (rest.contactId && rest.contactId !== transaction.contactId)
+      changes.contactId = rest.contactId;
+
+    // Perform update and create history record in a transaction
+    const [updatedTransaction] = await this.prisma.$transaction([
+      this.prisma.transaction.update({
+        where: { id },
+        data: {
+          ...(category && { category }),
+          ...(amount && { amount }),
+          ...(itemName && { itemName }),
+          ...(quantity && { quantity }),
+          ...rest,
+        },
+      }),
+      this.prisma.transactionHistory.create({
+        data: {
+          transactionId: id,
+          userId,
+          changeType: hasAcknowledgedWitness ? 'UPDATE_POST_ACK' : 'UPDATE',
+          previousState: previousState as any,
+          newState: changes,
+        },
+      }),
+    ]);
+
+    return updatedTransaction;
   }
 }

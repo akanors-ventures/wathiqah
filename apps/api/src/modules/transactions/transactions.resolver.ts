@@ -1,29 +1,48 @@
-import { Resolver, Query, Mutation, Args, Context } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
 import { CreateTransactionInput } from './dto/create-transaction.input';
+import { UpdateTransactionInput } from './dto/update-transaction.input';
 import { UseGuards } from '@nestjs/common';
-// import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // (Mocked for now)
+import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
 
 @Resolver(() => Transaction)
+@UseGuards(GqlAuthGuard)
 export class TransactionsResolver {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Mutation(() => Transaction)
-  @UseGuards(/* JwtAuthGuard */)
   async createTransaction(
     @Args('input') createTransactionInput: CreateTransactionInput,
-    @Context() context,
+    @CurrentUser() user: User,
   ) {
-    // Mock user ID until Auth is implemented
-    const userId = context.req?.user?.id || 'mock-user-id';
-    return this.transactionsService.create(createTransactionInput, userId);
+    return this.transactionsService.create(createTransactionInput, user.id);
   }
 
   @Query(() => [Transaction], { name: 'transactions' })
-  @UseGuards(/* JwtAuthGuard */)
-  async findAll(@Context() context) {
-    const userId = context.req?.user?.id || 'mock-user-id';
-    return this.transactionsService.findAll(userId);
+  async findAll(@CurrentUser() user: User) {
+    return this.transactionsService.findAll(user.id);
+  }
+
+  @Query(() => Transaction, { name: 'transaction' })
+  async findOne(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionsService.findOne(id, user.id);
+  }
+
+  @Mutation(() => Transaction)
+  async updateTransaction(
+    @Args('input') updateTransactionInput: UpdateTransactionInput,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionsService.update(
+      updateTransactionInput.id,
+      updateTransactionInput,
+      user.id,
+    );
   }
 }

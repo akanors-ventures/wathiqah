@@ -1,15 +1,20 @@
 import {
   ObjectType,
   Field,
-  ID,
   Float,
   Int,
+  ID,
   registerEnumType,
 } from '@nestjs/graphql';
 import {
   AssetCategory,
   TransactionType,
+  WitnessStatus,
 } from '../../../generated/prisma/client';
+import { Contact } from '../../contacts/entities/contact.entity';
+import { User } from '../../users/entities/user.entity';
+import { Witness } from '../../witnesses/entities/witness.entity';
+import { TransactionHistory } from './transaction-history.entity';
 
 registerEnumType(AssetCategory, {
   name: 'AssetCategory',
@@ -17,6 +22,10 @@ registerEnumType(AssetCategory, {
 
 registerEnumType(TransactionType, {
   name: 'TransactionType',
+});
+
+registerEnumType(WitnessStatus, {
+  name: 'WitnessStatus',
 });
 
 @ObjectType()
@@ -33,8 +42,8 @@ export class Transaction {
   @Field({ nullable: true })
   itemName?: string;
 
-  @Field(() => Int, { defaultValue: 1 })
-  quantity: number;
+  @Field(() => Int, { nullable: true })
+  quantity?: number;
 
   @Field(() => TransactionType)
   type: TransactionType;
@@ -51,6 +60,18 @@ export class Transaction {
   @Field()
   contactId: string;
 
+  @Field(() => Contact)
+  contact: Contact;
+
   @Field()
   createdById: string;
+
+  @Field(() => User)
+  createdBy: User;
+
+  @Field(() => [Witness], { nullable: 'items' })
+  witnesses: Witness[];
+
+  @Field(() => [TransactionHistory], { nullable: 'items' })
+  history: TransactionHistory[];
 }

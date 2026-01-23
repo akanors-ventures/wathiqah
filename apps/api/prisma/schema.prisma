@@ -23,9 +23,10 @@ model User {
   createdAt        DateTime @default(now())
 
   // Relations
-  transactions   Transaction[] @relation("TransactionCreator")
-  contacts       Contact[]
-  witnessRecords Witness[]     @relation("WitnessUser")
+  transactions        Transaction[]        @relation("TransactionCreator")
+  contacts            Contact[]
+  witnessRecords      Witness[]            @relation("WitnessUser")
+  transactionHistory  TransactionHistory[] @relation("HistoryUser")
 
   @@map("users")
 }
@@ -58,12 +59,31 @@ model Transaction {
 
   // Relations
   contactId   String
-  contact     Contact   @relation(fields: [contactId], references: [id])
+  contact     Contact              @relation(fields: [contactId], references: [id])
   createdById String
-  createdBy   User      @relation("TransactionCreator", fields: [createdById], references: [id])
+  createdBy   User                 @relation("TransactionCreator", fields: [createdById], references: [id])
   witnesses   Witness[]
+  history     TransactionHistory[]
 
   @@map("transactions")
+}
+
+model TransactionHistory {
+  id            String   @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation("HistoryUser", fields: [userId], references: [id])
+  
+  // Stores the state of the transaction BEFORE the change
+  previousState Json
+  // Stores the delta or the new state
+  newState      Json
+  
+  changeType    String   // e.g., "UPDATE", "STATUS_CHANGE"
+  createdAt     DateTime @default(now())
+
+  @@map("transaction_history")
 }
 
 model Witness {
@@ -92,6 +112,7 @@ enum WitnessStatus {
   PENDING
   ACKNOWLEDGED
   DECLINED
+  MODIFIED // New status to indicate transaction was updated after acknowledgement
 }
 
 enum TransactionType {
