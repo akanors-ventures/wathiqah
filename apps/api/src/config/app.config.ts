@@ -8,5 +8,6 @@ export default registerAs('app', () => ({
   port: parseInt(process.env.APP_PORT) || 3000,
   env: process.env.NODE_ENV || 'development',
   appEmail: process.env.APP_EMAIL,
+  emailFrom: process.env.EMAIL_FROM || 'no-reply@wathiqah.akanors.com',
   frontendUrl: process.env.FRONTEND_URL,
 }));

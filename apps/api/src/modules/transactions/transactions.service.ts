@@ -20,6 +20,7 @@ import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import ms, { type StringValue } from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
+import { NotificationService } from '../notifications/notification.service';
 
 @Injectable()
 export class TransactionsService {
@@ -27,6 +28,7 @@ export class TransactionsService {
     private prisma: PrismaService,
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly notificationService: NotificationService,
   ) {}
 
   private async processWitnesses(
@@ -134,7 +136,7 @@ export class TransactionsService {
     }
 
     // Start a transaction to ensure all witness records are created or nothing is
-    return this.prisma.$transaction(async (prisma) => {
+    const transaction = await this.prisma.$transaction(async (prisma) => {
       const transaction = await prisma.transaction.create({
         data: {
           category,
@@ -155,6 +157,21 @@ export class TransactionsService {
 
       return transaction;
     });
+
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (user) {
+      await this.notificationService.sendMultiChannel({
+        email: {
+          to: user.email,
+          subject: 'Transaction Created',
+          text: `Dear ${user.name}, your transaction has been successfully created.`,
+          html: `<p>Dear ${user.name},</p><p>Your transaction has been successfully created.</p>`,
+        },
+        // SMS omitted as User entity currently lacks phoneNumber
+      });
+    }
+
+    return transaction;
   }
 
   async addWitness(addWitnessInput: AddWitnessInput, userId: string) {

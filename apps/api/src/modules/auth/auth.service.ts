@@ -37,12 +37,12 @@ export class AuthService {
   private async generateTokens(userId: string, email: string) {
     const accessExpiry = ms(
       this.configService.getOrThrow<string>(
-        'auth.jwt.accessExpiry',
+        'auth.jwt.expiration',
       ) as StringValue,
     );
     const refreshExpiry = ms(
       this.configService.getOrThrow<string>(
-        'auth.jwt.refreshExpiry',
+        'auth.jwt.refreshExpiration',
       ) as StringValue,
     );
 

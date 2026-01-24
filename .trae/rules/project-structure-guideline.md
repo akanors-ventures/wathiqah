@@ -14,6 +14,7 @@ alwaysApply: true
 
 - **Types**: Strict TS, Zod/DTO validation. No `any`.
 - **Naming**: Files `kebab-case`, Classes `PascalCase`.
+- **Folder Structure**: Always follow the structure pattern defined in `ARCHITECTURE.md`.
 
 ## Backend (NestJS)
 

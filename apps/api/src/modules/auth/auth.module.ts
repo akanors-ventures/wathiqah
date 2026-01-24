@@ -23,7 +23,7 @@ import * as ms from 'ms';
         signOptions: {
           expiresIn: ms(
             configService.getOrThrow<string>(
-              'auth.jwt.accessExpiry',
+              'auth.jwt.expiration',
             ) as ms.StringValue,
           ),
         },

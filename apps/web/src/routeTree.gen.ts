@@ -10,13 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as WitnessesIndexRouteImport } from './routes/witnesses/index'
+import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -24,49 +33,105 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangePasswordRoute = ChangePasswordRouteImport.update({
+  id: '/change-password',
+  path: '/change-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const InviteTokenRoute = InviteTokenRouteImport.update({
-  id: '/invite/$token',
-  path: '/invite/$token',
+const WitnessesIndexRoute = WitnessesIndexRouteImport.update({
+  id: '/witnesses/',
+  path: '/witnesses/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WitnessesInviteTokenRoute = WitnessesInviteTokenRouteImport.update({
+  id: '/witnesses/invite/$token',
+  path: '/witnesses/invite/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/change-password': typeof ChangePasswordRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/invite/$token': typeof InviteTokenRoute
+  '/witnesses/': typeof WitnessesIndexRoute
+  '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/change-password': typeof ChangePasswordRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/invite/$token': typeof InviteTokenRoute
+  '/witnesses': typeof WitnessesIndexRoute
+  '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/change-password': typeof ChangePasswordRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
-  '/invite/$token': typeof InviteTokenRoute
+  '/witnesses/': typeof WitnessesIndexRoute
+  '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/signup' | '/invite/$token'
+  fullPaths:
+    | '/'
+    | '/change-password'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/witnesses/'
+    | '/witnesses/invite/$token'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/invite/$token'
-  id: '__root__' | '/' | '/login' | '/signup' | '/invite/$token'
+  to:
+    | '/'
+    | '/change-password'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/witnesses'
+    | '/witnesses/invite/$token'
+  id:
+    | '__root__'
+    | '/'
+    | '/change-password'
+    | '/forgot-password'
+    | '/login'
+    | '/reset-password'
+    | '/signup'
+    | '/witnesses/'
+    | '/witnesses/invite/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChangePasswordRoute: typeof ChangePasswordRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
-  InviteTokenRoute: typeof InviteTokenRoute
+  WitnessesIndexRoute: typeof WitnessesIndexRoute
+  WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -78,11 +143,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/change-password': {
+      id: '/change-password'
+      path: '/change-password'
+      fullPath: '/change-password'
+      preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -92,11 +178,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/invite/$token': {
-      id: '/invite/$token'
-      path: '/invite/$token'
-      fullPath: '/invite/$token'
-      preLoaderRoute: typeof InviteTokenRouteImport
+    '/witnesses/': {
+      id: '/witnesses/'
+      path: '/witnesses'
+      fullPath: '/witnesses/'
+      preLoaderRoute: typeof WitnessesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/witnesses/invite/$token': {
+      id: '/witnesses/invite/$token'
+      path: '/witnesses/invite/$token'
+      fullPath: '/witnesses/invite/$token'
+      preLoaderRoute: typeof WitnessesInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -104,9 +197,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChangePasswordRoute: ChangePasswordRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
-  InviteTokenRoute: InviteTokenRoute,
+  WitnessesIndexRoute: WitnessesIndexRoute,
+  WitnessesInviteTokenRoute: WitnessesInviteTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
