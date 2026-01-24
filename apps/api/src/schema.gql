@@ -23,6 +23,11 @@ type AuthPayload {
   user: User!
 }
 
+input ChangePasswordInput {
+  currentPassword: String!
+  newPassword: String!
+}
+
 type Contact {
   createdAt: DateTime!
   email: String
@@ -58,6 +63,10 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+input ForgotPasswordInput {
+  email: String!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -71,12 +80,15 @@ input LoginInput {
 type Mutation {
   acceptInvitation(acceptInvitationInput: AcceptInvitationInput!): AuthPayload!
   acknowledgeWitness(input: AcknowledgeWitnessInput!): Witness!
+  changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createContact(createContactInput: CreateContactInput!): Contact!
   createTransaction(input: CreateTransactionInput!): Transaction!
+  forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
+  resetPassword(resetPasswordInput: ResetPasswordInput!): Boolean!
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
   updateTransaction(input: UpdateTransactionInput!): Transaction!
@@ -94,6 +106,11 @@ type Query {
 
 input RefreshTokenInput {
   refreshToken: String!
+}
+
+input ResetPasswordInput {
+  newPassword: String!
+  token: String!
 }
 
 input SignupInput {
