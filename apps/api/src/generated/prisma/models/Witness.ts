@@ -29,7 +29,6 @@ export type WitnessMinAggregateOutputType = {
   status: $Enums.WitnessStatus | null;
   invitedAt: Date | null;
   acknowledgedAt: Date | null;
-  inviteToken: string | null;
   transactionId: string | null;
   userId: string | null;
 };
@@ -39,7 +38,6 @@ export type WitnessMaxAggregateOutputType = {
   status: $Enums.WitnessStatus | null;
   invitedAt: Date | null;
   acknowledgedAt: Date | null;
-  inviteToken: string | null;
   transactionId: string | null;
   userId: string | null;
 };
@@ -49,7 +47,6 @@ export type WitnessCountAggregateOutputType = {
   status: number;
   invitedAt: number;
   acknowledgedAt: number;
-  inviteToken: number;
   transactionId: number;
   userId: number;
   _all: number;
@@ -60,7 +57,6 @@ export type WitnessMinAggregateInputType = {
   status?: true;
   invitedAt?: true;
   acknowledgedAt?: true;
-  inviteToken?: true;
   transactionId?: true;
   userId?: true;
 };
@@ -70,7 +66,6 @@ export type WitnessMaxAggregateInputType = {
   status?: true;
   invitedAt?: true;
   acknowledgedAt?: true;
-  inviteToken?: true;
   transactionId?: true;
   userId?: true;
 };
@@ -80,7 +75,6 @@ export type WitnessCountAggregateInputType = {
   status?: true;
   invitedAt?: true;
   acknowledgedAt?: true;
-  inviteToken?: true;
   transactionId?: true;
   userId?: true;
   _all?: true;
@@ -170,7 +164,6 @@ export type WitnessGroupByOutputType = {
   status: $Enums.WitnessStatus;
   invitedAt: Date;
   acknowledgedAt: Date | null;
-  inviteToken: string | null;
   transactionId: string;
   userId: string;
   _count: WitnessCountAggregateOutputType | null;
@@ -203,7 +196,6 @@ export type WitnessWhereInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.StringNullableFilter<'Witness'> | string | null;
   transactionId?: Prisma.StringFilter<'Witness'> | string;
   userId?: Prisma.StringFilter<'Witness'> | string;
   transaction?: Prisma.XOR<
@@ -218,7 +210,6 @@ export type WitnessOrderByWithRelationInput = {
   status?: Prisma.SortOrder;
   invitedAt?: Prisma.SortOrder;
   acknowledgedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
-  inviteToken?: Prisma.SortOrderInput | Prisma.SortOrder;
   transactionId?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
   transaction?: Prisma.TransactionOrderByWithRelationInput;
@@ -228,7 +219,6 @@ export type WitnessOrderByWithRelationInput = {
 export type WitnessWhereUniqueInput = Prisma.AtLeast<
   {
     id?: string;
-    inviteToken?: string;
     transactionId_userId?: Prisma.WitnessTransactionIdUserIdCompoundUniqueInput;
     AND?: Prisma.WitnessWhereInput | Prisma.WitnessWhereInput[];
     OR?: Prisma.WitnessWhereInput[];
@@ -248,7 +238,7 @@ export type WitnessWhereUniqueInput = Prisma.AtLeast<
     >;
     user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>;
   },
-  'id' | 'inviteToken' | 'transactionId_userId'
+  'id' | 'transactionId_userId'
 >;
 
 export type WitnessOrderByWithAggregationInput = {
@@ -256,7 +246,6 @@ export type WitnessOrderByWithAggregationInput = {
   status?: Prisma.SortOrder;
   invitedAt?: Prisma.SortOrder;
   acknowledgedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
-  inviteToken?: Prisma.SortOrderInput | Prisma.SortOrder;
   transactionId?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
   _count?: Prisma.WitnessCountOrderByAggregateInput;
@@ -282,10 +271,6 @@ export type WitnessScalarWhereWithAggregatesInput = {
     | Date
     | string
     | null;
-  inviteToken?:
-    | Prisma.StringNullableWithAggregatesFilter<'Witness'>
-    | string
-    | null;
   transactionId?: Prisma.StringWithAggregatesFilter<'Witness'> | string;
   userId?: Prisma.StringWithAggregatesFilter<'Witness'> | string;
 };
@@ -295,7 +280,6 @@ export type WitnessCreateInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   transaction: Prisma.TransactionCreateNestedOneWithoutWitnessesInput;
   user: Prisma.UserCreateNestedOneWithoutWitnessRecordsInput;
 };
@@ -305,7 +289,6 @@ export type WitnessUncheckedCreateInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   transactionId: string;
   userId: string;
 };
@@ -321,7 +304,6 @@ export type WitnessUpdateInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transaction?: Prisma.TransactionUpdateOneRequiredWithoutWitnessesNestedInput;
   user?: Prisma.UserUpdateOneRequiredWithoutWitnessRecordsNestedInput;
 };
@@ -337,7 +319,6 @@ export type WitnessUncheckedUpdateInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
@@ -347,7 +328,6 @@ export type WitnessCreateManyInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   transactionId: string;
   userId: string;
 };
@@ -363,7 +343,6 @@ export type WitnessUpdateManyMutationInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 
 export type WitnessUncheckedUpdateManyInput = {
@@ -377,7 +356,6 @@ export type WitnessUncheckedUpdateManyInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
@@ -402,7 +380,6 @@ export type WitnessCountOrderByAggregateInput = {
   status?: Prisma.SortOrder;
   invitedAt?: Prisma.SortOrder;
   acknowledgedAt?: Prisma.SortOrder;
-  inviteToken?: Prisma.SortOrder;
   transactionId?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
 };
@@ -412,7 +389,6 @@ export type WitnessMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder;
   invitedAt?: Prisma.SortOrder;
   acknowledgedAt?: Prisma.SortOrder;
-  inviteToken?: Prisma.SortOrder;
   transactionId?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
 };
@@ -422,7 +398,6 @@ export type WitnessMinOrderByAggregateInput = {
   status?: Prisma.SortOrder;
   invitedAt?: Prisma.SortOrder;
   acknowledgedAt?: Prisma.SortOrder;
-  inviteToken?: Prisma.SortOrder;
   transactionId?: Prisma.SortOrder;
   userId?: Prisma.SortOrder;
 };
@@ -628,7 +603,6 @@ export type WitnessCreateWithoutUserInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   transaction: Prisma.TransactionCreateNestedOneWithoutWitnessesInput;
 };
 
@@ -637,7 +611,6 @@ export type WitnessUncheckedCreateWithoutUserInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   transactionId: string;
 };
 
@@ -694,7 +667,6 @@ export type WitnessScalarWhereInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.StringNullableFilter<'Witness'> | string | null;
   transactionId?: Prisma.StringFilter<'Witness'> | string;
   userId?: Prisma.StringFilter<'Witness'> | string;
 };
@@ -704,7 +676,6 @@ export type WitnessCreateWithoutTransactionInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   user: Prisma.UserCreateNestedOneWithoutWitnessRecordsInput;
 };
 
@@ -713,7 +684,6 @@ export type WitnessUncheckedCreateWithoutTransactionInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   userId: string;
 };
 
@@ -765,7 +735,6 @@ export type WitnessCreateManyUserInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   transactionId: string;
 };
 
@@ -780,7 +749,6 @@ export type WitnessUpdateWithoutUserInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transaction?: Prisma.TransactionUpdateOneRequiredWithoutWitnessesNestedInput;
 };
 
@@ -795,7 +763,6 @@ export type WitnessUncheckedUpdateWithoutUserInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
@@ -810,7 +777,6 @@ export type WitnessUncheckedUpdateManyWithoutUserInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   transactionId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
@@ -819,7 +785,6 @@ export type WitnessCreateManyTransactionInput = {
   status?: $Enums.WitnessStatus;
   invitedAt?: Date | string;
   acknowledgedAt?: Date | string | null;
-  inviteToken?: string | null;
   userId: string;
 };
 
@@ -834,7 +799,6 @@ export type WitnessUpdateWithoutTransactionInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   user?: Prisma.UserUpdateOneRequiredWithoutWitnessRecordsNestedInput;
 };
 
@@ -849,7 +813,6 @@ export type WitnessUncheckedUpdateWithoutTransactionInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
@@ -864,7 +827,6 @@ export type WitnessUncheckedUpdateManyWithoutTransactionInput = {
     | Date
     | string
     | null;
-  inviteToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   userId?: Prisma.StringFieldUpdateOperationsInput | string;
 };
 
@@ -877,7 +839,6 @@ export type WitnessSelect<
     status?: boolean;
     invitedAt?: boolean;
     acknowledgedAt?: boolean;
-    inviteToken?: boolean;
     transactionId?: boolean;
     userId?: boolean;
     transaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>;
@@ -895,7 +856,6 @@ export type WitnessSelectCreateManyAndReturn<
     status?: boolean;
     invitedAt?: boolean;
     acknowledgedAt?: boolean;
-    inviteToken?: boolean;
     transactionId?: boolean;
     userId?: boolean;
     transaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>;
@@ -913,7 +873,6 @@ export type WitnessSelectUpdateManyAndReturn<
     status?: boolean;
     invitedAt?: boolean;
     acknowledgedAt?: boolean;
-    inviteToken?: boolean;
     transactionId?: boolean;
     userId?: boolean;
     transaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>;
@@ -927,7 +886,6 @@ export type WitnessSelectScalar = {
   status?: boolean;
   invitedAt?: boolean;
   acknowledgedAt?: boolean;
-  inviteToken?: boolean;
   transactionId?: boolean;
   userId?: boolean;
 };
@@ -936,13 +894,7 @@ export type WitnessOmit<
   ExtArgs extends runtime.Types.Extensions.InternalArgs =
     runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetOmit<
-  | 'id'
-  | 'status'
-  | 'invitedAt'
-  | 'acknowledgedAt'
-  | 'inviteToken'
-  | 'transactionId'
-  | 'userId',
+  'id' | 'status' | 'invitedAt' | 'acknowledgedAt' | 'transactionId' | 'userId',
   ExtArgs['result']['witness']
 >;
 export type WitnessInclude<
@@ -982,7 +934,6 @@ export type $WitnessPayload<
       status: $Enums.WitnessStatus;
       invitedAt: Date;
       acknowledgedAt: Date | null;
-      inviteToken: string | null;
       transactionId: string;
       userId: string;
     },
@@ -1609,7 +1560,6 @@ export interface WitnessFieldRefs {
   readonly status: Prisma.FieldRef<'Witness', 'WitnessStatus'>;
   readonly invitedAt: Prisma.FieldRef<'Witness', 'DateTime'>;
   readonly acknowledgedAt: Prisma.FieldRef<'Witness', 'DateTime'>;
-  readonly inviteToken: Prisma.FieldRef<'Witness', 'String'>;
   readonly transactionId: Prisma.FieldRef<'Witness', 'String'>;
   readonly userId: Prisma.FieldRef<'Witness', 'String'>;
 }
