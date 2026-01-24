@@ -1,5 +1,6 @@
 import databaseConfig from './database.config';
-import jwtConfig from './jwt.config';
+import authConfig from './auth.config';
 import appConfig from './app.config';
+import redisConfig from './redis.config';
 
-export default [databaseConfig, jwtConfig, appConfig];
+export default [databaseConfig, authConfig, appConfig, redisConfig];
