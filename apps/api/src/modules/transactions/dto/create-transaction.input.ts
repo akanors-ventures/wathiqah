@@ -3,7 +3,17 @@ import {
   AssetCategory,
   TransactionType,
 } from '../../../generated/prisma/client';
-import { IsEnum, IsOptional, IsString, IsNumber, Min } from 'class-validator';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsNumber,
+  Min,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+import { WitnessInviteInput } from '../../witnesses/dto/witness-invite.input';
 
 @InputType()
 export class CreateTransactionInput {
@@ -41,4 +51,17 @@ export class CreateTransactionInput {
 
   @Field(() => ID)
   contactId: string;
+
+  @Field(() => [ID], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  witnessUserIds?: string[];
+
+  @Field(() => [WitnessInviteInput], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WitnessInviteInput)
+  witnessInvites?: WitnessInviteInput[];
 }

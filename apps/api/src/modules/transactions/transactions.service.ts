@@ -7,14 +7,23 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionInput } from './dto/create-transaction.input';
 import { UpdateTransactionInput } from './dto/update-transaction.input';
 import { AssetCategory, WitnessStatus } from '../../generated/prisma/client';
+import { v4 as uuidv4 } from 'uuid';
+import { hashToken } from '../../common/utils/crypto.utils';
 
 @Injectable()
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createTransactionInput: CreateTransactionInput, userId: string) {
-    const { category, amount, itemName, quantity, ...rest } =
-      createTransactionInput;
+    const {
+      category,
+      amount,
+      itemName,
+      quantity,
+      witnessUserIds,
+      witnessInvites,
+      ...rest
+    } = createTransactionInput;
 
     // Validation logic for category
     if (category === AssetCategory.FUNDS && !amount) {
@@ -29,15 +38,70 @@ export class TransactionsService {
       );
     }
 
-    return this.prisma.transaction.create({
-      data: {
-        category,
-        amount,
-        itemName,
-        quantity: category === AssetCategory.ITEM ? quantity : null,
-        createdById: userId,
-        ...rest,
-      },
+    // Start a transaction to ensure all witness records are created or nothing is
+    return this.prisma.$transaction(async (prisma) => {
+      const transaction = await prisma.transaction.create({
+        data: {
+          category,
+          amount,
+          itemName,
+          quantity: category === AssetCategory.ITEM ? quantity : null,
+          createdById: userId,
+          ...rest,
+        },
+      });
+
+      // Handle existing users as witnesses
+      if (witnessUserIds && witnessUserIds.length > 0) {
+        await prisma.witness.createMany({
+          data: witnessUserIds.map((witnessUserId) => ({
+            transactionId: transaction.id,
+            userId: witnessUserId,
+            status: WitnessStatus.PENDING,
+          })),
+          skipDuplicates: true, // In case of duplicate IDs in input
+        });
+      }
+
+      // Handle new user invites
+      if (witnessInvites && witnessInvites.length > 0) {
+        for (const invite of witnessInvites) {
+          // Check if user already exists by email
+          let user = await prisma.user.findUnique({
+            where: { email: invite.email },
+          });
+
+          // If not, create a placeholder user
+          if (!user) {
+            user = await prisma.user.create({
+              data: {
+                email: invite.email,
+                name: invite.name,
+                passwordHash: null, // Indicates invited user
+              },
+            });
+          }
+
+          // Generate secure token and hash it
+          const rawToken = uuidv4();
+          const hashedToken = hashToken(rawToken);
+
+          // Create witness record with hashed token
+          await prisma.witness.create({
+            data: {
+              transactionId: transaction.id,
+              userId: user.id,
+              status: WitnessStatus.PENDING,
+              inviteToken: hashedToken,
+            },
+          });
+
+          // TODO: Send invitation email here with `rawToken` (future enhancement)
+          // Example: await this.emailService.sendInvite(invite.email, rawToken);
+        }
+      }
+
+      return transaction;
     });
   }
 

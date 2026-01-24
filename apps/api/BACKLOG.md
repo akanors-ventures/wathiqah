@@ -6,9 +6,11 @@
 **Priority:** High (Required for production witness system)
 
 ### Context
-When a transaction is updated *after* witnesses have already acknowledged it, the integrity of the witness verification is compromised. The witness verified the *original* state, not the *new* state.
+
+When a transaction is updated _after_ witnesses have already acknowledged it, the integrity of the witness verification is compromised. The witness verified the _original_ state, not the _new_ state.
 
 ### Current Implementation (MVP)
+
 - **Transaction History**: The system now tracks all updates in a `TransactionHistory` table, recording the `previousState`, `newState`, `changeType`, and the user who made the change.
 - **Status Updates**: When a transaction with acknowledged witnesses is updated, the witnesses' status is changed to `MODIFIED` (instead of `PENDING`) to clearly indicate that a previously acknowledged transaction has changed.
 - **Audit Log**: Every update action creates an immutable history record.
@@ -42,9 +44,11 @@ When a transaction is updated *after* witnesses have already acknowledged it, th
 **Priority:** Medium
 
 ### Description
+
 Implement a system that allows users to grant view-only access to their saved transactions, documented witness information, and promises to a list of specified email addresses.
 
 ### Requirements
+
 1.  **Management Interface**:
     - Create "Share Access" or "Viewers" section.
     - Add, edit, and remove email addresses.
@@ -63,6 +67,7 @@ Implement a system that allows users to grant view-only access to their saved tr
     - Track acceptance status of the access grant.
 
 ### Acceptance Criteria
+
 - [ ] User can add valid emails to viewer list.
 - [ ] Error message for invalid emails.
 - [ ] Notification email sent to new viewers.
@@ -78,9 +83,11 @@ Implement a system that allows users to grant view-only access to their saved tr
 **Priority:** Medium
 
 ### Description
+
 Implement a feature that allows users to create, track, and manage personal promises made to other individuals.
 
 ### Requirements
+
 1.  **Data Model**:
     - **Description**: Clear text of what was promised (Mandatory).
     - **Promise To**: Person/entity the promise was made to (Mandatory).
@@ -95,6 +102,7 @@ Implement a feature that allows users to create, track, and manage personal prom
     - Actions: View, Edit, Mark as Fulfilled, Delete.
 
 ### Acceptance Criteria
+
 - [ ] User can create a promise with required fields.
 - [ ] Promises appear in list view with correct details.
 - [ ] Status auto-updates to "Overdue" if due date passes.

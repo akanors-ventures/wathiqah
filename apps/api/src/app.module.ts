@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
+import { WitnessesModule } from './modules/witnesses/witnesses.module';
 import config from './config';
 
 @Module({
@@ -30,6 +31,7 @@ import config from './config';
     UsersModule,
     AuthModule,
     ContactsModule,
+    WitnessesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
