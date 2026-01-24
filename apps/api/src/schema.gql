@@ -2,6 +2,16 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input AcceptInvitationInput {
+  password: String!
+  token: String!
+}
+
+input AcknowledgeWitnessInput {
+  status: WitnessStatus!
+  witnessId: ID!
+}
+
 enum AssetCategory {
   FUNDS
   ITEM
@@ -39,6 +49,8 @@ input CreateTransactionInput {
   itemName: String
   quantity: Int = 1
   type: TransactionType!
+  witnessInvites: [WitnessInviteInput!]
+  witnessUserIds: [ID!]
 }
 
 """
@@ -57,10 +69,13 @@ input LoginInput {
 }
 
 type Mutation {
+  acceptInvitation(acceptInvitationInput: AcceptInvitationInput!): AuthPayload!
+  acknowledgeWitness(input: AcknowledgeWitnessInput!): Witness!
   createContact(createContactInput: CreateContactInput!): Contact!
   createTransaction(input: CreateTransactionInput!): Transaction!
   login(loginInput: LoginInput!): AuthPayload!
-  refreshToken(refreshToken: String!): AuthPayload!
+  logout: Boolean!
+  refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
@@ -71,9 +86,14 @@ type Query {
   contact(id: ID!): Contact!
   contacts: [Contact!]!
   me: User!
+  myWitnessRequests(status: WitnessStatus): [Witness!]!
   transaction(id: ID!): Transaction!
   transactions: [Transaction!]!
   user(id: String!): User
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
 }
 
 input SignupInput {
@@ -134,6 +154,8 @@ input UpdateTransactionInput {
   itemName: String
   quantity: Int = 1
   type: TransactionType
+  witnessInvites: [WitnessInviteInput!]
+  witnessUserIds: [ID!]
 }
 
 type User {
@@ -153,6 +175,11 @@ type Witness {
   transactionId: String!
   user: User!
   userId: String!
+}
+
+input WitnessInviteInput {
+  email: String!
+  name: String!
 }
 
 enum WitnessStatus {
