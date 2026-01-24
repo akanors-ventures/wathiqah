@@ -1,6 +1,7 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
+import { AddWitnessInput } from './dto/add-witness.input';
 import { CreateTransactionInput } from './dto/create-transaction.input';
 import { UpdateTransactionInput } from './dto/update-transaction.input';
 import { UseGuards } from '@nestjs/common';
@@ -19,6 +20,14 @@ export class TransactionsResolver {
     @CurrentUser() user: User,
   ) {
     return this.transactionsService.create(createTransactionInput, user.id);
+  }
+
+  @Mutation(() => Transaction)
+  async addWitness(
+    @Args('input') addWitnessInput: AddWitnessInput,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionsService.addWitness(addWitnessInput, user.id);
   }
 
   @Query(() => [Transaction], { name: 'transactions' })

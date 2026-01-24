@@ -6,14 +6,20 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionInput } from './dto/create-transaction.input';
+import { AddWitnessInput } from './dto/add-witness.input';
 import { UpdateTransactionInput } from './dto/update-transaction.input';
-import { AssetCategory, WitnessStatus } from '../../generated/prisma/client';
+import {
+  AssetCategory,
+  WitnessStatus,
+  Prisma,
+} from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import ms, { type StringValue } from 'ms';
+import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 
 @Injectable()
 export class TransactionsService {
@@ -22,6 +28,86 @@ export class TransactionsService {
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  private async processWitnesses(
+    transactionId: string,
+    witnessUserIds: string[] | undefined,
+    witnessInvites: WitnessInviteInput[] | undefined,
+    prisma: Prisma.TransactionClient,
+  ) {
+    // Handle existing users as witnesses
+    if (witnessUserIds && witnessUserIds.length > 0) {
+      await prisma.witness.createMany({
+        data: witnessUserIds.map((witnessUserId) => ({
+          transactionId,
+          userId: witnessUserId,
+          status: WitnessStatus.PENDING,
+        })),
+        skipDuplicates: true, // In case of duplicate IDs in input
+      });
+    }
+
+    // Handle new user invites
+    if (witnessInvites && witnessInvites.length > 0) {
+      for (const invite of witnessInvites) {
+        // Check if user already exists by email
+        let user = await prisma.user.findUnique({
+          where: { email: invite.email },
+        });
+
+        // If not, create a placeholder user
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              email: invite.email,
+              name: invite.name,
+              passwordHash: null, // Indicates invited user
+            },
+          });
+        }
+
+        // Check if witness record already exists
+        const existingWitness = await prisma.witness.findUnique({
+          where: {
+            transactionId_userId: {
+              transactionId,
+              userId: user.id,
+            },
+          },
+        });
+
+        if (!existingWitness) {
+          // Create witness record WITHOUT invite token first (we'll store it in Redis)
+          const witness = await prisma.witness.create({
+            data: {
+              transactionId,
+              userId: user.id,
+              status: WitnessStatus.PENDING,
+            },
+          });
+
+          // Generate secure token and hash it
+          const rawToken = uuidv4();
+          const hashedToken = hashToken(rawToken);
+
+          // Store in Redis: `invite:{hashedToken}` -> `witnessId`
+          // TTL: 7 days (604800000 ms) by default
+          await this.cacheManager.set(
+            `invite:${hashedToken}`,
+            witness.id,
+            ms(
+              this.configService.getOrThrow<string>(
+                'auth.inviteTokenExpiry',
+              ) as StringValue,
+            ),
+          );
+
+          // TODO: Send invitation email here with `rawToken` (future enhancement)
+          // Example: await this.emailService.sendInvite(invite.email, rawToken);
+        }
+      }
+    }
+  }
 
   async create(createTransactionInput: CreateTransactionInput, userId: string) {
     const {
@@ -60,68 +146,41 @@ export class TransactionsService {
         },
       });
 
-      // Handle existing users as witnesses
-      if (witnessUserIds && witnessUserIds.length > 0) {
-        await prisma.witness.createMany({
-          data: witnessUserIds.map((witnessUserId) => ({
-            transactionId: transaction.id,
-            userId: witnessUserId,
-            status: WitnessStatus.PENDING,
-          })),
-          skipDuplicates: true, // In case of duplicate IDs in input
-        });
-      }
-
-      // Handle new user invites
-      if (witnessInvites && witnessInvites.length > 0) {
-        for (const invite of witnessInvites) {
-          // Check if user already exists by email
-          let user = await prisma.user.findUnique({
-            where: { email: invite.email },
-          });
-
-          // If not, create a placeholder user
-          if (!user) {
-            user = await prisma.user.create({
-              data: {
-                email: invite.email,
-                name: invite.name,
-                passwordHash: null, // Indicates invited user
-              },
-            });
-          }
-
-          // Create witness record WITHOUT invite token first (we'll store it in Redis)
-          const witness = await prisma.witness.create({
-            data: {
-              transactionId: transaction.id,
-              userId: user.id,
-              status: WitnessStatus.PENDING,
-            },
-          });
-
-          // Generate secure token and hash it
-          const rawToken = uuidv4();
-          const hashedToken = hashToken(rawToken);
-
-          // Store in Redis: `invite:{hashedToken}` -> `witnessId`
-          // TTL: 7 days (604800000 ms) by default
-          await this.cacheManager.set(
-            `invite:${hashedToken}`,
-            witness.id,
-            ms(
-              this.configService.getOrThrow<string>(
-                'auth.inviteTokenExpiry',
-              ) as StringValue,
-            ),
-          );
-
-          // TODO: Send invitation email here with `rawToken` (future enhancement)
-          // Example: await this.emailService.sendInvite(invite.email, rawToken);
-        }
-      }
+      await this.processWitnesses(
+        transaction.id,
+        witnessUserIds,
+        witnessInvites,
+        prisma,
+      );
 
       return transaction;
+    });
+  }
+
+  async addWitness(addWitnessInput: AddWitnessInput, userId: string) {
+    const { transactionId, witnessUserIds, witnessInvites } = addWitnessInput;
+
+    const transaction = await this.findOne(transactionId, userId);
+
+    return this.prisma.$transaction(async (prisma) => {
+      await this.processWitnesses(
+        transaction.id,
+        witnessUserIds,
+        witnessInvites,
+        prisma,
+      );
+
+      // Return updated transaction with witnesses
+      return prisma.transaction.findUnique({
+        where: { id: transactionId },
+        include: {
+          witnesses: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      });
     });
   }
 
@@ -206,8 +265,15 @@ export class TransactionsService {
       });
     }
 
-    const { category, amount, itemName, quantity, ...rest } =
-      updateTransactionInput;
+    const {
+      category,
+      amount,
+      itemName,
+      quantity,
+      witnessUserIds, // Destructure to exclude from rest
+      witnessInvites, // Destructure to exclude from rest
+      ...rest
+    } = updateTransactionInput;
 
     // Re-validate category constraints if they are being updated
     if (category === AssetCategory.FUNDS && !amount && !transaction.amount) {

@@ -12,6 +12,12 @@ input AcknowledgeWitnessInput {
   witnessId: ID!
 }
 
+input AddWitnessInput {
+  transactionId: ID!
+  witnessInvites: [WitnessInviteInput!]
+  witnessUserIds: [ID!]
+}
+
 enum AssetCategory {
   FUNDS
   ITEM
@@ -29,6 +35,7 @@ input ChangePasswordInput {
 }
 
 type Contact {
+  balance: Float!
   createdAt: DateTime!
   email: String
   id: ID!
@@ -80,6 +87,7 @@ input LoginInput {
 type Mutation {
   acceptInvitation(acceptInvitationInput: AcceptInvitationInput!): AuthPayload!
   acknowledgeWitness(input: AcknowledgeWitnessInput!): Witness!
+  addWitness(input: AddWitnessInput!): Transaction!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createContact(createContactInput: CreateContactInput!): Contact!
   createTransaction(input: CreateTransactionInput!): Transaction!
@@ -102,6 +110,7 @@ type Query {
   transaction(id: ID!): Transaction!
   transactions: [Transaction!]!
   user(id: String!): User
+  witnessInvitation(token: String!): Witness!
 }
 
 input RefreshTokenInput {
