@@ -91,7 +91,6 @@ model Witness {
   status         WitnessStatus @default(PENDING)
   invitedAt      DateTime      @default(now())
   acknowledgedAt DateTime?
-  inviteToken    String?       @unique
 
   // Relations
   transactionId String

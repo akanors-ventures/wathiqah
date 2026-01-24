@@ -2,6 +2,7 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionInput } from './dto/create-transaction.input';
@@ -9,10 +10,18 @@ import { UpdateTransactionInput } from './dto/update-transaction.input';
 import { AssetCategory, WitnessStatus } from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { ConfigService } from '@nestjs/config';
+import ms, { type StringValue } from 'ms';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private configService: ConfigService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   async create(createTransactionInput: CreateTransactionInput, userId: string) {
     const {
@@ -82,19 +91,30 @@ export class TransactionsService {
             });
           }
 
-          // Generate secure token and hash it
-          const rawToken = uuidv4();
-          const hashedToken = hashToken(rawToken);
-
-          // Create witness record with hashed token
-          await prisma.witness.create({
+          // Create witness record WITHOUT invite token first (we'll store it in Redis)
+          const witness = await prisma.witness.create({
             data: {
               transactionId: transaction.id,
               userId: user.id,
               status: WitnessStatus.PENDING,
-              inviteToken: hashedToken,
             },
           });
+
+          // Generate secure token and hash it
+          const rawToken = uuidv4();
+          const hashedToken = hashToken(rawToken);
+
+          // Store in Redis: `invite:{hashedToken}` -> `witnessId`
+          // TTL: 7 days (604800000 ms) by default
+          await this.cacheManager.set(
+            `invite:${hashedToken}`,
+            witness.id,
+            ms(
+              this.configService.getOrThrow<string>(
+                'auth.inviteTokenExpiry',
+              ) as StringValue,
+            ),
+          );
 
           // TODO: Send invitation email here with `rawToken` (future enhancement)
           // Example: await this.emailService.sendInvite(invite.email, rawToken);

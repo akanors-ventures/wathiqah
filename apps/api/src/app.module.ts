@@ -6,12 +6,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { WitnessesModule } from './modules/witnesses/witnesses.module';
+import { CacheModule } from '@nestjs/cache-manager';
 import config from './config';
+import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
+import { CacheableMemory } from 'cacheable';
 
 @Module({
   imports: [
@@ -19,6 +22,26 @@ import config from './config';
       load: config,
       cache: true,
       isGlobal: true,
+    }),
+    CacheModule.registerAsync({
+      isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        return {
+          stores: [
+            new KeyvRedis({
+              url: configService.getOrThrow<string>('redis.url'),
+              username: configService.getOrThrow<string>('redis.username'),
+              password: configService.getOrThrow<string>('redis.password'),
+              db: configService.getOrThrow<number>('redis.db'),
+            } as RedisClientOptions),
+            new Keyv({
+              store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
+            }),
+          ],
+        };
+      },
+      inject: [ConfigService],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
