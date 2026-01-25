@@ -21,7 +21,7 @@ function TransactionDetailPage() {
 
 	if (loading) {
 		return (
-			<div className="flex h-screen items-center justify-center">
+			<div className="flex flex-1 items-center justify-center">
 				<div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
 			</div>
 		);
@@ -29,7 +29,7 @@ function TransactionDetailPage() {
 
 	if (error || !transaction) {
 		return (
-			<div className="flex h-screen flex-col items-center justify-center p-4">
+			<div className="flex flex-1 flex-col items-center justify-center p-4">
 				<h2 className="text-xl font-bold text-red-600">
 					Error loading transaction
 				</h2>

@@ -36,7 +36,7 @@ function ForgotPasswordPage() {
 
 	if (isSubmitted) {
 		return (
-			<div className="flex min-h-screen items-center justify-center bg-background p-4">
+			<div className="flex flex-1 items-center justify-center bg-background p-4">
 				<div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border border-border text-center">
 					<div className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4">
 						<CheckCircle2 className="w-6 h-6 text-primary" />
@@ -60,7 +60,7 @@ function ForgotPasswordPage() {
 	}
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-background p-4">
+		<div className="flex flex-1 items-center justify-center bg-background p-4">
 			<div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border border-border">
 				<div>
 					<Link

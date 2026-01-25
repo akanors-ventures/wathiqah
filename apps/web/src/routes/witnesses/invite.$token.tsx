@@ -93,7 +93,7 @@ function InviteComponent() {
 	};
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
+		<div className="flex flex-1 items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
 			<div className="w-full max-w-lg space-y-8 bg-white dark:bg-neutral-900 p-8 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-800">
 				<div className="text-center">
 					<h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
