@@ -80,9 +80,12 @@ export type TransactionIsolationLevel =
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
-  name: 'name',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  phoneNumber: 'phoneNumber',
   passwordHash: 'passwordHash',
   refreshTokenHash: 'refreshTokenHash',
+  isEmailVerified: 'isEmailVerified',
   createdAt: 'createdAt',
 } as const;
 
@@ -91,7 +94,8 @@ export type UserScalarFieldEnum =
 
 export const ContactScalarFieldEnum = {
   id: 'id',
-  name: 'name',
+  firstName: 'firstName',
+  lastName: 'lastName',
   email: 'email',
   phoneNumber: 'phoneNumber',
   createdAt: 'createdAt',
