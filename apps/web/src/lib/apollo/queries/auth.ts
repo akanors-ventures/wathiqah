@@ -1,20 +1,20 @@
 import type {
-  AcceptInvitationMutation,
-  AcceptInvitationMutationVariables,
-  ChangePasswordMutation,
-  ChangePasswordMutationVariables,
-  ForgotPasswordMutation,
-  ForgotPasswordMutationVariables,
-  LoginMutation,
-  LoginMutationVariables,
-  MeQuery,
-  MeQueryVariables,
-  ResetPasswordMutation,
-  ResetPasswordMutationVariables,
-  SignupMutation,
-  SignupMutationVariables,
-  VerifyEmailMutation,
-  VerifyEmailMutationVariables,
+	AcceptInvitationMutation,
+	AcceptInvitationMutationVariables,
+	ChangePasswordMutation,
+	ChangePasswordMutationVariables,
+	ForgotPasswordMutation,
+	ForgotPasswordMutationVariables,
+	LoginMutation,
+	LoginMutationVariables,
+	MeQuery,
+	MeQueryVariables,
+	ResetPasswordMutation,
+	ResetPasswordMutationVariables,
+	SignupMutation,
+	SignupMutationVariables,
+	VerifyEmailMutation,
+	VerifyEmailMutationVariables,
 } from "@/types/__generated__/graphql";
 import { gql, type TypedDocumentNode } from "@apollo/client";
 
@@ -29,8 +29,8 @@ export const ME_QUERY: TypedDocumentNode<MeQuery, MeQueryVariables> = gql`
 `;
 
 export const LOGIN_MUTATION: TypedDocumentNode<
-  LoginMutation,
-  LoginMutationVariables
+	LoginMutation,
+	LoginMutationVariables
 > = gql`
   mutation Login($loginInput: LoginInput!) {
     login(loginInput: $loginInput) {
@@ -46,8 +46,8 @@ export const LOGIN_MUTATION: TypedDocumentNode<
 `;
 
 export const SIGNUP_MUTATION: TypedDocumentNode<
-  SignupMutation,
-  SignupMutationVariables
+	SignupMutation,
+	SignupMutationVariables
 > = gql`
   mutation Signup($signupInput: SignupInput!) {
     signup(signupInput: $signupInput) {
@@ -63,8 +63,8 @@ export const SIGNUP_MUTATION: TypedDocumentNode<
 `;
 
 export const ACCEPT_INVITATION_MUTATION: TypedDocumentNode<
-  AcceptInvitationMutation,
-  AcceptInvitationMutationVariables
+	AcceptInvitationMutation,
+	AcceptInvitationMutationVariables
 > = gql`
   mutation AcceptInvitation($acceptInvitationInput: AcceptInvitationInput!) {
     acceptInvitation(acceptInvitationInput: $acceptInvitationInput) {
@@ -80,8 +80,8 @@ export const ACCEPT_INVITATION_MUTATION: TypedDocumentNode<
 `;
 
 export const FORGOT_PASSWORD_MUTATION: TypedDocumentNode<
-  ForgotPasswordMutation,
-  ForgotPasswordMutationVariables
+	ForgotPasswordMutation,
+	ForgotPasswordMutationVariables
 > = gql`
   mutation ForgotPassword($forgotPasswordInput: ForgotPasswordInput!) {
     forgotPassword(forgotPasswordInput: $forgotPasswordInput)
@@ -89,8 +89,8 @@ export const FORGOT_PASSWORD_MUTATION: TypedDocumentNode<
 `;
 
 export const RESET_PASSWORD_MUTATION: TypedDocumentNode<
-  ResetPasswordMutation,
-  ResetPasswordMutationVariables
+	ResetPasswordMutation,
+	ResetPasswordMutationVariables
 > = gql`
   mutation ResetPassword($resetPasswordInput: ResetPasswordInput!) {
     resetPassword(resetPasswordInput: $resetPasswordInput)
@@ -98,8 +98,8 @@ export const RESET_PASSWORD_MUTATION: TypedDocumentNode<
 `;
 
 export const CHANGE_PASSWORD_MUTATION: TypedDocumentNode<
-  ChangePasswordMutation,
-  ChangePasswordMutationVariables
+	ChangePasswordMutation,
+	ChangePasswordMutationVariables
 > = gql`
   mutation ChangePassword($changePasswordInput: ChangePasswordInput!) {
     changePassword(changePasswordInput: $changePasswordInput)
@@ -107,8 +107,8 @@ export const CHANGE_PASSWORD_MUTATION: TypedDocumentNode<
 `;
 
 export const VERIFY_EMAIL_MUTATION: TypedDocumentNode<
-  VerifyEmailMutation,
-  VerifyEmailMutationVariables
+	VerifyEmailMutation,
+	VerifyEmailMutationVariables
 > = gql`
   mutation VerifyEmail($token: String!) {
     verifyEmail(token: $token) {
