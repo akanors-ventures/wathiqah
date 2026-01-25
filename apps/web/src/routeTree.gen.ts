@@ -8,210 +8,250 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as VerifyEmailRouteImport } from './routes/verify-email'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as ChangePasswordRouteImport } from './routes/change-password'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as WitnessesIndexRouteImport } from './routes/witnesses/index'
-import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as VerifyEmailRouteImport } from "./routes/verify-email";
+import { Route as SignupRouteImport } from "./routes/signup";
+import { Route as ResetPasswordRouteImport } from "./routes/reset-password";
+import { Route as LoginRouteImport } from "./routes/login";
+import { Route as ForgotPasswordRouteImport } from "./routes/forgot-password";
+import { Route as ChangePasswordRouteImport } from "./routes/change-password";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as WitnessesIndexRouteImport } from "./routes/witnesses/index";
+import { Route as ContactsIndexRouteImport } from "./routes/contacts/index";
+import { Route as TransactionsIdRouteImport } from "./routes/transactions/$id";
+import { Route as WitnessesInviteTokenRouteImport } from "./routes/witnesses/invite.$token";
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
-  id: '/verify-email',
-  path: '/verify-email',
+  id: "/verify-email",
+  path: "/verify-email",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+  id: "/signup",
+  path: "/signup",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+  id: "/reset-password",
+  path: "/reset-password",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+  id: "/login",
+  path: "/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
+  id: "/forgot-password",
+  path: "/forgot-password",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
-  id: '/change-password',
-  path: '/change-password',
+  id: "/change-password",
+  path: "/change-password",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const WitnessesIndexRoute = WitnessesIndexRouteImport.update({
-  id: '/witnesses/',
-  path: '/witnesses/',
+  id: "/witnesses/",
+  path: "/witnesses/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
+const ContactsIndexRoute = ContactsIndexRouteImport.update({
+  id: "/contacts/",
+  path: "/contacts/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const TransactionsIdRoute = TransactionsIdRouteImport.update({
+  id: "/transactions/$id",
+  path: "/transactions/$id",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const WitnessesInviteTokenRoute = WitnessesInviteTokenRouteImport.update({
-  id: '/witnesses/invite/$token',
-  path: '/witnesses/invite/$token',
+  id: "/witnesses/invite/$token",
+  path: "/witnesses/invite/$token",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/change-password': typeof ChangePasswordRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/witnesses/': typeof WitnessesIndexRoute
-  '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  "/": typeof IndexRoute;
+  "/change-password": typeof ChangePasswordRoute;
+  "/forgot-password": typeof ForgotPasswordRoute;
+  "/login": typeof LoginRoute;
+  "/reset-password": typeof ResetPasswordRoute;
+  "/signup": typeof SignupRoute;
+  "/verify-email": typeof VerifyEmailRoute;
+  "/transactions/$id": typeof TransactionsIdRoute;
+  "/contacts/": typeof ContactsIndexRoute;
+  "/witnesses/": typeof WitnessesIndexRoute;
+  "/witnesses/invite/$token": typeof WitnessesInviteTokenRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/change-password': typeof ChangePasswordRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/witnesses': typeof WitnessesIndexRoute
-  '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  "/": typeof IndexRoute;
+  "/change-password": typeof ChangePasswordRoute;
+  "/forgot-password": typeof ForgotPasswordRoute;
+  "/login": typeof LoginRoute;
+  "/reset-password": typeof ResetPasswordRoute;
+  "/signup": typeof SignupRoute;
+  "/verify-email": typeof VerifyEmailRoute;
+  "/transactions/$id": typeof TransactionsIdRoute;
+  "/contacts": typeof ContactsIndexRoute;
+  "/witnesses": typeof WitnessesIndexRoute;
+  "/witnesses/invite/$token": typeof WitnessesInviteTokenRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/change-password': typeof ChangePasswordRoute
-  '/forgot-password': typeof ForgotPasswordRoute
-  '/login': typeof LoginRoute
-  '/reset-password': typeof ResetPasswordRoute
-  '/signup': typeof SignupRoute
-  '/verify-email': typeof VerifyEmailRoute
-  '/witnesses/': typeof WitnessesIndexRoute
-  '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/change-password": typeof ChangePasswordRoute;
+  "/forgot-password": typeof ForgotPasswordRoute;
+  "/login": typeof LoginRoute;
+  "/reset-password": typeof ResetPasswordRoute;
+  "/signup": typeof SignupRoute;
+  "/verify-email": typeof VerifyEmailRoute;
+  "/transactions/$id": typeof TransactionsIdRoute;
+  "/contacts/": typeof ContactsIndexRoute;
+  "/witnesses/": typeof WitnessesIndexRoute;
+  "/witnesses/invite/$token": typeof WitnessesInviteTokenRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/change-password'
-    | '/forgot-password'
-    | '/login'
-    | '/reset-password'
-    | '/signup'
-    | '/verify-email'
-    | '/witnesses/'
-    | '/witnesses/invite/$token'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/change-password"
+    | "/forgot-password"
+    | "/login"
+    | "/reset-password"
+    | "/signup"
+    | "/verify-email"
+    | "/transactions/$id"
+    | "/contacts/"
+    | "/witnesses/"
+    | "/witnesses/invite/$token";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/change-password'
-    | '/forgot-password'
-    | '/login'
-    | '/reset-password'
-    | '/signup'
-    | '/verify-email'
-    | '/witnesses'
-    | '/witnesses/invite/$token'
+    | "/"
+    | "/change-password"
+    | "/forgot-password"
+    | "/login"
+    | "/reset-password"
+    | "/signup"
+    | "/verify-email"
+    | "/transactions/$id"
+    | "/contacts"
+    | "/witnesses"
+    | "/witnesses/invite/$token";
   id:
-    | '__root__'
-    | '/'
-    | '/change-password'
-    | '/forgot-password'
-    | '/login'
-    | '/reset-password'
-    | '/signup'
-    | '/verify-email'
-    | '/witnesses/'
-    | '/witnesses/invite/$token'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/change-password"
+    | "/forgot-password"
+    | "/login"
+    | "/reset-password"
+    | "/signup"
+    | "/verify-email"
+    | "/transactions/$id"
+    | "/contacts/"
+    | "/witnesses/"
+    | "/witnesses/invite/$token";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  ChangePasswordRoute: typeof ChangePasswordRoute
-  ForgotPasswordRoute: typeof ForgotPasswordRoute
-  LoginRoute: typeof LoginRoute
-  ResetPasswordRoute: typeof ResetPasswordRoute
-  SignupRoute: typeof SignupRoute
-  VerifyEmailRoute: typeof VerifyEmailRoute
-  WitnessesIndexRoute: typeof WitnessesIndexRoute
-  WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute
+  IndexRoute: typeof IndexRoute;
+  ChangePasswordRoute: typeof ChangePasswordRoute;
+  ForgotPasswordRoute: typeof ForgotPasswordRoute;
+  LoginRoute: typeof LoginRoute;
+  ResetPasswordRoute: typeof ResetPasswordRoute;
+  SignupRoute: typeof SignupRoute;
+  VerifyEmailRoute: typeof VerifyEmailRoute;
+  TransactionsIdRoute: typeof TransactionsIdRoute;
+  ContactsIndexRoute: typeof ContactsIndexRoute;
+  WitnessesIndexRoute: typeof WitnessesIndexRoute;
+  WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/verify-email': {
-      id: '/verify-email'
-      path: '/verify-email'
-      fullPath: '/verify-email'
-      preLoaderRoute: typeof VerifyEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/change-password': {
-      id: '/change-password'
-      path: '/change-password'
-      fullPath: '/change-password'
-      preLoaderRoute: typeof ChangePasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/witnesses/': {
-      id: '/witnesses/'
-      path: '/witnesses'
-      fullPath: '/witnesses/'
-      preLoaderRoute: typeof WitnessesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/witnesses/invite/$token': {
-      id: '/witnesses/invite/$token'
-      path: '/witnesses/invite/$token'
-      fullPath: '/witnesses/invite/$token'
-      preLoaderRoute: typeof WitnessesInviteTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/verify-email": {
+      id: "/verify-email";
+      path: "/verify-email";
+      fullPath: "/verify-email";
+      preLoaderRoute: typeof VerifyEmailRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/signup": {
+      id: "/signup";
+      path: "/signup";
+      fullPath: "/signup";
+      preLoaderRoute: typeof SignupRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/reset-password": {
+      id: "/reset-password";
+      path: "/reset-password";
+      fullPath: "/reset-password";
+      preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/login": {
+      id: "/login";
+      path: "/login";
+      fullPath: "/login";
+      preLoaderRoute: typeof LoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/forgot-password": {
+      id: "/forgot-password";
+      path: "/forgot-password";
+      fullPath: "/forgot-password";
+      preLoaderRoute: typeof ForgotPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/change-password": {
+      id: "/change-password";
+      path: "/change-password";
+      fullPath: "/change-password";
+      preLoaderRoute: typeof ChangePasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/witnesses/": {
+      id: "/witnesses/";
+      path: "/witnesses";
+      fullPath: "/witnesses/";
+      preLoaderRoute: typeof WitnessesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/contacts/": {
+      id: "/contacts/";
+      path: "/contacts";
+      fullPath: "/contacts/";
+      preLoaderRoute: typeof ContactsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/transactions/$id": {
+      id: "/transactions/$id";
+      path: "/transactions/$id";
+      fullPath: "/transactions/$id";
+      preLoaderRoute: typeof TransactionsIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/witnesses/invite/$token": {
+      id: "/witnesses/invite/$token";
+      path: "/witnesses/invite/$token";
+      fullPath: "/witnesses/invite/$token";
+      preLoaderRoute: typeof WitnessesInviteTokenRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
@@ -223,18 +263,20 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  TransactionsIdRoute: TransactionsIdRoute,
+  ContactsIndexRoute: ContactsIndexRoute,
   WitnessesIndexRoute: WitnessesIndexRoute,
   WitnessesInviteTokenRoute: WitnessesInviteTokenRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
+import type { getRouter } from "./router.tsx";
+import type { createStart } from "@tanstack/react-start";
+declare module "@tanstack/react-start" {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }

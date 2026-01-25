@@ -22,6 +22,17 @@
         "dev": {
             "cache": false,
             "persistent": true
+        },
+        "lint:fix": {
+            "dependsOn": [
+                "^lint:fix"
+            ]
+        },
+        "format:fix": {
+            "dependsOn": [
+                "^format:fix"
+            ]
         }
+        
     }
 }
