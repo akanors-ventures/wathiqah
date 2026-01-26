@@ -24,6 +24,7 @@ import * as ms from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
 import { splitName } from '../../common/utils/string.utils';
+import { FilterTransactionInput } from './dto/filter-transaction.input';
 
 @Injectable()
 export class TransactionsService {
@@ -258,14 +259,36 @@ export class TransactionsService {
     });
   }
 
-  async findAll(userId: string) {
-    return this.prisma.transaction.findMany({
-      where: {
-        OR: [
-          { createdById: userId },
-          // (Future) Transactions where user is a contact or witness
-        ],
-      },
+  async findAll(userId: string, filter?: FilterTransactionInput) {
+    const where: Prisma.TransactionWhereInput = {
+      createdById: userId,
+    };
+
+    if (filter) {
+      if (filter.type) {
+        where.type = filter.type;
+      }
+      if (filter.contactId) {
+        where.contactId = filter.contactId;
+      }
+      if (filter.search) {
+        where.OR = [
+          { description: { contains: filter.search, mode: 'insensitive' } },
+          { itemName: { contains: filter.search, mode: 'insensitive' } },
+          {
+            contact: {
+              OR: [
+                { firstName: { contains: filter.search, mode: 'insensitive' } },
+                { lastName: { contains: filter.search, mode: 'insensitive' } },
+              ],
+            },
+          },
+        ];
+      }
+    }
+
+    const items = await this.prisma.transaction.findMany({
+      where,
       include: {
         contact: true,
         witnesses: {
@@ -278,6 +301,57 @@ export class TransactionsService {
         date: 'desc',
       },
     });
+
+    // Calculate summary (respecting contact filter if present, but ignoring type/search for context)
+    const summaryWhere: Prisma.TransactionWhereInput = {
+      createdById: userId,
+    };
+
+    if (filter?.contactId) {
+      summaryWhere.contactId = filter.contactId;
+    }
+
+    const aggregations = await this.prisma.transaction.groupBy({
+      by: ['type'],
+      where: summaryWhere,
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const summary = {
+      totalGiven: 0,
+      totalReceived: 0,
+      totalCollected: 0,
+      totalExpense: 0,
+      totalIncome: 0,
+      netBalance: 0,
+    };
+
+    aggregations.forEach((agg) => {
+      const amount = Number(agg._sum.amount) || 0;
+      if (agg.type === 'GIVEN') summary.totalGiven = amount;
+      if (agg.type === 'RECEIVED') summary.totalReceived = amount;
+      if (agg.type === 'COLLECTED') summary.totalCollected = amount;
+      if (agg.type === 'EXPENSE') summary.totalExpense = amount;
+      if (agg.type === 'INCOME') summary.totalIncome = amount;
+    });
+
+    // Net Balance Calculation
+    // For personal finance (when no contact is selected in filter):
+    // Net Balance = Income - Expenses + (Received + Collected - Given)
+    // "Received + Collected - Given" represents the net flow from debts/loans.
+    // If filtering by contact, Expense/Income should ideally be 0 (unless tagged).
+
+    summary.netBalance =
+      summary.totalIncome -
+      summary.totalExpense +
+      (summary.totalReceived + summary.totalCollected - summary.totalGiven);
+
+    return {
+      items,
+      summary,
+    };
   }
 
   async findOne(id: string, userId: string) {
@@ -337,7 +411,9 @@ export class TransactionsService {
       amount,
       itemName,
       quantity,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       witnessUserIds, // Destructure to exclude from rest
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       witnessInvites, // Destructure to exclude from rest
       ...rest
     } = updateTransactionInput;

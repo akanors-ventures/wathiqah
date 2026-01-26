@@ -57,11 +57,11 @@ export class Transaction {
   @Field()
   createdAt: Date;
 
-  @Field()
-  contactId: string;
+  @Field({ nullable: true })
+  contactId?: string;
 
-  @Field(() => Contact)
-  contact: Contact;
+  @Field(() => Contact, { nullable: true })
+  contact?: Contact;
 
   @Field()
   createdById: string;

@@ -67,3 +67,13 @@ export type TransactionHistory = Prisma.TransactionHistoryModel;
  *
  */
 export type Witness = Prisma.WitnessModel;
+/**
+ * Model Promise
+ *
+ */
+export type Promise = Prisma.PromiseModel;
+/**
+ * Model AccessGrant
+ *
+ */
+export type AccessGrant = Prisma.AccessGrantModel;

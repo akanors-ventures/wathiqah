@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { NotificationService } from './notification.service';
 import { TemplateService } from './template.service';
-import { SendGridEmailProvider } from './providers/sendgrid-email.provider';
+import { MailtrapEmailProvider } from './providers/mailtrap-email.provider';
 import { TwilioSmsProvider } from './providers/twilio-sms.provider';
 import { EmailProvider } from './providers/email-provider.interface';
 import { SmsProvider } from './providers/sms-provider.interface';
@@ -14,7 +14,7 @@ import { SmsProvider } from './providers/sms-provider.interface';
     TemplateService,
     {
       provide: EmailProvider,
-      useClass: SendGridEmailProvider,
+      useClass: MailtrapEmailProvider,
     },
     {
       provide: SmsProvider,

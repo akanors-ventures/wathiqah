@@ -382,9 +382,9 @@ export type ContactMinOrderByAggregateInput = {
   userId?: Prisma.SortOrder;
 };
 
-export type ContactScalarRelationFilter = {
-  is?: Prisma.ContactWhereInput;
-  isNot?: Prisma.ContactWhereInput;
+export type ContactNullableScalarRelationFilter = {
+  is?: Prisma.ContactWhereInput | null;
+  isNot?: Prisma.ContactWhereInput | null;
 };
 
 export type ContactCreateNestedManyWithoutUserInput = {
@@ -490,13 +490,15 @@ export type ContactCreateNestedOneWithoutTransactionsInput = {
   connect?: Prisma.ContactWhereUniqueInput;
 };
 
-export type ContactUpdateOneRequiredWithoutTransactionsNestedInput = {
+export type ContactUpdateOneWithoutTransactionsNestedInput = {
   create?: Prisma.XOR<
     Prisma.ContactCreateWithoutTransactionsInput,
     Prisma.ContactUncheckedCreateWithoutTransactionsInput
   >;
   connectOrCreate?: Prisma.ContactCreateOrConnectWithoutTransactionsInput;
   upsert?: Prisma.ContactUpsertWithoutTransactionsInput;
+  disconnect?: Prisma.ContactWhereInput | boolean;
+  delete?: Prisma.ContactWhereInput | boolean;
   connect?: Prisma.ContactWhereUniqueInput;
   update?: Prisma.XOR<
     Prisma.XOR<

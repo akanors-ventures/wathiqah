@@ -59,6 +59,8 @@ export const ModelName = {
   Transaction: 'Transaction',
   TransactionHistory: 'TransactionHistory',
   Witness: 'Witness',
+  Promise: 'Promise',
+  AccessGrant: 'AccessGrant',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -146,6 +148,36 @@ export const WitnessScalarFieldEnum = {
 
 export type WitnessScalarFieldEnum =
   (typeof WitnessScalarFieldEnum)[keyof typeof WitnessScalarFieldEnum];
+
+export const PromiseScalarFieldEnum = {
+  id: 'id',
+  description: 'description',
+  promiseTo: 'promiseTo',
+  dueDate: 'dueDate',
+  notes: 'notes',
+  priority: 'priority',
+  category: 'category',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  userId: 'userId',
+} as const;
+
+export type PromiseScalarFieldEnum =
+  (typeof PromiseScalarFieldEnum)[keyof typeof PromiseScalarFieldEnum];
+
+export const AccessGrantScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  status: 'status',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  granterId: 'granterId',
+} as const;
+
+export type AccessGrantScalarFieldEnum =
+  (typeof AccessGrantScalarFieldEnum)[keyof typeof AccessGrantScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',

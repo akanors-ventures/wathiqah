@@ -28,7 +28,33 @@ export const TransactionType = {
   GIVEN: 'GIVEN',
   RECEIVED: 'RECEIVED',
   COLLECTED: 'COLLECTED',
+  EXPENSE: 'EXPENSE',
+  INCOME: 'INCOME',
 } as const;
 
 export type TransactionType =
   (typeof TransactionType)[keyof typeof TransactionType];
+
+export const Priority = {
+  HIGH: 'HIGH',
+  MEDIUM: 'MEDIUM',
+  LOW: 'LOW',
+} as const;
+
+export type Priority = (typeof Priority)[keyof typeof Priority];
+
+export const PromiseStatus = {
+  PENDING: 'PENDING',
+  FULFILLED: 'FULFILLED',
+  OVERDUE: 'OVERDUE',
+} as const;
+
+export type PromiseStatus = (typeof PromiseStatus)[keyof typeof PromiseStatus];
+
+export const AccessStatus = {
+  PENDING: 'PENDING',
+  ACCEPTED: 'ACCEPTED',
+  REVOKED: 'REVOKED',
+} as const;
+
+export type AccessStatus = (typeof AccessStatus)[keyof typeof AccessStatus];

@@ -30,6 +30,8 @@ model User {
   contacts            Contact[]
   witnessRecords      Witness[]            @relation("WitnessUser")
   transactionHistory  TransactionHistory[] @relation("HistoryUser")
+  promises            Promise[]
+  accessGrants        AccessGrant[]
 
   @@map("users")
   @@index([phoneNumber])
@@ -63,8 +65,8 @@ model Transaction {
   createdAt   DateTime        @default(now())
 
   // Relations
-  contactId   String
-  contact     Contact              @relation(fields: [contactId], references: [id])
+  contactId   String?
+  contact     Contact?             @relation(fields: [contactId], references: [id])
   createdById String
   createdBy   User                 @relation("TransactionCreator", fields: [createdById], references: [id])
   witnesses   Witness[]
@@ -123,4 +125,56 @@ enum TransactionType {
   GIVEN
   RECEIVED
   COLLECTED
+  EXPENSE
+  INCOME
+}
+
+model Promise {
+  id          String    @id @default(uuid())
+  description String
+  promiseTo   String
+  dueDate     DateTime
+  notes       String?
+  priority    Priority  @default(MEDIUM)
+  category    String?
+  status      PromiseStatus @default(PENDING)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("promises")
+}
+
+model AccessGrant {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  status    AccessStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+
+  granterId String
+  granter   User     @relation(fields: [granterId], references: [id])
+
+  @@map("access_grants")
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum PromiseStatus {
+  PENDING
+  FULFILLED
+  OVERDUE
+}
+
+enum AccessStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
 }

@@ -81,4 +81,9 @@ export class AuthResolver {
   ) {
     return this.authService.changePassword(user.id, changePasswordInput);
   }
+
+  @Mutation(() => Boolean)
+  resendVerificationEmail(@Args('email') email: string) {
+    return this.authService.resendVerificationEmail(email);
+  }
 }

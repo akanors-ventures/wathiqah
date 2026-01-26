@@ -417,6 +417,8 @@ export const ModelName = {
   Transaction: 'Transaction',
   TransactionHistory: 'TransactionHistory',
   Witness: 'Witness',
+  Promise: 'Promise',
+  AccessGrant: 'AccessGrant',
 } as const;
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -443,7 +445,9 @@ export type TypeMap<
       | 'contact'
       | 'transaction'
       | 'transactionHistory'
-      | 'witness';
+      | 'witness'
+      | 'promise'
+      | 'accessGrant';
     txIsolationLevel: TransactionIsolationLevel;
   };
   model: {
@@ -827,6 +831,158 @@ export type TypeMap<
         };
       };
     };
+    Promise: {
+      payload: Prisma.$PromisePayload<ExtArgs>;
+      fields: Prisma.PromiseFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.PromiseFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.PromiseFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>;
+        };
+        findFirst: {
+          args: Prisma.PromiseFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.PromiseFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>;
+        };
+        findMany: {
+          args: Prisma.PromiseFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>[];
+        };
+        create: {
+          args: Prisma.PromiseCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>;
+        };
+        createMany: {
+          args: Prisma.PromiseCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.PromiseCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>[];
+        };
+        delete: {
+          args: Prisma.PromiseDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>;
+        };
+        update: {
+          args: Prisma.PromiseUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>;
+        };
+        deleteMany: {
+          args: Prisma.PromiseDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.PromiseUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.PromiseUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>[];
+        };
+        upsert: {
+          args: Prisma.PromiseUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PromisePayload>;
+        };
+        aggregate: {
+          args: Prisma.PromiseAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePromise>;
+        };
+        groupBy: {
+          args: Prisma.PromiseGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.PromiseGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.PromiseCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.PromiseCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
+    AccessGrant: {
+      payload: Prisma.$AccessGrantPayload<ExtArgs>;
+      fields: Prisma.AccessGrantFieldRefs;
+      operations: {
+        findUnique: {
+          args: Prisma.AccessGrantFindUniqueArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload> | null;
+        };
+        findUniqueOrThrow: {
+          args: Prisma.AccessGrantFindUniqueOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>;
+        };
+        findFirst: {
+          args: Prisma.AccessGrantFindFirstArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload> | null;
+        };
+        findFirstOrThrow: {
+          args: Prisma.AccessGrantFindFirstOrThrowArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>;
+        };
+        findMany: {
+          args: Prisma.AccessGrantFindManyArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>[];
+        };
+        create: {
+          args: Prisma.AccessGrantCreateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>;
+        };
+        createMany: {
+          args: Prisma.AccessGrantCreateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        createManyAndReturn: {
+          args: Prisma.AccessGrantCreateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>[];
+        };
+        delete: {
+          args: Prisma.AccessGrantDeleteArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>;
+        };
+        update: {
+          args: Prisma.AccessGrantUpdateArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>;
+        };
+        deleteMany: {
+          args: Prisma.AccessGrantDeleteManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateMany: {
+          args: Prisma.AccessGrantUpdateManyArgs<ExtArgs>;
+          result: BatchPayload;
+        };
+        updateManyAndReturn: {
+          args: Prisma.AccessGrantUpdateManyAndReturnArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>[];
+        };
+        upsert: {
+          args: Prisma.AccessGrantUpsertArgs<ExtArgs>;
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AccessGrantPayload>;
+        };
+        aggregate: {
+          args: Prisma.AccessGrantAggregateArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAccessGrant>;
+        };
+        groupBy: {
+          args: Prisma.AccessGrantGroupByArgs<ExtArgs>;
+          result: runtime.Types.Utils.Optional<Prisma.AccessGrantGroupByOutputType>[];
+        };
+        count: {
+          args: Prisma.AccessGrantCountArgs<ExtArgs>;
+          result:
+            | runtime.Types.Utils.Optional<Prisma.AccessGrantCountAggregateOutputType>
+            | number;
+        };
+      };
+    };
   };
 } & {
   other: {
@@ -935,6 +1091,36 @@ export const WitnessScalarFieldEnum = {
 
 export type WitnessScalarFieldEnum =
   (typeof WitnessScalarFieldEnum)[keyof typeof WitnessScalarFieldEnum];
+
+export const PromiseScalarFieldEnum = {
+  id: 'id',
+  description: 'description',
+  promiseTo: 'promiseTo',
+  dueDate: 'dueDate',
+  notes: 'notes',
+  priority: 'priority',
+  category: 'category',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  userId: 'userId',
+} as const;
+
+export type PromiseScalarFieldEnum =
+  (typeof PromiseScalarFieldEnum)[keyof typeof PromiseScalarFieldEnum];
+
+export const AccessGrantScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token: 'token',
+  status: 'status',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  granterId: 'granterId',
+} as const;
+
+export type AccessGrantScalarFieldEnum =
+  (typeof AccessGrantScalarFieldEnum)[keyof typeof AccessGrantScalarFieldEnum];
 
 export const SortOrder = {
   asc: 'asc',
@@ -1108,6 +1294,52 @@ export type ListEnumWitnessStatusFieldRefInput<$PrismaModel> =
   FieldRefInputType<$PrismaModel, 'WitnessStatus[]'>;
 
 /**
+ * Reference to a field of type 'Priority'
+ */
+export type EnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'Priority'
+>;
+
+/**
+ * Reference to a field of type 'Priority[]'
+ */
+export type ListEnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'Priority[]'
+>;
+
+/**
+ * Reference to a field of type 'PromiseStatus'
+ */
+export type EnumPromiseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'PromiseStatus'
+>;
+
+/**
+ * Reference to a field of type 'PromiseStatus[]'
+ */
+export type ListEnumPromiseStatusFieldRefInput<$PrismaModel> =
+  FieldRefInputType<$PrismaModel, 'PromiseStatus[]'>;
+
+/**
+ * Reference to a field of type 'AccessStatus'
+ */
+export type EnumAccessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'AccessStatus'
+>;
+
+/**
+ * Reference to a field of type 'AccessStatus[]'
+ */
+export type ListEnumAccessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
+  $PrismaModel,
+  'AccessStatus[]'
+>;
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<
@@ -1231,6 +1463,8 @@ export type GlobalOmitConfig = {
   transaction?: Prisma.TransactionOmit;
   transactionHistory?: Prisma.TransactionHistoryOmit;
   witness?: Prisma.WitnessOmit;
+  promise?: Prisma.PromiseOmit;
+  accessGrant?: Prisma.AccessGrantOmit;
 };
 
 /* Types for Logging */

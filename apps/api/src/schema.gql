@@ -7,6 +7,22 @@ input AcceptInvitationInput {
   token: String!
 }
 
+type AccessGrant {
+  createdAt: DateTime!
+  email: String!
+  expiresAt: DateTime
+  granter: User
+  id: String!
+  status: AccessStatus!
+  token: String!
+}
+
+enum AccessStatus {
+  ACCEPTED
+  PENDING
+  REVOKED
+}
+
 input AcknowledgeWitnessInput {
   status: WitnessStatus!
   witnessId: ID!
@@ -54,10 +70,19 @@ input CreateContactInput {
   phoneNumber: String
 }
 
+input CreatePromiseInput {
+  category: String
+  description: String!
+  dueDate: DateTime!
+  notes: String
+  priority: Priority
+  promiseTo: String!
+}
+
 input CreateTransactionInput {
   amount: Float
   category: AssetCategory!
-  contactId: ID!
+  contactId: ID
   date: DateTime!
   description: String
   itemName: String
@@ -72,7 +97,17 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+input FilterTransactionInput {
+  contactId: String
+  search: String
+  type: TransactionType
+}
+
 input ForgotPasswordInput {
+  email: String!
+}
+
+input GrantAccessInput {
   email: String!
 }
 
@@ -87,32 +122,70 @@ input LoginInput {
 }
 
 type Mutation {
+  acceptAccess(token: String!): AccessGrant!
   acceptInvitation(acceptInvitationInput: AcceptInvitationInput!): AuthPayload!
   acknowledgeWitness(input: AcknowledgeWitnessInput!): Witness!
   addWitness(input: AddWitnessInput!): Transaction!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createContact(createContactInput: CreateContactInput!): Contact!
+  createPromise(createPromiseInput: CreatePromiseInput!): Promise!
   createTransaction(input: CreateTransactionInput!): Transaction!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
+  grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
+  removePromise(id: String!): Promise!
+  resendVerificationEmail(email: String!): Boolean!
   resetPassword(resetPasswordInput: ResetPasswordInput!): Boolean!
+  revokeAccess(id: String!): AccessGrant!
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
+  updatePromise(updatePromiseInput: UpdatePromiseInput!): Promise!
   updateTransaction(input: UpdateTransactionInput!): Transaction!
+  updateUser(updateUserInput: UpdateUserInput!): User!
   verifyEmail(token: String!): AuthPayload!
+}
+
+enum Priority {
+  HIGH
+  LOW
+  MEDIUM
+}
+
+type Promise {
+  category: String
+  createdAt: DateTime!
+  description: String!
+  dueDate: DateTime!
+  id: String!
+  notes: String
+  priority: Priority!
+  promiseTo: String!
+  status: PromiseStatus!
+  updatedAt: DateTime!
+}
+
+enum PromiseStatus {
+  FULFILLED
+  OVERDUE
+  PENDING
 }
 
 type Query {
   contact(id: ID!): Contact!
   contacts: [Contact!]!
   me: User!
+  myAccessGrants: [AccessGrant!]!
+  myPromises: [Promise!]!
   myWitnessRequests(status: WitnessStatus): [Witness!]!
+  promise(id: String!): Promise!
+  receivedAccessGrants: [AccessGrant!]!
   searchWitness(input: SearchWitnessInput!): WitnessCandidate
+  sharedData(grantId: String!): SharedDataEntity!
   transaction(id: ID!): Transaction!
-  transactions: [Transaction!]!
+  transactions(filter: FilterTransactionInput): TransactionsResponse!
   user(id: String!): User
   witnessInvitation(token: String!): Witness!
 }
@@ -136,6 +209,12 @@ input SearchWitnessInput {
   type: SearchType!
 }
 
+type SharedDataEntity {
+  promises: [Promise!]!
+  transactions: [Transaction!]!
+  user: User!
+}
+
 input SignupInput {
   email: String!
   name: String!
@@ -145,8 +224,8 @@ input SignupInput {
 type Transaction {
   amount: Float
   category: AssetCategory!
-  contact: Contact!
-  contactId: String!
+  contact: Contact
+  contactId: String
   createdAt: DateTime!
   createdBy: User!
   createdById: String!
@@ -173,8 +252,24 @@ type TransactionHistory {
 
 enum TransactionType {
   COLLECTED
+  EXPENSE
   GIVEN
+  INCOME
   RECEIVED
+}
+
+type TransactionsResponse {
+  items: [Transaction!]!
+  summary: TransactionsSummary!
+}
+
+type TransactionsSummary {
+  netBalance: Float!
+  totalCollected: Float!
+  totalExpense: Float!
+  totalGiven: Float!
+  totalIncome: Float!
+  totalReceived: Float!
 }
 
 input UpdateContactInput {
@@ -182,6 +277,17 @@ input UpdateContactInput {
   id: ID!
   name: String
   phoneNumber: String
+}
+
+input UpdatePromiseInput {
+  category: String
+  description: String
+  dueDate: DateTime
+  id: String!
+  notes: String
+  priority: Priority
+  promiseTo: String
+  status: PromiseStatus
 }
 
 input UpdateTransactionInput {
@@ -196,6 +302,12 @@ input UpdateTransactionInput {
   type: TransactionType
   witnessInvites: [WitnessInviteInput!]
   witnessUserIds: [ID!]
+}
+
+input UpdateUserInput {
+  firstName: String
+  lastName: String
+  phoneNumber: String
 }
 
 type User {

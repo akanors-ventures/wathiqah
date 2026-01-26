@@ -166,6 +166,35 @@ export class NotificationService {
   }
 
   /**
+   * Sends an invitation to view shared access.
+   *
+   * @param email - The recipient's email address.
+   * @param granterName - The name of the user granting access.
+   * @param token - The access token.
+   * @throws BadRequestException if any parameter is missing or empty.
+   */
+  async sendSharedAccessInvite(
+    email: string,
+    granterName: string,
+    token: string,
+  ): Promise<void> {
+    this.validateParams({ email, granterName, token });
+
+    const accessUrl = `${this.configService.get('app.url')}/shared-access?token=${token}`;
+
+    await this.sendEmailWithTemplate(
+      email,
+      'Invitation to view shared data',
+      'shared-access-invite',
+      {
+        granterName,
+        accessUrl,
+        subject: 'Invitation to view shared data',
+      },
+    );
+  }
+
+  /**
    * Notifies a user that their transaction has been created.
    *
    * @param email - The user's email address.
@@ -242,16 +271,21 @@ export class NotificationService {
     templateName: string,
     data: Record<string, any>,
   ): Promise<void> {
+    const templateData = {
+      ...data,
+      year: new Date().getFullYear(),
+    };
+
     const html = this.templateService.render(
       templateName,
       'email',
-      data,
+      templateData,
       'html',
     );
     const text = this.templateService.render(
       templateName,
       'email',
-      data,
+      templateData,
       'txt',
     );
 

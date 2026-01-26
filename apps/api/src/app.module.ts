@@ -11,10 +11,14 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { WitnessesModule } from './modules/witnesses/witnesses.module';
+import { PromisesModule } from './modules/promises/promises.module';
+import { SharedAccessModule } from './modules/shared-access/shared-access.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
+import { LoggerModule } from 'nestjs-pino';
+import { v4 as uuidv4 } from 'uuid';
 
 @Module({
   imports: [
@@ -22,6 +26,51 @@ import { CacheableMemory } from 'cacheable';
       load: config,
       cache: true,
       isGlobal: true,
+    }),
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => {
+        const isProduction = configService.get('app.env') === 'production';
+        return {
+          pinoHttp: {
+            level: isProduction ? 'info' : 'debug',
+            transport: isProduction
+              ? undefined
+              : {
+                  target: 'pino-pretty',
+                  options: {
+                    singleLine: true,
+                    translateTime: 'SYS:standard',
+                  },
+                },
+            autoLogging: true,
+            genReqId: (req) =>
+              (req.headers['x-request-id'] as string) || uuidv4(),
+            redact: {
+              paths: [
+                'req.headers.authorization',
+                'req.body.password',
+                'req.body.token',
+                'req.body.verificationToken',
+                'req.body.resetToken',
+              ],
+              censor: '***',
+            },
+            serializers: {
+              req: (req) => ({
+                id: req.id,
+                method: req.method,
+                url: req.url,
+                query: req.query,
+                params: req.params,
+                ip: req.remoteAddress,
+                userAgent: req.headers['user-agent'],
+              }),
+            },
+          },
+        };
+      },
     }),
     CacheModule.registerAsync({
       isGlobal: true,
@@ -60,6 +109,8 @@ import { CacheableMemory } from 'cacheable';
     AuthModule,
     ContactsModule,
     WitnessesModule,
+    PromisesModule,
+    SharedAccessModule,
   ],
   controllers: [AppController],
   providers: [AppService],

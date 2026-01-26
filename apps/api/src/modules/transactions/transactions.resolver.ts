@@ -4,6 +4,8 @@ import { Transaction } from './entities/transaction.entity';
 import { AddWitnessInput } from './dto/add-witness.input';
 import { CreateTransactionInput } from './dto/create-transaction.input';
 import { UpdateTransactionInput } from './dto/update-transaction.input';
+import { TransactionsResponse } from './entities/transactions-response.entity';
+import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -30,9 +32,12 @@ export class TransactionsResolver {
     return this.transactionsService.addWitness(addWitnessInput, user.id);
   }
 
-  @Query(() => [Transaction], { name: 'transactions' })
-  async findAll(@CurrentUser() user: User) {
-    return this.transactionsService.findAll(user.id);
+  @Query(() => TransactionsResponse, { name: 'transactions' })
+  async findAll(
+    @CurrentUser() user: User,
+    @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
+  ) {
+    return this.transactionsService.findAll(user.id, filter);
   }
 
   @Query(() => Transaction, { name: 'transaction' })

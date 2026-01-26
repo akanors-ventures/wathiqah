@@ -1,0 +1,6 @@
+
+Hello,
+
+{{granterName}} has invited you to view their shared transactions, witnesses, and promises on Wathȋqah.
+Please click the link below to access:
+{{accessUrl}}

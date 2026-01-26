@@ -127,6 +127,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException(
+        'Email not verified. Please check your inbox.',
+      );
+    }
+
     const { accessToken, refreshToken } = await this.generateTokens(
       user.id,
       user.email,
@@ -296,6 +302,43 @@ export class AuthService {
       user.email,
       user.firstName,
       resetToken,
+    );
+
+    return true;
+  }
+
+  async resendVerificationEmail(email: string): Promise<boolean> {
+    const user = await this.usersService.findByEmail(email);
+
+    // Return true even if user not found to prevent enumeration
+    if (!user) {
+      return true;
+    }
+
+    // If user is already verified, we can just return true
+    if (user.isEmailVerified) {
+      return true;
+    }
+
+    // Generate verification token
+    const verificationToken = uuidv4();
+    const verificationTokenHash = hashToken(verificationToken);
+
+    // Store in Redis with expiration
+    await this.cacheManager.set(
+      `verify:${verificationTokenHash}`,
+      user.id,
+      ms(
+        this.configService.getOrThrow<string>(
+          'auth.inviteTokenExpiry',
+        ) as ms.StringValue,
+      ),
+    );
+
+    await this.notificationService.sendVerificationEmail(
+      user.email,
+      user.firstName,
+      verificationToken,
     );
 
     return true;

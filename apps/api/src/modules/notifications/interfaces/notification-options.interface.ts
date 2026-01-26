@@ -1,9 +1,9 @@
 import { EmailPayload } from '../providers/email-provider.interface';
 import { SmsPayload } from '../providers/sms-provider.interface';
 
-export interface EmailNotificationOptions extends EmailPayload {}
+export type EmailNotificationOptions = EmailPayload;
 
-export interface SmsNotificationOptions extends SmsPayload {}
+export type SmsNotificationOptions = SmsPayload;
 
 export interface MultiChannelNotificationOptions {
   email?: EmailNotificationOptions;

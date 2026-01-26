@@ -49,8 +49,9 @@ export class CreateTransactionInput {
   @IsString()
   description?: string;
 
-  @Field(() => ID)
-  contactId: string;
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  contactId?: string;
 
   @Field(() => [ID], { nullable: true })
   @IsOptional()

@@ -12,4 +12,6 @@ export type * from './models/Contact';
 export type * from './models/Transaction';
 export type * from './models/TransactionHistory';
 export type * from './models/Witness';
+export type * from './models/Promise';
+export type * from './models/AccessGrant';
 export type * from './commonInputTypes';
