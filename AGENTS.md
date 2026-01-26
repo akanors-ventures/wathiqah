@@ -4,6 +4,14 @@
 
 **Wathȋqah** is a digital ledger application for personal and shared finances, allowing users to track funds (given, received, collected) and physical items. It features a **Witness System** for accountability.
 
+## Philosophy & Financial Logic
+
+- **Core Principle**: It is better to give out (be a creditor) than to owe people (be a debtor).
+- **Color Coding Logic**:
+  - **RECEIVED (Red)**: Marked as Red because it represents a liability/debt. It is better to avoid owing people.
+  - **GIVEN (Blue/Emerald)**: Represented as Blue or Emerald because it represents an asset/credit. Giving out is viewed more favorably than receiving debt.
+  - **RETURNED (Emerald)**: Represents the resolution of a transaction (money coming back or being paid back), which is a positive action.
+
 ## Tech Stack
 
 ### Monorepo
@@ -27,57 +35,38 @@
 - **Data Fetching**: Apollo Client (GraphQL) + TanStack Query (Caching/State)
 - **UI Library**: Shadcn UI (Tailwind CSS)
 - **Styling**: Tailwind CSS
+- **Loading**: Use either `PageLoader` or `BrandLoader` component appropriately. No loading text.
 
 ## Architecture & Workflow Rules
 
 ### General
 
 1.  **Configuration First**: Check `.cursorrules` and project config files (`package.json`, `tsconfig.json`, `components.json`) before making assumptions.
-2.  **Monorepo Commands**: Run commands from the root using `pnpm` or `turbo` unless working strictly within one app.
-		- Example: `pnpm --filter api dev` or `turbo dev`.
+2.  **Monorepo Commands**: Run commands from the root using `pnpm` or `turbo` unless working strictly within one app. - Example: `pnpm --filter api dev` or `turbo dev`.
 3.  **Type Safety**: Strict TypeScript. No `any`. Use Zod or DTOs for validation.
 
 ### Backend Rules (NestJS)
 
 1.  **Structure**: Modular architecture (`src/modules/`). Each feature (Auth, Users, Transactions, Witnesses, Promises, SharedAccess) has its own module.
-2.  **GraphQL**:
-		- **Code First**: Define schemas using TypeScript classes with `@ObjectType()`, `@InputType()`, and `@Args()`.
-		- **Resolvers**: Handle GraphQL operations.
-		- **Services**: Handle business logic and DB interactions.
-		- **Entities**: Define the GraphQL object structure (in `entities/` folder).
-3.  **Database**:
-		- Always use **Prisma** for DB operations.
-		- Update `schema.prisma` and run `pnpm prisma migrate dev` for schema changes.
-		- Never hardcode SQL queries unless absolutely necessary for performance (and document why).
-4.  **Security**:
-		- Use `ConfigService` for secrets.
-		- Implement `GqlAuthGuard` for protected endpoints.
-		- Validate all inputs using DTOs with `class-validator` decorators.
+2.  **GraphQL**: - **Code First**: Define schemas using TypeScript classes with `@ObjectType()`, `@InputType()`, and `@Args()`. - **Resolvers**: Handle GraphQL operations. - **Services**: Handle business logic and DB interactions. - **Entities**: Define the GraphQL object structure (in `entities/` folder).
+3.  **Database**: - Always use **Prisma** for DB operations. - Update `schema.prisma` and run `pnpm prisma migrate dev` for schema changes. - Never hardcode SQL queries unless absolutely necessary for performance (and document why).
+4.  **Security**: - Use `ConfigService` for secrets. - Implement `GqlAuthGuard` for protected endpoints. - Validate all inputs using DTOs with `class-validator` decorators.
 
 ### Frontend Rules (TanStack Start)
 
-1.  **Structure**:
-		- `routes/`: File-based routing.
-		- `components/`: Reusable UI. Colocate feature-specific components (e.g., `components/contacts/`).
-		- `lib/`: Utilities, Apollo setup.
-		- `hooks/`: Custom React hooks.
-2.  **Data Fetching**:
-		- Use **Apollo Client** generated hooks or custom hooks wrapping Apollo/TanStack Query.
-		- Ensure GraphQL queries are defined in `lib/apollo/queries` or colocated if specific.
-3.  **Styling**:
-		- Use **Tailwind CSS** classes.
-		- Use **Shadcn UI** components for base UI elements.
-		- Avoid custom CSS files unless for global themes.
+1.  **Structure**: - `routes/`: File-based routing. - `components/`: Reusable UI. Colocate feature-specific components (e.g., `components/contacts/`). - `lib/`: Utilities, Apollo setup. - `hooks/`: Custom React hooks.
+2.  **Data Fetching**: - Use **Apollo Client** generated hooks or custom hooks wrapping Apollo/TanStack Query. - Ensure GraphQL queries are defined in `lib/apollo/queries` or colocated if specific.
+3.  **Styling**: - Use **Tailwind CSS** classes. - Use **Shadcn UI** components for base UI elements. - Avoid custom CSS files unless for global themes.
 
 ### Witness System Specifics
 
 - **Context**: The Witness System allows adding third parties to transactions for verification.
 - **States**: `PENDING` -> `ACKNOWLEDGED` | `DECLINED`.
 - **Flow**:
-	1.  Creator adds witness (User ID or Email).
-	2.  System creates `Witness` record (Status: `PENDING`).
-	3.  Witness views and actions (Acknowledge/Decline).
-	4.  **Update Logic**: If a witnessed transaction is modified, witness status must reset or change to `MODIFIED` (See `apps/api/BACKLOG.md`).
+  1.  Creator adds witness (User ID or Email).
+  2.  System creates `Witness` record (Status: `PENDING`).
+  3.  Witness views and actions (Acknowledge/Decline).
+  4.  **Update Logic**: If a witnessed transaction is modified, witness status must reset or change to `MODIFIED` (See `apps/api/BACKLOG.md`).
 
 ## Reference Files
 
@@ -88,9 +77,25 @@
 
 ## Coding Conventions
 
-1.  **Naming**:
-		- Files: `kebab-case.ts` (e.g., `auth.service.ts`, `user-profile.tsx`)
-		- Classes/Components: `PascalCase` (e.g., `AuthService`, `UserProfile`)
-		- Functions/Variables: `camelCase`
+1.  **Naming**: - Files: `kebab-case.ts` (e.g., `auth.service.ts`, `user-profile.tsx`) - Classes/Components: `PascalCase` (e.g., `AuthService`, `UserProfile`) - Functions/Variables: `camelCase`
 2.  **Comments**: Focus on _Business Logic_ and _Why_, not syntax or _What_.
 3.  **Async/Await**: Prefer `async/await` over `.then()`.
+
+## AI-Driven Development Process
+
+This project is built using a collaborative AI workflow, leveraging advanced tools to ensure speed, quality, and consistency.
+
+### Tooling Stack
+
+- **Primary IDE**: Zed IDE (High-performance, built for speed and collaboration).
+- **AI Models**:
+  - **Claude models**: Primary driver for complex architectural decisions, logic implementation, and code refinement.
+  - **Gemini AI models**: Utilized for rapid exploration, large-scale context understanding, and specialized code generation tasks.
+- **Agentic Workflow**: We use autonomous agents (like Trae) that follow project-specific rules defined in this file to maintain architectural integrity.
+
+### Workflow Principles
+
+1.  **Context-Aware Coding**: Agents are provided with deep context from the monorepo structure, Prisma schemas, and GraphQL definitions before any code change.
+2.  **Iterative Refinement**: Code is generated, tested, and linted in a loop. Discrepancies are identified and fixed proactively.
+3.  **Consistency First**: All AI-generated code must adhere to the established tech stack (TanStack Start, NestJS, Prisma, GraphQL) and naming conventions.
+4.  **Documentation as Truth**: Architectural decisions are documented in `.md` files, which serve as the primary source of truth for both human developers and AI agents.
