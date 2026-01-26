@@ -31,9 +31,15 @@ export class Contact {
   @Field(() => User)
   user: User;
 
-  @Field(() => [Transaction], { nullable: 'items' })
-  transactions: Transaction[];
+  @Field(() => [Transaction], { nullable: true })
+  transactions?: Transaction[];
 
   @Field(() => Number)
   balance: number;
+
+  @Field(() => Boolean)
+  isOnPlatform: boolean;
+
+  @Field(() => Boolean)
+  hasPendingInvitation: boolean;
 }

@@ -10,11 +10,16 @@ import {
   AssetCategory,
   TransactionType,
   WitnessStatus,
+  ReturnDirection,
 } from '../../../generated/prisma/client';
 import { Contact } from '../../contacts/entities/contact.entity';
 import { User } from '../../users/entities/user.entity';
 import { Witness } from '../../witnesses/entities/witness.entity';
 import { TransactionHistory } from './transaction-history.entity';
+
+registerEnumType(ReturnDirection, {
+  name: 'ReturnDirection',
+});
 
 registerEnumType(AssetCategory, {
   name: 'AssetCategory',
@@ -48,14 +53,26 @@ export class Transaction {
   @Field(() => TransactionType)
   type: TransactionType;
 
+  @Field(() => ReturnDirection, { nullable: true })
+  returnDirection?: ReturnDirection;
+
   @Field()
   date: Date;
 
   @Field({ nullable: true })
   description?: string;
 
-  @Field()
+  @Field({ nullable: true })
   createdAt: Date;
+
+  @Field({ nullable: true })
+  parentId?: string;
+
+  @Field(() => Transaction, { nullable: true })
+  parent?: Transaction;
+
+  @Field(() => [Transaction], { nullable: true })
+  conversions?: Transaction[];
 
   @Field({ nullable: true })
   contactId?: string;
@@ -69,9 +86,9 @@ export class Transaction {
   @Field(() => User)
   createdBy: User;
 
-  @Field(() => [Witness], { nullable: 'items' })
-  witnesses: Witness[];
+  @Field(() => [Witness], { nullable: true })
+  witnesses?: Witness[];
 
-  @Field(() => [TransactionHistory], { nullable: 'items' })
-  history: TransactionHistory[];
+  @Field(() => [TransactionHistory], { nullable: true })
+  history?: TransactionHistory[];
 }

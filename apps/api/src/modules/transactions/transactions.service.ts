@@ -200,6 +200,46 @@ export class TransactionsService {
 
     // Start a transaction to ensure all witness records are created or nothing is
     const transaction = await this.prisma.$transaction(async (prisma) => {
+      let parentTransaction = null;
+      // If this is a GIFT conversion, validate parent existence and ownership
+      if (rest.parentId) {
+        parentTransaction = await prisma.transaction.findUnique({
+          where: { id: rest.parentId },
+        });
+
+        if (!parentTransaction) {
+          throw new NotFoundException(
+            `Parent transaction ${rest.parentId} not found`,
+          );
+        }
+
+        if (parentTransaction.createdById !== userId) {
+          throw new ForbiddenException(
+            'Cannot convert a transaction you do not own',
+          );
+        }
+
+        if (
+          parentTransaction.type !== 'GIVEN' &&
+          parentTransaction.type !== 'RECEIVED'
+        ) {
+          throw new BadRequestException(
+            'Only GIVEN or RECEIVED transactions can be converted to GIFT',
+          );
+        }
+
+        // Validate amount doesn't exceed parent amount
+        if (
+          amount &&
+          parentTransaction.amount &&
+          Number(amount) > Number(parentTransaction.amount)
+        ) {
+          throw new BadRequestException(
+            'Gift conversion amount cannot exceed parent transaction amount',
+          );
+        }
+      }
+
       const transaction = await prisma.transaction.create({
         data: {
           category,
@@ -210,6 +250,28 @@ export class TransactionsService {
           ...rest,
         },
       });
+
+      // If it's a conversion, log it in the parent's history as well
+      if (rest.parentId && parentTransaction) {
+        await prisma.transactionHistory.create({
+          data: {
+            transactionId: rest.parentId,
+            userId,
+            changeType: 'PARTIAL_CONVERSION_TO_GIFT',
+            previousState: {
+              amount: parentTransaction.amount,
+              type: parentTransaction.type,
+            },
+            newState: {
+              conversionId: transaction.id,
+              giftAmount: amount,
+              remainingAmount: parentTransaction.amount
+                ? Number(parentTransaction.amount) - Number(amount)
+                : 0,
+            },
+          },
+        });
+      }
 
       await this.processWitnesses(
         transaction.id,
@@ -312,7 +374,7 @@ export class TransactionsService {
     }
 
     const aggregations = await this.prisma.transaction.groupBy({
-      by: ['type'],
+      by: ['type', 'returnDirection'],
       where: summaryWhere,
       _sum: {
         amount: true,
@@ -322,31 +384,39 @@ export class TransactionsService {
     const summary = {
       totalGiven: 0,
       totalReceived: 0,
-      totalCollected: 0,
+      totalReturned: 0,
       totalExpense: 0,
       totalIncome: 0,
+      totalGiftGiven: 0,
+      totalGiftReceived: 0,
       netBalance: 0,
     };
 
     aggregations.forEach((agg) => {
       const amount = Number(agg._sum.amount) || 0;
-      if (agg.type === 'GIVEN') summary.totalGiven = amount;
-      if (agg.type === 'RECEIVED') summary.totalReceived = amount;
-      if (agg.type === 'COLLECTED') summary.totalCollected = amount;
-      if (agg.type === 'EXPENSE') summary.totalExpense = amount;
-      if (agg.type === 'INCOME') summary.totalIncome = amount;
+      if (agg.type === 'GIVEN') {
+        summary.totalGiven += amount;
+      } else if (agg.type === 'RECEIVED') {
+        summary.totalReceived += amount;
+      } else if (agg.type === 'RETURNED') {
+        summary.totalReturned += amount;
+      } else if (agg.type === 'EXPENSE') {
+        summary.totalExpense += amount;
+      } else if (agg.type === 'INCOME') {
+        summary.totalIncome += amount;
+      } else if (agg.type === 'GIFT') {
+        if (agg.returnDirection === 'TO_ME') {
+          summary.totalGiftReceived += amount;
+        } else {
+          summary.totalGiftGiven += amount;
+        }
+      }
     });
 
-    // Net Balance Calculation
-    // For personal finance (when no contact is selected in filter):
-    // Net Balance = Income - Expenses + (Received + Collected - Given)
-    // "Received + Collected - Given" represents the net flow from debts/loans.
-    // If filtering by contact, Expense/Income should ideally be 0 (unless tagged).
-
     summary.netBalance =
+      summary.totalGiven +
       summary.totalIncome -
-      summary.totalExpense +
-      (summary.totalReceived + summary.totalCollected - summary.totalGiven);
+      (summary.totalReceived + summary.totalExpense);
 
     return {
       items,
@@ -358,6 +428,11 @@ export class TransactionsService {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
       include: {
+        conversions: {
+          orderBy: {
+            date: 'desc',
+          },
+        },
         witnesses: {
           include: {
             user: true,
@@ -538,5 +613,27 @@ export class TransactionsService {
     ]);
 
     return updatedTransaction;
+  }
+
+  async findMyContactTransactions(userId: string) {
+    return this.prisma.transaction.findMany({
+      where: {
+        contact: {
+          linkedUserId: userId,
+        },
+      },
+      include: {
+        contact: true,
+        createdBy: true,
+        witnesses: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'desc',
+      },
+    });
   }
 }

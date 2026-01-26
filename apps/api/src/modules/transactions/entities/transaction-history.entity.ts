@@ -13,8 +13,8 @@ export class TransactionHistory {
   @Field()
   userId: string;
 
-  @Field(() => User)
-  user: User;
+  @Field(() => User, { nullable: true })
+  user?: User;
 
   @Field(() => GraphQLJSON)
   previousState: any;

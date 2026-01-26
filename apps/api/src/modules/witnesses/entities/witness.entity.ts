@@ -20,12 +20,12 @@ export class Witness {
   @Field()
   transactionId: string;
 
-  @Field(() => Transaction)
-  transaction: Transaction;
+  @Field(() => Transaction, { nullable: true })
+  transaction?: Transaction;
 
   @Field()
   userId: string;
 
-  @Field(() => User)
-  user: User;
+  @Field(() => User, { nullable: true })
+  user?: User;
 }
