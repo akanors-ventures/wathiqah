@@ -194,6 +194,30 @@ export class NotificationService {
     );
   }
 
+  async sendContactInvitationEmail(
+    email: string,
+    name: string,
+    inviterName: string,
+    token: string,
+  ): Promise<void> {
+    this.validateParams({ email, name, inviterName, token });
+
+    const inviteUrl = `${this.configService.get('app.url')}/signup?token=${token}&email=${encodeURIComponent(email)}`;
+    const subject = `${inviterName} has invited you to view documented transactions on Wathȋqah`;
+
+    await this.sendEmailWithTemplate(
+      email,
+      subject,
+      'invite-user', // Using existing invite-user template for now
+      {
+        name,
+        inviterName,
+        inviteUrl,
+        subject,
+      },
+    );
+  }
+
   /**
    * Notifies a user that their transaction has been created.
    *
