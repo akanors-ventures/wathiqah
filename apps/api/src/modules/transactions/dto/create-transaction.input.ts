@@ -2,6 +2,7 @@ import { InputType, Field, Float, Int, ID } from '@nestjs/graphql';
 import {
   AssetCategory,
   TransactionType,
+  ReturnDirection,
 } from '../../../generated/prisma/client';
 import {
   IsEnum,
@@ -41,6 +42,11 @@ export class CreateTransactionInput {
   @IsEnum(TransactionType)
   type: TransactionType;
 
+  @Field(() => ReturnDirection, { nullable: true })
+  @IsOptional()
+  @IsEnum(ReturnDirection)
+  returnDirection?: ReturnDirection;
+
   @Field()
   date: Date;
 
@@ -48,6 +54,11 @@ export class CreateTransactionInput {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @IsString()
+  parentId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()

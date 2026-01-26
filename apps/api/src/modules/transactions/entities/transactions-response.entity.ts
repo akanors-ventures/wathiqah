@@ -10,13 +10,19 @@ export class TransactionsSummary {
   totalReceived: number;
 
   @Field(() => Float)
-  totalCollected: number;
+  totalReturned: number;
+
+  @Field(() => Float)
+  totalIncome: number;
 
   @Field(() => Float)
   totalExpense: number;
 
   @Field(() => Float)
-  totalIncome: number;
+  totalGiftGiven: number;
+
+  @Field(() => Float)
+  totalGiftReceived: number;
 
   @Field(() => Float)
   netBalance: number;

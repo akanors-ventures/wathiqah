@@ -40,6 +40,11 @@ export class TransactionsResolver {
     return this.transactionsService.findAll(user.id, filter);
   }
 
+  @Query(() => [Transaction], { name: 'myContactTransactions' })
+  async findMyContactTransactions(@CurrentUser() user: User) {
+    return this.transactionsService.findMyContactTransactions(user.id);
+  }
+
   @Query(() => Transaction, { name: 'transaction' })
   async findOne(
     @Args('id', { type: () => ID }) id: string,
