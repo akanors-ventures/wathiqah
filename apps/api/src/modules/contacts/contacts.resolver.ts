@@ -15,6 +15,10 @@ import { UpdateContactInput } from './dto/update-contact.input';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
+import {
+  InviteContactResponse,
+  ContactPlatformStatus,
+} from './entities/invite-response.entity';
 
 @Resolver(() => Contact)
 @UseGuards(GqlAuthGuard)
@@ -52,6 +56,30 @@ export class ContactsResolver {
     return this.contactsService.getBalance(contact.id);
   }
 
+  @ResolveField(() => Boolean)
+  async isOnPlatform(
+    @Parent() contact: Contact,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const status = await this.contactsService.checkContactOnPlatform(
+      contact.id,
+      user.id,
+    );
+    return status.isRegistered;
+  }
+
+  @ResolveField(() => Boolean)
+  async hasPendingInvitation(
+    @Parent() contact: Contact,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const status = await this.contactsService.checkContactOnPlatform(
+      contact.id,
+      user.id,
+    );
+    return status.hasPendingInvitation;
+  }
+
   @Mutation(() => Contact)
   updateContact(
     @Args('updateContactInput') updateContactInput: UpdateContactInput,
@@ -70,5 +98,21 @@ export class ContactsResolver {
     @CurrentUser() user: User,
   ) {
     return this.contactsService.remove(id, user.id);
+  }
+
+  @Mutation(() => InviteContactResponse)
+  inviteContactToPlatform(
+    @Args('contactId', { type: () => ID }) contactId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.contactsService.inviteContactToPlatform(contactId, user.id);
+  }
+
+  @Query(() => ContactPlatformStatus)
+  checkContactOnPlatform(
+    @Args('contactId', { type: () => ID }) contactId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.contactsService.checkContactOnPlatform(contactId, user.id);
   }
 }
