@@ -33,6 +33,7 @@ import {
   ArrowRightLeft,
 } from "lucide-react";
 import { BrandLoader } from "@/components/ui/page-loader";
+import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 
 export const Route = createFileRoute("/transactions/")({
   component: TransactionsPage,
@@ -178,7 +179,12 @@ function TransactionsPage() {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Contact</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>
+                  <div className="flex items-center gap-1">
+                    Type
+                    <TransactionTypeHelp />
+                  </div>
+                </TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Witnesses</TableHead>
                 <TableHead className="text-right">Amount</TableHead>

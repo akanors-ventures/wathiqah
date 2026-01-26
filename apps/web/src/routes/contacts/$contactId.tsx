@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { PageLoader, BrandLoader } from "@/components/ui/page-loader";
+import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 
 export const Route = createFileRoute("/contacts/$contactId")({
   component: ContactDetailsPage,
@@ -127,7 +128,12 @@ function ContactDetailsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>
+                  <div className="flex items-center gap-1">
+                    Type
+                    <TransactionTypeHelp />
+                  </div>
+                </TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead></TableHead>

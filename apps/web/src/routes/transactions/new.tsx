@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { BrandLoader } from "@/components/ui/page-loader";
+import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import {
   Form,
   FormControl,
@@ -164,7 +165,10 @@ function NewTransactionPage() {
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Type</FormLabel>
+                      <FormLabel className="flex items-center gap-2">
+                        Type
+                        <TransactionTypeHelp />
+                      </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>
