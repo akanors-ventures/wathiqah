@@ -55,13 +55,20 @@ type Contact {
   createdAt: DateTime!
   email: String
   firstName: String!
+  hasPendingInvitation: Boolean!
   id: ID!
+  isOnPlatform: Boolean!
   lastName: String!
   name: String!
   phoneNumber: String
-  transactions: [Transaction]!
+  transactions: [Transaction!]
   user: User!
   userId: String!
+}
+
+type ContactPlatformStatus {
+  isOnPlatform: Boolean!
+  linkedUserId: String
 }
 
 input CreateContactInput {
@@ -86,7 +93,9 @@ input CreateTransactionInput {
   date: DateTime!
   description: String
   itemName: String
+  parentId: ID
   quantity: Int = 1
+  returnDirection: ReturnDirection
   type: TransactionType!
   witnessInvites: [WitnessInviteInput!]
   witnessUserIds: [ID!]
@@ -111,6 +120,11 @@ input GrantAccessInput {
   email: String!
 }
 
+type InviteContactResponse {
+  message: String!
+  success: Boolean!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -132,6 +146,7 @@ type Mutation {
   createTransaction(input: CreateTransactionInput!): Transaction!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
+  inviteContactToPlatform(contactId: ID!): InviteContactResponse!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
@@ -174,10 +189,12 @@ enum PromiseStatus {
 }
 
 type Query {
+  checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
   contacts: [Contact!]!
   me: User!
   myAccessGrants: [AccessGrant!]!
+  myContactTransactions: [Transaction!]!
   myPromises: [Promise!]!
   myWitnessRequests(status: WitnessStatus): [Witness!]!
   promise(id: String!): Promise!
@@ -199,6 +216,11 @@ input ResetPasswordInput {
   token: String!
 }
 
+enum ReturnDirection {
+  TO_CONTACT
+  TO_ME
+}
+
 enum SearchType {
   EMAIL
   PHONE
@@ -210,9 +232,9 @@ input SearchWitnessInput {
 }
 
 type SharedDataEntity {
-  promises: [Promise!]!
-  transactions: [Transaction!]!
-  user: User!
+  promises: [Promise!]
+  transactions: [Transaction!]
+  user: User
 }
 
 input SignupInput {
@@ -226,17 +248,21 @@ type Transaction {
   category: AssetCategory!
   contact: Contact
   contactId: String
-  createdAt: DateTime!
-  createdBy: User!
+  conversions: [Transaction!]
+  createdAt: DateTime
+  createdBy: User
   createdById: String!
   date: DateTime!
   description: String
-  history: [TransactionHistory]!
+  history: [TransactionHistory!]
   id: ID!
   itemName: String
+  parent: Transaction
+  parentId: String
   quantity: Int
+  returnDirection: ReturnDirection
   type: TransactionType!
-  witnesses: [Witness]!
+  witnesses: [Witness!]
 }
 
 type TransactionHistory {
@@ -246,16 +272,17 @@ type TransactionHistory {
   newState: JSON!
   previousState: JSON!
   transactionId: String!
-  user: User!
+  user: User
   userId: String!
 }
 
 enum TransactionType {
-  COLLECTED
   EXPENSE
+  GIFT
   GIVEN
   INCOME
   RECEIVED
+  RETURNED
 }
 
 type TransactionsResponse {
@@ -265,11 +292,13 @@ type TransactionsResponse {
 
 type TransactionsSummary {
   netBalance: Float!
-  totalCollected: Float!
   totalExpense: Float!
+  totalGiftGiven: Float!
+  totalGiftReceived: Float!
   totalGiven: Float!
   totalIncome: Float!
   totalReceived: Float!
+  totalReturned: Float!
 }
 
 input UpdateContactInput {
@@ -298,7 +327,9 @@ input UpdateTransactionInput {
   description: String
   id: ID!
   itemName: String
+  parentId: ID
   quantity: Int = 1
+  returnDirection: ReturnDirection
   type: TransactionType
   witnessInvites: [WitnessInviteInput!]
   witnessUserIds: [ID!]
@@ -327,9 +358,9 @@ type Witness {
   id: ID!
   invitedAt: DateTime!
   status: WitnessStatus!
-  transaction: Transaction!
+  transaction: Transaction
   transactionId: String!
-  user: User!
+  user: User
   userId: String!
 }
 
