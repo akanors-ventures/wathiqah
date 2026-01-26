@@ -19,6 +19,7 @@ interface MyRouterContext extends ApolloClientIntegration.RouterContext {
 import { NotFound } from "@/components/errors/NotFound";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: NotFound,
@@ -93,22 +94,24 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="flex flex-col min-h-screen">
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <Header />
-          <main className="flex-1 flex flex-col">{children}</main>
-          <Toaster />
-          <TanStackDevtools
-            config={{
-              position: "bottom-right",
-            }}
-            plugins={[
-              {
-                name: "Tanstack Router",
-                render: <TanStackRouterDevtoolsPanel />,
-              },
-              TanStackQueryDevtools,
-            ]}
-          />
-          <Scripts />
+          <AuthProvider>
+            <Header />
+            <main className="flex-1 flex flex-col">{children}</main>
+            <Toaster />
+            <TanStackDevtools
+              config={{
+                position: "bottom-right",
+              }}
+              plugins={[
+                {
+                  name: "Tanstack Router",
+                  render: <TanStackRouterDevtoolsPanel />,
+                },
+                TanStackQueryDevtools,
+              ]}
+            />
+            <Scripts />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
