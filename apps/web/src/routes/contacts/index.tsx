@@ -1,29 +1,27 @@
-import { useState, useMemo } from "react";
+import { useMutation } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
-import { authGuard } from "@/utils/auth";
-import { useContacts } from "@/hooks/useContacts";
-import type { GetContactsQuery } from "@/types/__generated__/graphql";
 import {
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  Copy,
+  History,
+  Mail,
+  MoreVertical,
+  Package,
+  Pencil,
+  Phone,
   Plus,
   Search,
-  MoreVertical,
-  Pencil,
+  Send,
+  ShieldCheck,
   Trash2,
   User,
-  Phone,
-  Mail,
+  UserPlus,
   Wallet,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { BalanceIndicator } from "@/components/ui/balance-indicator";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { useMemo, useState } from "react";
+import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,8 +32,22 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
+import { Badge } from "@/components/ui/badge";
+import { BalanceIndicator } from "@/components/ui/balance-indicator";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
+import { useContacts } from "@/hooks/useContacts";
+import { useItems } from "@/hooks/useItems"; // Import useItems
+import { GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
+import type { GetContactsQuery } from "@/types/__generated__/graphql";
+import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/contacts/")({
   component: ContactsPage,
@@ -44,6 +56,7 @@ export const Route = createFileRoute("/contacts/")({
 
 function ContactsPage() {
   const { contacts: allContacts, loading, error, deleteContact } = useContacts();
+  const { items } = useItems(); // Fetch items
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -53,6 +66,18 @@ function ContactsPage() {
   const [deletingContact, setDeletingContact] = useState<
     GetContactsQuery["contacts"][number] | null
   >(null);
+
+  const [inviteContact] = useMutation(INVITE_CONTACT, {
+    refetchQueries: [{ query: GET_CONTACTS }],
+  });
+
+  const handleInvite = async (contactId: string) => {
+    try {
+      await inviteContact({ variables: { contactId } });
+    } catch (err) {
+      console.error("Failed to invite contact:", err);
+    }
+  };
 
   const contacts = useMemo(() => {
     if (!allContacts.length) return [];
@@ -64,6 +89,44 @@ function ContactsPage() {
         (contact.phoneNumber?.includes(searchQuery) ?? false),
     );
   }, [allContacts, searchQuery]);
+
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // Helper to get item status for a contact
+  const getContactItemsStatus = (contactId: string) => {
+    const contactItems = items.filter((item) => item.contactId === contactId);
+    const lentCount = contactItems.filter((i) => i.status === "LENT").length;
+    const borrowedCount = contactItems.filter((i) => i.status === "BORROWED").length;
+
+    if (lentCount === 0 && borrowedCount === 0) return null;
+
+    return (
+      <div className="flex flex-wrap gap-1.5 mt-1">
+        {lentCount > 0 && (
+          <Badge
+            variant="outline"
+            className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px] px-2 py-0 h-5 font-semibold"
+          >
+            Lent: {lentCount}
+          </Badge>
+        )}
+        {borrowedCount > 0 && (
+          <Badge
+            variant="outline"
+            className="bg-red-500/10 text-red-600 border-red-500/20 text-[10px] px-2 py-0 h-5 font-semibold"
+          >
+            Borrowed: {borrowedCount}
+          </Badge>
+        )}
+      </div>
+    );
+  };
 
   const handleEdit = (contact: GetContactsQuery["contacts"][number]) => {
     setEditingContact(contact);
@@ -141,76 +204,241 @@ function ContactsPage() {
           {contacts.map((contact) => (
             <div
               key={contact.id}
-              className="bg-card border border-border rounded-xl p-5 hover:shadow-md transition-shadow group relative"
+              className="group relative bg-card border border-border/50 rounded-3xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-primary/40 overflow-hidden flex flex-col"
             >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-lg">
-                    {contact.name?.charAt(0)?.toUpperCase() ?? "?"}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground line-clamp-1 hover:underline">
-                      <Link to="/contacts/$contactId" params={{ contactId: contact.id }}>
-                        {contact.name ?? "Unnamed"}
-                      </Link>
-                    </h3>
-                    <BalanceIndicator amount={contact.balance} withLabel />
-                  </div>
-                </div>
+              {/* Premium Background Pattern */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 -mr-2 text-muted-foreground hover:text-foreground"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
+              <div className="p-7 flex-1 flex flex-col relative">
+                <div className="flex justify-between items-start mb-8">
+                  <div className="flex gap-5 items-center min-w-0">
+                    <div className="relative shrink-0">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black text-2xl shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500">
+                        {contact.name?.charAt(0)?.toUpperCase() ?? "?"}
+                      </div>
+                      <div className="absolute -bottom-1.5 -right-1.5 p-1 rounded-full bg-background border border-border/50 shadow-md">
+                        <div
+                          className={`w-3 h-3 rounded-full ${contact.balance >= 0 ? "bg-emerald-500" : "bg-rose-500"} ring-4 ring-background shadow-inner`}
+                        />
+                      </div>
+                    </div>
+                    <div className="min-w-0">
                       <Link
                         to="/contacts/$contactId"
                         params={{ contactId: contact.id }}
-                        className="w-full cursor-pointer flex items-center"
+                        className="block group/name"
                       >
-                        <User className="w-4 h-4 mr-2" /> View Details
+                        <h3 className="font-extrabold text-2xl text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-2 tracking-tight">
+                          {contact.name ?? "Unnamed"}
+                          <ArrowRight className="w-5 h-5 opacity-0 -translate-x-3 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all duration-300 text-primary/60" />
+                        </h3>
                       </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleEdit(contact)}>
-                      <Pencil className="w-4 h-4 mr-2" /> Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setDeletingContact(contact)}
-                      className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                      <div className="flex flex-wrap gap-2 mt-1.5">
+                        {contact.isOnPlatform ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-bold py-0.5 px-2 flex items-center gap-1 shadow-sm"
+                          >
+                            <ShieldCheck className="w-3 h-3" />
+                            Platform Member
+                          </Badge>
+                        ) : contact.hasPendingInvitation ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px] font-bold py-0.5 px-2 flex items-center gap-1 shadow-sm"
+                          >
+                            <Clock className="w-3 h-3" />
+                            Invitation Sent
+                          </Badge>
+                        ) : contact.email ? (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleInvite(contact.id);
+                            }}
+                            className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-white transition-all bg-primary/10 hover:bg-primary py-0.5 px-2 rounded-full border border-primary/20 hover:border-primary shadow-sm active:scale-95"
+                          >
+                            <UserPlus className="w-3 h-3" />
+                            Invite to Platform
+                          </button>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="bg-muted/50 text-muted-foreground border-border/50 text-[10px] font-medium py-0.5 px-2 flex items-center gap-1 italic opacity-60"
+                          >
+                            No Email Added
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-2xl transition-all"
+                      >
+                        <MoreVertical className="h-6 w-6" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-60 p-2 rounded-2xl border-border/40 shadow-2xl backdrop-blur-xl bg-background/95"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" /> Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <DropdownMenuItem
+                        asChild
+                        className="rounded-xl py-3 cursor-pointer focus:bg-primary/5"
+                      >
+                        <Link
+                          to="/contacts/$contactId"
+                          params={{ contactId: contact.id }}
+                          className="flex items-center w-full"
+                        >
+                          <History className="w-5 h-5 mr-3 text-primary/70" />
+                          <span className="font-semibold">View History</span>
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => handleEdit(contact)}
+                        className="rounded-xl py-3 cursor-pointer focus:bg-primary/5"
+                      >
+                        <Pencil className="w-5 h-5 mr-3 text-primary/70" />
+                        <span className="font-semibold">Edit Contact</span>
+                      </DropdownMenuItem>
+                      <div className="h-px bg-border/50 my-1.5 mx-2" />
+                      <DropdownMenuItem
+                        onClick={() => setDeletingContact(contact)}
+                        className="rounded-xl py-3 cursor-pointer text-rose-600 focus:text-rose-600 focus:bg-rose-50"
+                      >
+                        <Trash2 className="w-5 h-5 mr-3" />
+                        <span className="font-bold">Delete Profile</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Glassmorphism Balance Section */}
+                <div className="mb-8 p-5 rounded-3xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/30 backdrop-blur-sm relative overflow-hidden group/balance transition-all hover:border-primary/20">
+                  <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-1000" />
+                  <div className="relative flex justify-between items-center">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] flex items-center gap-2">
+                        <Wallet className="w-3.5 h-3.5 text-primary/60" /> Net Standing
+                      </span>
+                      <BalanceIndicator
+                        amount={contact.balance}
+                        className="text-2xl font-black py-0 px-0 h-auto shadow-none border-none bg-transparent dark:bg-transparent w-fit"
+                      />
+                    </div>
+                    <div
+                      className={`p-3 rounded-2xl ${contact.balance >= 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"} transition-all duration-500 group-hover/balance:scale-110 group-hover/balance:rotate-3 shadow-sm`}
+                    >
+                      <Wallet className="w-6 h-6 opacity-60 group-hover/balance:opacity-100 transition-opacity" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 mt-auto">
+                  <div className="grid grid-cols-1 gap-3">
+                    {contact.email && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          copyToClipboard(contact.email as string, `email-${contact.id}`)
+                        }
+                        className="flex items-center gap-4 text-sm text-muted-foreground hover:text-primary transition-all group/item text-left w-full"
+                      >
+                        <div className="w-10 h-10 rounded-2xl bg-muted/30 border border-transparent group-hover/item:border-primary/30 group-hover/item:bg-primary/5 flex items-center justify-center transition-all shadow-sm shrink-0">
+                          {copiedId === `email-${contact.id}` ? (
+                            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
+                          ) : (
+                            <Mail className="w-4.5 h-4.5" />
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 group-hover/item:text-primary/60">
+                            Email Address
+                          </span>
+                          <span className="truncate font-semibold tracking-tight">
+                            {contact.email}
+                          </span>
+                        </div>
+                        <Copy className="w-4 h-4 ml-auto opacity-0 group-hover/item:opacity-40 transition-opacity" />
+                      </button>
+                    )}
+                    {contact.phoneNumber && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          copyToClipboard(contact.phoneNumber as string, `phone-${contact.id}`)
+                        }
+                        className="flex items-center gap-4 text-sm text-muted-foreground hover:text-primary transition-all group/item text-left w-full"
+                      >
+                        <div className="w-10 h-10 rounded-2xl bg-muted/30 border border-transparent group-hover/item:border-primary/30 group-hover/item:bg-primary/5 flex items-center justify-center transition-all shadow-sm shrink-0">
+                          {copiedId === `phone-${contact.id}` ? (
+                            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
+                          ) : (
+                            <Phone className="w-4.5 h-4.5" />
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 group-hover/item:text-primary/60">
+                            Phone Number
+                          </span>
+                          <span className="font-semibold tracking-tight">
+                            {contact.phoneNumber}
+                          </span>
+                        </div>
+                        <Copy className="w-4 h-4 ml-auto opacity-0 group-hover/item:opacity-40 transition-opacity" />
+                      </button>
+                    )}
+                  </div>
+
+                  {getContactItemsStatus(contact.id) && (
+                    <div className="pt-6 border-t border-border/30 flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-2xl bg-muted/30 border border-transparent flex items-center justify-center shrink-0 shadow-sm">
+                        <Package className="w-5 h-5 text-primary/60" />
+                      </div>
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] mb-1.5">
+                          Asset Inventory
+                        </span>
+                        {getContactItemsStatus(contact.id)}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-2 text-sm text-muted-foreground">
-                {contact.email && (
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span className="truncate">{contact.email}</span>
-                  </div>
-                )}
-                {contact.phoneNumber && (
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
-                    <span>{contact.phoneNumber}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <Wallet className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Balance: </span>
-                  <BalanceIndicator
-                    amount={contact.balance}
-                    className="text-xs py-0 px-1.5 h-auto"
-                  />
+              {/* Enhanced Action Bar */}
+              <div className="p-4 pt-0">
+                <div className="bg-muted/30 rounded-2xl p-1.5 flex gap-1.5 border border-border/30">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="flex-1 h-12 rounded-xl hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-[0.15em] transition-all shadow-none group/btn"
+                  >
+                    <Link to="/transactions/new" search={{ contactId: contact.id }}>
+                      <Send className="w-4 h-4 mr-2 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                      Send Funds
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="flex-1 h-12 rounded-xl hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-[0.15em] transition-all shadow-none group/btn"
+                  >
+                    <Link to="/items/new" search={{ contactId: contact.id }}>
+                      <Package className="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform" />
+                      New Asset
+                    </Link>
+                  </Button>
                 </div>
               </div>
             </div>
