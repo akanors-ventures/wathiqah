@@ -6,7 +6,7 @@ export const isAuthenticated = () => {
 };
 
 export const authGuard = () => {
-  if (!isAuthenticated()) {
+  if (typeof window !== "undefined" && !isAuthenticated()) {
     throw redirect({
       to: "/login",
     });
