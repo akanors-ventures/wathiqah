@@ -64,10 +64,15 @@ export function useAuth() {
   };
 
   const logout = async () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    await client.resetStore();
-    navigate({ to: "/" });
+    try {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      await client.clearStore();
+    } catch (error) {
+      console.error("Error clearing store during logout:", error);
+    } finally {
+      navigate({ to: "/" });
+    }
   };
 
   const acceptInvitation = async (input: AcceptInvitationInput) => {
