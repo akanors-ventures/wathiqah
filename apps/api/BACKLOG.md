@@ -1,5 +1,28 @@
 # Backlog
 
+## Project & Fund Management
+
+**Status:** Pending Implementation
+**Priority:** High (Strategic Fit)
+
+### Description
+
+Implement a system to create "Projects" that act as scoped ledgers for specific goals (e.g., "Home Renovation", "Charity Drive"). This allows users to track funds allocated to a project and expenses incurred against it, closing the loop on "Trusted Ledger".
+
+### Requirements
+
+1.  **Data Model**:
+    - **Project**: `name`, `budget`, `balance`, `currency`.
+    - **ProjectTransaction**: `amount`, `type` (INCOME/EXPENSE), `category`, `description`.
+2.  **Logic**:
+    - Atomic balance updates.
+    - Expenses deduct from balance; Income adds to balance.
+3.  **UI/UX**:
+    - Project Dashboard (Budget vs Actuals).
+    - Quick "Add Expense" form.
+
+---
+
 ## Transaction Update & Witness Re-acknowledgement Workflow
 
 **Status:** Pending Implementation

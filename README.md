@@ -38,6 +38,7 @@ Financial exchanges between people are often undocumented, leading to confusion 
 **Planned Features & Enhancements:**
 
 - **Multi-currency support**.
+- **Project & Fund Management**: Create projects, set budgets, and track project-specific expenses.
 - **Exportable reports** (CSV, PDF).
 - **Real-time updates** (GraphQL subscriptions).
 - **Mobile app**.

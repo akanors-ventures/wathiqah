@@ -76,6 +76,12 @@ apps/api/
 │   │   │   ├── promises.resolver.ts
 │   │   │   └── entities/
 │   │   │
+│   │   ├── projects/             # Projects & Funds module
+│   │   │   ├── projects.module.ts
+│   │   │   ├── projects.service.ts
+│   │   │   ├── projects.resolver.ts
+│   │   │   └── entities/
+│   │   │
 │   │   └── notifications/        # Notification module
 │   │       ├── notification.service.ts
 │   │       └── providers/
@@ -129,6 +135,7 @@ apps/web/
 │   │   ├── transactions/         # Transaction-specific components
 │   │   ├── witnesses/            # Witness-specific components
 │   │   ├── promises/             # Promise-specific components
+│   │   ├── projects/             # Project-specific components
 │   │   └── shared-access/        # Shared Access components
 │   │
 │   ├── routes/                   # TanStack Router pages
@@ -139,6 +146,7 @@ apps/web/
 │   │   ├── transactions/         # Transaction pages
 │   │   ├── witnesses/            # Witness pages
 │   │   ├── promises/             # Promise pages
+│   │   ├── projects/             # Project pages
 │   │   ├── shared-access/        # Shared Access pages
 │   │   └── settings.tsx          # Settings page
 │   │
@@ -153,6 +161,7 @@ apps/web/
 │   │   ├── useTransactions.ts    # Transactions data hook
 │   │   ├── useWitnesses.ts       # Witnesses data hook
 │   │   ├── usePromises.ts        # Promises data hook
+│   │   ├── useProjects.ts        # Projects data hook
 │   │   └── useSharedAccess.ts    # Shared Access data hook
 │   │
 │   ├── types/                    # TypeScript types
