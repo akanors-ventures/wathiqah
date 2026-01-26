@@ -1,8 +1,7 @@
-import { Observable } from "@apollo/client";
-import { ErrorLink } from "@apollo/client/link/error";
-import { SetContextLink } from "@apollo/client/link/context";
+import { gql, Observable } from "@apollo/client";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
-import { gql } from "@apollo/client";
+import { SetContextLink } from "@apollo/client/link/context";
+import { ErrorLink } from "@apollo/client/link/error";
 import { print } from "graphql";
 
 const REFRESH_TOKEN_MUTATION = gql`

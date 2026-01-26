@@ -1,30 +1,30 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import { useNavigate } from "@tanstack/react-router";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import {
+  ACCEPT_INVITATION_MUTATION,
+  CHANGE_PASSWORD_MUTATION,
+  FORGOT_PASSWORD_MUTATION,
+  LOGIN_MUTATION,
+  ME_QUERY,
+  RESEND_VERIFICATION_EMAIL_MUTATION,
+  RESET_PASSWORD_MUTATION,
+  SIGNUP_MUTATION,
+  VERIFY_EMAIL_MUTATION,
+} from "@/lib/apollo/queries/auth";
 import type {
-  LoginInput,
-  SignupInput,
   AcceptInvitationInput,
-  ForgotPasswordInput,
-  ResetPasswordInput,
-  ChangePasswordInput,
-  User,
-  LoginMutation,
-  SignupMutation,
   AcceptInvitationMutation,
+  ChangePasswordInput,
+  ForgotPasswordInput,
+  LoginInput,
+  LoginMutation,
+  ResetPasswordInput,
+  SignupInput,
+  SignupMutation,
+  User,
   VerifyEmailMutation,
 } from "@/types/__generated__/graphql";
-import {
-  ME_QUERY,
-  LOGIN_MUTATION,
-  SIGNUP_MUTATION,
-  ACCEPT_INVITATION_MUTATION,
-  FORGOT_PASSWORD_MUTATION,
-  RESET_PASSWORD_MUTATION,
-  CHANGE_PASSWORD_MUTATION,
-  VERIFY_EMAIL_MUTATION,
-  RESEND_VERIFICATION_EMAIL_MUTATION,
-} from "@/lib/apollo/queries/auth";
 import { isAuthenticated } from "@/utils/auth";
 
 interface AuthContextType {
