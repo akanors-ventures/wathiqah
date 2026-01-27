@@ -15,8 +15,13 @@ async function bootstrap() {
       'https://wathiqah.akanors.com',
       'http://localhost:3000',
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'X-Request-Id',
+    ],
     credentials: true,
   });
   app.useGlobalPipes(new ValidationPipe());
