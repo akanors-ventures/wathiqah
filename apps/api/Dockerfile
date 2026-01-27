@@ -36,7 +36,7 @@ RUN pnpm prisma generate
 WORKDIR /app
 
 # Build the API
-RUN pnpm turbo build --filter=api
+RUN pnpm build --filter api
 
 # Clean up dev dependencies to reduce image size
 RUN pnpm prune --prod
