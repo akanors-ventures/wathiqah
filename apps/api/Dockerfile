@@ -32,7 +32,7 @@ COPY --from=pruner /app/out/full/ .
 # Generate Prisma Client
 # We run this explicitly to ensure the client is generated before build
 WORKDIR /app/apps/api
-RUN DATABASE_URL="postgresql://postgres:postgres@localhost:5432/wathiqah?schema=public" pnpm exec prisma generate
+RUN DATABASE_URL=${DATABASE_URL} pnpm exec prisma generate
 WORKDIR /app
 
 # Build the API
@@ -58,10 +58,10 @@ COPY --from=builder --chown=nestjs:nodejs /app .
 WORKDIR /app/apps/api
 
 # Cloud Run injects the PORT environment variable, defaulting to 3000 here
-ENV PORT=3000
+ENV PORT=${API_PORT}
 ENV NODE_ENV=production
 
-EXPOSE 3000
+EXPOSE ${API_PORT}
 
 # Start the application
 CMD ["node", "dist/main"]
