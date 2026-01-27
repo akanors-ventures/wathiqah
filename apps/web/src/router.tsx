@@ -14,7 +14,7 @@ import { routeTree } from "./routeTree.gen";
 
 // Create a new router instance
 export const getRouter = () => {
-  const uri = import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://countries.trevorblades.com/";
+  const uri = import.meta.env.VITE_API_URL || "https://countries.trevorblades.com/";
 
   // Configure Apollo Client
   const apolloClient = new ApolloClient({
