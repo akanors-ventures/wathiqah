@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { AppLogo } from "@/components/ui/app-logo";
 import HeaderUser from "../auth/header-user";
 
 export default function Header() {
@@ -12,7 +13,7 @@ export default function Header() {
             aria-label="Wathȋqah Home"
           >
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-sm group-hover:shadow-md">
-              <img src="/favicon.svg" alt="Wathȋqah" className="h-5 w-5" />
+              <AppLogo className="h-5 w-5" />
               <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary/20 group-hover:ring-transparent transition-all duration-300" />
             </div>
             <div className="grid grid-cols-1 grid-rows-1 h-9 items-center overflow-hidden text-left">

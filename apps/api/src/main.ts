@@ -9,8 +9,18 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
   const configService = app.get(ConfigService);
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'https://dev.akanors.com',
+      'https://wathiqah.akanors.com',
+      'http://localhost:3000',
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  });
   app.useGlobalPipes(new ValidationPipe());
+  app.setGlobalPrefix('api');
   await app.listen(configService.getOrThrow<number>('app.apiPort'));
 }
 bootstrap();

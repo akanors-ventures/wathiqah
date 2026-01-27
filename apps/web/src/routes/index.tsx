@@ -290,7 +290,20 @@ function LandingPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg">
-                  <img src="/favicon.svg" alt="Wathȋqah" className="h-6 w-6" />
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-6 w-6"
+                    aria-hidden="true"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.5}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
+                    <path d="m11.996304 11.334728 1.622389 1.62239 3.24478-3.2447795" />
+                    <path d="M11.949088 11.388432 10.326702 13.010822 7.0819243 9.7660435" />
+                  </svg>
                 </div>
                 <span className="font-bold text-2xl tracking-tight text-foreground">Wathȋqah</span>
               </div>

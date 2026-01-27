@@ -1,5 +1,6 @@
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AppLogo } from "./app-logo";
 
 interface BrandLoaderProps {
   className?: string;
@@ -18,7 +19,7 @@ export function BrandLoader({ className, size = "lg" }: BrandLoaderProps) {
   return (
     <div className={cn("relative flex items-center justify-center", className)}>
       <Loader2 className={cn("animate-spin text-primary/50", outer)} />
-      <img src="/favicon.svg" alt="Wathȋqah" className={cn("absolute animate-pulse", inner)} />
+      <AppLogo className={cn("absolute animate-pulse text-primary", inner)} />
     </div>
   );
 }
