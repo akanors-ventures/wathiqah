@@ -32,6 +32,11 @@
 			"dependsOn": [
 				"^format:fix"
 			]
+		},
+		"db:generate": {
+			"dependsOn": [
+				"^db:generate"
+			]
 		}
 		
 	}
