@@ -37,7 +37,13 @@
 			"dependsOn": [
 				"^db:generate"
 			]
+		},
+		"test": {
+			"dependsOn": [
+				"^test"
+			]
 		}
+		
 		
 	}
 }

@@ -61,7 +61,7 @@ Financial exchanges between people are often undocumented, leading to confusion 
 - **UI Components:** Shadcn UI
 - **Styling:** Tailwind CSS
 - **Linting:** Biome
-- **Deployment:** Nitro (platform-agnostic)
+- **Deployment:** Netlify (Web) + Cloud Run (API)
 - **Hooks:** Feature/page logic extracted into reusable hooks under `apps/web/src/hooks` (e.g., `useContacts`, `useTransaction`).
 
 ### Backend (`apps/api`)
@@ -173,7 +173,7 @@ cd apps/web
 cp .env.example .env.local
 
 # Edit .env.local with your API URL
-# VITE_API_URL="http://localhost:3001/graphql"
+# VITE_API_URL="http://localhost:3001/api/graphql"
 ```
 
 ### Database Setup
@@ -201,7 +201,7 @@ This will start:
 
 - Frontend: `http://localhost:3000`
 - Backend: `http://localhost:3001`
-- GraphQL Playground: `http://localhost:3001/graphql`
+- GraphQL Playground: `http://localhost:3001/api/graphql`
 
 #### Option 2: Run Individually
 
@@ -336,6 +336,11 @@ See [WITNESS_SEARCH_IMPLEMENTATION.md](./WITNESS_SEARCH_IMPLEMENTATION.md) for d
 
 ---
 
+## 🌐 Live URLs
+
+- Web: https://wathiqah.akanors.com
+- API GraphQL Endpoint (example): https://your-api-domain/api/graphql
+
 ## 🏗️ Build for Production
 
 ```bash
@@ -421,8 +426,8 @@ Wathȋqah leverages cutting-edge AI tools to boost productivity, ensure maintain
 - [x] Build transaction management UI (Frontend)
 - [x] Integrate Apollo Client with backend
 - [ ] Add unit and E2E tests
-- [ ] Setup CI/CD pipeline
-- [ ] Deployment
+- [x] Setup CI/CD pipeline (GitHub Actions)
+- [x] Deployment (Netlify Web + Cloud Run API)
 
 ---
 

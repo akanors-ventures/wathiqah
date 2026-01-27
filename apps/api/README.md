@@ -65,7 +65,10 @@ pnpm dev
 pnpm start:prod
 ```
 
-The GraphQL Playground will be available at `http://localhost:3001/graphql`.
+The GraphQL Playground will be available at `http://localhost:3001/api/graphql`.
+
+CORS
+- Allowed origins include `https://wathiqah.akanors.com` and `https://dev.akanors.com` by default. Update as needed in `main.ts`.
 
 ## 📂 Modules
 

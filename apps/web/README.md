@@ -28,7 +28,11 @@ cp .env.example .env.local
 ```
 
 Key variables:
-- `VITE_API_URL`: URL of the GraphQL API (default: `http://localhost:3001/graphql`)
+- `VITE_API_URL`: URL of the GraphQL API (default: `http://localhost:3001/api/graphql`)
+
+Production:
+- Web: https://wathiqah.akanors.com
+- Configure `VITE_API_URL` to your API endpoint (e.g., `https://api.example.com/api/graphql`).
 
 ### Installation
 
