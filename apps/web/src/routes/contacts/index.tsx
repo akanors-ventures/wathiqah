@@ -206,14 +206,11 @@ function ContactsPage() {
               key={contact.id}
               className="group relative bg-card border border-border/50 rounded-3xl transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.1)] hover:-translate-y-1 hover:border-primary/40 overflow-hidden flex flex-col"
             >
-              {/* Premium Background Pattern */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-16 translate-x-16 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-              <div className="p-7 flex-1 flex flex-col relative">
-                <div className="flex justify-between items-start mb-8">
-                  <div className="flex gap-5 items-center min-w-0">
+              <div className="p-4 flex-1 flex flex-col relative">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex gap-4 items-center min-w-0">
                     <div className="relative shrink-0">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black text-2xl shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black text-xl shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500">
                         {contact.name?.charAt(0)?.toUpperCase() ?? "?"}
                       </div>
                       <div className="absolute -bottom-1.5 -right-1.5 p-1 rounded-full bg-background border border-border/50 shadow-md">
@@ -228,7 +225,7 @@ function ContactsPage() {
                         params={{ contactId: contact.id }}
                         className="block group/name"
                       >
-                        <h3 className="font-extrabold text-2xl text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-2 tracking-tight">
+                        <h3 className="font-extrabold text-xl text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-2 tracking-tight">
                           {contact.name ?? "Unnamed"}
                           <ArrowRight className="w-5 h-5 opacity-0 -translate-x-3 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all duration-300 text-primary/60" />
                         </h3>
@@ -321,8 +318,7 @@ function ContactsPage() {
                   </DropdownMenu>
                 </div>
 
-                {/* Glassmorphism Balance Section */}
-                <div className="mb-8 p-5 rounded-3xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/30 backdrop-blur-sm relative overflow-hidden group/balance transition-all hover:border-primary/20">
+                <div className="mb-4 p-3 rounded-3xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/30 backdrop-blur-sm relative overflow-hidden group/balance transition-all hover:border-primary/20">
                   <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-1000" />
                   <div className="relative flex justify-between items-center">
                     <div className="flex flex-col gap-1.5">
@@ -335,9 +331,9 @@ function ContactsPage() {
                       />
                     </div>
                     <div
-                      className={`p-3 rounded-2xl ${contact.balance >= 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"} transition-all duration-500 group-hover/balance:scale-110 group-hover/balance:rotate-3 shadow-sm`}
+                      className={`p-2 rounded-2xl ${contact.balance >= 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600"} transition-all duration-500 group-hover/balance:scale-110 group-hover/balance:rotate-3 shadow-sm`}
                     >
-                      <Wallet className="w-6 h-6 opacity-60 group-hover/balance:opacity-100 transition-opacity" />
+                      <Wallet className="w-5 h-5 opacity-60 group-hover/balance:opacity-100 transition-opacity" />
                     </div>
                   </div>
                 </div>
@@ -352,7 +348,7 @@ function ContactsPage() {
                         }
                         className="flex items-center gap-4 text-sm text-muted-foreground hover:text-primary transition-all group/item text-left w-full"
                       >
-                        <div className="w-10 h-10 rounded-2xl bg-muted/30 border border-transparent group-hover/item:border-primary/30 group-hover/item:bg-primary/5 flex items-center justify-center transition-all shadow-sm shrink-0">
+                        <div className="w-9 h-9 rounded-2xl bg-muted/30 border border-transparent group-hover/item:border-primary/30 group-hover/item:bg-primary/5 flex items-center justify-center transition-all shadow-sm shrink-0">
                           {copiedId === `email-${contact.id}` ? (
                             <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
                           ) : (
@@ -378,7 +374,7 @@ function ContactsPage() {
                         }
                         className="flex items-center gap-4 text-sm text-muted-foreground hover:text-primary transition-all group/item text-left w-full"
                       >
-                        <div className="w-10 h-10 rounded-2xl bg-muted/30 border border-transparent group-hover/item:border-primary/30 group-hover/item:bg-primary/5 flex items-center justify-center transition-all shadow-sm shrink-0">
+                        <div className="w-9 h-9 rounded-2xl bg-muted/30 border border-transparent group-hover/item:border-primary/30 group-hover/item:bg-primary/5 flex items-center justify-center transition-all shadow-sm shrink-0">
                           {copiedId === `phone-${contact.id}` ? (
                             <CheckCircle2 className="w-4.5 h-4.5 text-emerald-500" />
                           ) : (
@@ -399,8 +395,8 @@ function ContactsPage() {
                   </div>
 
                   {getContactItemsStatus(contact.id) && (
-                    <div className="pt-6 border-t border-border/30 flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-2xl bg-muted/30 border border-transparent flex items-center justify-center shrink-0 shadow-sm">
+                    <div className="pt-4 border-t border-border/30 flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-2xl bg-muted/30 border border-transparent flex items-center justify-center shrink-0 shadow-sm">
                         <Package className="w-5 h-5 text-primary/60" />
                       </div>
                       <div className="flex flex-col min-w-0 flex-1">
@@ -414,14 +410,13 @@ function ContactsPage() {
                 </div>
               </div>
 
-              {/* Enhanced Action Bar */}
               <div className="p-4 pt-0">
                 <div className="bg-muted/30 rounded-2xl p-1.5 flex gap-1.5 border border-border/30">
                   <Button
                     variant="ghost"
                     size="sm"
                     asChild
-                    className="flex-1 h-12 rounded-xl hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-[0.15em] transition-all shadow-none group/btn"
+                    className="flex-1 h-10 rounded-xl hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-[0.15em] transition-all shadow-none group/btn"
                   >
                     <Link to="/transactions/new" search={{ contactId: contact.id }}>
                       <Send className="w-4 h-4 mr-2 group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
@@ -432,7 +427,7 @@ function ContactsPage() {
                     variant="ghost"
                     size="sm"
                     asChild
-                    className="flex-1 h-12 rounded-xl hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-[0.15em] transition-all shadow-none group/btn"
+                    className="flex-1 h-10 rounded-xl hover:bg-primary hover:text-primary-foreground font-black text-[10px] uppercase tracking-[0.15em] transition-all shadow-none group/btn"
                   >
                     <Link to="/items/new" search={{ contactId: contact.id }}>
                       <Package className="w-4 h-4 mr-2 group-hover/btn:scale-110 transition-transform" />

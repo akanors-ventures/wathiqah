@@ -306,12 +306,12 @@ function LandingPage() {
               <Link to="/" className="hover:text-primary transition-colors">
                 Pricing
               </Link>
-              <Link to="/" className="hover:text-primary transition-colors">
+              <a href="/legal/privacy.html" className="hover:text-primary transition-colors">
                 Privacy Policy
-              </Link>
-              <Link to="/" className="hover:text-primary transition-colors">
+              </a>
+              <a href="/legal/terms.html" className="hover:text-primary transition-colors">
                 Terms of Service
-              </Link>
+              </a>
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-border/50 text-center text-sm text-muted-foreground">
