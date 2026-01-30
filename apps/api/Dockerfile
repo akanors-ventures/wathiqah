@@ -1,7 +1,5 @@
 # Base stage for all others
-FROM node:20-alpine AS base
-# libc6-compat is often needed for native modules (like Prisma) on Alpine
-RUN apk add --no-cache libc6-compat
+FROM node:20-bookworm-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -43,16 +41,11 @@ RUN pnpm build --filter api
 RUN CI=true pnpm prune --prod
 
 # 3. Production Runner
-FROM base AS runner
+FROM gcr.io/distroless/nodejs20-debian12:nonroot AS runner
 WORKDIR /app
 
-# Create a non-root user for security
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nestjs
-USER nestjs
-
 # Copy the built application and dependencies from the builder
-COPY --from=builder --chown=nestjs:nodejs /app .
+COPY --from=builder --chown=nonroot:nonroot /app .
 
 # Set working directory to the api app
 WORKDIR /app/apps/api
