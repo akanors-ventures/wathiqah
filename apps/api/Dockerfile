@@ -60,8 +60,4 @@ WORKDIR /app/apps/api
 # Cloud Run will inject PORT; just set NODE_ENV
 ENV NODE_ENV=production
 
-# Optional: document port; Cloud Run still uses $PORT env
-EXPOSE 8080
-
-# IMPORTANT: entry file must match your build output
 CMD ["node", "dist/src/main.js"]
