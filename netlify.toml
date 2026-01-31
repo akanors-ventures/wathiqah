@@ -3,8 +3,6 @@ command = "pnpm --filter web codegen && pnpm --filter web build"
 publish = "apps/web/dist"
 
 [build.environment]
-# Set this to the Cloud Run GraphQL endpoint in Netlify UI or here
-# Example: GRAPHQL_SCHEMA_URL = "https://api.your-domain.com/api/graphql"
 # GRAPHQL_SCHEMA_URL = ""
 
 [[redirects]]
