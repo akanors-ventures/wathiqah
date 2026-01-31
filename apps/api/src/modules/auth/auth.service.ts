@@ -296,8 +296,6 @@ export class AuthService {
       ),
     );
 
-    // TODO: Send email with resetToken
-    // console.log(`Reset Token for ${user.email}: ${resetToken}`);
     await this.notificationService.sendPasswordResetEmail(
       user.email,
       user.firstName,

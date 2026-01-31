@@ -6,7 +6,13 @@ export function TransactionTypeHelp() {
     <TooltipProvider>
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
-          <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help transition-colors" />
+          <button
+            type="button"
+            className="inline-flex items-center justify-center rounded-full p-1 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors"
+          >
+            <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+            <span className="sr-only">Transaction types guide</span>
+          </button>
         </TooltipTrigger>
         <TooltipContent className="max-w-sm p-4" side="bottom" align="start">
           <div className="space-y-3">

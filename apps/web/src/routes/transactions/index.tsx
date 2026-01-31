@@ -113,39 +113,41 @@ function TransactionsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="container mx-auto py-8 space-y-8"
+    >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
+        <div className="flex-1 min-w-0 w-full">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">
             The Wathȋqah Ledger
           </h1>
-          <p className="text-muted-foreground text-sm sm:text-base whitespace-nowrap overflow-hidden text-ellipsis">
+          <p className="text-muted-foreground text-sm sm:text-base truncate">
             Manage your funds and physical items history.
           </p>
         </div>
-        <div className="flex flex-col md:flex-row gap-3 w-full lg:w-auto shrink-0">
-          <Tabs
-            defaultValue={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full md:w-[300px]"
-          >
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="funds" className="flex items-center gap-2">
-                <ArrowRightLeft className="w-4 h-4" />
-                Funds
-              </TabsTrigger>
-              <TabsTrigger value="items" className="flex items-center gap-2">
-                <Package className="w-4 h-4" />
-                Items
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+        <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto shrink-0 relative z-10">
+          <TabsList className="grid w-full grid-cols-2 md:w-[300px] h-12 p-1.5">
+            <TabsTrigger value="funds" className="flex items-center gap-2 py-2">
+              <ArrowRightLeft className="w-4 h-4" />
+              Funds
+            </TabsTrigger>
+            <TabsTrigger value="items" className="flex items-center gap-2 py-2">
+              <Package className="w-4 h-4" />
+              Items
+            </TabsTrigger>
+          </TabsList>
 
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport} className="flex-1 sm:flex-none">
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              className="flex-1 sm:flex-none h-12 sm:h-10"
+            >
               <Download className="w-4 h-4 mr-2" /> Export
             </Button>
-            <Button asChild className="flex-1 sm:flex-none">
+            <Button asChild className="flex-1 sm:flex-none h-12 sm:h-10">
               <Link
                 to={activeTab === "funds" ? "/transactions/new" : "/items/new"}
                 search={{ contactId: undefined }}
@@ -160,7 +162,7 @@ function TransactionsPage() {
 
       <LedgerPhilosophy />
 
-      <Tabs value={activeTab} className="space-y-4">
+      <div className="space-y-4">
         <TabsContent value="funds" className="space-y-4">
           {/* Summary Cards */}
           {summary && (
@@ -369,7 +371,7 @@ function TransactionsPage() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="sm" asChild>
+                          <Button variant="ghost" size="sm" asChild className="h-9 px-3">
                             <Link to="/transactions/$id" params={{ id: tx.id }}>
                               View
                             </Link>
@@ -387,7 +389,7 @@ function TransactionsPage() {
         <TabsContent value="items">
           <ItemsList items={items} isLoading={loadingItems} onRefresh={refetchItems} />
         </TabsContent>
-      </Tabs>
-    </div>
+      </div>
+    </Tabs>
   );
 }
