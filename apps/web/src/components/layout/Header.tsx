@@ -1,5 +1,23 @@
 import { Link } from "@tanstack/react-router";
+import {
+  ArrowRightLeft,
+  ChevronDown,
+  FileSignature,
+  Handshake,
+  History,
+  LayoutGrid,
+  Users,
+} from "lucide-react";
 import { AppLogo } from "@/components/ui/app-logo";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import HeaderUser from "../auth/header-user";
 
 export default function Header() {
@@ -26,13 +44,75 @@ export default function Header() {
             </div>
           </Link>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
-            <NavLink to="/transactions">Transactions</NavLink>
+            <NavLink to="/transactions" search={{ tab: "funds" }}>
+              Transactions
+            </NavLink>
             <NavLink to="/transactions/my-contact-transactions">My Records</NavLink>
             <NavLink to="/promises">Promises</NavLink>
             <NavLink to="/contacts">Contacts</NavLink>
             <NavLink to="/witnesses">Witness Requests</NavLink>
           </nav>
+
+          {/* Mobile Navigation (Dropdown) */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="group flex items-center gap-2 px-3 data-[state=open]:bg-muted"
+                >
+                  <LayoutGrid className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <span className="font-medium">Menu</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 mt-2">
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                  Apps & Features
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/transactions"
+                    search={{ tab: "funds" }}
+                    className="cursor-pointer flex items-center"
+                  >
+                    <ArrowRightLeft className="mr-2 h-4 w-4 text-blue-500" />
+                    <span>Transactions</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/transactions/my-contact-transactions"
+                    className="cursor-pointer flex items-center"
+                  >
+                    <History className="mr-2 h-4 w-4 text-orange-500" />
+                    <span>My Records</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/promises" className="cursor-pointer flex items-center">
+                    <Handshake className="mr-2 h-4 w-4 text-emerald-500" />
+                    <span>Promises</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/contacts" className="cursor-pointer flex items-center">
+                    <Users className="mr-2 h-4 w-4 text-indigo-500" />
+                    <span>Contacts</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/witnesses" className="cursor-pointer flex items-center">
+                    <FileSignature className="mr-2 h-4 w-4 text-purple-500" />
+                    <span>Witness Requests</span>
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
@@ -43,10 +123,19 @@ export default function Header() {
   );
 }
 
-function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
+function NavLink({
+  to,
+  search,
+  children,
+}: {
+  to: string;
+  search?: Record<string, unknown>;
+  children: React.ReactNode;
+}) {
   return (
     <Link
       to={to}
+      search={search}
       className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 [&.active]:text-primary [&.active]:bg-primary/5 [&.active]:font-semibold group overflow-hidden"
     >
       <span className="relative z-10">{children}</span>
