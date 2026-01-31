@@ -1,11 +1,8 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
 
-const schemaUrl =
-  process.env.GRAPHQL_SCHEMA_URL || "http://localhost:3001/api/graphql";
-
 const config: CodegenConfig = {
   overwrite: true,
-  schema: schemaUrl,
+  schema: "../api/src/schema.gql",
   documents: ["src/**/*.{ts,tsx}"],
   ignoreNoDocuments: true,
   generates: {
@@ -20,6 +17,10 @@ const config: CodegenConfig = {
         },
         // Use `unknown` instead of `any` for unconfigured scalars
         defaultScalarType: "unknown",
+        scalars: {
+          DateTime: "string",
+          JSON: "Record<string, unknown>",
+        },
         // Apollo Client always includes `__typename` fields
         nonOptionalTypename: true,
         // Apollo Client doesn't add the `__typename` field to root types so
