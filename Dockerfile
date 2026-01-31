@@ -30,11 +30,7 @@ RUN pnpm --filter api deploy --prod /app/apps/api/.output
 FROM gcr.io/distroless/nodejs20-debian12 AS runner
 
 WORKDIR /app
-COPY --from=builder /app/apps/api/.output /app/apps/api
-
-WORKDIR /app/apps/api
-
-EXPOSE ${PORT}
+COPY --from=builder /app/apps/api/.output .
 
 ENV NODE_ENV=production
 

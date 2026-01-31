@@ -5,6 +5,10 @@
   "author": "",
   "private": true,
   "license": "UNLICENSED",
+  "files": [
+    "dist",
+    "prisma"
+  ],
   "scripts": {
     "build": "nest build",
     "format:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
