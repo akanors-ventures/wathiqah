@@ -11,3 +11,5 @@ onlyBuiltDependencies:
   - bcrypt
   - esbuild
   - prisma
+
+injectWorkspacePackages: true
