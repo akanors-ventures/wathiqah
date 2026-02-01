@@ -6,13 +6,19 @@
 	"tasks": {
 		"build": {
 			"dependsOn": [
-				"^build"
+				"^build",
+				"codegen"
 			],
 			"outputs": [
 				"dist/**",
 				".next/**",
 				"!.next/cache/**",
 				".output/**"
+			]
+		},
+		"codegen": {
+			"outputs": [
+				"src/types/__generated__/**"
 			]
 		},
 		"lint": {
