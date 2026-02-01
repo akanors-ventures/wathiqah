@@ -28,7 +28,7 @@ export const parseRedirect = (url: string) => {
   const search = searchStr ? Object.fromEntries(new URLSearchParams(searchStr)) : undefined;
 
   return {
-    to: path as any,
-    search: search as any,
+    to: path,
+    search: search,
   };
 };

@@ -1,5 +1,5 @@
 import { useQuery } from "@apollo/client/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Info, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/transactions/my-contact-transactions")({
 });
 
 function MyContactTransactionsPage() {
+  const navigate = useNavigate();
   const { data, loading, error } = useQuery(GET_MY_CONTACT_TRANSACTIONS);
 
   if (loading) return <PageLoader />;
@@ -83,7 +84,11 @@ function MyContactTransactionsPage() {
                   </TableRow>
                 ) : (
                   transactions.map((tx) => (
-                    <TableRow key={tx.id}>
+                    <TableRow
+                      key={tx.id}
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
+                    >
                       <TableCell className="font-medium">
                         {format(new Date(tx.date as string), "MMM d, yyyy")}
                       </TableCell>

@@ -1,7 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowDownLeft,
+  ArrowRight,
   ArrowRightLeft,
   ArrowUpRight,
   Download,
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/transactions/")({
 
 function TransactionsPage() {
   const { tab } = Route.useSearch();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(tab);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
@@ -246,144 +248,265 @@ function TransactionsPage() {
           </div>
 
           {/* Transactions Table */}
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-1">
-                        Type
-                        <TransactionTypeHelp />
-                      </div>
-                    </TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Witnesses</TableHead>
-                    <TableHead className="text-right">Amount / Item</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
+          <div className="hidden md:block">
+            <Card>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10">
-                        <div className="flex justify-center">
-                          <BrandLoader size="sm" />
+                      <TableHead>Date</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-1">
+                          Type
+                          <TransactionTypeHelp />
                         </div>
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Witnesses</TableHead>
+                      <TableHead className="text-right">Amount / Item</TableHead>
+                      <TableHead></TableHead>
                     </TableRow>
-                  ) : filteredTransactions.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                        No transactions found matching your criteria.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredTransactions.map((tx) => (
-                      <TableRow key={tx.id}>
-                        <TableCell className="font-medium">
-                          {format(new Date(tx.date as string), "MMM d, yyyy")}
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-medium text-foreground">
-                            {tx.contact?.name || (
-                              <span className="text-muted-foreground italic">Personal</span>
-                            )}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              tx.type === "GIVEN"
-                                ? "text-blue-600 border-blue-200 bg-blue-50"
-                                : tx.type === "RECEIVED"
-                                  ? "text-red-600 border-red-200 bg-red-50"
-                                  : (tx.type as string) === "RETURNED" ||
-                                      (tx.type as string) === "COLLECTED"
-                                    ? "text-green-600 border-green-200 bg-green-50"
-                                    : "text-gray-600 border-gray-200 bg-gray-50"
-                            }
-                          >
-                            {tx.type}
-                          </Badge>
-                        </TableCell>
-                        <TableCell
-                          className="max-w-[200px] truncate"
-                          title={tx.description || undefined}
-                        >
-                          {tx.category === AssetCategory.Item ? (
-                            <div className="flex items-center gap-1.5 font-medium text-foreground">
-                              <Package className="h-4 w-4 text-muted-foreground" />
-                              <span>
-                                {tx.quantity}x {tx.itemName}
-                              </span>
-                            </div>
-                          ) : (
-                            tx.description || "-"
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex -space-x-2">
-                            {tx.witnesses && tx.witnesses.length > 0 ? (
-                              tx.witnesses
-                                .filter((w) => w !== null)
-                                .map((w) => (
-                                  <div
-                                    key={w.id}
-                                    className={`w-6 h-6 rounded-full border-2 border-background flex items-center justify-center text-[10px] text-white ${
-                                      w.status === "ACKNOWLEDGED"
-                                        ? "bg-green-500"
-                                        : w.status === "DECLINED"
-                                          ? "bg-red-500"
-                                          : "bg-yellow-500"
-                                    }`}
-                                    title={`Status: ${w.status}`}
-                                  >
-                                    {w.status[0]}
-                                  </div>
-                                ))
-                            ) : (
-                              <span className="text-xs text-muted-foreground">None</span>
-                            )}
+                  </TableHeader>
+                  <TableBody>
+                    {loading ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-10">
+                          <div className="flex justify-center">
+                            <BrandLoader size="sm" />
                           </div>
                         </TableCell>
-                        <TableCell
-                          className={`text-right font-bold ${
-                            tx.category === AssetCategory.Item
-                              ? "text-muted-foreground font-normal italic text-xs"
-                              : tx.type === "GIVEN"
-                                ? "text-blue-600"
-                                : tx.type === "RECEIVED"
-                                  ? "text-red-600"
-                                  : "text-green-600"
-                          }`}
-                        >
-                          {tx.category === AssetCategory.Item ? (
-                            "Physical Item"
-                          ) : (
-                            <>
-                              {tx.type === "GIVEN" ? "+" : tx.type === "RECEIVED" ? "-" : "+"}
-                              {formatCurrency(tx.amount)}
-                            </>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" asChild className="h-9 px-3">
-                            <Link to="/transactions/$id" params={{ id: tx.id }}>
-                              View
-                            </Link>
-                          </Button>
+                      </TableRow>
+                    ) : filteredTransactions.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                          No transactions found matching your criteria.
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                    ) : (
+                      filteredTransactions.map((tx) => (
+                        <TableRow
+                          key={tx.id}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                          onClick={() =>
+                            navigate({ to: "/transactions/$id", params: { id: tx.id } })
+                          }
+                        >
+                          <TableCell className="font-medium">
+                            {format(new Date(tx.date as string), "MMM d, yyyy")}
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium text-foreground">
+                              {tx.contact?.name || (
+                                <span className="text-muted-foreground italic">Personal</span>
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                tx.type === "GIVEN"
+                                  ? "text-blue-600 border-blue-200 bg-blue-50"
+                                  : tx.type === "RECEIVED"
+                                    ? "text-red-600 border-red-200 bg-red-50"
+                                    : (tx.type as string) === "RETURNED" ||
+                                        (tx.type as string) === "COLLECTED"
+                                      ? "text-green-600 border-green-200 bg-green-50"
+                                      : "text-gray-600 border-gray-200 bg-gray-50"
+                              }
+                            >
+                              {tx.type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell
+                            className="max-w-[200px] truncate"
+                            title={tx.description || undefined}
+                          >
+                            {tx.category === AssetCategory.Item ? (
+                              <div className="flex items-center gap-1.5 font-medium text-foreground">
+                                <Package className="h-4 w-4 text-muted-foreground" />
+                                <span>
+                                  {tx.quantity}x {tx.itemName}
+                                </span>
+                              </div>
+                            ) : (
+                              tx.description || "-"
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex -space-x-2">
+                              {tx.witnesses && tx.witnesses.length > 0 ? (
+                                tx.witnesses
+                                  .filter((w) => w !== null)
+                                  .map((w) => (
+                                    <div
+                                      key={w.id}
+                                      className={`w-6 h-6 rounded-full border-2 border-background flex items-center justify-center text-[10px] text-white ${
+                                        w.status === "ACKNOWLEDGED"
+                                          ? "bg-green-500"
+                                          : w.status === "DECLINED"
+                                            ? "bg-red-500"
+                                            : "bg-yellow-500"
+                                      }`}
+                                      title={`Status: ${w.status}`}
+                                    >
+                                      {w.status[0]}
+                                    </div>
+                                  ))
+                              ) : (
+                                <span className="text-xs text-muted-foreground">None</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className={`text-right font-bold ${
+                              tx.category === AssetCategory.Item
+                                ? "text-muted-foreground font-normal italic text-xs"
+                                : tx.type === "GIVEN"
+                                  ? "text-blue-600"
+                                  : tx.type === "RECEIVED"
+                                    ? "text-red-600"
+                                    : "text-green-600"
+                            }`}
+                          >
+                            {tx.category === AssetCategory.Item ? (
+                              "Physical Item"
+                            ) : (
+                              <>
+                                {tx.type === "GIVEN" ? "+" : tx.type === "RECEIVED" ? "-" : "+"}
+                                {formatCurrency(tx.amount)}
+                              </>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-9 w-9 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Mobile Transactions List */}
+          <div className="md:hidden space-y-4">
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <BrandLoader size="sm" />
+              </div>
+            ) : filteredTransactions.length === 0 ? (
+              <div className="text-center py-10 text-muted-foreground bg-card rounded-lg border">
+                No transactions found matching your criteria.
+              </div>
+            ) : (
+              filteredTransactions.map((tx) => (
+                <Card
+                  key={tx.id}
+                  className="active:scale-[0.98] transition-transform cursor-pointer"
+                  onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="space-y-1">
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(tx.date as string), "MMM d, yyyy")}
+                        </p>
+                        <p className="font-semibold text-foreground">
+                          {tx.contact?.name || <span className="italic">Personal</span>}
+                        </p>
+                      </div>
+                      <Badge
+                        variant="outline"
+                        className={
+                          tx.type === "GIVEN"
+                            ? "text-blue-600 border-blue-200 bg-blue-50"
+                            : tx.type === "RECEIVED"
+                              ? "text-red-600 border-red-200 bg-red-50"
+                              : (tx.type as string) === "RETURNED" ||
+                                  (tx.type as string) === "COLLECTED"
+                                ? "text-green-600 border-green-200 bg-green-50"
+                                : "text-gray-600 border-gray-200 bg-gray-50"
+                        }
+                      >
+                        {tx.type}
+                      </Badge>
+                    </div>
+
+                    <div className="flex justify-between items-end mt-4">
+                      <div className="flex-1 min-w-0 mr-4">
+                        {tx.category === AssetCategory.Item ? (
+                          <div className="flex items-center gap-1.5 text-sm font-medium">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                            <span className="truncate">
+                              {tx.quantity}x {tx.itemName}
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground truncate">
+                            {tx.description || "No description"}
+                          </p>
+                        )}
+                      </div>
+                      <div
+                        className={`font-bold whitespace-nowrap ${
+                          tx.category === AssetCategory.Item
+                            ? "text-muted-foreground font-normal italic text-xs"
+                            : tx.type === "GIVEN"
+                              ? "text-blue-600"
+                              : tx.type === "RECEIVED"
+                                ? "text-red-600"
+                                : "text-green-600"
+                        }`}
+                      >
+                        {tx.category === AssetCategory.Item ? (
+                          "Physical Item"
+                        ) : (
+                          <>
+                            {tx.type === "GIVEN" ? "+" : tx.type === "RECEIVED" ? "-" : "+"}
+                            {formatCurrency(tx.amount)}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {tx.witnesses && tx.witnesses.length > 0 && (
+                      <div className="mt-3 pt-3 border-t flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">Witnesses</span>
+                        <div className="flex -space-x-1.5">
+                          {tx.witnesses
+                            .filter((w) => w !== null)
+                            .map((w) => (
+                              <div
+                                key={w.id}
+                                className={`w-5 h-5 rounded-full border-2 border-background flex items-center justify-center text-[8px] text-white ${
+                                  w.status === "ACKNOWLEDGED"
+                                    ? "bg-green-500"
+                                    : w.status === "DECLINED"
+                                      ? "bg-red-500"
+                                      : "bg-yellow-500"
+                                }`}
+                                title={`Status: ${w.status}`}
+                              >
+                                {w.status[0]}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="items">

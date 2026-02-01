@@ -1,6 +1,7 @@
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowUpRight, CheckCircle2, Package } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, CheckCircle2, Package } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ interface ItemsListProps {
 }
 
 export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<"ALL" | "LENT" | "BORROWED" | "RETURNED">("ALL");
   const [search, setSearch] = useState("");
   const [selectedItem, setSelectedItem] = useState<AggregatedItem | null>(null);
@@ -66,7 +68,7 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -93,7 +95,11 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
               </TableRow>
             ) : (
               filteredItems.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow
+                  key={item.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                  onClick={() => navigate({ to: "/transactions/$id", params: { id: item.id } })}
+                >
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-2">
                       <Package className="h-4 w-4 text-muted-foreground" />
@@ -107,17 +113,87 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
                   <TableCell>{item.quantity}</TableCell>
                   <TableCell>{format(new Date(item.lastUpdated), "MMM d, yyyy")}</TableCell>
                   <TableCell className="text-right">
-                    {item.status !== "RETURNED" && (
-                      <Button variant="ghost" size="sm" onClick={() => setSelectedItem(item)}>
-                        Mark Returned
-                      </Button>
-                    )}
+                    <div className="flex justify-end items-center gap-2">
+                      {item.status !== "RETURNED" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedItem(item);
+                          }}
+                        >
+                          Mark Returned
+                        </Button>
+                      )}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
+      </div>
+
+      <div className="md:hidden space-y-4">
+        {isLoading ? (
+          <div className="h-24 flex items-center justify-center text-muted-foreground bg-card rounded-lg border">
+            Loading items...
+          </div>
+        ) : filteredItems.length === 0 ? (
+          <div className="h-24 flex items-center justify-center text-muted-foreground bg-card rounded-lg border">
+            No items found.
+          </div>
+        ) : (
+          filteredItems.map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              className="w-full text-left bg-card rounded-lg border p-4 active:scale-[0.98] transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+              onClick={() => navigate({ to: "/transactions/$id", params: { id: item.id } })}
+            >
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Package className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{item.itemName}</h3>
+                    <p className="text-xs text-muted-foreground">{item.contactName}</p>
+                  </div>
+                </div>
+                <StatusBadge status={item.status} />
+              </div>
+
+              <div className="flex justify-between items-end">
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Quantity: <span className="text-foreground font-medium">{item.quantity}</span>
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Updated: {format(new Date(item.lastUpdated), "MMM d, yyyy")}
+                  </p>
+                </div>
+                {item.status !== "RETURNED" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedItem(item);
+                    }}
+                  >
+                    Mark Returned
+                  </Button>
+                )}
+              </div>
+            </button>
+          ))
+        )}
       </div>
 
       <ItemReturnModal

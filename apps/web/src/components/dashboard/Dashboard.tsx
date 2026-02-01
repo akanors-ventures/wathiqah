@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowDownLeft,
@@ -22,6 +22,7 @@ import { AssetCategory } from "@/types/__generated__/graphql";
 import { LedgerPhilosophy } from "./LedgerPhilosophy";
 
 export function Dashboard() {
+  const navigate = useNavigate();
   const { transactions, loading: loadingTx, summary } = useTransactions();
   const { contacts, loading: loadingContacts } = useContacts();
   const { requests: witnessRequests, loading: loadingWitnesses } = useMyWitnessRequests();
@@ -188,9 +189,11 @@ export function Dashboard() {
             ) : (
               <div className="grid gap-6">
                 {recentTransactions.map((tx) => (
-                  <div
+                  <button
+                    type="button"
                     key={tx.id}
-                    className="flex items-center justify-between p-4 rounded-xl border bg-card/50 hover:bg-card transition-colors"
+                    className="w-full text-left flex items-center justify-between p-4 rounded-xl border bg-card/50 hover:bg-card transition-all cursor-pointer active:scale-[0.99] group focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
                   >
                     <div className="flex items-center gap-4">
                       <div
@@ -245,15 +248,8 @@ export function Dashboard() {
                           </>
                         )}
                       </div>
-                      <Link
-                        to="/transactions"
-                        search={{ tab: tx.category === AssetCategory.Item ? "items" : "funds" }}
-                        className="text-[10px] text-muted-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
-                      >
-                        Details
-                      </Link>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -292,7 +288,7 @@ function StatsCard({
 
   if (link) {
     return (
-      <Link to={link} className="block transition-transform hover:scale-[1.02]">
+      <Link to={link} className="block transition-transform hover:scale-[1.02] active:scale-[0.98]">
         {content}
       </Link>
     );
@@ -303,20 +299,76 @@ function StatsCard({
 
 function DashboardSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between">
-        <Skeleton className="h-8 w-48" />
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
         <Skeleton className="h-10 w-32" />
       </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-32" />
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-4" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-20 mb-1" />
+              <Skeleton className="h-3 w-32" />
+            </CardContent>
+          </Card>
         ))}
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Skeleton className="col-span-4 h-96" />
-        <Skeleton className="col-span-3 h-96" />
+
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="lg:col-span-4 h-64">
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-full w-full" />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-3 h-64">
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-4 w-12" />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center justify-between p-4 border rounded-xl">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-10 w-10 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-16" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   );
 }
