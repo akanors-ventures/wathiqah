@@ -36,7 +36,7 @@ export function Dashboard() {
   const totalReceived = summary?.totalReceived || 0;
   const totalIncome = summary?.totalIncome || 0;
   const totalExpense = summary?.totalExpense || 0;
-  const isDebtByRule = totalReceived > totalGiven + totalIncome - totalExpense;
+  const isDebtByRule = totalBalance < 0;
   const activePromises = promises.filter((p) => p.status === "PENDING").length;
   const pendingWitnessRequests = witnessRequests.length;
   const totalContacts = contacts.length;
@@ -82,7 +82,7 @@ export function Dashboard() {
             />
           }
           icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-          description="Net across all relationships"
+          description="Your current cash position"
         />
         <StatsCard
           title="Active Promises"

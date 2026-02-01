@@ -13,6 +13,12 @@ export class TransactionsSummary {
   totalReturned: number;
 
   @Field(() => Float)
+  totalReturnedToMe: number;
+
+  @Field(() => Float)
+  totalReturnedToOther: number;
+
+  @Field(() => Float)
   totalIncome: number;
 
   @Field(() => Float)

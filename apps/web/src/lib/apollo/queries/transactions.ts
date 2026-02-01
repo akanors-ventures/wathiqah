@@ -106,6 +106,8 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
         totalGiven
         totalReceived
         totalReturned
+        totalReturnedToMe
+        totalReturnedToOther
         totalIncome
         totalExpense
         totalGiftGiven

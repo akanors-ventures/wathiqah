@@ -300,6 +300,8 @@ type TransactionsSummary {
   totalIncome: Float!
   totalReceived: Float!
   totalReturned: Float!
+  totalReturnedToMe: Float!
+  totalReturnedToOther: Float!
 }
 
 input UpdateContactInput {

@@ -392,6 +392,8 @@ export class TransactionsService {
       totalGiven: 0,
       totalReceived: 0,
       totalReturned: 0,
+      totalReturnedToMe: 0,
+      totalReturnedToOther: 0,
       totalExpense: 0,
       totalIncome: 0,
       totalGiftGiven: 0,
@@ -407,6 +409,11 @@ export class TransactionsService {
         summary.totalReceived += amount;
       } else if (agg.type === 'RETURNED') {
         summary.totalReturned += amount;
+        if (agg.returnDirection === 'TO_ME') {
+          summary.totalReturnedToMe += amount;
+        } else {
+          summary.totalReturnedToOther += amount;
+        }
       } else if (agg.type === 'EXPENSE') {
         summary.totalExpense += amount;
       } else if (agg.type === 'INCOME') {
@@ -421,9 +428,14 @@ export class TransactionsService {
     });
 
     summary.netBalance =
-      summary.totalGiven +
       summary.totalIncome -
-      (summary.totalReceived + summary.totalExpense);
+      summary.totalExpense +
+      summary.totalReceived -
+      summary.totalGiven +
+      summary.totalReturnedToMe -
+      summary.totalReturnedToOther +
+      summary.totalGiftReceived -
+      summary.totalGiftGiven;
 
     return {
       items,

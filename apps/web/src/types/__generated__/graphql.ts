@@ -494,6 +494,8 @@ export type TransactionsSummary = {
   totalIncome: Scalars['Float']['output'];
   totalReceived: Scalars['Float']['output'];
   totalReturned: Scalars['Float']['output'];
+  totalReturnedToMe: Scalars['Float']['output'];
+  totalReturnedToOther: Scalars['Float']['output'];
 };
 
 export type UpdateContactInput = {
@@ -777,7 +779,7 @@ export type TransactionsQueryVariables = Exact<{
 }>;
 
 
-export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number } } };
+export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number } } };
 
 export type MyContactTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
 
