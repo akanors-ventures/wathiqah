@@ -10,19 +10,43 @@ export class TemplateService {
     string,
     HandlebarsTemplateDelegate
   >();
-  private readonly templateDir = path.join(
-    process.cwd(),
-    'src/modules/notifications/templates',
-  );
+  private readonly templateDir: string;
 
   constructor() {
-    this.logger.log(`Template directory: ${this.templateDir}`);
+    this.templateDir = this.resolveTemplateDir();
+    this.logger.log(`Template directory resolved to: ${this.templateDir}`);
     this.registerPartials();
+  }
+
+  private resolveTemplateDir(): string {
+    const possiblePaths = [
+      path.join(__dirname, 'templates'),
+      path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'modules',
+        'notifications',
+        'templates',
+      ),
+      path.join(process.cwd(), 'dist/modules/notifications/templates'),
+      path.join(process.cwd(), 'src/modules/notifications/templates'),
+    ];
+
+    for (const p of possiblePaths) {
+      if (fs.existsSync(p)) {
+        return p;
+      }
+    }
+
+    // Default fallback
+    return path.join(__dirname, 'templates');
   }
 
   private registerPartials() {
     try {
-      const layoutPath = path.join(this.templateDir, 'email', 'layout.html');
+      const layoutPath = path.join(this.templateDir, 'email', 'layout.hbs');
       if (fs.existsSync(layoutPath)) {
         const layoutContent = fs.readFileSync(layoutPath, 'utf-8');
         handlebars.registerPartial('layout', layoutContent);
@@ -38,7 +62,7 @@ export class TemplateService {
     type: 'email' | 'sms',
     format: 'html' | 'txt' = 'html',
   ): HandlebarsTemplateDelegate {
-    const templateKey = `${type}/${name}.${format}`;
+    const templateKey = `${type}/${name}.${format}.hbs`;
 
     // Return cached template if available (in production)
     if (
@@ -49,7 +73,11 @@ export class TemplateService {
     }
 
     try {
-      const filePath = path.join(this.templateDir, type, `${name}.${format}`);
+      const filePath = path.join(
+        this.templateDir,
+        type,
+        `${name}.${format}.hbs`,
+      );
       const templateContent = fs.readFileSync(filePath, 'utf-8');
       const compiledTemplate = handlebars.compile(templateContent);
 
