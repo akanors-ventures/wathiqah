@@ -164,6 +164,7 @@ export type Mutation = {
   refreshToken: AuthPayload;
   removeContact: Contact;
   removePromise: Promise;
+  removeTransaction: Transaction;
   resendVerificationEmail: Scalars['Boolean']['output'];
   resetPassword: Scalars['Boolean']['output'];
   revokeAccess: AccessGrant;
@@ -248,6 +249,11 @@ export type MutationRemoveContactArgs = {
 
 export type MutationRemovePromiseArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationRemoveTransactionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -758,6 +764,13 @@ export type TransactionQueryVariables = Exact<{
 
 
 export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null } };
+
+export type RemoveTransactionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveTransactionMutation = { removeTransaction: { __typename: 'Transaction', id: string } };
 
 export type TransactionsQueryVariables = Exact<{
   filter?: InputMaybe<FilterTransactionInput>;

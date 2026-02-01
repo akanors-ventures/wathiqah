@@ -1,6 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { ArrowLeft, Calendar, FileText, Gift, Package, UserPlus, Edit2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  FileText,
+  Gift,
+  Package,
+  UserPlus,
+  Edit2,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
@@ -10,8 +19,20 @@ import { TransactionWitnessList } from "@/components/transactions/TransactionWit
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useTransaction } from "@/hooks/useTransaction";
+import { useTransactions } from "@/hooks/useTransactions";
 import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/transactions/$id")({
   component: TransactionDetailPage,
@@ -20,10 +41,25 @@ export const Route = createFileRoute("/transactions/$id")({
 
 function TransactionDetailPage() {
   const { id } = Route.useParams();
+  const navigate = useNavigate();
   const [isAddWitnessOpen, setIsAddWitnessOpen] = useState(false);
   const [isConvertGiftOpen, setIsConvertGiftOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const { transaction, loading, error, refetch } = useTransaction(id);
+  const { removeTransaction, removing } = useTransactions();
+
+  const handleRemove = async () => {
+    try {
+      await removeTransaction(id);
+      toast.success("Transaction removed successfully");
+      setIsRemoveDialogOpen(false);
+      navigate({ to: "/" });
+    } catch (err) {
+      toast.error("Failed to remove transaction");
+      console.error(err);
+    }
+  };
 
   if (loading) {
     return <PageLoader />;
@@ -88,15 +124,26 @@ function TransactionDetailPage() {
             </p>
           </div>
           <div className="text-right flex flex-col items-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1"
-              onClick={() => setIsEditOpen(true)}
-            >
-              <Edit2 size={14} />
-              Edit
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1"
+                onClick={() => setIsEditOpen(true)}
+              >
+                <Edit2 size={14} />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                onClick={() => setIsRemoveDialogOpen(true)}
+              >
+                <Trash2 size={14} />
+                Remove
+              </Button>
+            </div>
             {currentTransaction.category === AssetCategory.Funds &&
               currentTransaction.amount !== null && (
                 <div
@@ -253,6 +300,28 @@ function TransactionDetailPage() {
           onClose={() => setIsAddWitnessOpen(false)}
           transactionId={id}
         />
+
+        <AlertDialog open={isRemoveDialogOpen} onOpenChange={setIsRemoveDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete the transaction if it has no witnesses. If it has
+                witnesses, it will be marked as CANCELLED and preserved in the audit log.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={removing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleRemove}
+                disabled={removing}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {removing ? "Removing..." : "Remove"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <ConvertGiftDialog
           isOpen={isConvertGiftOpen}

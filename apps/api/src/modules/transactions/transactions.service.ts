@@ -12,6 +12,7 @@ import { UpdateTransactionInput } from './dto/update-transaction.input';
 import {
   AssetCategory,
   WitnessStatus,
+  TransactionStatus,
   Prisma,
   Witness,
 } from '../../generated/prisma/client';
@@ -349,6 +350,11 @@ export class TransactionsService {
       }
     }
 
+    // Default to excluding cancelled transactions from general list
+    if (!where.status) {
+      where.status = { not: TransactionStatus.CANCELLED };
+    }
+
     const items = await this.prisma.transaction.findMany({
       where,
       include: {
@@ -367,6 +373,7 @@ export class TransactionsService {
     // Calculate summary (respecting contact filter if present, but ignoring type/search for context)
     const summaryWhere: Prisma.TransactionWhereInput = {
       createdById: userId,
+      status: { not: TransactionStatus.CANCELLED },
     };
 
     if (filter?.contactId) {
@@ -643,6 +650,74 @@ export class TransactionsService {
     ]);
 
     return updatedTransaction;
+  }
+
+  async remove(id: string, userId: string) {
+    const transaction = await this.findOne(id, userId);
+
+    // If there are no witnesses, we can safely hard-delete
+    if (transaction.witnesses.length === 0) {
+      return this.prisma.transaction.delete({
+        where: { id },
+      });
+    }
+
+    // If there are witnesses, we mark as CANCELLED to preserve accountability
+    // and notify witnesses.
+    const [cancelledTransaction] = await this.prisma.$transaction([
+      this.prisma.transaction.update({
+        where: { id },
+        data: { status: TransactionStatus.CANCELLED },
+      }),
+      this.prisma.transactionHistory.create({
+        data: {
+          transactionId: id,
+          userId,
+          changeType: 'CANCELLED',
+          previousState: {
+            status: transaction.status,
+          } as any,
+          newState: {
+            status: TransactionStatus.CANCELLED,
+          },
+        },
+      }),
+    ]);
+
+    // Notify acknowledged witnesses
+    const acknowledgedWitnesses = transaction.witnesses.filter(
+      (w) => w.status === WitnessStatus.ACKNOWLEDGED,
+    );
+
+    if (acknowledgedWitnesses.length > 0) {
+      const owner = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+      const ownerName = owner
+        ? `${owner.firstName} ${owner.lastName}`
+        : 'Transaction Owner';
+
+      for (const witness of acknowledgedWitnesses) {
+        if (witness.user && witness.user.email) {
+          this.notificationService
+            .sendWitnessUpdateNotification(
+              witness.user.email,
+              witness.user.firstName || 'Witness',
+              ownerName,
+              ['This transaction has been cancelled/voided.'],
+              id,
+            )
+            .catch((err) =>
+              console.error(
+                `Failed to send cancellation notification to ${witness.user.email}`,
+                err,
+              ),
+            );
+        }
+      }
+    }
+
+    return cancelledTransaction;
   }
 
   async findMyContactTransactions(userId: string) {

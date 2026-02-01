@@ -152,6 +152,7 @@ type Mutation {
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
   removePromise(id: String!): Promise!
+  removeTransaction(id: ID!): Transaction!
   resendVerificationEmail(email: String!): Boolean!
   resetPassword(resetPasswordInput: ResetPasswordInput!): Boolean!
   revokeAccess(id: String!): AccessGrant!

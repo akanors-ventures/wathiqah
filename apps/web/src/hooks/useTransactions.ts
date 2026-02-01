@@ -1,5 +1,9 @@
 import { useMutation, useQuery } from "@apollo/client/react";
-import { CREATE_TRANSACTION, GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
+import {
+  CREATE_TRANSACTION,
+  GET_TRANSACTIONS,
+  REMOVE_TRANSACTION,
+} from "@/lib/apollo/queries/transactions";
 import type { CreateTransactionInput, FilterTransactionInput } from "@/types/__generated__/graphql";
 
 export function useTransactions(filter?: FilterTransactionInput) {
@@ -12,8 +16,16 @@ export function useTransactions(filter?: FilterTransactionInput) {
     onCompleted: () => refetch(),
   });
 
+  const [removeTransactionMutation, { loading: removing }] = useMutation(REMOVE_TRANSACTION, {
+    onCompleted: () => refetch(),
+  });
+
   const createTransaction = async (input: CreateTransactionInput) => {
     return createTransactionMutation({ variables: { input } });
+  };
+
+  const removeTransaction = async (id: string) => {
+    return removeTransactionMutation({ variables: { id } });
   };
 
   return {
@@ -23,6 +35,8 @@ export function useTransactions(filter?: FilterTransactionInput) {
     error,
     createTransaction,
     creating,
+    removeTransaction,
+    removing,
     refetch,
   };
 }

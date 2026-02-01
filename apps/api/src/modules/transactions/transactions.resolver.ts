@@ -64,4 +64,12 @@ export class TransactionsResolver {
       user.id,
     );
   }
+
+  @Mutation(() => Transaction)
+  async removeTransaction(
+    @Args('id', { type: () => ID }) id: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.transactionsService.remove(id, user.id);
+  }
 }

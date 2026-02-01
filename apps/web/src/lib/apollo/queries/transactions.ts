@@ -12,6 +12,8 @@ import type {
   TransactionsQueryVariables,
   UpdateTransactionMutation,
   UpdateTransactionMutationVariables,
+  RemoveTransactionMutation,
+  RemoveTransactionMutationVariables,
 } from "@/types/__generated__/graphql";
 
 export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQueryVariables> = gql`
@@ -61,6 +63,17 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
           email
         }
       }
+    }
+  }
+`;
+
+export const REMOVE_TRANSACTION: TypedDocumentNode<
+  RemoveTransactionMutation,
+  RemoveTransactionMutationVariables
+> = gql`
+  mutation RemoveTransaction($id: ID!) {
+    removeTransaction(id: $id) {
+      id
     }
   }
 `;
