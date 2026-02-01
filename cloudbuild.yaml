@@ -1,7 +1,7 @@
 substitutions:
   _REGION: "europe-west1"
   _ARTIFACT_REGISTRY_REPO: "wathiqah-api-images"
-  _SERVICE_NAME: "wathiqah-api-service"
+  _SERVICE_NAME: "wathiqah${_VERSION}-api-service"
   _DOCKERFILE_PATH: "Dockerfile"
 
 steps:
