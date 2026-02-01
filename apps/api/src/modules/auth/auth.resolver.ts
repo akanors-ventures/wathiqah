@@ -28,30 +28,29 @@ export class AuthResolver {
     const isProd = process.env.NODE_ENV === 'production';
     const domain = this.configService.get<string>('app.cookieDomain');
 
-    res.cookie('accessToken', payload.accessToken, {
+    // Security Note: SameSite: 'lax' is safer than 'none' and works across subdomains
+    // of the same root domain (e.g., wathiqah-api.akanors.com and wathiqah.akanors.com).
+    const cookieOptions = {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax' as const,
       path: '/',
       domain,
+    };
+
+    res.cookie('accessToken', payload.accessToken, {
+      ...cookieOptions,
       maxAge: ms('15m'),
     });
 
     res.cookie('refreshToken', payload.refreshToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      path: '/',
-      domain,
+      ...cookieOptions,
       maxAge: ms('7d'),
     });
 
     res.cookie('isLoggedIn', 'true', {
-      httpOnly: false, // JS can read this to check auth status
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      path: '/',
-      domain,
+      ...cookieOptions,
+      httpOnly: false, // JS needs to read this to sync AuthContext state
       maxAge: ms('7d'),
     });
   }
