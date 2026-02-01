@@ -15,43 +15,53 @@ import { ChangePasswordInput } from './dto/change-password.input';
 import { Witness } from '../witnesses/entities/witness.entity';
 import { Request, Response } from 'express';
 import * as ms from 'ms';
+import { ConfigService } from '@nestjs/config';
 
 @Resolver(() => AuthPayload)
 export class AuthResolver {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   private setCookies(res: Response, payload: AuthPayload) {
     const isProd = process.env.NODE_ENV === 'production';
+    const domain = this.configService.get<string>('app.cookieDomain');
 
     res.cookie('accessToken', payload.accessToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'lax',
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
+      domain,
       maxAge: ms('15m'),
     });
 
     res.cookie('refreshToken', payload.refreshToken, {
       httpOnly: true,
       secure: isProd,
-      sameSite: 'lax',
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
+      domain,
       maxAge: ms('7d'),
     });
 
     res.cookie('isLoggedIn', 'true', {
       httpOnly: false, // JS can read this to check auth status
       secure: isProd,
-      sameSite: 'lax',
+      sameSite: isProd ? 'none' : 'lax',
       path: '/',
+      domain,
       maxAge: ms('7d'),
     });
   }
 
   private clearCookies(res: Response) {
-    res.clearCookie('accessToken', { path: '/' });
-    res.clearCookie('refreshToken', { path: '/' });
-    res.clearCookie('isLoggedIn', { path: '/' });
+    const domain = this.configService.get<string>('app.cookieDomain');
+
+    res.clearCookie('accessToken', { path: '/', domain });
+    res.clearCookie('refreshToken', { path: '/', domain });
+    res.clearCookie('isLoggedIn', { path: '/', domain });
   }
 
   @Mutation(() => AuthPayload)

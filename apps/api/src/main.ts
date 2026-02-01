@@ -11,12 +11,13 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.useGlobalInterceptors(new LoggerErrorInterceptor());
   const configService = app.get(ConfigService);
+  const origins = configService.get<string>('CORS_ORIGINS')?.split(',') || [
+    'https://wathiqah.akanors.com',
+    'http://localhost:3000',
+  ];
+
   app.enableCors({
-    origin: [
-      'https://dev.akanors.com',
-      'https://wathiqah.akanors.com',
-      'http://localhost:3000',
-    ],
+    origin: origins,
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: [
       'Content-Type',

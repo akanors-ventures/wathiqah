@@ -9,4 +9,5 @@ export default registerAs('app', () => ({
   env: process.env.NODE_ENV || 'development',
   appEmail: process.env.APP_EMAIL,
   emailFrom: process.env.EMAIL_FROM || 'no-reply@wathiqah.akanors.com',
+  cookieDomain: process.env.COOKIE_DOMAIN,
 }));
