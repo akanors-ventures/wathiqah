@@ -108,4 +108,9 @@ This project is built using a collaborative AI workflow, leveraging advanced too
 1.  **Context-Aware Coding**: Agents are provided with deep context from the monorepo structure, Prisma schemas, and GraphQL definitions before any code change.
 2.  **Iterative Refinement**: Code is generated, tested, and linted in a loop. Discrepancies are identified and fixed proactively.
 3.  **Consistency First**: All AI-generated code must adhere to the established tech stack (TanStack Start, NestJS, Prisma, GraphQL) and naming conventions.
-4.  **Documentation as Truth**: Architectural decisions are documented in `.md` files, which serve as the primary source of truth for both human developers and AI agents.
+4.  **Quality of Delivery**:
+    - **No Placeholders**: Never use TODOs or placeholders in production-ready code.
+    - **Verification**: Always verify changes through manual review or automated tests.
+    - **Clean Code**: Prioritize maintainability, proper naming, and adherence to DRY principles.
+    - **Self-Correction**: Proactively identify and fix potential side effects or linter errors introduced by changes.
+5.  **Documentation as Truth**: Architectural decisions are documented in `.md` files, which serve as the primary source of truth for both human developers and AI agents.

@@ -6,6 +6,7 @@ import { CreateTransactionInput } from './dto/create-transaction.input';
 import { UpdateTransactionInput } from './dto/update-transaction.input';
 import { TransactionsResponse } from './entities/transactions-response.entity';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
+import { ContactGroupedSummary } from './entities/contact-grouped-summary.entity';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -43,6 +44,16 @@ export class TransactionsResolver {
   @Query(() => [Transaction], { name: 'myContactTransactions' })
   async findMyContactTransactions(@CurrentUser() user: User) {
     return this.transactionsService.findMyContactTransactions(user.id);
+  }
+
+  @Query(() => [ContactGroupedSummary], {
+    name: 'transactionsGroupedByContact',
+  })
+  async groupByContact(
+    @CurrentUser() user: User,
+    @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
+  ) {
+    return this.transactionsService.groupByContact(user.id, filter);
   }
 
   @Query(() => Transaction, { name: 'transaction' })

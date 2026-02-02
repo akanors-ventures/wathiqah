@@ -32,10 +32,6 @@ export function Dashboard() {
 
   // Calculate Stats
   const totalBalance = summary?.netBalance || 0;
-  const totalGiven = summary?.totalGiven || 0;
-  const totalReceived = summary?.totalReceived || 0;
-  const totalIncome = summary?.totalIncome || 0;
-  const totalExpense = summary?.totalExpense || 0;
   const isDebtByRule = totalBalance < 0;
   const activePromises = promises.filter((p) => p.status === "PENDING").length;
   const pendingWitnessRequests = witnessRequests.length;

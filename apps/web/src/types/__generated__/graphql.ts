@@ -85,6 +85,12 @@ export type Contact = {
   userId: Scalars['String']['output'];
 };
 
+export type ContactGroupedSummary = {
+  __typename: 'ContactGroupedSummary';
+  contact: Maybe<Contact>;
+  summary: TransactionsSummary;
+};
+
 export type ContactPlatformStatus = {
   __typename: 'ContactPlatformStatus';
   isOnPlatform: Scalars['Boolean']['output'];
@@ -123,8 +129,13 @@ export type CreateTransactionInput = {
 
 export type FilterTransactionInput = {
   contactId?: InputMaybe<Scalars['String']['input']>;
+  endDate?: InputMaybe<Scalars['DateTime']['input']>;
+  maxAmount?: InputMaybe<Scalars['Float']['input']>;
+  minAmount?: InputMaybe<Scalars['Float']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
-  type?: InputMaybe<TransactionType>;
+  startDate?: InputMaybe<Scalars['DateTime']['input']>;
+  status?: InputMaybe<TransactionStatus>;
+  types?: InputMaybe<Array<TransactionType>>;
 };
 
 export type ForgotPasswordInput = {
@@ -343,6 +354,7 @@ export type Query = {
   sharedData: SharedDataEntity;
   transaction: Transaction;
   transactions: TransactionsResponse;
+  transactionsGroupedByContact: Array<ContactGroupedSummary>;
   user: Maybe<User>;
   witnessInvitation: Witness;
 };
@@ -384,6 +396,11 @@ export type QueryTransactionArgs = {
 
 
 export type QueryTransactionsArgs = {
+  filter?: InputMaybe<FilterTransactionInput>;
+};
+
+
+export type QueryTransactionsGroupedByContactArgs = {
   filter?: InputMaybe<FilterTransactionInput>;
 };
 
@@ -453,6 +470,7 @@ export type Transaction = {
   parentId: Maybe<Scalars['String']['output']>;
   quantity: Maybe<Scalars['Int']['output']>;
   returnDirection: Maybe<ReturnDirection>;
+  status: TransactionStatus;
   type: TransactionType;
   witnesses: Maybe<Array<Witness>>;
 };
@@ -468,6 +486,12 @@ export type TransactionHistory = {
   user: Maybe<User>;
   userId: Scalars['String']['output'];
 };
+
+export enum TransactionStatus {
+  Cancelled = 'CANCELLED',
+  Completed = 'COMPLETED',
+  Pending = 'PENDING'
+}
 
 export enum TransactionType {
   Expense = 'EXPENSE',
@@ -785,6 +809,13 @@ export type MyContactTransactionsQueryVariables = Exact<{ [key: string]: never; 
 
 
 export type MyContactTransactionsQuery = { myContactTransactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string } | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null }> };
+
+export type TransactionsGroupedByContactQueryVariables = Exact<{
+  filter?: InputMaybe<FilterTransactionInput>;
+}>;
+
+
+export type TransactionsGroupedByContactQuery = { transactionsGroupedByContact: Array<{ __typename: 'ContactGroupedSummary', contact: { __typename: 'Contact', id: string, name: string } | null, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number } }> };
 
 export type CreateTransactionMutationVariables = Exact<{
   input: CreateTransactionInput;

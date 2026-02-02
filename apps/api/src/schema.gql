@@ -66,6 +66,11 @@ type Contact {
   userId: String!
 }
 
+type ContactGroupedSummary {
+  contact: Contact
+  summary: TransactionsSummary!
+}
+
 type ContactPlatformStatus {
   isOnPlatform: Boolean!
   linkedUserId: String
@@ -108,8 +113,13 @@ scalar DateTime
 
 input FilterTransactionInput {
   contactId: String
+  endDate: DateTime
+  maxAmount: Float
+  minAmount: Float
   search: String
-  type: TransactionType
+  startDate: DateTime
+  status: TransactionStatus
+  types: [TransactionType!]
 }
 
 input ForgotPasswordInput {
@@ -204,6 +214,7 @@ type Query {
   sharedData(grantId: String!): SharedDataEntity!
   transaction(id: ID!): Transaction!
   transactions(filter: FilterTransactionInput): TransactionsResponse!
+  transactionsGroupedByContact(filter: FilterTransactionInput): [ContactGroupedSummary!]!
   user(id: String!): User
   witnessInvitation(token: String!): Witness!
 }
@@ -262,6 +273,7 @@ type Transaction {
   parentId: String
   quantity: Int
   returnDirection: ReturnDirection
+  status: TransactionStatus!
   type: TransactionType!
   witnesses: [Witness!]
 }
@@ -275,6 +287,12 @@ type TransactionHistory {
   transactionId: String!
   user: User
   userId: String!
+}
+
+enum TransactionStatus {
+  CANCELLED
+  COMPLETED
+  PENDING
 }
 
 enum TransactionType {

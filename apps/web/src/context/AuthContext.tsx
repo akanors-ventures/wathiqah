@@ -88,10 +88,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (data?.login) {
-        await client.resetStore();
         if (data.login.user) {
           setUser(data.login.user as User);
         }
+        // Don't await resetStore to avoid hanging the UI.
+        // It will refetch active queries in the background.
+        client.resetStore().catch((err) => {
+          console.error("Error resetting store after login:", err);
+        });
       }
       return data?.login;
     },
@@ -132,10 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (data?.acceptInvitation) {
-        await client.resetStore();
         if (data.acceptInvitation.user) {
           setUser(data.acceptInvitation.user as User);
         }
+        client.resetStore().catch((err) => {
+          console.error("Error resetting store after accept invitation:", err);
+        });
       }
       return data?.acceptInvitation;
     },
@@ -179,10 +185,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (data?.verifyEmail) {
-        await client.resetStore();
         if (data.verifyEmail.user) {
           setUser(data.verifyEmail.user as User);
         }
+        client.resetStore().catch((err) => {
+          console.error("Error resetting store after verify email:", err);
+        });
       }
       return data?.verifyEmail;
     },
@@ -200,9 +208,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const hasToken = isAuthenticated();
-  // We consider it loading if the query is loading AND we have a token (so we expect a user)
-  // OR if we have a token but user state hasn't been resolved yet (undefined)
-  const effectiveLoading = (loading && hasToken) || (hasToken && user === undefined);
+  // We consider it loading if we have a token (isLoggedIn cookie) but user state hasn't been resolved yet (undefined).
+  // We don't use 'loading' from useQuery here to avoid redundant loading screens during store resets/refetches
+  // if we already have a user object in state.
+  const effectiveLoading = hasToken && user === undefined;
 
   const value = {
     user,

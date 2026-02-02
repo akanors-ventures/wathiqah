@@ -10,6 +10,18 @@
             .container { width: 100% !important; }
             .content { padding: 20px !important; }
         }
+        
+        /* Dark Mode support */
+        @media (prefers-color-scheme: dark) {
+            body, .main-bg { background-color: #0f172a !important; color: #f8fafc !important; }
+            .container { background-color: #1e293b !important; border-color: #334155 !important; }
+            .content { color: #f8fafc !important; }
+            .header { background-color: #1e293b !important; border-bottom-color: #334155 !important; }
+            .footer { background-color: #0f172a !important; border-top-color: #334155 !important; }
+            .logo-text { color: #f8fafc !important; }
+            .footer-text { color: #94a3b8 !important; }
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -24,18 +36,25 @@
     </style>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #f6f9fc; color: #333333;">
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f6f9fc;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="main-bg" style="background-color: #f6f9fc;">
         <tr>
             <td align="center" style="padding: 40px 0;">
                 <!-- Main Container -->
                 <table role="presentation" class="container" cellspacing="0" cellpadding="0" border="0" width="600" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden;">
                     <!-- Header -->
                     <tr>
-                        <td style="padding: 30px 40px; background-color: #ffffff; border-bottom: 1px solid #edf2f7; text-align: center;">
-                            <a href="https://wathiqah.app" style="text-decoration: none; color: #0f172a; font-size: 24px; font-weight: bold; letter-spacing: -0.5px; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                                <!-- Logo Icon -->
-                                <span style="font-size: 28px; line-height: 1;">🛡️</span>
-                                <span style="color: #0f172a;">Wathȋqah</span>
+                        <td class="header" style="padding: 30px 40px; background-color: #ffffff; border-bottom: 1px solid #edf2f7; text-align: center;">
+                            <a href="{{appUrl}}" style="text-decoration: none; display: inline-block;">
+                                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                                    <tr>
+                                        <td style="vertical-align: middle; padding-right: 12px;">
+                                            <img src="{{logoUrl}}" alt="Wathȋqah Logo" width="36" height="36" style="display: block; border: 0; width: 36px; height: 36px; max-width: 100%; height: auto;" />
+                                        </td>
+                                        <td class="logo-text" style="vertical-align: middle; font-size: 26px; font-weight: bold; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; letter-spacing: -0.5px;">
+                                            Wathȋqah
+                                        </td>
+                                    </tr>
+                                </table>
                             </a>
                         </td>
                     </tr>
@@ -49,14 +68,14 @@
 
                     <!-- Footer -->
                     <tr>
-                        <td style="padding: 30px 40px; background-color: #f8fafc; border-top: 1px solid #edf2f7; text-align: center;">
-                            <p style="margin: 0 0 10px; font-size: 12px; color: #64748b;">
+                        <td class="footer" style="padding: 30px 40px; background-color: #f8fafc; border-top: 1px solid #edf2f7; text-align: center;">
+                            <p class="footer-text" style="margin: 0 0 10px; font-size: 12px; color: #64748b;">
                                 &copy; {{year}} Wathȋqah. All rights reserved.
                             </p>
                             <div style="font-size: 12px; color: #64748b;">
-                                <a href="https://wathiqah.app/privacy" style="color: #64748b; text-decoration: underline;">Privacy Policy</a>
+                                <a href="{{appUrl}}/privacy" class="footer-text" style="color: #64748b; text-decoration: underline;">Privacy Policy</a>
                                 &nbsp;&bull;&nbsp;
-                                <a href="https://wathiqah.app/terms" style="color: #64748b; text-decoration: underline;">Terms of Service</a>
+                                <a href="{{appUrl}}/terms" class="footer-text" style="color: #64748b; text-decoration: underline;">Terms of Service</a>
                             </div>
                         </td>
                     </tr>

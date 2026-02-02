@@ -328,11 +328,26 @@ export class TransactionsService {
     };
 
     if (filter) {
-      if (filter.type) {
-        where.type = filter.type;
+      if (filter.types && filter.types.length > 0) {
+        where.type = { in: filter.types };
+      }
+      if (filter.status) {
+        where.status = filter.status;
       }
       if (filter.contactId) {
         where.contactId = filter.contactId;
+      }
+      if (filter.startDate || filter.endDate) {
+        where.date = {
+          ...(filter.startDate && { gte: filter.startDate }),
+          ...(filter.endDate && { lte: filter.endDate }),
+        };
+      }
+      if (filter.minAmount !== undefined || filter.maxAmount !== undefined) {
+        where.amount = {
+          ...(filter.minAmount !== undefined && { gte: filter.minAmount }),
+          ...(filter.maxAmount !== undefined && { lte: filter.maxAmount }),
+        };
       }
       if (filter.search) {
         where.OR = [
@@ -370,15 +385,10 @@ export class TransactionsService {
       },
     });
 
-    // Calculate summary (respecting contact filter if present, but ignoring type/search for context)
+    // Calculate summary respecting all filters
     const summaryWhere: Prisma.TransactionWhereInput = {
-      createdById: userId,
-      status: { not: TransactionStatus.CANCELLED },
+      ...where,
     };
-
-    if (filter?.contactId) {
-      summaryWhere.contactId = filter.contactId;
-    }
 
     const aggregations = await this.prisma.transaction.groupBy({
       by: ['type', 'returnDirection'],
@@ -441,6 +451,122 @@ export class TransactionsService {
       items,
       summary,
     };
+  }
+
+  async groupByContact(userId: string, filter?: FilterTransactionInput) {
+    const summaryWhere: Prisma.TransactionWhereInput = {
+      createdById: userId,
+      status: { not: TransactionStatus.CANCELLED },
+    };
+
+    if (filter?.types && filter.types.length > 0) {
+      summaryWhere.type = { in: filter.types };
+    }
+    if (filter?.contactId) {
+      summaryWhere.contactId = filter.contactId;
+    }
+    if (filter?.startDate || filter?.endDate) {
+      summaryWhere.date = {
+        ...(filter.startDate && { gte: filter.startDate }),
+        ...(filter.endDate && { lte: filter.endDate }),
+      };
+    }
+    if (filter?.minAmount !== undefined || filter?.maxAmount !== undefined) {
+      summaryWhere.amount = {
+        ...(filter.minAmount !== undefined && { gte: filter.minAmount }),
+        ...(filter.maxAmount !== undefined && { lte: filter.maxAmount }),
+      };
+    }
+    if (filter?.search) {
+      summaryWhere.OR = [
+        { description: { contains: filter.search, mode: 'insensitive' } },
+        { itemName: { contains: filter.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const aggregations = await this.prisma.transaction.groupBy({
+      by: ['contactId', 'type', 'returnDirection'],
+      where: summaryWhere,
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // Get all contacts for this user to map names
+    const contacts = await this.prisma.contact.findMany({
+      where: { userId },
+    });
+
+    const contactMap = new Map(contacts.map((c) => [c.id, c]));
+
+    // Group aggregations by contactId
+    const groupedByContact = new Map<string | null, any>();
+
+    aggregations.forEach((agg) => {
+      const contactId = agg.contactId;
+      if (!groupedByContact.has(contactId)) {
+        groupedByContact.set(contactId, {
+          totalGiven: 0,
+          totalReceived: 0,
+          totalReturned: 0,
+          totalReturnedToMe: 0,
+          totalReturnedToOther: 0,
+          totalExpense: 0,
+          totalIncome: 0,
+          totalGiftGiven: 0,
+          totalGiftReceived: 0,
+          netBalance: 0,
+        });
+      }
+
+      const summary = groupedByContact.get(contactId);
+      const amount = Number(agg._sum.amount) || 0;
+
+      if (agg.type === 'GIVEN') {
+        summary.totalGiven += amount;
+      } else if (agg.type === 'RECEIVED') {
+        summary.totalReceived += amount;
+      } else if (agg.type === 'RETURNED') {
+        summary.totalReturned += amount;
+        if (agg.returnDirection === 'TO_ME') {
+          summary.totalReturnedToMe += amount;
+        } else {
+          summary.totalReturnedToOther += amount;
+        }
+      } else if (agg.type === 'EXPENSE') {
+        summary.totalExpense += amount;
+      } else if (agg.type === 'INCOME') {
+        summary.totalIncome += amount;
+      } else if (agg.type === 'GIFT') {
+        if (agg.returnDirection === 'TO_ME') {
+          summary.totalGiftReceived += amount;
+        } else {
+          summary.totalGiftGiven += amount;
+        }
+      }
+    });
+
+    // Calculate net balance for each contact and format result
+    const result = Array.from(groupedByContact.entries()).map(
+      ([contactId, summary]) => {
+        summary.netBalance =
+          summary.totalIncome -
+          summary.totalExpense +
+          summary.totalReceived -
+          summary.totalGiven +
+          summary.totalReturnedToMe -
+          summary.totalReturnedToOther +
+          summary.totalGiftReceived -
+          summary.totalGiftGiven;
+
+        return {
+          contact: contactId ? contactMap.get(contactId) : null,
+          summary,
+        };
+      },
+    );
+
+    return result;
   }
 
   async findOne(id: string, userId: string) {

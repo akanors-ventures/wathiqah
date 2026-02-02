@@ -14,6 +14,7 @@ import type {
   UpdateTransactionMutationVariables,
   RemoveTransactionMutation,
   RemoveTransactionMutationVariables,
+  TransactionsGroupedByContactQuery,
 } from "@/types/__generated__/graphql";
 
 export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQueryVariables> = gql`
@@ -153,6 +154,32 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
           name
           email
         }
+      }
+    }
+  }
+`;
+
+export const GET_TRANSACTIONS_GROUPED_BY_CONTACT: TypedDocumentNode<
+  TransactionsGroupedByContactQuery,
+  TransactionsQueryVariables
+> = gql`
+  query TransactionsGroupedByContact($filter: FilterTransactionInput) {
+    transactionsGroupedByContact(filter: $filter) {
+      contact {
+        id
+        name
+      }
+      summary {
+        totalGiven
+        totalReceived
+        totalReturned
+        totalReturnedToMe
+        totalReturnedToOther
+        totalIncome
+        totalExpense
+        totalGiftGiven
+        totalGiftReceived
+        netBalance
       }
     }
   }

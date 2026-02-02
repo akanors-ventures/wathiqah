@@ -295,8 +295,11 @@ export class NotificationService {
     templateName: string,
     data: Record<string, any>,
   ): Promise<void> {
+    const appUrl = this.configService.get('app.url');
     const templateData = {
       ...data,
+      appUrl,
+      logoUrl: `${appUrl}/favicon.svg`,
       year: new Date().getFullYear(),
     };
 

@@ -35,7 +35,7 @@ export class AuthResolver {
       secure: isProd,
       sameSite: 'lax' as const,
       path: '/',
-      domain,
+      ...(domain ? { domain } : {}),
     };
 
     res.cookie('accessToken', payload.accessToken, {
@@ -57,10 +57,11 @@ export class AuthResolver {
 
   private clearCookies(res: Response) {
     const domain = this.configService.get<string>('app.cookieDomain');
+    const options = { path: '/', ...(domain ? { domain } : {}) };
 
-    res.clearCookie('accessToken', { path: '/', domain });
-    res.clearCookie('refreshToken', { path: '/', domain });
-    res.clearCookie('isLoggedIn', { path: '/', domain });
+    res.clearCookie('accessToken', options);
+    res.clearCookie('refreshToken', options);
+    res.clearCookie('isLoggedIn', options);
   }
 
   @Mutation(() => AuthPayload)

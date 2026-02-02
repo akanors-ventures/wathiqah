@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
 import { ItemsList } from "@/components/items/ItemsList";
+import { TransactionCharts } from "@/components/transactions/TransactionCharts";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
@@ -40,7 +41,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useItems } from "@/hooks/useItems";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { AssetCategory } from "@/types/__generated__/graphql";
+import {
+  AssetCategory,
+  type TransactionStatus,
+  type TransactionType,
+} from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/transactions/")({
@@ -57,15 +62,18 @@ function TransactionsPage() {
   const [activeTab, setActiveTab] = useState(tab);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
-  const { transactions, loading, summary } = useTransactions();
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const { transactions, loading, summary } = useTransactions({
+    status: statusFilter === "ALL" ? undefined : (statusFilter as TransactionStatus),
+    types: typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
+  });
   const { items, loading: loadingItems, refetch: refetchItems } = useItems();
 
   const filteredTransactions = transactions.filter((tx) => {
     const matchesSearch =
       (tx.description?.toLowerCase() || "").includes(search.toLowerCase()) ||
       (tx.contact?.name?.toLowerCase() || "").includes(search.toLowerCase());
-    const matchesType = typeFilter === "ALL" || tx.type === typeFilter;
-    return matchesSearch && matchesType;
+    return matchesSearch;
   });
 
   const handleExport = () => {
@@ -130,18 +138,7 @@ function TransactionsPage() {
           </p>
         </div>
         <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto shrink-0 relative z-10">
-          <TabsList className="grid w-full grid-cols-2 md:w-[300px] h-12 p-1.5">
-            <TabsTrigger value="funds" className="flex items-center gap-2 py-2">
-              <ArrowRightLeft className="w-4 h-4" />
-              Funds
-            </TabsTrigger>
-            <TabsTrigger value="items" className="flex items-center gap-2 py-2">
-              <Package className="w-4 h-4" />
-              Items
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full lg:w-auto">
             <Button
               variant="outline"
               onClick={handleExport}
@@ -163,6 +160,22 @@ function TransactionsPage() {
       </div>
 
       <LedgerPhilosophy />
+
+      <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b lg:border-none lg:bg-transparent lg:static lg:p-0">
+        <TabsList className="grid w-full grid-cols-3 md:w-[450px] h-12 p-1.5 bg-muted/50">
+          <TabsTrigger value="funds" className="flex items-center gap-2 py-2">
+            <ArrowRightLeft className="w-4 h-4" />
+            Funds
+          </TabsTrigger>
+          <TabsTrigger value="items" className="flex items-center gap-2 py-2">
+            <Package className="w-4 h-4" />
+            Items
+          </TabsTrigger>
+          <TabsTrigger value="analytics" className="flex items-center gap-2 py-2">
+            Analytics
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       <div className="space-y-4">
         <TabsContent value="funds" className="space-y-4">
@@ -232,7 +245,7 @@ function TransactionsPage() {
               />
             </div>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-[150px]">
                 <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="Filter Type" />
               </SelectTrigger>
@@ -243,6 +256,19 @@ function TransactionsPage() {
                 <SelectItem value="RETURNED">Returned</SelectItem>
                 <SelectItem value="EXPENSE">Expense</SelectItem>
                 <SelectItem value="INCOME">Income</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <Package className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">Active</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -511,6 +537,10 @@ function TransactionsPage() {
 
         <TabsContent value="items">
           <ItemsList items={items} isLoading={loadingItems} onRefresh={refetchItems} />
+        </TabsContent>
+
+        <TabsContent value="analytics">
+          <TransactionCharts />
         </TabsContent>
       </div>
     </Tabs>

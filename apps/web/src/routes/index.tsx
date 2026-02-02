@@ -13,13 +13,15 @@ import { Dashboard } from "@/components/dashboard/Dashboard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
+import { PageLoader } from "@/components/ui/page-loader";
+
 export const Route = createFileRoute("/")({ component: LandingPage });
 
 function LandingPage() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null;
+    return <PageLoader />;
   }
 
   if (user) {
