@@ -161,8 +161,8 @@ function TransactionsPage() {
 
       <LedgerPhilosophy />
 
-      <div className="sticky top-0 z-20 -mx-4 px-4 py-2 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b lg:border-none lg:bg-transparent lg:static lg:p-0">
-        <TabsList className="grid w-full grid-cols-3 md:w-[450px] h-12 p-1.5 bg-muted/50">
+      <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b lg:border-none lg:bg-transparent lg:static lg:p-0 flex justify-center">
+        <TabsList className="grid w-full max-w-[500px] grid-cols-3 h-12 p-1.5 bg-muted/50 shadow-sm lg:shadow-none">
           <TabsTrigger value="funds" className="flex items-center gap-2 py-2">
             <ArrowRightLeft className="w-4 h-4" />
             Funds
