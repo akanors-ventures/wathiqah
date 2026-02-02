@@ -27,10 +27,13 @@ import type {
   VerifyEmailMutation,
 } from "@/types/__generated__/graphql";
 import { isAuthenticated } from "@/utils/auth";
+import { deleteCookie } from "@/lib/cookies";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 
 interface AuthContextType {
   user: User | null | undefined;
   loading: boolean;
+  isAuthenticated: () => boolean;
   error: Error | undefined;
   login: (input: LoginInput) => Promise<LoginMutation["login"] | undefined>;
   signup: (input: SignupInput) => Promise<SignupMutation["signup"] | undefined>;
@@ -57,20 +60,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fetchPolicy: "network-only", // Ensure we validate the token on mount
   });
 
-  // Sync user state with query data when it changes
-  useEffect(() => {
-    if (data?.me) {
-      setUser(data.me as User);
-    } else if (!loading && (error || !data?.me)) {
-      setUser(null);
-      // If we thought we were logged in but the server says otherwise,
-      // we should clear the cookie to prevent redirect loops
-      // if (typeof document !== "undefined" && document.cookie.includes("isLoggedIn=")) {
-      //   document.cookie = "isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      // }
-    }
-  }, [data, loading, error]);
-
   const [loginMutation] = useMutation(LOGIN_MUTATION);
   const [signupMutation] = useMutation(SIGNUP_MUTATION);
   const [logoutMutation] = useMutation(LOGOUT_MUTATION);
@@ -83,126 +72,200 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (input: LoginInput) => {
-      const { data } = await loginMutation({
-        variables: { loginInput: input },
-      });
-
-      if (data?.login) {
-        if (data.login.user) {
-          setUser(data.login.user as User);
-        }
-        // Don't await resetStore to avoid hanging the UI.
-        // It will refetch active queries in the background.
-        client.resetStore().catch((err) => {
-          console.error("Error resetting store after login:", err);
+      try {
+        const { data } = await loginMutation({
+          variables: { loginInput: input },
         });
+
+        if (data?.login) {
+          if (data.login.user) {
+            setUser(data.login.user as User);
+          }
+          // Don't await resetStore to avoid hanging the UI.
+          // It will refetch active queries in the background.
+          client.resetStore().catch((err) => {
+            console.error("Error resetting store after login:", err);
+          });
+        }
+        return data?.login;
+      } catch (error) {
+        console.error("Login mutation error:", error);
+        throw error;
       }
-      return data?.login;
     },
     [loginMutation, client],
   );
 
   const signup = useCallback(
     async (input: SignupInput) => {
-      const { data } = await signupMutation({
-        variables: { signupInput: input },
-      });
-      return data?.signup;
+      try {
+        const { data } = await signupMutation({
+          variables: { signupInput: input },
+        });
+        return data?.signup;
+      } catch (error) {
+        console.error("Signup mutation error:", error);
+        throw error;
+      }
     },
     [signupMutation],
   );
 
   const logout = useCallback(async () => {
+    // If we're already clearing out, don't double-call
+    const wasAuthenticated = user !== null && user !== undefined;
+
     // Immediate UI update
     setUser(null);
-    // if (typeof document !== "undefined") {
-    //   document.cookie = "isLoggedIn=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    // }
+
+    deleteCookie("isLoggedIn");
 
     try {
-      await logoutMutation();
+      // Only attempt mutation if we thought we were authenticated
+      if (wasAuthenticated) {
+        await logoutMutation().catch(() => {
+          /* ignore errors during logout */
+        });
+      }
       await client.clearStore();
     } catch (error) {
       console.error("Error clearing store during logout:", error);
     } finally {
       navigate({ to: "/" });
     }
-  }, [client, navigate, logoutMutation]);
+  }, [client, navigate, logoutMutation, user]);
+
+  // Sync user state with query data when it changes
+  useEffect(() => {
+    if (data?.me) {
+      setUser(data.me as User);
+    } else if (!loading && (error || !data?.me)) {
+      const wasAuthenticated = user !== null && user !== undefined;
+      setUser(null);
+
+      // If we thought we were logged in but the server says otherwise,
+      // or if we have an unauthenticated error, trigger a full logout cleanup.
+      let hasAuthError = false;
+      if (CombinedGraphQLErrors.is(error)) {
+        hasAuthError = error.errors.some(
+          ({ extensions, message }) =>
+            extensions?.code === "UNAUTHENTICATED" ||
+            extensions?.code === "UNAUTHORIZED" ||
+            message?.toLowerCase().includes("unauthorized"),
+        );
+      }
+
+      if (hasAuthError || (!data?.me && wasAuthenticated)) {
+        console.debug("[AuthContext] Unauthenticated state detected, triggering logout cleanup");
+        logout();
+      }
+    }
+  }, [data, loading, error, logout, user]);
 
   const acceptInvitation = useCallback(
     async (input: AcceptInvitationInput) => {
-      const { data } = await acceptInvitationMutation({
-        variables: { acceptInvitationInput: input },
-      });
-
-      if (data?.acceptInvitation) {
-        if (data.acceptInvitation.user) {
-          setUser(data.acceptInvitation.user as User);
-        }
-        client.resetStore().catch((err) => {
-          console.error("Error resetting store after accept invitation:", err);
+      try {
+        const { data } = await acceptInvitationMutation({
+          variables: { acceptInvitationInput: input },
         });
+
+        if (data?.acceptInvitation) {
+          if (data.acceptInvitation.user) {
+            setUser(data.acceptInvitation.user as User);
+          }
+          client.resetStore().catch((err) => {
+            console.error("Error resetting store after accept invitation:", err);
+          });
+        }
+        return data?.acceptInvitation;
+      } catch (error) {
+        console.error("Accept invitation mutation error:", error);
+        throw error;
       }
-      return data?.acceptInvitation;
     },
     [acceptInvitationMutation, client],
   );
 
   const forgotPassword = useCallback(
     async (input: ForgotPasswordInput) => {
-      const { data } = await forgotPasswordMutation({
-        variables: { forgotPasswordInput: input },
-      });
-      return data?.forgotPassword;
+      try {
+        const { data } = await forgotPasswordMutation({
+          variables: { forgotPasswordInput: input },
+        });
+        return data?.forgotPassword;
+      } catch (error) {
+        console.error("Forgot password mutation error:", error);
+        throw error;
+      }
     },
     [forgotPasswordMutation],
   );
 
   const resetPassword = useCallback(
     async (input: ResetPasswordInput) => {
-      const { data } = await resetPasswordMutation({
-        variables: { resetPasswordInput: input },
-      });
-      return data?.resetPassword;
+      try {
+        const { data } = await resetPasswordMutation({
+          variables: { resetPasswordInput: input },
+        });
+        return data?.resetPassword;
+      } catch (error) {
+        console.error("Reset password mutation error:", error);
+        throw error;
+      }
     },
     [resetPasswordMutation],
   );
 
   const changePassword = useCallback(
     async (input: ChangePasswordInput) => {
-      const { data } = await changePasswordMutation({
-        variables: { changePasswordInput: input },
-      });
-      return data?.changePassword;
+      try {
+        const { data } = await changePasswordMutation({
+          variables: { changePasswordInput: input },
+        });
+        return data?.changePassword;
+      } catch (error) {
+        console.error("Change password mutation error:", error);
+        throw error;
+      }
     },
     [changePasswordMutation],
   );
 
   const verifyEmail = useCallback(
     async (token: string) => {
-      const { data } = await verifyEmailMutation({
-        variables: { token },
-      });
-
-      if (data?.verifyEmail) {
-        if (data.verifyEmail.user) {
-          setUser(data.verifyEmail.user as User);
-        }
-        client.resetStore().catch((err) => {
-          console.error("Error resetting store after verify email:", err);
+      try {
+        const { data } = await verifyEmailMutation({
+          variables: { token },
         });
+
+        if (data?.verifyEmail) {
+          if (data.verifyEmail.user) {
+            setUser(data.verifyEmail.user as User);
+          }
+          client.resetStore().catch((err) => {
+            console.error("Error resetting store after verify email:", err);
+          });
+        }
+        return data?.verifyEmail;
+      } catch (error) {
+        console.error("Verify email mutation error:", error);
+        throw error;
       }
-      return data?.verifyEmail;
     },
     [verifyEmailMutation, client],
   );
 
   const resendVerificationEmail = useCallback(
     async (email: string) => {
-      const { data } = await resendVerificationEmailMutation({
-        variables: { email },
-      });
-      return data?.resendVerificationEmail;
+      try {
+        const { data } = await resendVerificationEmailMutation({
+          variables: { email },
+        });
+        return data?.resendVerificationEmail;
+      } catch (error) {
+        console.error("Resend verification email mutation error:", error);
+        throw error;
+      }
     },
     [resendVerificationEmailMutation],
   );
@@ -211,11 +274,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // We consider it loading if we have a token (isLoggedIn cookie) but user state hasn't been resolved yet (undefined).
   // We don't use 'loading' from useQuery here to avoid redundant loading screens during store resets/refetches
   // if we already have a user object in state.
-  const effectiveLoading = hasToken && user === undefined;
+  const effectiveLoading = hasToken && user === undefined && loading;
 
   const value = {
     user,
     loading: effectiveLoading,
+    isAuthenticated,
     error,
     login,
     signup,

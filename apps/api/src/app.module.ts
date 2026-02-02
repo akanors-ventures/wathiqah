@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, Logger } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
@@ -19,6 +19,7 @@ import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 as uuidv4 } from 'uuid';
+import { GraphQLError } from 'graphql';
 
 @Module({
   imports: [
@@ -40,11 +41,20 @@ import { v4 as uuidv4 } from 'uuid';
               : {
                   target: 'pino-pretty',
                   options: {
-                    singleLine: true,
+                    singleLine: false,
                     translateTime: 'SYS:standard',
+                    colorize: true,
+                    levelFirst: true,
+                    ignore: 'pid,hostname,req,res,context',
+                    messageFormat: '{context} - {msg}',
                   },
                 },
-            autoLogging: true,
+            autoLogging: {
+              ignore: (req) => {
+                // Ignore GraphQL requests in auto-logging to avoid double logging with the interceptor
+                return req.url?.includes('/graphql');
+              },
+            },
             genReqId: (req) =>
               (req.headers['x-request-id'] as string) || uuidv4(),
             redact: {
@@ -112,6 +122,35 @@ import { v4 as uuidv4 } from 'uuid';
       playground: true,
       useGlobalPrefix: true,
       context: ({ req, res }) => ({ req, res }),
+      formatError: (error) => {
+        const originalError = error.extensions?.originalError as any;
+        let message = error.message;
+
+        if (originalError?.message) {
+          message = Array.isArray(originalError.message)
+            ? originalError.message[0]
+            : originalError.message;
+        }
+
+        const code = error.extensions?.code || 'INTERNAL_SERVER_ERROR';
+
+        // Enhanced error logging for server errors
+        if (code === 'INTERNAL_SERVER_ERROR') {
+          const stack = error instanceof GraphQLError ? error.stack : undefined;
+          new Logger('GraphQLError').error(
+            `[Internal Server Error]: ${error.message}`,
+            stack,
+          );
+        }
+
+        return {
+          message,
+          extensions: {
+            ...error.extensions,
+            code,
+          },
+        };
+      },
     }),
     PrismaModule,
     TransactionsModule,

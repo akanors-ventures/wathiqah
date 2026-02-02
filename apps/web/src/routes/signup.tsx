@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { BrandLoader } from "@/components/ui/page-loader";
 import { useAuth } from "@/hooks/use-auth";
 import { isAuthenticated } from "@/utils/auth";
 
@@ -21,7 +22,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignupComponent() {
-  const { signup } = useAuth();
+  const { signup, loading: authLoading } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,7 +33,12 @@ function SignupComponent() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await signup({ name, email, password });
+      const result = await signup({ name, email, password });
+      if (!result) {
+        toast.error("Failed to sign up. Please try again.");
+        setIsLoading(false);
+        return;
+      }
       setIsSuccess(true);
       toast.success("Account created successfully!");
     } catch (err) {
@@ -47,6 +53,14 @@ function SignupComponent() {
   };
 
   const id = useId();
+
+  if (authLoading && !isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-background p-4">
+        <BrandLoader size="lg" />
+      </div>
+    );
+  }
 
   if (isSuccess) {
     return (

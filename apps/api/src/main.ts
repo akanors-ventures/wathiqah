@@ -4,12 +4,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger, LoggerErrorInterceptor } from 'nestjs-pino';
 import * as cookieParser from 'cookie-parser';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   app.use(cookieParser());
   app.useLogger(app.get(Logger));
-  app.useGlobalInterceptors(new LoggerErrorInterceptor());
+  app.useGlobalInterceptors(
+    new LoggerErrorInterceptor(),
+    new LoggingInterceptor(),
+  );
   const configService = app.get(ConfigService);
   const origins = configService.get<string>('CORS_ORIGINS')?.split(',') || [
     'https://wathiqah.akanors.com',

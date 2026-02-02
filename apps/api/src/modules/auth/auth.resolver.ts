@@ -28,6 +28,10 @@ export class AuthResolver {
     const isProd = process.env.NODE_ENV === 'production';
     const domain = this.configService.get<string>('app.cookieDomain');
 
+    console.log(
+      `[AuthResolver] Setting cookies. Domain: ${domain || 'none'}, isProd: ${isProd}`,
+    );
+
     // Security Note: SameSite: 'lax' is safer than 'none' and works across subdomains
     // of the same root domain (e.g., wathiqah-api.akanors.com and wathiqah.akanors.com).
     const cookieOptions = {
@@ -58,6 +62,8 @@ export class AuthResolver {
   private clearCookies(res: Response) {
     const domain = this.configService.get<string>('app.cookieDomain');
     const options = { path: '/', ...(domain ? { domain } : {}) };
+
+    console.log(`[AuthResolver] Clearing cookies. Domain: ${domain || 'none'}`);
 
     res.clearCookie('accessToken', options);
     res.clearCookie('refreshToken', options);
@@ -107,9 +113,23 @@ export class AuthResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(GqlAuthGuard)
-  async logout(@CurrentUser() user: User, @Context('res') res: Response) {
-    await this.authService.logout(user.id);
+  async logout(@Context('req') req: Request, @Context('res') res: Response) {
+    // If we have a valid session, also invalidate it in the DB
+    const refreshToken = req.cookies?.refreshToken;
+    if (refreshToken) {
+      try {
+        const payload = await this.authService.verifyRefreshToken(refreshToken);
+        if (payload?.sub) {
+          await this.authService.logout(payload.sub);
+        }
+      } catch (error) {
+        // Ignore verification errors during logout, we still want to clear cookies
+        console.debug(
+          '[AuthResolver] Error during logout session invalidation:',
+          error.message,
+        );
+      }
+    }
     this.clearCookies(res);
     return true;
   }

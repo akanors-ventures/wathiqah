@@ -24,7 +24,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm transition-all duration-300">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4 lg:gap-8">
           <Link
             to="/"
             className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02]"
@@ -34,7 +34,7 @@ export default function Header() {
               <AppLogo className="h-5 w-5" />
               <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary/20 group-hover:ring-transparent transition-all duration-300" />
             </div>
-            <div className="grid grid-cols-1 grid-rows-1 h-9 items-center overflow-hidden text-left">
+            <div className="hidden lg:grid grid-cols-1 grid-rows-1 h-9 items-center overflow-hidden text-left">
               <span className="col-start-1 row-start-1 font-bold text-xl leading-none tracking-tight text-primary transition-all duration-300 group-hover:-translate-y-2 group-hover:text-primary">
                 Wathȋqah
               </span>

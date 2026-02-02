@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
+import { BrandLoader } from "@/components/ui/page-loader";
 import { useAuth } from "@/hooks/use-auth";
 import { isAuthenticated, parseRedirect } from "@/utils/auth";
 
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginComponent() {
-  const { login } = useAuth();
+  const { login, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { redirectTo } = Route.useSearch();
   const [email, setEmail] = useState("");
@@ -39,8 +40,16 @@ function LoginComponent() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login({ email, password });
+      const result = await login({ email, password });
+
+      if (!result) {
+        toast.error("Invalid credentials");
+        setIsLoading(false);
+        return;
+      }
+
       toast.success("Welcome back!");
+      setIsLoading(false); // Clear loading state before navigation
 
       if (redirectTo) {
         const decodedRedirect = decodeURIComponent(redirectTo);
@@ -64,6 +73,15 @@ function LoginComponent() {
   };
 
   const id = useId();
+
+  if (authLoading && !isLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center bg-background p-4">
+        <BrandLoader size="lg" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-1 items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border border-border">

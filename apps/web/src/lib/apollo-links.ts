@@ -1,8 +1,10 @@
 import { gql, Observable } from "@apollo/client";
-import { CombinedGraphQLErrors } from "@apollo/client/errors";
+import { CombinedGraphQLErrors, CombinedProtocolErrors } from "@apollo/client/errors";
 import { SetContextLink } from "@apollo/client/link/context";
 import { ErrorLink } from "@apollo/client/link/error";
 import { print } from "graphql";
+import { toast } from "sonner";
+import { deleteCookie } from "@/lib/cookies";
 
 const REFRESH_TOKEN_MUTATION = gql`
   mutation RefreshToken($refreshTokenInput: RefreshTokenInput!) {
@@ -33,11 +35,27 @@ export const authLink = new SetContextLink(({ headers }, _) => {
 export const errorLink = (uri: string) =>
   new ErrorLink(({ error, operation, forward }) => {
     if (CombinedGraphQLErrors.is(error)) {
-      for (const err of error.errors) {
-        if (err.extensions?.code === "UNAUTHENTICATED") {
+      let refreshObservable: Observable<unknown> | null = null;
+
+      // Skip refresh for login, logout, and refreshToken mutations to avoid infinite loops
+      const operationName = operation.operationName || "";
+      const skipRefresh = ["Login", "Logout", "RefreshToken", "Signup", "VerifyEmail"].includes(
+        operationName,
+      );
+
+      error.errors.forEach(({ extensions, message, locations, path }) => {
+        console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+        const code = extensions?.code;
+        if (
+          !skipRefresh &&
+          (code === "UNAUTHENTICATED" ||
+            code === "UNAUTHORIZED" ||
+            message?.toLowerCase().includes("unauthorized"))
+        ) {
+          console.debug(`[Apollo] Auth error detected: ${code || message}. Attempting refresh...`);
           // If unauthenticated, try to refresh.
           // The refreshToken is in a httpOnly cookie, so the browser will send it.
-          return new Observable((observer) => {
+          refreshObservable = new Observable((observer) => {
             fetch(uri, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -60,18 +78,34 @@ export const errorLink = (uri: string) =>
 
                   forward(operation).subscribe(subscriber);
                 } else {
-                  if (
-                    isClient &&
-                    window.location.pathname !== "/" &&
-                    window.location.pathname !== "/login" &&
-                    window.location.pathname !== "/signup" &&
-                    window.location.pathname !== "/forgot-password" &&
-                    window.location.pathname !== "/reset-password" &&
-                    window.location.pathname !== "/verify-email" &&
-                    !window.location.pathname.startsWith("/witnesses/invite/") &&
-                    !window.location.pathname.startsWith("/shared-access/view/")
-                  ) {
-                    window.location.href = "/login";
+                  if (isClient) {
+                    const currentPath = window.location.pathname;
+                    const publicPaths = [
+                      "/",
+                      "/login",
+                      "/signup",
+                      "/forgot-password",
+                      "/reset-password",
+                      "/verify-email",
+                    ];
+                    const isPublicPath =
+                      publicPaths.includes(currentPath) ||
+                      currentPath.startsWith("/witnesses/invite/") ||
+                      currentPath.startsWith("/shared-access/view/");
+
+                    deleteCookie("isLoggedIn");
+
+                    if (!isPublicPath) {
+                      console.debug(
+                        "[Apollo] Not on public path, redirecting to login from:",
+                        currentPath,
+                      );
+                      const redirectTo = encodeURIComponent(currentPath + window.location.search);
+
+                      window.location.href = `/login?redirectTo=${redirectTo}`;
+                    } else {
+                      console.debug("[Apollo] On public path, session cleared.");
+                    }
                   }
                 }
               })
@@ -80,6 +114,26 @@ export const errorLink = (uri: string) =>
               });
           });
         }
+
+        if (code === "INTERNAL_SERVER_ERROR") {
+          // Handle other specific errors or general errors
+          toast.error("A server error occurred. Please try again later.");
+        } else if (code === "FORBIDDEN") {
+          toast.error("You don't have permission to perform this action.");
+        }
+      });
+
+      if (refreshObservable) {
+        return refreshObservable;
       }
+    } else if (CombinedProtocolErrors.is(error)) {
+      error.errors.forEach(({ message, extensions }) => {
+        console.log(
+          `[Protocol error]: Message: ${message}, Extensions: ${JSON.stringify(extensions)}`,
+        );
+      });
+    } else {
+      console.error(`[Network error]: ${error}`);
+      toast.error("Network error. Please check your internet connection.");
     }
   });

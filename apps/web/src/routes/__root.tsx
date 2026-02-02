@@ -59,7 +59,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             (function() {
               try {
                 var storageKey = "vite-ui-theme";
-                var defaultTheme = "dark";
+                var defaultTheme = "system";
                 var theme = localStorage.getItem(storageKey);
                 var root = document.documentElement;
                 
@@ -87,8 +87,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           }}
         />
       </head>
-      <body className="flex flex-col min-h-screen">
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <body className="flex flex-col min-h-screen" suppressHydrationWarning>
+        <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <AuthProvider>
             <Header />
             <main className="flex-1 flex flex-col">{children}</main>

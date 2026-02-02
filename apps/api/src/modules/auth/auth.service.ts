@@ -145,9 +145,13 @@ export class AuthService {
     };
   }
 
+  async verifyRefreshToken(refreshToken: string) {
+    return this.jwtService.verifyAsync(refreshToken);
+  }
+
   async refreshToken(refreshToken: string): Promise<AuthPayload> {
     try {
-      const payload = await this.jwtService.verifyAsync(refreshToken);
+      const payload = await this.verifyRefreshToken(refreshToken);
       const userId = payload.sub;
 
       const user = await this.usersService.findOne(userId);
@@ -172,7 +176,7 @@ export class AuthService {
         user,
       };
     } catch (error) {
-      throw new UnauthorizedException('Access Denied: ', error.message);
+      throw new UnauthorizedException(`Access Denied: ${error.message}`);
     }
   }
 
