@@ -337,6 +337,9 @@ export class TransactionsService {
       if (filter.contactId) {
         where.contactId = filter.contactId;
       }
+      if (filter.currency) {
+        where.currency = filter.currency;
+      }
       if (filter.startDate || filter.endDate) {
         where.date = {
           ...(filter.startDate && { gte: filter.startDate }),
@@ -618,6 +621,7 @@ export class TransactionsService {
     const previousState = {
       category: transaction.category,
       amount: transaction.amount,
+      currency: transaction.currency,
       itemName: transaction.itemName,
       quantity: transaction.quantity,
       type: transaction.type,
@@ -629,6 +633,7 @@ export class TransactionsService {
     const {
       category,
       amount,
+      currency,
       itemName,
       quantity,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -660,6 +665,10 @@ export class TransactionsService {
     ) {
       changes.amount = amount;
       changeDescriptions.push(`Amount changed to ${amount}`);
+    }
+    if (currency && currency !== transaction.currency) {
+      changes.currency = currency;
+      changeDescriptions.push(`Currency changed to ${currency}`);
     }
     if (
       itemName &&

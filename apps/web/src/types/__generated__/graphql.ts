@@ -116,6 +116,7 @@ export type CreateTransactionInput = {
   amount?: InputMaybe<Scalars['Float']['input']>;
   category: AssetCategory;
   contactId?: InputMaybe<Scalars['ID']['input']>;
+  currency?: Scalars['String']['input'];
   date: Scalars['DateTime']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   itemName?: InputMaybe<Scalars['String']['input']>;
@@ -129,6 +130,7 @@ export type CreateTransactionInput = {
 
 export type FilterTransactionInput = {
   contactId?: InputMaybe<Scalars['String']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
   endDate?: InputMaybe<Scalars['DateTime']['input']>;
   maxAmount?: InputMaybe<Scalars['Float']['input']>;
   minAmount?: InputMaybe<Scalars['Float']['input']>;
@@ -461,6 +463,7 @@ export type Transaction = {
   createdAt: Maybe<Scalars['DateTime']['output']>;
   createdBy: Maybe<User>;
   createdById: Scalars['String']['output'];
+  currency: Scalars['String']['output'];
   date: Scalars['DateTime']['output'];
   description: Maybe<Scalars['String']['output']>;
   history: Maybe<Array<TransactionHistory>>;
@@ -544,6 +547,7 @@ export type UpdateTransactionInput = {
   amount?: InputMaybe<Scalars['Float']['input']>;
   category?: InputMaybe<AssetCategory>;
   contactId?: InputMaybe<Scalars['ID']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
   date?: InputMaybe<Scalars['DateTime']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['ID']['input'];
@@ -782,14 +786,14 @@ export type SharedDataQueryVariables = Exact<{
 }>;
 
 
-export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } | null, transactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, date: string, description: string | null, category: AssetCategory, itemName: string | null, quantity: number | null, contact: { __typename: 'Contact', name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, user: { __typename: 'User', name: string } | null }> | null }> | null, promises: Array<{ __typename: 'Promise', id: string, description: string, promiseTo: string, dueDate: string, priority: Priority, status: PromiseStatus, notes: string | null }> | null } };
+export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } | null, transactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, date: string, description: string | null, category: AssetCategory, itemName: string | null, quantity: number | null, contact: { __typename: 'Contact', name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, user: { __typename: 'User', name: string } | null }> | null }> | null, promises: Array<{ __typename: 'Promise', id: string, description: string, promiseTo: string, dueDate: string, priority: Priority, status: PromiseStatus, notes: string | null }> | null } };
 
 export type TransactionQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null } };
+export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null } };
 
 export type RemoveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -803,12 +807,12 @@ export type TransactionsQueryVariables = Exact<{
 }>;
 
 
-export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number } } };
+export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number } } };
 
 export type MyContactTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyContactTransactionsQuery = { myContactTransactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string } | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null }> };
+export type MyContactTransactionsQuery = { myContactTransactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string } | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null }> };
 
 export type TransactionsGroupedByContactQueryVariables = Exact<{
   filter?: InputMaybe<FilterTransactionInput>;
@@ -822,7 +826,7 @@ export type CreateTransactionMutationVariables = Exact<{
 }>;
 
 
-export type CreateTransactionMutation = { createTransaction: { __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, description: string | null, date: string, parentId: string | null } };
+export type CreateTransactionMutation = { createTransaction: { __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, description: string | null, date: string, parentId: string | null } };
 
 export type AddWitnessMutationVariables = Exact<{
   input: AddWitnessInput;
@@ -836,7 +840,7 @@ export type UpdateTransactionMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', id: string, name: string } | null } };
+export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', id: string, name: string } | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;

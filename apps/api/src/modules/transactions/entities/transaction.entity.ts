@@ -65,6 +65,9 @@ export class Transaction {
   status: TransactionStatus;
 
   @Field()
+  currency: string;
+
+  @Field()
   date: Date;
 
   @Field({ nullable: true })

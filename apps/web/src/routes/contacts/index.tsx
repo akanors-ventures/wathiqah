@@ -327,6 +327,7 @@ function ContactsPage() {
                       </span>
                       <BalanceIndicator
                         amount={contact.balance}
+                        currency="NGN"
                         className="text-2xl font-black py-0 px-0 h-auto shadow-none border-none bg-transparent dark:bg-transparent w-fit"
                       />
                     </div>

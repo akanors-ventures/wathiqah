@@ -87,6 +87,7 @@ export const errorLink = (uri: string) =>
                       "/forgot-password",
                       "/reset-password",
                       "/verify-email",
+                      "/shared-access",
                     ];
                     const isPublicPath =
                       publicPaths.includes(currentPath) ||

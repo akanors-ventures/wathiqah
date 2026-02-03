@@ -24,6 +24,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
       amount
       category
       type
+      currency
       date
       description
       itemName
@@ -35,6 +36,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
         id
         amount
         type
+        currency
         date
       }
       contact {
@@ -88,6 +90,7 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
         amount
         category
         type
+        currency
         date
         description
         itemName
@@ -129,6 +132,7 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
       amount
       category
       type
+      currency
       date
       description
       itemName
@@ -194,6 +198,7 @@ export const CREATE_TRANSACTION: TypedDocumentNode<
       id
       amount
       type
+      currency
       description
       date
       parentId
@@ -229,6 +234,7 @@ export const UPDATE_TRANSACTION: TypedDocumentNode<
       amount
       category
       type
+      currency
       date
       description
       itemName

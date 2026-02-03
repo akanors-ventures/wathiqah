@@ -143,7 +143,11 @@ function ContactDetailsPage() {
               <div className="h-4 w-4 text-muted-foreground">💰</div>
             </CardHeader>
             <CardContent>
-              <BalanceIndicator amount={summary.netBalance} className="text-2xl px-3 py-1 h-auto" />
+              <BalanceIndicator
+                amount={summary.netBalance}
+                currency="NGN"
+                className="text-2xl px-3 py-1 h-auto"
+              />
             </CardContent>
           </Card>
           <Card>
@@ -153,7 +157,7 @@ function ContactDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(summary.totalGiven)}
+                {formatCurrency(summary.totalGiven, "NGN")}
               </div>
             </CardContent>
           </Card>
@@ -164,7 +168,7 @@ function ContactDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(summary.totalReceived)}
+                {formatCurrency(summary.totalReceived, "NGN")}
               </div>
             </CardContent>
           </Card>
@@ -175,7 +179,7 @@ function ContactDetailsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-600">
-                {formatCurrency(summary.totalReturned)}
+                {formatCurrency(summary.totalReturned, "NGN")}
               </div>
             </CardContent>
           </Card>
@@ -266,7 +270,7 @@ function ContactDetailsPage() {
                       ) : (
                         <>
                           {tx.type === "GIVEN" ? "+" : "-"}
-                          {formatCurrency(tx.amount)}
+                          {formatCurrency(tx.amount, tx.currency)}
                         </>
                       )}
                     </TableCell>

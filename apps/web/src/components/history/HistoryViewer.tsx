@@ -37,7 +37,11 @@ interface HistoryViewerProps {
 }
 
 // Helper to format values for display
-const formatValue = (key: string, value: unknown): string => {
+const formatValue = (
+  key: string,
+  value: unknown,
+  snapshot: Record<string, unknown> | null,
+): string => {
   if (value === null || value === undefined) return "—";
   if (
     key === "date" &&
@@ -46,9 +50,10 @@ const formatValue = (key: string, value: unknown): string => {
     return format(new Date(value), "MMM d, yyyy");
   }
   if (key === "amount" && (typeof value === "number" || typeof value === "string")) {
+    const currency = (snapshot?.currency as string) || "NGN";
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
-      currency: "NGN",
+      currency: currency,
     }).format(Number(value));
   }
   if (typeof value === "object") return JSON.stringify(value);
@@ -285,10 +290,10 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
                                   {change.field.replace(/([A-Z])/g, " $1").trim()}
                                 </td>
                                 <td className="p-2 text-muted-foreground font-mono text-xs">
-                                  {formatValue(change.field, change.oldValue)}
+                                  {formatValue(change.field, change.oldValue, item.previousState)}
                                 </td>
                                 <td className="p-2 text-primary font-semibold font-mono text-xs">
-                                  {formatValue(change.field, change.newValue)}
+                                  {formatValue(change.field, change.newValue, item.newState)}
                                 </td>
                               </tr>
                             ))}

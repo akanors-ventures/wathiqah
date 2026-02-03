@@ -116,7 +116,7 @@ function MyContactTransactionsPage() {
                       <TableCell className="text-right">
                         {tx.category === AssetCategory.Funds ? (
                           <span className={tx.type === "GIVEN" ? "text-red-600" : "text-green-600"}>
-                            {formatCurrency(tx.amount || 0)}
+                            {formatCurrency(tx.amount || 0, tx.currency)}
                           </span>
                         ) : (
                           <div className="flex items-center justify-end gap-1 font-medium text-foreground">

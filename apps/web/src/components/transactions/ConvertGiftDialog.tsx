@@ -35,6 +35,7 @@ interface ConvertGiftDialogProps {
   transaction: {
     id: string;
     amount: number | null;
+    currency: string;
     type: TransactionType;
     contactId?: string | null;
     description?: string | null;
@@ -71,6 +72,7 @@ export function ConvertGiftDialog({
       await createTransaction({
         category: AssetCategory.Funds,
         amount: values.amount,
+        currency: transaction.currency,
         type: TransactionType.Gift,
         date: new Date().toISOString(),
         description: values.description,

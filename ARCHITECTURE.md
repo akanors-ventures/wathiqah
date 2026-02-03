@@ -114,6 +114,9 @@ apps/api/
    - Uses `TransactionHistory` model to track changes.
    - Captures `previousState` and `newState` for all updates.
    - Enforces immutability for witnessed transactions by using `CANCELLED` status instead of deletion.
+6. **Error Handling & Resilience**:
+   - **Database Pool Tuning**: Uses optimized `pg` pool settings (`idleTimeoutMillis: 30000`, `keepAlive: true`) to prevent "Server has closed the connection" errors common with managed databases.
+   - **GraphQL Error Masking**: Implements a global `formatError` in `AppModule` to mask technical Prisma or database-specific error messages with user-friendly text while preserving technical logs on the server.
 
 ---
 

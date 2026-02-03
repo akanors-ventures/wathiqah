@@ -1,12 +1,19 @@
 export const formatCurrency = (
   amount: number | string | null | undefined,
+  currency = "NGN",
   minimumFractionDigits = 0,
 ) => {
-  if (amount === null || amount === undefined) return "₦0";
+  if (amount === null || amount === undefined) {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: currency || "NGN",
+      minimumFractionDigits,
+    }).format(0);
+  }
   const num = typeof amount === "string" ? parseFloat(amount) : amount;
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
-    currency: "NGN",
+    currency: currency || "NGN",
     minimumFractionDigits,
     maximumFractionDigits: 2,
   }).format(num);

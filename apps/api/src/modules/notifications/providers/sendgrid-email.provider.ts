@@ -10,7 +10,7 @@ export class SendGridEmailProvider implements EmailProvider {
 
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('sendgrid.apiKey');
-    this.defaultFrom = this.configService.get<string>('emailFrom');
+    this.defaultFrom = this.configService.get<string>('app.emailFrom');
 
     if (!apiKey) {
       this.logger.warn('SENDGRID_API_KEY is not set. Email sending will fail.');

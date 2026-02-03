@@ -63,9 +63,11 @@ function TransactionsPage() {
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [currencyFilter, setCurrencyFilter] = useState<string>("ALL");
   const { transactions, loading, summary } = useTransactions({
     status: statusFilter === "ALL" ? undefined : (statusFilter as TransactionStatus),
     types: typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
+    currency: currencyFilter === "ALL" ? undefined : currencyFilter,
   });
   const { items, loading: loadingItems, refetch: refetchItems } = useItems();
 
@@ -190,6 +192,7 @@ function TransactionsPage() {
                 <CardContent>
                   <BalanceIndicator
                     amount={summary.netBalance}
+                    currency={currencyFilter === "ALL" ? "NGN" : currencyFilter}
                     className="text-2xl px-3 py-1 h-auto"
                   />
                 </CardContent>
@@ -201,7 +204,10 @@ function TransactionsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(summary.totalGiven)}
+                    {formatCurrency(
+                      summary.totalGiven,
+                      currencyFilter === "ALL" ? "NGN" : currencyFilter,
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">You lent out</p>
                 </CardContent>
@@ -213,7 +219,10 @@ function TransactionsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold text-red-600">
-                    {formatCurrency(summary.totalReceived)}
+                    {formatCurrency(
+                      summary.totalReceived,
+                      currencyFilter === "ALL" ? "NGN" : currencyFilter,
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">You borrowed</p>
                 </CardContent>
@@ -221,11 +230,14 @@ function TransactionsPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Returned</CardTitle>
-                  <ArrowRightLeft className="h-4 w-4 text-green-500" />
+                  <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {formatCurrency(summary.totalReturned)}
+                  <div className="text-2xl font-bold text-emerald-600">
+                    {formatCurrency(
+                      summary.totalReturned,
+                      currencyFilter === "ALL" ? "NGN" : currencyFilter,
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">Repayments</p>
                 </CardContent>
@@ -269,6 +281,25 @@ function TransactionsPage() {
                 <SelectItem value="COMPLETED">Completed</SelectItem>
                 <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
+              <SelectTrigger className="w-full sm:w-[150px]">
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground font-medium">$</span>
+                  <SelectValue placeholder="Currency" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Currencies</SelectItem>
+                <SelectItem value="NGN">NGN (₦)</SelectItem>
+                <SelectItem value="USD">USD ($)</SelectItem>
+                <SelectItem value="EUR">EUR (€)</SelectItem>
+                <SelectItem value="GBP">GBP (£)</SelectItem>
+                <SelectItem value="CAD">CAD ($)</SelectItem>
+                <SelectItem value="AED">AED (د.إ)</SelectItem>
+                <SelectItem value="SAR">SAR (ر.س)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -393,15 +424,15 @@ function TransactionsPage() {
                                   ? "text-blue-600"
                                   : tx.type === "RECEIVED"
                                     ? "text-red-600"
-                                    : "text-green-600"
+                                    : "text-emerald-600"
                             }`}
                           >
                             {tx.category === AssetCategory.Item ? (
                               "Physical Item"
                             ) : (
                               <>
-                                {tx.type === "GIVEN" ? "+" : tx.type === "RECEIVED" ? "-" : "+"}
-                                {formatCurrency(tx.amount)}
+                                {tx.type === "GIVEN" ? "+" : "-"}
+                                {formatCurrency(tx.amount, tx.currency)}
                               </>
                             )}
                           </TableCell>
@@ -498,7 +529,7 @@ function TransactionsPage() {
                         ) : (
                           <>
                             {tx.type === "GIVEN" ? "+" : tx.type === "RECEIVED" ? "-" : "+"}
-                            {formatCurrency(tx.amount)}
+                            {formatCurrency(tx.amount, tx.currency)}
                           </>
                         )}
                       </div>

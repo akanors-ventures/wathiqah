@@ -18,6 +18,9 @@ export class FilterTransactionInput {
   @Field({ nullable: true })
   contactId?: string;
 
+  @Field({ nullable: true })
+  currency?: string;
+
   @Field(() => Date, { nullable: true })
   startDate?: Date;
 

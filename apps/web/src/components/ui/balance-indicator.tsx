@@ -4,16 +4,22 @@ import { formatCurrency } from "@/lib/utils/formatters";
 
 interface BalanceIndicatorProps {
   amount: number;
+  currency?: string;
   className?: string;
   overrideColor?: "red" | "green" | "blue";
 }
 
-export function BalanceIndicator({ amount, className, overrideColor }: BalanceIndicatorProps) {
+export function BalanceIndicator({
+  amount,
+  currency = "NGN",
+  className,
+  overrideColor,
+}: BalanceIndicatorProps) {
   const isDebt = amount < 0;
   const isCredit = amount > 0;
   const isSettled = amount === 0;
 
-  const formattedAmount = formatCurrency(Math.abs(amount));
+  const formattedAmount = formatCurrency(Math.abs(amount), currency);
   const signedAmount = isSettled
     ? formattedAmount
     : isDebt

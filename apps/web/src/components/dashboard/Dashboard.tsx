@@ -73,6 +73,7 @@ export function Dashboard() {
           value={
             <BalanceIndicator
               amount={totalBalance}
+              currency="NGN"
               overrideColor={isDebtByRule ? "red" : "green"}
               className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
             />
@@ -244,7 +245,7 @@ export function Dashboard() {
                         ) : (
                           <>
                             {tx.type === "GIVEN" || tx.type === "RETURNED" ? "+" : "-"}
-                            {formatCurrency(tx.amount)}
+                            {formatCurrency(tx.amount, tx.currency)}
                           </>
                         )}
                       </div>

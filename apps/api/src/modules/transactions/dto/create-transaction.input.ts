@@ -47,6 +47,10 @@ export class CreateTransactionInput {
   @IsEnum(ReturnDirection)
   returnDirection?: ReturnDirection;
 
+  @Field({ defaultValue: 'NGN' })
+  @IsString()
+  currency: string;
+
   @Field()
   date: Date;
 

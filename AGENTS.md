@@ -8,8 +8,12 @@
 
 - **Core Principle**: It is better to give out (be a creditor) than to owe people (be a debtor).
 - **Categories**:
-  - **FUNDS**: For monetary transactions (Cash, Bank transfers). Quantity and Item Name are excluded from UI and audit logs for this category.
+  - **FUNDS**: For monetary transactions (Cash, Bank transfers). Quantity and Item Name are excluded from UI and audit logs for this category. Supports **multi-currency** (NGN, USD, EUR, GBP, CAD, AED, SAR) with NGN as default.
   - **PHYSICAL ITEMS**: For lending/borrowing physical objects (e.g., Tools, Books). Uses Quantity and Item Name.
+- **Currency Logic**:
+  - All fund transactions store their own `currency` code.
+  - The system uses dynamic formatting via `formatCurrency` utility based on the transaction's currency.
+  - History snapshots preserve the currency active at the time of the change for accurate audit trails.
 - **Color Coding Logic**:
   - **RECEIVED (Red)**: Marked as Red because it represents a liability/debt. It is better to avoid owing people.
   - **GIVEN (Blue/Emerald)**: Represented as Blue or Emerald because it represents an asset/credit. Giving out is viewed more favorably than receiving debt.
@@ -17,6 +21,13 @@
 - **Balance Logic**:
   - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToOther + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received).
   - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you.
+- **Analytics & Reporting**:
+  - **Context**: Visualizes financial trends and contact activity.
+  - **Components**:
+    - **Aggregate Summary**: Bar charts showing financial volume (Given, Received, Returned).
+    - **Asset Allocation**: Pie charts showing distribution of fund types.
+    - **Contact Analysis**: Horizontal bar charts showing activity per contact (Top 10).
+  - **Export Logic**: Supports exporting visualizations as PNG (via `html2canvas`) and data as CSV/Excel (via `papaparse` and `xlsx`).
 
 ## Tech Stack
 
@@ -57,6 +68,7 @@
 2.  **GraphQL**: - **Code First**: Define schemas using TypeScript classes with `@ObjectType()`, `@InputType()`, and `@Args()`. - **Resolvers**: Handle GraphQL operations. - **Services**: Handle business logic and DB interactions. - **Entities**: Define the GraphQL object structure (in `entities/` folder).
 3.  **Database**: - Always use **Prisma** for DB operations. - Update `schema.prisma` and run `pnpm prisma migrate dev` for schema changes. - Never hardcode SQL queries unless absolutely necessary for performance (and document why).
 4.  **Security**: - Use `ConfigService` for secrets. - Implement `GqlAuthGuard` for protected endpoints. - Validate all inputs using DTOs with `class-validator` decorators.
+5.  **Error Handling**: - Mask internal server errors (Prisma/DB) in GraphQL `formatError` to prevent leaking technical details to the UI. - Log full error details on the server for debugging.
 
 ### Frontend Rules (TanStack Start)
 

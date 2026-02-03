@@ -141,6 +141,16 @@ import { GraphQLError } from 'graphql';
             `[Internal Server Error]: ${error.message}`,
             stack,
           );
+
+          // Mask internal server errors in production or when they leak technical details
+          if (
+            process.env.NODE_ENV === 'production' ||
+            message.includes('Prisma') ||
+            message.includes('invocation in') ||
+            message.includes('Server has closed the connection')
+          ) {
+            message = 'Something went wrong. Please try again later.';
+          }
         }
 
         return {

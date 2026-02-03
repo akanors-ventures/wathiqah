@@ -95,6 +95,7 @@ input CreateTransactionInput {
   amount: Float
   category: AssetCategory!
   contactId: ID
+  currency: String! = "NGN"
   date: DateTime!
   description: String
   itemName: String
@@ -113,6 +114,7 @@ scalar DateTime
 
 input FilterTransactionInput {
   contactId: String
+  currency: String
   endDate: DateTime
   maxAmount: Float
   minAmount: Float
@@ -264,6 +266,7 @@ type Transaction {
   createdAt: DateTime
   createdBy: User
   createdById: String!
+  currency: String!
   date: DateTime!
   description: String
   history: [TransactionHistory!]
@@ -344,6 +347,7 @@ input UpdateTransactionInput {
   amount: Float
   category: AssetCategory
   contactId: ID
+  currency: String = "NGN"
   date: DateTime
   description: String
   id: ID!

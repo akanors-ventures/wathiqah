@@ -45,6 +45,7 @@ export type TransactionMinAggregateOutputType = {
   type: $Enums.TransactionType | null
   returnDirection: $Enums.ReturnDirection | null
   status: $Enums.TransactionStatus | null
+  currency: string | null
   date: Date | null
   description: string | null
   createdAt: Date | null
@@ -62,6 +63,7 @@ export type TransactionMaxAggregateOutputType = {
   type: $Enums.TransactionType | null
   returnDirection: $Enums.ReturnDirection | null
   status: $Enums.TransactionStatus | null
+  currency: string | null
   date: Date | null
   description: string | null
   createdAt: Date | null
@@ -79,6 +81,7 @@ export type TransactionCountAggregateOutputType = {
   type: number
   returnDirection: number
   status: number
+  currency: number
   date: number
   description: number
   createdAt: number
@@ -108,6 +111,7 @@ export type TransactionMinAggregateInputType = {
   type?: true
   returnDirection?: true
   status?: true
+  currency?: true
   date?: true
   description?: true
   createdAt?: true
@@ -125,6 +129,7 @@ export type TransactionMaxAggregateInputType = {
   type?: true
   returnDirection?: true
   status?: true
+  currency?: true
   date?: true
   description?: true
   createdAt?: true
@@ -142,6 +147,7 @@ export type TransactionCountAggregateInputType = {
   type?: true
   returnDirection?: true
   status?: true
+  currency?: true
   date?: true
   description?: true
   createdAt?: true
@@ -246,6 +252,7 @@ export type TransactionGroupByOutputType = {
   type: $Enums.TransactionType
   returnDirection: $Enums.ReturnDirection | null
   status: $Enums.TransactionStatus
+  currency: string
   date: Date
   description: string | null
   createdAt: Date
@@ -286,6 +293,7 @@ export type TransactionWhereInput = {
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   returnDirection?: Prisma.EnumReturnDirectionNullableFilter<"Transaction"> | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
+  currency?: Prisma.StringFilter<"Transaction"> | string
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
@@ -309,6 +317,7 @@ export type TransactionOrderByWithRelationInput = {
   type?: Prisma.SortOrder
   returnDirection?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   date?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -335,6 +344,7 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   returnDirection?: Prisma.EnumReturnDirectionNullableFilter<"Transaction"> | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
+  currency?: Prisma.StringFilter<"Transaction"> | string
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
@@ -358,6 +368,7 @@ export type TransactionOrderByWithAggregationInput = {
   type?: Prisma.SortOrder
   returnDirection?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   date?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -383,6 +394,7 @@ export type TransactionScalarWhereWithAggregatesInput = {
   type?: Prisma.EnumTransactionTypeWithAggregatesFilter<"Transaction"> | $Enums.TransactionType
   returnDirection?: Prisma.EnumReturnDirectionNullableWithAggregatesFilter<"Transaction"> | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusWithAggregatesFilter<"Transaction"> | $Enums.TransactionStatus
+  currency?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   date?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
@@ -400,6 +412,7 @@ export type TransactionCreateInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -420,6 +433,7 @@ export type TransactionUncheckedCreateInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -440,6 +454,7 @@ export type TransactionUpdateInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -460,6 +475,7 @@ export type TransactionUncheckedUpdateInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -480,6 +496,7 @@ export type TransactionCreateManyInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -497,6 +514,7 @@ export type TransactionUpdateManyMutationInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -511,6 +529,7 @@ export type TransactionUncheckedUpdateManyInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -543,6 +562,7 @@ export type TransactionCountOrderByAggregateInput = {
   type?: Prisma.SortOrder
   returnDirection?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   date?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -565,6 +585,7 @@ export type TransactionMaxOrderByAggregateInput = {
   type?: Prisma.SortOrder
   returnDirection?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   date?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -582,6 +603,7 @@ export type TransactionMinOrderByAggregateInput = {
   type?: Prisma.SortOrder
   returnDirection?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  currency?: Prisma.SortOrder
   date?: Prisma.SortOrder
   description?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -811,6 +833,7 @@ export type TransactionCreateWithoutCreatedByInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -830,6 +853,7 @@ export type TransactionUncheckedCreateWithoutCreatedByInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -878,6 +902,7 @@ export type TransactionScalarWhereInput = {
   type?: Prisma.EnumTransactionTypeFilter<"Transaction"> | $Enums.TransactionType
   returnDirection?: Prisma.EnumReturnDirectionNullableFilter<"Transaction"> | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
+  currency?: Prisma.StringFilter<"Transaction"> | string
   date?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   description?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
@@ -895,6 +920,7 @@ export type TransactionCreateWithoutContactInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -914,6 +940,7 @@ export type TransactionUncheckedCreateWithoutContactInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -959,6 +986,7 @@ export type TransactionCreateWithoutConversionsInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -978,6 +1006,7 @@ export type TransactionUncheckedCreateWithoutConversionsInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1002,6 +1031,7 @@ export type TransactionCreateWithoutParentInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1021,6 +1051,7 @@ export type TransactionUncheckedCreateWithoutParentInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1061,6 +1092,7 @@ export type TransactionUpdateWithoutConversionsInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1080,6 +1112,7 @@ export type TransactionUncheckedUpdateWithoutConversionsInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1115,6 +1148,7 @@ export type TransactionCreateWithoutHistoryInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1134,6 +1168,7 @@ export type TransactionUncheckedCreateWithoutHistoryInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1169,6 +1204,7 @@ export type TransactionUpdateWithoutHistoryInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1188,6 +1224,7 @@ export type TransactionUncheckedUpdateWithoutHistoryInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1207,6 +1244,7 @@ export type TransactionCreateWithoutWitnessesInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1226,6 +1264,7 @@ export type TransactionUncheckedCreateWithoutWitnessesInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1261,6 +1300,7 @@ export type TransactionUpdateWithoutWitnessesInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1280,6 +1320,7 @@ export type TransactionUncheckedUpdateWithoutWitnessesInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1299,6 +1340,7 @@ export type TransactionCreateManyCreatedByInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1315,6 +1357,7 @@ export type TransactionUpdateWithoutCreatedByInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1334,6 +1377,7 @@ export type TransactionUncheckedUpdateWithoutCreatedByInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1353,6 +1397,7 @@ export type TransactionUncheckedUpdateManyWithoutCreatedByInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1369,6 +1414,7 @@ export type TransactionCreateManyContactInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1385,6 +1431,7 @@ export type TransactionUpdateWithoutContactInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1404,6 +1451,7 @@ export type TransactionUncheckedUpdateWithoutContactInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1423,6 +1471,7 @@ export type TransactionUncheckedUpdateManyWithoutContactInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1439,6 +1488,7 @@ export type TransactionCreateManyParentInput = {
   type: $Enums.TransactionType
   returnDirection?: $Enums.ReturnDirection | null
   status?: $Enums.TransactionStatus
+  currency?: string
   date: Date | string
   description?: string | null
   createdAt?: Date | string
@@ -1455,6 +1505,7 @@ export type TransactionUpdateWithoutParentInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1474,6 +1525,7 @@ export type TransactionUncheckedUpdateWithoutParentInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1493,6 +1545,7 @@ export type TransactionUncheckedUpdateManyWithoutParentInput = {
   type?: Prisma.EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
   returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1558,6 +1611,7 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   type?: boolean
   returnDirection?: boolean
   status?: boolean
+  currency?: boolean
   date?: boolean
   description?: boolean
   createdAt?: boolean
@@ -1582,6 +1636,7 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   type?: boolean
   returnDirection?: boolean
   status?: boolean
+  currency?: boolean
   date?: boolean
   description?: boolean
   createdAt?: boolean
@@ -1602,6 +1657,7 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   type?: boolean
   returnDirection?: boolean
   status?: boolean
+  currency?: boolean
   date?: boolean
   description?: boolean
   createdAt?: boolean
@@ -1622,6 +1678,7 @@ export type TransactionSelectScalar = {
   type?: boolean
   returnDirection?: boolean
   status?: boolean
+  currency?: boolean
   date?: boolean
   description?: boolean
   createdAt?: boolean
@@ -1630,7 +1687,7 @@ export type TransactionSelectScalar = {
   createdById?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "category" | "amount" | "itemName" | "quantity" | "type" | "returnDirection" | "status" | "date" | "description" | "createdAt" | "parentId" | "contactId" | "createdById", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "category" | "amount" | "itemName" | "quantity" | "type" | "returnDirection" | "status" | "currency" | "date" | "description" | "createdAt" | "parentId" | "contactId" | "createdById", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   parent?: boolean | Prisma.Transaction$parentArgs<ExtArgs>
   conversions?: boolean | Prisma.Transaction$conversionsArgs<ExtArgs>
@@ -1670,6 +1727,7 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     type: $Enums.TransactionType
     returnDirection: $Enums.ReturnDirection | null
     status: $Enums.TransactionStatus
+    currency: string
     date: Date
     description: string | null
     createdAt: Date
@@ -2113,6 +2171,7 @@ export interface TransactionFieldRefs {
   readonly type: Prisma.FieldRef<"Transaction", 'TransactionType'>
   readonly returnDirection: Prisma.FieldRef<"Transaction", 'ReturnDirection'>
   readonly status: Prisma.FieldRef<"Transaction", 'TransactionStatus'>
+  readonly currency: Prisma.FieldRef<"Transaction", 'String'>
   readonly date: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly description: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>

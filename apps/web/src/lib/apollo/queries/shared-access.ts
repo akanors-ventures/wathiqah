@@ -100,6 +100,7 @@ export const SHARED_DATA_QUERY: TypedDocumentNode<SharedDataQuery, SharedDataQue
       transactions {
         id
         amount
+        currency
         type
         date
         description

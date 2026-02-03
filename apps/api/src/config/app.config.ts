@@ -7,7 +7,6 @@ export default registerAs('app', () => ({
   apiPrefix: process.env.API_PREFIX,
   port: parseInt(process.env.PORT || '3000'),
   env: process.env.NODE_ENV || 'development',
-  appEmail: process.env.APP_EMAIL,
-  emailFrom: process.env.EMAIL_FROM || 'no-reply@wathiqah.akanors.com',
+  emailFrom: process.env.EMAIL_FROM || 'wathiqah@akanors.com',
   cookieDomain: process.env.COOKIE_DOMAIN,
 }));

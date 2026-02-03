@@ -20,6 +20,7 @@ Financial exchanges between people are often undocumented, leading to confusion 
 ## ✨ Features (MVP)
 
 - **Transaction Management**: Record funds (given, received, collected) or physical items (lent, borrowed, returned).
+- **Multi-currency Support**: Track fund transactions in multiple currencies (NGN, USD, EUR, GBP, CAD, AED, SAR).
 - **Dual Balance Logic**:
   - **Cash Position**: Dashboard balance reflects liquidity (Cash In vs. Cash Out).
   - **Relationship Standing**: Contact view reflects net debt (who owes whom).
@@ -34,15 +35,19 @@ Financial exchanges between people are often undocumented, leading to confusion 
 - **Privacy-Preserving Witness Search**: Search existing users by exact email or phone and only receive the user ID with masked names (no email/phone exposure).
 - **Flexible Contacts**: Contacts can exist independently without linking to an app user; linking (userId) is optional.
 - **Shared Access**: Grant read-only access to specific transactions or witness records to external parties.
+- **Analytics Dashboard**: Comprehensive visualization of financial data.
+  - **Financial Volume**: Bar charts for Aggregate Summary.
+  - **Asset Allocation**: Pie charts for distribution.
+  - **Contact Activity**: Breakdown of top contacts by Given/Received/Net.
+  - **Export Options**: Export charts as Images, and raw data as CSV or Excel.
 - **Promise Tracker**: Dedicated module for documenting and tracking personal promises with due dates.
 - **Authentication**: Secure JWT-based authentication.
 - **API**: Flexible GraphQL API.
 
 **Planned Features & Enhancements:**
 
-- **Multi-currency support**.
 - **Project & Fund Management**: Create projects, set budgets, and track project-specific expenses.
-- **Exportable reports** (CSV, PDF).
+- **Advanced Exportable reports** (PDF).
 - **Real-time updates** (GraphQL subscriptions).
 - **Mobile app**.
 
@@ -232,6 +237,7 @@ query GetContacts {
     transactions {
       id
       amount
+      currency
       type
       date
       description
@@ -255,6 +261,7 @@ mutation CreateTransaction {
     input: {
       contactId: "1"
       amount: 100.50
+      currency: "USD"
       type: GIVEN
       date: "2026-01-21"
       description: "Loan payment"
@@ -267,6 +274,7 @@ mutation CreateTransaction {
   ) {
     id
     amount
+    currency
     type
     witnesses {
       id
@@ -424,7 +432,12 @@ Wathȋqah leverages cutting-edge AI tools to boost productivity, ensure maintain
 - [x] **Promise Tracker**
   - [x] Database schema for promises
   - [x] CRUD operations for promises
-  - [x] Frontend UI for tracking commitments
+- [x] Frontend UI for tracking commitments
+- [x] **Multi-currency Support**
+  - [x] Database schema for currency
+  - [x] Backend DTO and Service updates
+  - [x] Frontend UI (Forms & Filters)
+  - [x] Dynamic formatting in History
 - [x] Build contacts management UI (Frontend)
 - [x] Build transaction management UI (Frontend)
 - [x] Integrate Apollo Client with backend

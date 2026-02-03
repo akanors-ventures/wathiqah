@@ -208,7 +208,7 @@ function SharedAccessView() {
                               ) : (
                                 <>
                                   {tx.type === "GIVEN" ? "-" : "+"}
-                                  {formatCurrency(tx.amount)}
+                                  {formatCurrency(tx.amount, tx.currency)}
                                 </>
                               )}
                             </TableCell>

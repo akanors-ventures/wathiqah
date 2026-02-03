@@ -219,9 +219,9 @@ function LandingPage() {
                         JD
                       </div>
                       <div>
-                        <p className="text-sm font-medium">Lent $500 to John Doe</p>
+                        <p className="text-sm font-medium">Lent $500 to Sarah Smith</p>
                         <p className="text-[10px] text-muted-foreground">
-                          Waiting for witness: Sarah Smith
+                          Waiting for witness: Ahmad Sulaiman
                         </p>
                       </div>
                     </div>

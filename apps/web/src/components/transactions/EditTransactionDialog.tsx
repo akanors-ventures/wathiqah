@@ -55,6 +55,7 @@ const formSchema = z
     description: z.string().optional(),
     category: z.enum([AssetCategory.Funds, AssetCategory.Item]),
     returnDirection: z.enum([ReturnDirection.ToMe, ReturnDirection.ToContact]).optional(),
+    currency: z.string().min(1, "Currency is required"),
   })
   .refine(
     (data) => {
@@ -145,6 +146,7 @@ export function EditTransactionDialog({
       description: transaction.description ?? "",
       category: transaction.category,
       returnDirection: transaction.returnDirection ?? undefined,
+      currency: transaction.currency ?? "NGN",
     },
   });
 
@@ -165,6 +167,7 @@ export function EditTransactionDialog({
         description: values.description,
         contactId: values.contactId || null,
         returnDirection: values.returnDirection,
+        currency: values.currency,
       });
       onOpenChange(false);
     } catch (error) {
@@ -230,21 +233,49 @@ export function EditTransactionDialog({
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               {category === AssetCategory.Funds ? (
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Amount</FormLabel>
-                      <FormControl>
-                        <Input type="number" step="0.01" placeholder="0.00" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem className="col-span-1">
+                        <FormLabel>Currency</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="NGN" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="NGN">NGN (₦)</SelectItem>
+                            <SelectItem value="USD">USD ($)</SelectItem>
+                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                            <SelectItem value="CAD">CAD ($)</SelectItem>
+                            <SelectItem value="AED">AED (د.إ)</SelectItem>
+                            <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel>Amount</FormLabel>
+                        <FormControl>
+                          <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               ) : (
                 <>
                   <FormField

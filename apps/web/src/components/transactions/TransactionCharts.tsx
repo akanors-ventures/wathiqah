@@ -36,6 +36,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionsGroupedByContact } from "@/hooks/useTransactionsGrouped";
 import {
@@ -53,6 +60,7 @@ export function TransactionCharts() {
 
   const startDateId = useId();
   const endDateId = useId();
+  const currencyId = useId();
   const minAmountId = useId();
   const typeId = useId();
 
@@ -218,7 +226,7 @@ export function TransactionCharts() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
             <div className="space-y-2">
               <label htmlFor={startDateId} className="text-sm font-medium">
                 Start Date
@@ -238,6 +246,31 @@ export function TransactionCharts() {
                 type="date"
                 onChange={(e) => setFilter({ ...filter, endDate: e.target.value || undefined })}
               />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor={currencyId} className="text-sm font-medium">
+                Currency
+              </label>
+              <Select
+                value={filter.currency || "ALL"}
+                onValueChange={(value) =>
+                  setFilter({ ...filter, currency: value === "ALL" ? undefined : value })
+                }
+              >
+                <SelectTrigger id={currencyId}>
+                  <SelectValue placeholder="All Currencies" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Currencies</SelectItem>
+                  <SelectItem value="NGN">NGN (₦)</SelectItem>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                  <SelectItem value="CAD">CAD ($)</SelectItem>
+                  <SelectItem value="AED">AED (د.إ)</SelectItem>
+                  <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <label htmlFor={minAmountId} className="text-sm font-medium">
@@ -405,7 +438,10 @@ export function TransactionCharts() {
                             color: "hsl(var(--foreground))",
                           }}
                           // biome-ignore lint/suspicious/noExplicitAny: Recharts Tooltip value can be complex
-                          formatter={(value: any) => [formatCurrency(value ?? 0), "Amount"]}
+                          formatter={(value: any) => [
+                            formatCurrency(value ?? 0, filter.currency || "NGN"),
+                            "Amount",
+                          ]}
                         />
                         <Bar
                           dataKey="value"
@@ -471,7 +507,10 @@ export function TransactionCharts() {
                             color: "hsl(var(--foreground))",
                           }}
                           // biome-ignore lint/suspicious/noExplicitAny: Recharts Tooltip value can be complex
-                          formatter={(value: any) => [formatCurrency(value ?? 0), "Total"]}
+                          formatter={(value: any) => [
+                            formatCurrency(value ?? 0, filter.currency || "NGN"),
+                            "Total",
+                          ]}
                         />
                         <Legend
                           verticalAlign="bottom"
@@ -516,10 +555,12 @@ export function TransactionCharts() {
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(val) => `₦${val >= 1000 ? `${val / 1000}k` : val}`}
+                        tickFormatter={(val) =>
+                          `${filter.currency === "USD" ? "$" : filter.currency === "EUR" ? "€" : filter.currency === "GBP" ? "£" : "₦"}${val >= 1000 ? `${val / 1000}k` : val}`
+                        }
                         className="text-foreground"
                         label={{
-                          value: "Amount (₦)",
+                          value: `Amount (${filter.currency || "NGN"})`,
                           position: "bottom",
                           offset: 40,
                           fill: "currentColor",
@@ -569,7 +610,10 @@ export function TransactionCharts() {
                           color: "hsl(var(--foreground))",
                         }}
                         // biome-ignore lint/suspicious/noExplicitAny: Recharts Tooltip value can be complex
-                        formatter={(value: any) => [formatCurrency(value ?? 0), "Amount"]}
+                        formatter={(value: any) => [
+                          formatCurrency(value ?? 0, filter.currency || "NGN"),
+                          "Amount",
+                        ]}
                       />
                       <Legend
                         verticalAlign="top"

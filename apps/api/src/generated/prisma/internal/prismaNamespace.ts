@@ -1230,6 +1230,7 @@ export const TransactionScalarFieldEnum = {
   type: 'type',
   returnDirection: 'returnDirection',
   status: 'status',
+  currency: 'currency',
   date: 'date',
   description: 'description',
   createdAt: 'createdAt',

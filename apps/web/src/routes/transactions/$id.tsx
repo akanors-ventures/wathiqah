@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { formatCurrency } from "@/lib/utils/formatters";
 import {
   ArrowLeft,
   Calendar,
@@ -155,19 +156,12 @@ function TransactionDetailPage() {
                         : "text-red-600 dark:text-red-400"
                   }`}
                 >
-                  {new Intl.NumberFormat("en-NG", {
-                    style: "currency",
-                    currency: "NGN",
-                  }).format(currentTransaction.amount)}
+                  {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
                 </div>
               )}
             {totalConverted > 0 && (
               <div className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                Converted to gift:{" "}
-                {new Intl.NumberFormat("en-NG", {
-                  style: "currency",
-                  currency: "NGN",
-                }).format(totalConverted)}
+                Converted to gift: {formatCurrency(totalConverted, currentTransaction.currency)}
               </div>
             )}
             {currentTransaction.category === AssetCategory.Item && currentTransaction.quantity && (
@@ -262,10 +256,10 @@ function TransactionDetailPage() {
                     <p className="text-xs text-neutral-500">Gifted back</p>
                   </div>
                   <div className="font-semibold text-orange-600">
-                    {new Intl.NumberFormat("en-NG", {
-                      style: "currency",
-                      currency: "NGN",
-                    }).format(conversion?.amount || 0)}
+                    {formatCurrency(
+                      conversion?.amount || 0,
+                      conversion?.currency || currentTransaction.currency,
+                    )}
                   </div>
                 </div>
               ))}
@@ -329,6 +323,7 @@ function TransactionDetailPage() {
           transaction={{
             id: currentTransaction.id,
             amount: remainingAmount,
+            currency: currentTransaction.currency,
             type: currentTransaction.type,
             contactId: currentTransaction.contact?.id,
             description: currentTransaction.description,
