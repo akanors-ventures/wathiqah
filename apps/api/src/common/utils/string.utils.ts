@@ -7,3 +7,7 @@ export function splitName(fullName: string): {
   const lastName = parts.slice(1).join(' ') || '';
   return { firstName, lastName };
 }
+
+export function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}

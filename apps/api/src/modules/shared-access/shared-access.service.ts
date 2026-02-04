@@ -21,14 +21,14 @@ export class SharedAccessService {
     granterId: string,
     granterName: string,
   ) {
-    const { email } = grantAccessInput;
+    const email = grantAccessInput.email.toLowerCase();
 
     // Check if user is granting access to themselves
     const granter = await this.prisma.user.findUnique({
       where: { id: granterId },
     });
 
-    if (granter && granter.email === email) {
+    if (granter && granter.email.toLowerCase() === email) {
       throw new BadRequestException('You cannot grant access to yourself');
     }
 
@@ -92,7 +92,7 @@ export class SharedAccessService {
 
   async findReceived(email: string) {
     return this.prisma.accessGrant.findMany({
-      where: { email, status: { not: 'REVOKED' } },
+      where: { email: email.toLowerCase(), status: { not: 'REVOKED' } },
       include: { granter: true },
       orderBy: { createdAt: 'desc' },
     });

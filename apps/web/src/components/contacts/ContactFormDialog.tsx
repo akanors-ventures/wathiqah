@@ -74,7 +74,7 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
             updateContactInput: {
               id: contact.id,
               name,
-              email: email || null,
+              email: email?.trim().toLowerCase() || null,
               phoneNumber: phoneNumber || null,
             },
           },
@@ -84,7 +84,7 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
           variables: {
             createContactInput: {
               name,
-              email: email || null,
+              email: email?.trim().toLowerCase() || null,
               phoneNumber: phoneNumber || null,
             },
           },

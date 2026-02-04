@@ -7,10 +7,10 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateContactInput } from './dto/create-contact.input';
 import { UpdateContactInput } from './dto/update-contact.input';
-import { splitName } from '../../common/utils/string.utils';
+import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { NotificationService } from '../notifications/notification.service';
 import { v4 as uuidv4 } from 'uuid';
-import { InvitationStatus } from '../../generated/prisma/client';
+import { InvitationStatus, Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class ContactsService {
@@ -20,7 +20,12 @@ export class ContactsService {
   ) {}
 
   async create(createContactInput: CreateContactInput, userId: string) {
-    const { name, email, ...rest } = createContactInput;
+    if (!userId) {
+      throw new BadRequestException('User ID is required to create a contact');
+    }
+
+    const { name, email: rawEmail, ...rest } = createContactInput;
+    const email = rawEmail ? normalizeEmail(rawEmail) : undefined;
     const { firstName, lastName } = splitName(name);
 
     let linkedUserId: string | undefined;
@@ -93,17 +98,23 @@ export class ContactsService {
       nameData = { firstName, lastName };
     }
 
+    const normalizedEmail = email ? normalizeEmail(email) : undefined;
+
     return this.prisma.contact.update({
       where: { id },
       data: {
         ...nameData,
-        ...(email !== undefined && { email }),
+        ...(email !== undefined && { email: normalizedEmail }),
         ...(phoneNumber !== undefined && { phoneNumber }),
       },
     });
   }
 
   async remove(id: string, userId: string) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required to remove a contact');
+    }
+
     // Check existence and ownership
     await this.findOne(id, userId);
 
@@ -118,20 +129,23 @@ export class ContactsService {
       select: { linkedUserId: true },
     });
 
+    const where: Prisma.TransactionWhereInput = {
+      OR: [{ contactId, category: 'FUNDS' }],
+    };
+
+    if (contact?.linkedUserId) {
+      where.OR.push({
+        // Transactions where the contact is the creator and the current user is the contact
+        createdById: contact.linkedUserId,
+        contact: {
+          linkedUserId: userId,
+        },
+        category: 'FUNDS',
+      });
+    }
+
     const transactions = await this.prisma.transaction.findMany({
-      where: {
-        OR: [
-          { contactId, category: 'FUNDS' },
-          {
-            // Transactions where the contact is the creator and the current user is the contact
-            createdById: contact?.linkedUserId,
-            contact: {
-              linkedUserId: userId,
-            },
-            category: 'FUNDS',
-          },
-        ],
-      },
+      where,
       select: {
         id: true,
         type: true,

@@ -1,19 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { normalizeEmail } from '../../common/utils/string.utils';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   create(data: any) {
+    const createData = { ...data };
+    if (createData.email) {
+      createData.email = normalizeEmail(createData.email);
+    }
     return this.prisma.user.create({
-      data,
+      data: createData,
     });
   }
 
   findByEmail(email: string) {
     return this.prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizeEmail(email) },
     });
   }
 
@@ -24,9 +29,13 @@ export class UsersService {
   }
 
   update(id: string, data: any) {
+    const updateData = { ...data };
+    if (updateData.email) {
+      updateData.email = normalizeEmail(updateData.email);
+    }
     return this.prisma.user.update({
       where: { id },
-      data,
+      data: updateData,
     });
   }
 
@@ -52,7 +61,7 @@ export class UsersService {
 
     if (type === 'EMAIL') {
       user = await this.prisma.user.findUnique({
-        where: { email: query },
+        where: { email: normalizeEmail(query) },
         select: {
           id: true,
           firstName: true,

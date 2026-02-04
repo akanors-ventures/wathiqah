@@ -15,17 +15,16 @@ import {
   TransactionStatus,
   TransactionType,
   Prisma,
-  Witness,
 } from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
-import * as ms from 'ms';
+import ms from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
-import { splitName } from '../../common/utils/string.utils';
+import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 
@@ -54,6 +53,14 @@ export class TransactionsService {
           status: WitnessStatus.PENDING,
         })),
         skipDuplicates: true,
+      });
+
+      // Since createManyAndReturn doesn't support include for relations in some Prisma versions
+      // or might have issues, we fetch the witness info separately for notifications
+      const witnessDetails = await prisma.witness.findMany({
+        where: {
+          id: { in: witnesses.map((w) => w.id) },
+        },
         include: {
           user: {
             select: {
@@ -66,7 +73,7 @@ export class TransactionsService {
         },
       });
 
-      for (const witness of witnesses) {
+      for (const witness of witnessDetails) {
         const rawToken = uuidv4();
         const hashedToken = hashToken(rawToken);
 
@@ -92,9 +99,10 @@ export class TransactionsService {
     // Handle new user invites
     if (witnessInvites && witnessInvites.length > 0) {
       for (const invite of witnessInvites) {
+        const normalizedEmail = normalizeEmail(invite.email);
         // Check if user already exists by email
         let user = await prisma.user.findUnique({
-          where: { email: invite.email },
+          where: { email: normalizedEmail },
         });
 
         // If not, create a placeholder user
@@ -102,7 +110,7 @@ export class TransactionsService {
           const { firstName, lastName } = splitName(invite.name);
           user = await prisma.user.create({
             data: {
-              email: invite.email,
+              email: normalizedEmail,
               firstName,
               lastName,
               phoneNumber: invite.phoneNumber,
@@ -121,24 +129,19 @@ export class TransactionsService {
           },
         });
 
-        let witness: Witness = undefined;
+        let witnessId: string;
         if (!existingWitness) {
           // Create witness record WITHOUT invite token first (we'll store it in Redis)
-          witness = await prisma.witness.create({
+          const newWitness = await prisma.witness.create({
             data: {
               transactionId,
               userId: user.id,
               status: WitnessStatus.PENDING,
             },
           });
-        } else if (
-          existingWitness &&
-          existingWitness.status === WitnessStatus.PENDING
-        ) {
-          // Check if we have a valid phone number from the User record if not in invite
-          // We need to retrieve the existing token or create a new one if it expired.
-          // Since we don't easily have the token if it's hashed in Redis,
-          // simplest for re-invite is to generate a new token.
+          witnessId = newWitness.id;
+        } else {
+          witnessId = existingWitness.id;
         }
         // Generate secure token and hash it
         const rawToken = uuidv4();
@@ -148,7 +151,7 @@ export class TransactionsService {
         // TTL: 7 days (604800000 ms) by default
         await this.cacheManager.set(
           `invite:${hashedToken}`,
-          witness.id || existingWitness.id,
+          witnessId,
           ms(
             this.configService.getOrThrow<string>(
               'auth.inviteTokenExpiry',
@@ -157,16 +160,9 @@ export class TransactionsService {
         );
 
         const targetPhoneNumber = invite.phoneNumber || user.phoneNumber;
-        const targetEmail = invite.email || user.email;
+        const targetEmail = normalizedEmail || user.email;
         const { firstName } = splitName(invite.name);
         const targetName = firstName || user.firstName;
-
-        await this.notificationService.sendTransactionWitnessInvite(
-          targetEmail,
-          targetName,
-          rawToken,
-          targetPhoneNumber,
-        );
 
         await this.notificationService.sendTransactionWitnessInvite(
           targetEmail,

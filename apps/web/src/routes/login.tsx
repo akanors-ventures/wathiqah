@@ -40,7 +40,7 @@ function LoginComponent() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await login({ email, password });
+      const result = await login({ email: email.trim().toLowerCase(), password });
       console.log("Login result", result);
 
       if (!result) {

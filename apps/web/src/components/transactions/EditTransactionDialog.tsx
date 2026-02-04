@@ -40,7 +40,6 @@ import {
   ReturnDirection,
   type TransactionQuery,
   TransactionType,
-  type WitnessInviteInput,
 } from "@/types/__generated__/graphql";
 
 const formSchema = z
@@ -69,7 +68,7 @@ const formSchema = z
           invite: z
             .object({
               name: z.string().min(2, "Name is required"),
-              email: z.string().email({ message: "Invalid email" }),
+              email: z.email({ message: "Invalid email" }),
               phoneNumber: z.string().optional().nullable(),
             })
             .optional(),
@@ -184,8 +183,12 @@ export function EditTransactionDialog({
         .filter((w) => w.userId)
         .map((w) => w.userId as string);
       const witnessInvites = values.witnesses
-        .filter((w) => w.invite)
-        .map((w) => w.invite as WitnessInviteInput);
+        .map((w) => w.invite)
+        .filter((invite): invite is NonNullable<typeof invite> => !!invite)
+        .map((invite) => ({
+          ...invite,
+          email: invite.email.trim().toLowerCase(),
+        }));
 
       await updateTransaction({
         id: transaction.id,
@@ -197,7 +200,7 @@ export function EditTransactionDialog({
         date: new Date(values.date).toISOString(),
         description: values.description,
         contactId: values.contactId || undefined,
-        returnDirection: values.returnDirection,
+        returnDirection: values.returnDirection || undefined,
         currency: values.currency,
         witnessUserIds,
         witnessInvites,

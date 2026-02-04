@@ -163,8 +163,12 @@ function NewTransactionPage() {
         .filter((w) => w.userId)
         .map((w) => w.userId as string);
       const witnessInvites = selectedWitnesses
-        .filter((w) => w.invite)
-        .map((w) => w.invite as NonNullable<typeof w.invite>);
+        .map((w) => w.invite)
+        .filter((invite): invite is NonNullable<typeof invite> => !!invite)
+        .map((invite) => ({
+          ...invite,
+          email: invite.email.trim().toLowerCase(),
+        }));
 
       await createTransaction({
         ...values,
