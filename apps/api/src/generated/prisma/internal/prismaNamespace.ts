@@ -1345,14 +1345,14 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  passwordHash: 'passwordHash',
+  createdAt: 'createdAt',
+  refreshTokenHash: 'refreshTokenHash',
+  isEmailVerified: 'isEmailVerified',
   firstName: 'firstName',
   lastName: 'lastName',
   phoneNumber: 'phoneNumber',
-  passwordHash: 'passwordHash',
-  refreshTokenHash: 'refreshTokenHash',
-  isEmailVerified: 'isEmailVerified',
-  preferredCurrency: 'preferredCurrency',
-  createdAt: 'createdAt'
+  preferredCurrency: 'preferredCurrency'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1360,13 +1360,13 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 
 export const ContactScalarFieldEnum = {
   id: 'id',
-  firstName: 'firstName',
-  lastName: 'lastName',
   email: 'email',
   phoneNumber: 'phoneNumber',
   createdAt: 'createdAt',
-  linkedUserId: 'linkedUserId',
-  userId: 'userId'
+  userId: 'userId',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  linkedUserId: 'linkedUserId'
 } as const
 
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
@@ -1379,15 +1379,15 @@ export const TransactionScalarFieldEnum = {
   itemName: 'itemName',
   quantity: 'quantity',
   type: 'type',
-  returnDirection: 'returnDirection',
-  status: 'status',
-  currency: 'currency',
   date: 'date',
   description: 'description',
   createdAt: 'createdAt',
-  parentId: 'parentId',
   contactId: 'contactId',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  status: 'status',
+  returnDirection: 'returnDirection',
+  parentId: 'parentId',
+  currency: 'currency'
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
@@ -1578,13 +1578,6 @@ export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaMod
 
 
 /**
- * Reference to a field of type 'Boolean'
- */
-export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-/**
  * Reference to a field of type 'DateTime'
  */
 export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -1595,6 +1588,13 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -1655,20 +1655,6 @@ export type ListEnumTransactionTypeFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
- * Reference to a field of type 'ReturnDirection'
- */
-export type EnumReturnDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReturnDirection'>
-    
-
-
-/**
- * Reference to a field of type 'ReturnDirection[]'
- */
-export type ListEnumReturnDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReturnDirection[]'>
-    
-
-
-/**
  * Reference to a field of type 'TransactionStatus'
  */
 export type EnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionStatus'>
@@ -1679,6 +1665,20 @@ export type EnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'TransactionStatus[]'
  */
 export type ListEnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ReturnDirection'
+ */
+export type EnumReturnDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReturnDirection'>
+    
+
+
+/**
+ * Reference to a field of type 'ReturnDirection[]'
+ */
+export type ListEnumReturnDirectionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ReturnDirection[]'>
     
 
 

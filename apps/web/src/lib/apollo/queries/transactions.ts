@@ -118,6 +118,10 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
         quantity
         returnDirection
         createdAt
+        createdBy {
+          id
+          name
+        }
         contact {
           id
           name

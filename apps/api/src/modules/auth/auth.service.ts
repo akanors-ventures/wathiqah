@@ -426,6 +426,17 @@ export class AuthService {
       data: { isEmailVerified: true },
     });
 
+    // Link existing contacts
+    await this.prisma.contact.updateMany({
+      where: {
+        email: user.email,
+        linkedUserId: null,
+      },
+      data: {
+        linkedUserId: user.id,
+      },
+    });
+
     return {
       accessToken,
       refreshToken,

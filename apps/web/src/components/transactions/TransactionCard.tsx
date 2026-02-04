@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Package } from "lucide-react";
+import { ArrowDownLeft, ArrowRight, ArrowUpRight, Package, UserCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
+import { useAuth } from "@/hooks/use-auth";
 
 interface TransactionCardProps {
   transaction: {
@@ -20,11 +21,18 @@ interface TransactionCardProps {
     contact?: {
       name?: string | null;
     } | null;
+    createdBy?: {
+      id: string;
+      name: string;
+    } | null;
   };
   className?: string;
 }
 
 export function TransactionCard({ transaction: tx, className }: TransactionCardProps) {
+  const { user } = useAuth();
+  const isCreator = user?.id === tx.createdBy?.id;
+
   const isPositive =
     tx.type === "GIVEN" ||
     (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
@@ -124,8 +132,14 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
         <div className="min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-lg font-bold leading-none truncate group-hover:text-primary transition-colors tracking-tight">
-              {tx.contact?.name || "Self"}
+              {isCreator ? tx.contact?.name || "Self" : tx.createdBy?.name}
             </h3>
+            {!isCreator && (
+              <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30">
+                <UserCircle className="w-2.5 h-2.5" />
+                SHARED
+              </span>
+            )}
             <span
               className={cn(
                 "text-[10px] px-2 py-0.5 rounded-full font-bold capitalize tracking-tight border shadow-sm transition-colors",

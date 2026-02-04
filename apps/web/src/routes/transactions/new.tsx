@@ -66,7 +66,7 @@ const formSchema = z
       .array(
         z.object({
           name: z.string(),
-          email: z.string().email(),
+          email: z.email({ message: "Invalid email address" }),
           phoneNumber: z.string().optional(),
         }),
       )

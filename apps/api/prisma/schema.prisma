@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -15,100 +9,84 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  email            String   @unique
-  firstName        String
-  lastName         String
-  phoneNumber      String?
-  passwordHash     String? // Null for invited witnesses who haven't set password
-  refreshTokenHash String?
-  isEmailVerified  Boolean  @default(false)
-  preferredCurrency String  @default("NGN")
-  createdAt        DateTime @default(now())
+  id                         String               @id @default(uuid())
+  email                      String               @unique
+  passwordHash               String?
+  createdAt                  DateTime             @default(now())
+  refreshTokenHash           String?
+  isEmailVerified            Boolean              @default(false)
+  firstName                  String
+  lastName                   String
+  phoneNumber                String?
+  preferredCurrency          String               @default("NGN")
+  accessGrants               AccessGrant[]
+  contactInvitationsReceived ContactInvitation[]  @relation("InvitedUser")
+  contactInvitationsSent     ContactInvitation[]  @relation("InviterUser")
+  linkedContacts             Contact[]            @relation("ContactLinkedUser")
+  contacts                   Contact[]
+  projects                   Project[]
+  promises                   Promise[]
+  transactionHistory         TransactionHistory[] @relation("HistoryUser")
+  transactions               Transaction[]        @relation("TransactionCreator")
+  witnessRecords             Witness[]            @relation("WitnessUser")
 
-  // Relations
-  transactions        Transaction[]        @relation("TransactionCreator")
-  contacts            Contact[]
-  witnessRecords      Witness[]            @relation("WitnessUser")
-  transactionHistory  TransactionHistory[] @relation("HistoryUser")
-  promises            Promise[]
-  accessGrants        AccessGrant[]
-  projects            Project[]
-  contactInvitationsSent ContactInvitation[] @relation("InviterUser")
-  contactInvitationsReceived ContactInvitation[] @relation("InvitedUser")
-  linkedContact       Contact?             @relation("ContactLinkedUser")
-
-  @@map("users")
   @@index([phoneNumber])
+  @@map("users")
 }
 
 model Contact {
-  id          String   @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String?
-  phoneNumber String?
-  createdAt   DateTime @default(now())
-
-  // Link to registered user if they join the platform
-  linkedUserId String? @unique
-  linkedUser   User?   @relation("ContactLinkedUser", fields: [linkedUserId], references: [id])
-
-  // Relations
+  id           String              @id @default(uuid())
+  email        String?
+  phoneNumber  String?
+  createdAt    DateTime            @default(now())
   userId       String
-  user         User          @relation(fields: [userId], references: [id])
-  transactions Transaction[]
+  firstName    String
+  lastName     String
+  linkedUserId String?
   invitations  ContactInvitation[]
+  linkedUser   User?               @relation("ContactLinkedUser", fields: [linkedUserId], references: [id])
+  user         User                @relation(fields: [userId], references: [id])
+  transactions Transaction[]
 
   @@map("contacts")
 }
 
 model Transaction {
-  id          String            @id @default(uuid())
-  category    AssetCategory     @default(FUNDS)
-  amount      Decimal?          @db.Decimal(10, 2)
-  itemName    String?
-  quantity    Int?              @default(1)
-  type        TransactionType
+  id              String               @id @default(uuid())
+  category        AssetCategory        @default(FUNDS)
+  amount          Decimal?             @db.Decimal(10, 2)
+  itemName        String?
+  quantity        Int?                 @default(1)
+  type            TransactionType
+  date            DateTime
+  description     String?
+  createdAt       DateTime             @default(now())
+  contactId       String?
+  createdById     String
+  status          TransactionStatus    @default(COMPLETED)
   returnDirection ReturnDirection?
-  status      TransactionStatus @default(COMPLETED)
-  currency    String            @default("NGN")
-  date        DateTime
-  description String?
-  createdAt   DateTime          @default(now())
-
-  // Relations
-  parentId    String?
-  parent      Transaction?         @relation("TransactionConversion", fields: [parentId], references: [id])
-  conversions Transaction[]       @relation("TransactionConversion")
-  contactId   String?
-  contact     Contact?             @relation(fields: [contactId], references: [id])
-  createdById String
-  createdBy   User                 @relation("TransactionCreator", fields: [createdById], references: [id])
-  witnesses   Witness[]
-  history     TransactionHistory[]
+  parentId        String?
+  currency        String               @default("NGN")
+  history         TransactionHistory[]
+  contact         Contact?             @relation(fields: [contactId], references: [id])
+  createdBy       User                 @relation("TransactionCreator", fields: [createdById], references: [id])
+  parent          Transaction?         @relation("TransactionConversion", fields: [parentId], references: [id])
+  conversions     Transaction[]        @relation("TransactionConversion")
+  witnesses       Witness[]
 
   @@map("transactions")
 }
 
-enum ReturnDirection {
-  TO_ME
-  TO_CONTACT
-}
 model TransactionHistory {
   id            String      @id @default(uuid())
   transactionId String
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
   userId        String
-  user          User        @relation("HistoryUser", fields: [userId], references: [id])
-
-  // Stores the state of the transaction BEFORE the change
   previousState Json
-  // Stores the delta or the new state
   newState      Json
-
-  changeType String   // e.g., "UPDATE", "STATUS_CHANGE"
-  createdAt  DateTime @default(now())
+  changeType    String
+  createdAt     DateTime    @default(now())
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user          User        @relation("HistoryUser", fields: [userId], references: [id])
 
   @@map("transaction_history")
 }
@@ -118,92 +96,82 @@ model Witness {
   status         WitnessStatus @default(PENDING)
   invitedAt      DateTime      @default(now())
   acknowledgedAt DateTime?
-
-  // Relations
-  transactionId String
-  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User        @relation("WitnessUser", fields: [userId], references: [id])
+  transactionId  String
+  userId         String
+  transaction    Transaction   @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  user           User          @relation("WitnessUser", fields: [userId], references: [id])
 
   @@unique([transactionId, userId])
   @@map("witnesses")
 }
 
 model Project {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  budget      Decimal? @db.Decimal(10, 2) // Target amount
-  balance     Decimal  @default(0.00) @db.Decimal(10, 2) // Current funds available
-  currency    String   @default("NGN")
-
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-
+  id           String               @id @default(uuid())
+  name         String
+  description  String?
+  budget       Decimal?             @db.Decimal(10, 2)
+  balance      Decimal              @default(0.00) @db.Decimal(10, 2)
+  currency     String               @default("NGN")
+  userId       String
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
   transactions ProjectTransaction[]
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  user         User                 @relation(fields: [userId], references: [id])
 
   @@map("projects")
 }
 
 model ProjectTransaction {
-  id          String   @id @default(uuid())
-  amount      Decimal  @db.Decimal(10, 2)
-  type        ProjectTransactionType // INCOME, EXPENSE
-  category    String?  // e.g., "Material", "Labor"
+  id          String                 @id @default(uuid())
+  amount      Decimal                @db.Decimal(10, 2)
+  type        ProjectTransactionType
+  category    String?
   description String?
-  date        DateTime @default(now())
-
+  date        DateTime               @default(now())
   projectId   String
-  project     Project  @relation(fields: [projectId], references: [id])
-
-  // Metadata
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  project     Project                @relation(fields: [projectId], references: [id])
 
   @@map("project_transactions")
 }
 
 model Promise {
-  id          String    @id @default(uuid())
+  id          String        @id @default(uuid())
   description String
   promiseTo   String
   dueDate     DateTime
   notes       String?
-  priority    Priority  @default(MEDIUM)
+  priority    Priority      @default(MEDIUM)
   category    String?
   status      PromiseStatus @default(PENDING)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
 
   @@map("promises")
 }
 
 model AccessGrant {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   email     String
-  token     String   @unique
+  token     String       @unique
   status    AccessStatus @default(PENDING)
-  createdAt DateTime @default(now())
+  createdAt DateTime     @default(now())
   expiresAt DateTime?
-
   granterId String
-  granter   User     @relation(fields: [granterId], references: [id])
+  granter   User         @relation(fields: [granterId], references: [id])
 
   @@map("access_grants")
 }
 
 model ExchangeRate {
   id          String   @id @default(uuid())
-  from        String   // Source currency code (e.g., "USD")
-  to          String   // Target currency code (e.g., "NGN")
+  from        String
+  to          String
   rate        Decimal  @db.Decimal(18, 8)
-  provider    String   // Provider name (e.g., "ExchangeRate-API")
+  provider    String
   lastUpdated DateTime @default(now())
 
   @@unique([from, to])
@@ -211,36 +179,37 @@ model ExchangeRate {
 }
 
 model ExchangeRateHistory {
-  id          String   @id @default(uuid())
-  from        String
-  to          String
-  rate        Decimal  @db.Decimal(18, 8)
-  provider    String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  from      String
+  to        String
+  rate      Decimal  @db.Decimal(18, 8)
+  provider  String
+  createdAt DateTime @default(now())
 
   @@index([from, to, createdAt])
   @@map("exchange_rate_history")
 }
 
 model ContactInvitation {
-  id        String   @id @default(uuid())
-  token     String   @unique
-  status    InvitationStatus @default(PENDING)
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-  acceptedAt DateTime?
-
-  // Relations
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  inviterId String
-  inviter   User   @relation("InviterUser", fields: [inviterId], references: [id])
-
+  id            String           @id @default(uuid())
+  token         String           @unique
+  status        InvitationStatus @default(PENDING)
+  createdAt     DateTime         @default(now())
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  contactId     String
+  inviterId     String
   invitedUserId String?
-  invitedUser   User?   @relation("InvitedUser", fields: [invitedUserId], references: [id])
+  contact       Contact          @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  invitedUser   User?            @relation("InvitedUser", fields: [invitedUserId], references: [id])
+  inviter       User             @relation("InviterUser", fields: [inviterId], references: [id])
 
   @@map("contact_invitations")
+}
+
+enum ReturnDirection {
+  TO_ME
+  TO_CONTACT
 }
 
 enum AssetCategory {
@@ -267,12 +236,12 @@ enum WitnessStatus {
   PENDING
   ACKNOWLEDGED
   DECLINED
-  MODIFIED // New status to indicate transaction was updated after acknowledgement
+  MODIFIED
 }
 
 enum ProjectTransactionType {
-  INCOME   // Adds to balance
-  EXPENSE  // Deducts from balance
+  INCOME
+  EXPENSE
 }
 
 enum Priority {

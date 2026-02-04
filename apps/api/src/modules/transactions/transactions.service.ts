@@ -13,6 +13,7 @@ import {
   AssetCategory,
   WitnessStatus,
   TransactionStatus,
+  TransactionType,
   Prisma,
   Witness,
 } from '../../generated/prisma/client';
@@ -343,18 +344,38 @@ export class TransactionsService {
 
   async findAll(userId: string, filter?: FilterTransactionInput) {
     const where: Prisma.TransactionWhereInput = {
-      createdById: userId,
+      OR: [{ createdById: userId }, { contact: { linkedUserId: userId } }],
     };
 
     if (filter) {
+      if (filter.contactId) {
+        const contact = await this.prisma.contact.findUnique({
+          where: { id: filter.contactId },
+        });
+
+        if (contact?.linkedUserId) {
+          // If we're filtering by a contact who is also a user,
+          // we want transactions we created with them OR transactions they created with us
+          where.OR = [
+            { createdById: userId, contactId: filter.contactId },
+            {
+              createdById: contact.linkedUserId,
+              contact: { linkedUserId: userId },
+            },
+          ];
+        } else {
+          // Regular contact, only transactions we created
+          delete where.OR;
+          where.createdById = userId;
+          where.contactId = filter.contactId;
+        }
+      }
+
       if (filter.types && filter.types.length > 0) {
         where.type = { in: filter.types };
       }
       if (filter.status) {
         where.status = filter.status;
-      }
-      if (filter.contactId) {
-        where.contactId = filter.contactId;
       }
       if (filter.currency) {
         where.currency = filter.currency;
@@ -372,18 +393,32 @@ export class TransactionsService {
         };
       }
       if (filter.search) {
-        where.OR = [
-          { description: { contains: filter.search, mode: 'insensitive' } },
-          { itemName: { contains: filter.search, mode: 'insensitive' } },
-          {
-            contact: {
-              OR: [
-                { firstName: { contains: filter.search, mode: 'insensitive' } },
-                { lastName: { contains: filter.search, mode: 'insensitive' } },
-              ],
+        const searchFilter = {
+          OR: [
+            { description: { contains: filter.search, mode: 'insensitive' } },
+            { itemName: { contains: filter.search, mode: 'insensitive' } },
+            {
+              contact: {
+                OR: [
+                  {
+                    firstName: { contains: filter.search, mode: 'insensitive' },
+                  },
+                  {
+                    lastName: { contains: filter.search, mode: 'insensitive' },
+                  },
+                ],
+              },
             },
-          },
-        ];
+          ],
+        };
+
+        // Combine search with existing where
+        const existingWhere = { ...where };
+        delete where.OR;
+        delete where.createdById;
+        delete where.contactId;
+
+        where.AND = [existingWhere, searchFilter as any];
       }
     }
 
@@ -396,6 +431,7 @@ export class TransactionsService {
       where,
       include: {
         contact: true,
+        createdBy: true,
         witnesses: {
           include: {
             user: true,
@@ -405,6 +441,25 @@ export class TransactionsService {
       orderBy: {
         date: 'desc',
       },
+    });
+
+    const transformedItems = items.map((item) => {
+      if (item.createdById === userId) return item;
+
+      // Flip perspective for the contact
+      const transformed = { ...item };
+      if (item.type === TransactionType.GIVEN) {
+        transformed.type = TransactionType.RECEIVED;
+      } else if (item.type === TransactionType.RECEIVED) {
+        transformed.type = TransactionType.GIVEN;
+      } else if (item.type === TransactionType.RETURNED) {
+        transformed.returnDirection =
+          item.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      } else if (item.type === TransactionType.GIFT) {
+        transformed.returnDirection =
+          item.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      }
+      return transformed;
     });
 
     // Determine target currency for summary
@@ -417,21 +472,40 @@ export class TransactionsService {
       targetCurrency = user?.preferredCurrency || 'NGN';
     }
 
-    const summary = await this.calculateConvertedSummary(where, targetCurrency);
+    const summary = await this.calculateConvertedSummary(
+      userId,
+      where,
+      targetCurrency,
+    );
 
     return {
-      items,
+      items: transformedItems,
       summary,
     };
   }
 
   private async calculateConvertedSummary(
+    userId: string,
     where: Prisma.TransactionWhereInput,
     targetCurrency: string,
   ) {
-    const aggregations = await this.prisma.transaction.groupBy({
+    // 1. Aggregations for transactions created by the user
+    const ownAggregations = await this.prisma.transaction.groupBy({
       by: ['type', 'returnDirection', 'currency'],
-      where,
+      where: { ...where, createdById: userId },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 2. Aggregations for transactions where user is the contact (flip required)
+    const contactAggregations = await this.prisma.transaction.groupBy({
+      by: ['type', 'returnDirection', 'currency'],
+      where: {
+        ...where,
+        createdById: { not: userId },
+        contact: { linkedUserId: userId },
+      },
       _sum: {
         amount: true,
       },
@@ -451,7 +525,8 @@ export class TransactionsService {
       currency: targetCurrency,
     };
 
-    for (const agg of aggregations) {
+    // Process own transactions
+    for (const agg of ownAggregations) {
       const amount = Number(agg._sum.amount) || 0;
       if (amount === 0) continue;
 
@@ -461,28 +536,47 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      if (agg.type === 'GIVEN') {
-        summary.totalGiven += convertedAmount;
-      } else if (agg.type === 'RECEIVED') {
-        summary.totalReceived += convertedAmount;
-      } else if (agg.type === 'RETURNED') {
-        summary.totalReturned += convertedAmount;
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalReturnedToMe += convertedAmount;
-        } else {
-          summary.totalReturnedToOther += convertedAmount;
-        }
-      } else if (agg.type === 'EXPENSE') {
-        summary.totalExpense += convertedAmount;
-      } else if (agg.type === 'INCOME') {
-        summary.totalIncome += convertedAmount;
-      } else if (agg.type === 'GIFT') {
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalGiftReceived += convertedAmount;
-        } else {
-          summary.totalGiftGiven += convertedAmount;
-        }
+      this.updateSummaryWithTransaction(
+        summary,
+        agg.type,
+        agg.returnDirection,
+        convertedAmount,
+      );
+    }
+
+    // Process contact transactions (with flip)
+    for (const agg of contactAggregations) {
+      const amount = Number(agg._sum.amount) || 0;
+      if (amount === 0) continue;
+
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        agg.currency,
+        targetCurrency,
+      );
+
+      // Flip type and returnDirection for perspective
+      let flippedType = agg.type;
+      let flippedReturnDirection = agg.returnDirection;
+
+      if (agg.type === TransactionType.GIVEN) {
+        flippedType = TransactionType.RECEIVED;
+      } else if (agg.type === TransactionType.RECEIVED) {
+        flippedType = TransactionType.GIVEN;
+      } else if (agg.type === TransactionType.RETURNED) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      } else if (agg.type === TransactionType.GIFT) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
       }
+
+      this.updateSummaryWithTransaction(
+        summary,
+        flippedType,
+        flippedReturnDirection,
+        convertedAmount,
+      );
     }
 
     summary.netBalance =
@@ -498,32 +592,58 @@ export class TransactionsService {
     return summary;
   }
 
+  private updateSummaryWithTransaction(
+    summary: any,
+    type: TransactionType,
+    returnDirection: string,
+    amount: number,
+  ) {
+    if (type === 'GIVEN') {
+      summary.totalGiven += amount;
+    } else if (type === 'RECEIVED') {
+      summary.totalReceived += amount;
+    } else if (type === 'RETURNED') {
+      summary.totalReturned += amount;
+      if (returnDirection === 'TO_ME') {
+        summary.totalReturnedToMe += amount;
+      } else {
+        summary.totalReturnedToOther += amount;
+      }
+    } else if (type === 'EXPENSE') {
+      summary.totalExpense += amount;
+    } else if (type === 'INCOME') {
+      summary.totalIncome += amount;
+    } else if (type === 'GIFT') {
+      if (returnDirection === 'TO_ME') {
+        summary.totalGiftReceived += amount;
+      } else {
+        summary.totalGiftGiven += amount;
+      }
+    }
+  }
+
   async groupByContact(userId: string, filter?: FilterTransactionInput) {
-    const summaryWhere: Prisma.TransactionWhereInput = {
-      createdById: userId,
+    const baseWhere: Prisma.TransactionWhereInput = {
       status: { not: TransactionStatus.CANCELLED },
     };
 
     if (filter?.types && filter.types.length > 0) {
-      summaryWhere.type = { in: filter.types };
-    }
-    if (filter?.contactId) {
-      summaryWhere.contactId = filter.contactId;
+      baseWhere.type = { in: filter.types };
     }
     if (filter?.startDate || filter?.endDate) {
-      summaryWhere.date = {
+      baseWhere.date = {
         ...(filter.startDate && { gte: filter.startDate }),
         ...(filter.endDate && { lte: filter.endDate }),
       };
     }
     if (filter?.minAmount !== undefined || filter?.maxAmount !== undefined) {
-      summaryWhere.amount = {
+      baseWhere.amount = {
         ...(filter.minAmount !== undefined && { gte: filter.minAmount }),
         ...(filter.maxAmount !== undefined && { lte: filter.maxAmount }),
       };
     }
     if (filter?.search) {
-      summaryWhere.OR = [
+      baseWhere.OR = [
         { description: { contains: filter.search, mode: 'insensitive' } },
         { itemName: { contains: filter.search, mode: 'insensitive' } },
       ];
@@ -539,9 +659,27 @@ export class TransactionsService {
       targetCurrency = user?.preferredCurrency || 'NGN';
     }
 
-    const aggregations = await this.prisma.transaction.groupBy({
+    // 1. Aggregations for transactions created by the user
+    const ownAggregations = await this.prisma.transaction.groupBy({
       by: ['contactId', 'type', 'returnDirection', 'currency'],
-      where: summaryWhere,
+      where: {
+        ...baseWhere,
+        createdById: userId,
+        contactId: filter?.contactId || undefined,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 2. Aggregations for transactions where user is the contact (flip required)
+    const sharedAggregations = await this.prisma.transaction.groupBy({
+      by: ['createdById', 'type', 'returnDirection', 'currency'],
+      where: {
+        ...baseWhere,
+        createdById: { not: userId },
+        contact: { linkedUserId: userId },
+      },
       _sum: {
         amount: true,
       },
@@ -553,26 +691,33 @@ export class TransactionsService {
     });
 
     const contactMap = new Map(contacts.map((c) => [c.id, c]));
+    // Map linkedUserId to local contactId for shared transactions
+    const linkedUserContactMap = new Map(
+      contacts.filter((c) => c.linkedUserId).map((c) => [c.linkedUserId, c.id]),
+    );
 
     // Group aggregations by contactId
     const groupedByContact = new Map<string | null, any>();
 
-    for (const agg of aggregations) {
+    const getInitialSummary = () => ({
+      totalGiven: 0,
+      totalReceived: 0,
+      totalReturned: 0,
+      totalReturnedToMe: 0,
+      totalReturnedToOther: 0,
+      totalExpense: 0,
+      totalIncome: 0,
+      totalGiftGiven: 0,
+      totalGiftReceived: 0,
+      netBalance: 0,
+      currency: targetCurrency,
+    });
+
+    // Process own transactions
+    for (const agg of ownAggregations) {
       const contactId = agg.contactId;
       if (!groupedByContact.has(contactId)) {
-        groupedByContact.set(contactId, {
-          totalGiven: 0,
-          totalReceived: 0,
-          totalReturned: 0,
-          totalReturnedToMe: 0,
-          totalReturnedToOther: 0,
-          totalExpense: 0,
-          totalIncome: 0,
-          totalGiftGiven: 0,
-          totalGiftReceived: 0,
-          netBalance: 0,
-          currency: targetCurrency,
-        });
+        groupedByContact.set(contactId, getInitialSummary());
       }
 
       const summary = groupedByContact.get(contactId);
@@ -585,28 +730,58 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      if (agg.type === 'GIVEN') {
-        summary.totalGiven += convertedAmount;
-      } else if (agg.type === 'RECEIVED') {
-        summary.totalReceived += convertedAmount;
-      } else if (agg.type === 'RETURNED') {
-        summary.totalReturned += convertedAmount;
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalReturnedToMe += convertedAmount;
-        } else {
-          summary.totalReturnedToOther += convertedAmount;
-        }
-      } else if (agg.type === 'EXPENSE') {
-        summary.totalExpense += convertedAmount;
-      } else if (agg.type === 'INCOME') {
-        summary.totalIncome += convertedAmount;
-      } else if (agg.type === 'GIFT') {
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalGiftReceived += convertedAmount;
-        } else {
-          summary.totalGiftGiven += convertedAmount;
-        }
+      this.updateSummaryWithTransaction(
+        summary,
+        agg.type,
+        agg.returnDirection,
+        convertedAmount,
+      );
+    }
+
+    // Process shared transactions (with flip)
+    for (const agg of sharedAggregations) {
+      // Find the local contact representing the creator
+      const contactId = linkedUserContactMap.get(agg.createdById) || null;
+
+      // If we are filtering by contactId and this shared transaction doesn't match, skip
+      if (filter?.contactId && contactId !== filter.contactId) continue;
+
+      if (!groupedByContact.has(contactId)) {
+        groupedByContact.set(contactId, getInitialSummary());
       }
+
+      const summary = groupedByContact.get(contactId);
+      const amount = Number(agg._sum.amount) || 0;
+      if (amount === 0) continue;
+
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        agg.currency,
+        targetCurrency,
+      );
+
+      // Flip perspective
+      let flippedType = agg.type;
+      let flippedReturnDirection = agg.returnDirection;
+
+      if (agg.type === TransactionType.GIVEN) {
+        flippedType = TransactionType.RECEIVED;
+      } else if (agg.type === TransactionType.RECEIVED) {
+        flippedType = TransactionType.GIVEN;
+      } else if (agg.type === TransactionType.RETURNED) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      } else if (agg.type === TransactionType.GIFT) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      }
+
+      this.updateSummaryWithTransaction(
+        summary,
+        flippedType,
+        flippedReturnDirection,
+        convertedAmount,
+      );
     }
 
     // Calculate net balance for each contact and format result

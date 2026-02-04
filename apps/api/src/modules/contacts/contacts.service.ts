@@ -19,16 +19,29 @@ export class ContactsService {
     private notificationService: NotificationService,
   ) {}
 
-  create(createContactInput: CreateContactInput, userId: string) {
-    const { name, ...rest } = createContactInput;
+  async create(createContactInput: CreateContactInput, userId: string) {
+    const { name, email, ...rest } = createContactInput;
     const { firstName, lastName } = splitName(name);
+
+    let linkedUserId: string | undefined;
+
+    if (email) {
+      const registeredUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
+      if (registeredUser) {
+        linkedUserId = registeredUser.id;
+      }
+    }
 
     return this.prisma.contact.create({
       data: {
         ...rest,
+        email,
         firstName,
         lastName,
         userId,
+        linkedUserId,
       },
     });
   }
@@ -233,5 +246,17 @@ export class ContactsService {
       message: 'Invitation sent successfully',
       invitation,
     };
+  }
+
+  async linkContactsForUser(userId: string, email: string) {
+    return this.prisma.contact.updateMany({
+      where: {
+        email,
+        linkedUserId: null,
+      },
+      data: {
+        linkedUserId: userId,
+      },
+    });
   }
 }

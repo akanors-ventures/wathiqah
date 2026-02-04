@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error during logout mutation:", error);
     } finally {
-      await client.clearStore();
+      await client.resetStore();
       navigate({ to: "/" });
     }
   }, [client, navigate, logoutMutation, user]);

@@ -10,6 +10,7 @@ import {
   Package,
   Plus,
   ShieldCheck,
+  UserCircle,
   UserPlus,
 } from "lucide-react";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
@@ -31,6 +32,7 @@ import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/contacts/$contactId")({
   component: ContactDetailsPage,
@@ -63,6 +65,8 @@ function ContactDetailsPage() {
       console.error("Failed to invite contact:", err);
     }
   };
+
+  const { user } = useAuth();
 
   if (contactLoading) return <PageLoader />;
   if (contactError)
@@ -223,99 +227,113 @@ function ContactDetailsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                transactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(tx.date as string), "MMM d, yyyy")}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          tx.type === "GIVEN"
-                            ? "text-blue-600 border-blue-200 bg-blue-50"
-                            : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                              ? "text-red-600 border-red-200 bg-red-50"
-                              : tx.type === "RETURNED"
-                                ? tx.returnDirection === "TO_ME"
-                                  ? "text-green-600 border-green-200 bg-green-50"
-                                  : "text-blue-600 border-blue-200 bg-blue-50"
-                                : tx.type === "INCOME"
-                                  ? "text-green-600 border-green-200 bg-green-50"
-                                  : tx.type === "GIFT"
+                transactions.map((tx) => {
+                  const isCreator = user?.id === tx.createdBy?.id;
+                  return (
+                    <TableRow key={tx.id}>
+                      <TableCell className="font-medium">
+                        {format(new Date(tx.date as string), "MMM d, yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className={
+                              tx.type === "GIVEN"
+                                ? "text-blue-600 border-blue-200 bg-blue-50"
+                                : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                  ? "text-red-600 border-red-200 bg-red-50"
+                                  : tx.type === "RETURNED"
                                     ? tx.returnDirection === "TO_ME"
-                                      ? "text-purple-600 border-purple-200 bg-purple-50"
-                                      : "text-pink-600 border-pink-200 bg-pink-50"
-                                    : "text-gray-600 border-gray-200 bg-gray-50"
-                        }
-                      >
-                        {tx.type === "RETURNED"
-                          ? tx.returnDirection === "TO_ME"
-                            ? "RETURNED TO ME"
-                            : "RETURNED TO CONTACT"
-                          : tx.type === "GIFT"
-                            ? tx.returnDirection === "TO_ME"
-                              ? "GIFT RECEIVED"
-                              : "GIFT GIVEN"
-                            : tx.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-[300px] truncate" title={tx.description as string}>
-                      {tx.category === AssetCategory.Item ? (
-                        <div className="flex items-center gap-1.5 font-medium text-foreground">
-                          <Package className="h-4 w-4 text-muted-foreground" />
-                          <span>
-                            {tx.quantity}x {tx.itemName}
-                          </span>
+                                      ? "text-green-600 border-green-200 bg-green-50"
+                                      : "text-blue-600 border-blue-200 bg-blue-50"
+                                    : tx.type === "INCOME"
+                                      ? "text-green-600 border-green-200 bg-green-50"
+                                      : tx.type === "GIFT"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-purple-600 border-purple-200 bg-purple-50"
+                                          : "text-pink-600 border-pink-200 bg-pink-50"
+                                        : "text-gray-600 border-gray-200 bg-gray-50"
+                            }
+                          >
+                            {tx.type === "RETURNED"
+                              ? tx.returnDirection === "TO_ME"
+                                ? "RETURNED TO ME"
+                                : "RETURNED TO CONTACT"
+                              : tx.type === "GIFT"
+                                ? tx.returnDirection === "TO_ME"
+                                  ? "GIFT RECEIVED"
+                                  : "GIFT GIVEN"
+                                : tx.type}
+                          </Badge>
+                          {!isCreator && (
+                            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
+                              <UserCircle className="w-2.5 h-2.5" />
+                              SHARED
+                            </span>
+                          )}
                         </div>
-                      ) : (
-                        tx.description || "-"
-                      )}
-                    </TableCell>
-                    <TableCell
-                      className={`text-right font-bold ${
-                        tx.category === AssetCategory.Item
-                          ? "text-muted-foreground font-normal italic text-xs"
-                          : tx.type === "GIVEN"
-                            ? "text-blue-600"
-                            : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                              ? "text-red-600"
-                              : tx.type === "RETURNED"
-                                ? tx.returnDirection === "TO_ME"
-                                  ? "text-green-600"
-                                  : "text-blue-600"
-                                : tx.type === "INCOME"
-                                  ? "text-green-600"
-                                  : tx.type === "GIFT"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "text-purple-600"
-                                      : "text-pink-600"
-                                    : "text-emerald-600"
-                      }`}
-                    >
-                      {tx.category === AssetCategory.Item ? (
-                        "Physical Item"
-                      ) : (
-                        <>
-                          {tx.type === "GIVEN" ||
-                          (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                          tx.type === "INCOME" ||
-                          (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                            ? "+"
-                            : "-"}
-                          {formatCurrency(tx.amount, tx.currency)}
-                        </>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" asChild>
-                        <Link to="/transactions/$id" params={{ id: tx.id }}>
-                          View
-                        </Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                      </TableCell>
+                      <TableCell
+                        className="max-w-[300px] truncate"
+                        title={tx.description as string}
+                      >
+                        {tx.category === AssetCategory.Item ? (
+                          <div className="flex items-center gap-1.5 font-medium text-foreground">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              {tx.quantity}x {tx.itemName}
+                            </span>
+                          </div>
+                        ) : (
+                          tx.description || "-"
+                        )}
+                      </TableCell>
+                      <TableCell
+                        className={`text-right font-bold ${
+                          tx.category === AssetCategory.Item
+                            ? "text-muted-foreground font-normal italic text-xs"
+                            : tx.type === "GIVEN"
+                              ? "text-blue-600"
+                              : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                ? "text-red-600"
+                                : tx.type === "RETURNED"
+                                  ? tx.returnDirection === "TO_ME"
+                                    ? "text-green-600"
+                                    : "text-blue-600"
+                                  : tx.type === "INCOME"
+                                    ? "text-green-600"
+                                    : tx.type === "GIFT"
+                                      ? tx.returnDirection === "TO_ME"
+                                        ? "text-purple-600"
+                                        : "text-pink-600"
+                                      : "text-emerald-600"
+                        }`}
+                      >
+                        {tx.category === AssetCategory.Item ? (
+                          "Physical Item"
+                        ) : (
+                          <>
+                            {tx.type === "GIVEN" ||
+                            (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                            tx.type === "INCOME" ||
+                            (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                              ? "+"
+                              : "-"}
+                            {formatCurrency(tx.amount, tx.currency)}
+                          </>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm" asChild>
+                          <Link to="/transactions/$id" params={{ id: tx.id }}>
+                            View
+                          </Link>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>

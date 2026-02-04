@@ -84,14 +84,14 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  passwordHash: 'passwordHash',
+  createdAt: 'createdAt',
+  refreshTokenHash: 'refreshTokenHash',
+  isEmailVerified: 'isEmailVerified',
   firstName: 'firstName',
   lastName: 'lastName',
   phoneNumber: 'phoneNumber',
-  passwordHash: 'passwordHash',
-  refreshTokenHash: 'refreshTokenHash',
-  isEmailVerified: 'isEmailVerified',
-  preferredCurrency: 'preferredCurrency',
-  createdAt: 'createdAt'
+  preferredCurrency: 'preferredCurrency'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -99,13 +99,13 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 
 export const ContactScalarFieldEnum = {
   id: 'id',
-  firstName: 'firstName',
-  lastName: 'lastName',
   email: 'email',
   phoneNumber: 'phoneNumber',
   createdAt: 'createdAt',
-  linkedUserId: 'linkedUserId',
-  userId: 'userId'
+  userId: 'userId',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  linkedUserId: 'linkedUserId'
 } as const
 
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
@@ -118,15 +118,15 @@ export const TransactionScalarFieldEnum = {
   itemName: 'itemName',
   quantity: 'quantity',
   type: 'type',
-  returnDirection: 'returnDirection',
-  status: 'status',
-  currency: 'currency',
   date: 'date',
   description: 'description',
   createdAt: 'createdAt',
-  parentId: 'parentId',
   contactId: 'contactId',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  status: 'status',
+  returnDirection: 'returnDirection',
+  parentId: 'parentId',
+  currency: 'currency'
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]

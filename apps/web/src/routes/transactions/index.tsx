@@ -10,6 +10,7 @@ import {
   Package,
   Plus,
   Search,
+  UserCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
@@ -38,6 +39,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/hooks/use-auth";
 import { useItems } from "@/hooks/useItems";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
@@ -59,6 +61,7 @@ export const Route = createFileRoute("/transactions/")({
 function TransactionsPage() {
   const { tab } = Route.useSearch();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(tab);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
@@ -332,134 +335,150 @@ function TransactionsPage() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredTransactions.map((tx) => (
-                        <TableRow
-                          key={tx.id}
-                          className="cursor-pointer hover:bg-muted/50 transition-colors group"
-                          onClick={() =>
-                            navigate({ to: "/transactions/$id", params: { id: tx.id } })
-                          }
-                        >
-                          <TableCell className="font-medium">
-                            {format(new Date(tx.date as string), "MMM d, yyyy")}
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-medium text-foreground">
-                              {tx.contact?.name || (
-                                <span className="text-muted-foreground italic">Personal</span>
-                              )}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant="outline"
-                              className={
-                                tx.type === "GIVEN"
-                                  ? "text-blue-600 border-blue-200 bg-blue-50"
-                                  : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                    ? "text-red-600 border-red-200 bg-red-50"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-green-600 border-green-200 bg-green-50"
-                                        : "text-blue-600 border-blue-200 bg-blue-50"
-                                      : tx.type === "INCOME" || (tx.type as string) === "COLLECTED"
-                                        ? "text-green-600 border-green-200 bg-green-50"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600 border-purple-200 bg-purple-50"
-                                            : "text-pink-600 border-pink-200 bg-pink-50"
-                                          : "text-gray-600 border-gray-200 bg-gray-50"
-                              }
-                            >
-                              {tx.type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell
-                            className="max-w-[200px] truncate"
-                            title={tx.description || undefined}
+                      filteredTransactions.map((tx) => {
+                        const isCreator = user?.id === tx.createdBy?.id;
+                        return (
+                          <TableRow
+                            key={tx.id}
+                            className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                            onClick={() =>
+                              navigate({ to: "/transactions/$id", params: { id: tx.id } })
+                            }
                           >
-                            {tx.category === AssetCategory.Item ? (
-                              <div className="flex items-center gap-1.5 font-medium text-foreground">
-                                <Package className="h-4 w-4 text-muted-foreground" />
-                                <span>
-                                  {tx.quantity}x {tx.itemName}
+                            <TableCell className="font-medium">
+                              {format(new Date(tx.date as string), "MMM d, yyyy")}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col gap-1">
+                                <span className="font-medium text-foreground">
+                                  {isCreator
+                                    ? tx.contact?.name || (
+                                        <span className="text-muted-foreground italic">
+                                          Personal
+                                        </span>
+                                      )
+                                    : tx.createdBy?.name}
                                 </span>
+                                {!isCreator && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
+                                    <UserCircle className="w-2.5 h-2.5" />
+                                    SHARED
+                                  </span>
+                                )}
                               </div>
-                            ) : (
-                              tx.description || "-"
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex -space-x-2">
-                              {tx.witnesses && tx.witnesses.length > 0 ? (
-                                tx.witnesses
-                                  .filter((w) => w !== null)
-                                  .map((w) => (
-                                    <div
-                                      key={w.id}
-                                      className={`w-6 h-6 rounded-full border-2 border-background flex items-center justify-center text-[10px] text-white ${
-                                        w.status === "ACKNOWLEDGED"
-                                          ? "bg-green-500"
-                                          : w.status === "DECLINED"
-                                            ? "bg-red-500"
-                                            : "bg-yellow-500"
-                                      }`}
-                                      title={`Status: ${w.status}`}
-                                    >
-                                      {w.status[0]}
-                                    </div>
-                                  ))
-                              ) : (
-                                <span className="text-xs text-muted-foreground">None</span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell
-                            className={`text-right font-bold ${
-                              tx.category === AssetCategory.Item
-                                ? "text-muted-foreground font-normal italic text-xs"
-                                : tx.type === "GIVEN"
-                                  ? "text-blue-600"
-                                  : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                    ? "text-red-600"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-emerald-600"
-                                        : "text-blue-600"
-                                      : tx.type === "INCOME"
-                                        ? "text-emerald-600"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600"
-                                            : "text-pink-600"
-                                          : "text-emerald-600"
-                            }`}
-                          >
-                            {tx.category === AssetCategory.Item ? (
-                              "Physical Item"
-                            ) : (
-                              <>
-                                {tx.type === "GIVEN" ||
-                                (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                                tx.type === "INCOME" ||
-                                (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                                  ? "+"
-                                  : "-"}
-                                {formatCurrency(tx.amount, tx.currency)}
-                              </>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-9 w-9 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  tx.type === "GIVEN"
+                                    ? "text-blue-600 border-blue-200 bg-blue-50"
+                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-red-600 border-red-200 bg-red-50"
+                                      : tx.type === "RETURNED"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          : "text-blue-600 border-blue-200 bg-blue-50"
+                                        : tx.type === "INCOME" ||
+                                            (tx.type as string) === "COLLECTED"
+                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          : tx.type === "GIFT"
+                                            ? tx.returnDirection === "TO_ME"
+                                              ? "text-purple-600 border-purple-200 bg-purple-50"
+                                              : "text-pink-600 border-pink-200 bg-pink-50"
+                                            : "text-gray-600 border-gray-200 bg-gray-50"
+                                }
+                              >
+                                {tx.type}
+                              </Badge>
+                            </TableCell>
+                            <TableCell
+                              className="max-w-[200px] truncate"
+                              title={tx.description || undefined}
                             >
-                              <ArrowRight className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                              {tx.category === AssetCategory.Item ? (
+                                <div className="flex items-center gap-1.5 font-medium text-foreground">
+                                  <Package className="h-4 w-4 text-muted-foreground" />
+                                  <span>
+                                    {tx.quantity}x {tx.itemName}
+                                  </span>
+                                </div>
+                              ) : (
+                                tx.description || "-"
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex -space-x-2">
+                                {tx.witnesses && tx.witnesses.length > 0 ? (
+                                  tx.witnesses
+                                    .filter((w) => w !== null)
+                                    .map((w) => (
+                                      <div
+                                        key={w.id}
+                                        className={`w-6 h-6 rounded-full border-2 border-background flex items-center justify-center text-[10px] text-white ${
+                                          w.status === "ACKNOWLEDGED"
+                                            ? "bg-green-500"
+                                            : w.status === "DECLINED"
+                                              ? "bg-red-500"
+                                              : "bg-yellow-500"
+                                        }`}
+                                        title={`Status: ${w.status}`}
+                                      >
+                                        {w.status[0]}
+                                      </div>
+                                    ))
+                                ) : (
+                                  <span className="text-xs text-muted-foreground">None</span>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell
+                              className={`text-right font-bold ${
+                                tx.category === AssetCategory.Item
+                                  ? "text-muted-foreground font-normal italic text-xs"
+                                  : tx.type === "GIVEN"
+                                    ? "text-blue-600"
+                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-red-600"
+                                      : tx.type === "RETURNED"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-emerald-600"
+                                          : "text-blue-600"
+                                        : tx.type === "INCOME"
+                                          ? "text-emerald-600"
+                                          : tx.type === "GIFT"
+                                            ? tx.returnDirection === "TO_ME"
+                                              ? "text-purple-600"
+                                              : "text-pink-600"
+                                            : "text-emerald-600"
+                              }`}
+                            >
+                              {tx.category === AssetCategory.Item ? (
+                                "Physical Item"
+                              ) : (
+                                <>
+                                  {tx.type === "GIVEN" ||
+                                  (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                                  tx.type === "INCOME" ||
+                                  (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                                    ? "+"
+                                    : "-"}
+                                  {formatCurrency(tx.amount, tx.currency)}
+                                </>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-9 w-9 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <ArrowRight className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -478,125 +497,138 @@ function TransactionsPage() {
                 No transactions found matching your criteria.
               </div>
             ) : (
-              filteredTransactions.map((tx) => (
-                <Card
-                  key={tx.id}
-                  className="active:scale-[0.98] transition-transform cursor-pointer"
-                  onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="space-y-1">
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(tx.date as string), "MMM d, yyyy")}
-                        </p>
-                        <p className="font-semibold text-foreground">
-                          {tx.contact?.name || <span className="italic">Personal</span>}
-                        </p>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={
-                          tx.type === "GIVEN"
-                            ? "text-blue-600 border-blue-200 bg-blue-50"
-                            : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                              ? "text-red-600 border-red-200 bg-red-50"
-                              : tx.type === "RETURNED"
-                                ? tx.returnDirection === "TO_ME"
-                                  ? "text-green-600 border-green-200 bg-green-50"
-                                  : "text-blue-600 border-blue-200 bg-blue-50"
-                                : tx.type === "INCOME" || (tx.type as string) === "COLLECTED"
-                                  ? "text-green-600 border-green-200 bg-green-50"
-                                  : tx.type === "GIFT"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "text-purple-600 border-purple-200 bg-purple-50"
-                                      : "text-pink-600 border-pink-200 bg-pink-50"
-                                    : "text-gray-600 border-gray-200 bg-gray-50"
-                        }
-                      >
-                        {tx.type}
-                      </Badge>
-                    </div>
-
-                    <div className="flex justify-between items-end mt-4">
-                      <div className="flex-1 min-w-0 mr-4">
-                        {tx.category === AssetCategory.Item ? (
-                          <div className="flex items-center gap-1.5 text-sm font-medium">
-                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="truncate">
-                              {tx.quantity}x {tx.itemName}
-                            </span>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground truncate">
-                            {tx.description || "No description"}
+              filteredTransactions.map((tx) => {
+                const isCreator = user?.id === tx.createdBy?.id;
+                return (
+                  <Card
+                    key={tx.id}
+                    className="active:scale-[0.98] transition-transform cursor-pointer"
+                    onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(tx.date as string), "MMM d, yyyy")}
                           </p>
-                        )}
-                      </div>
-                      <div
-                        className={`font-bold whitespace-nowrap ${
-                          tx.category === AssetCategory.Item
-                            ? "text-muted-foreground font-normal italic text-xs"
-                            : tx.type === "GIVEN"
-                              ? "text-blue-600"
+                          <div className="flex flex-col gap-1">
+                            <p className="font-semibold text-foreground">
+                              {isCreator
+                                ? tx.contact?.name || <span className="italic">Personal</span>
+                                : tx.createdBy?.name}
+                            </p>
+                            {!isCreator && (
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
+                                <UserCircle className="w-2.5 h-2.5" />
+                                SHARED
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            tx.type === "GIVEN"
+                              ? "text-blue-600 border-blue-200 bg-blue-50"
                               : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                ? "text-red-600"
+                                ? "text-red-600 border-red-200 bg-red-50"
                                 : tx.type === "RETURNED"
                                   ? tx.returnDirection === "TO_ME"
-                                    ? "text-emerald-600"
-                                    : "text-blue-600"
-                                  : tx.type === "INCOME"
-                                    ? "text-emerald-600"
+                                    ? "text-green-600 border-green-200 bg-green-50"
+                                    : "text-blue-600 border-blue-200 bg-blue-50"
+                                  : tx.type === "INCOME" || (tx.type as string) === "COLLECTED"
+                                    ? "text-green-600 border-green-200 bg-green-50"
                                     : tx.type === "GIFT"
                                       ? tx.returnDirection === "TO_ME"
-                                        ? "text-purple-600"
-                                        : "text-pink-600"
-                                      : "text-emerald-600"
-                        }`}
-                      >
-                        {tx.category === AssetCategory.Item ? (
-                          "Physical Item"
-                        ) : (
-                          <>
-                            {tx.type === "GIVEN" ||
-                            (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                            tx.type === "INCOME" ||
-                            (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                              ? "+"
-                              : "-"}
-                            {formatCurrency(tx.amount, tx.currency)}
-                          </>
-                        )}
+                                        ? "text-purple-600 border-purple-200 bg-purple-50"
+                                        : "text-pink-600 border-pink-200 bg-pink-50"
+                                      : "text-gray-600 border-gray-200 bg-gray-50"
+                          }
+                        >
+                          {tx.type}
+                        </Badge>
                       </div>
-                    </div>
 
-                    {tx.witnesses && tx.witnesses.length > 0 && (
-                      <div className="mt-3 pt-3 border-t flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Witnesses</span>
-                        <div className="flex -space-x-1.5">
-                          {tx.witnesses
-                            .filter((w) => w !== null)
-                            .map((w) => (
-                              <div
-                                key={w.id}
-                                className={`w-5 h-5 rounded-full border-2 border-background flex items-center justify-center text-[8px] text-white ${
-                                  w.status === "ACKNOWLEDGED"
-                                    ? "bg-green-500"
-                                    : w.status === "DECLINED"
-                                      ? "bg-red-500"
-                                      : "bg-yellow-500"
-                                }`}
-                                title={`Status: ${w.status}`}
-                              >
-                                {w.status[0]}
-                              </div>
-                            ))}
+                      <div className="flex justify-between items-end mt-4">
+                        <div className="flex-1 min-w-0 mr-4">
+                          {tx.category === AssetCategory.Item ? (
+                            <div className="flex items-center gap-1.5 text-sm font-medium">
+                              <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                              <span className="truncate">
+                                {tx.quantity}x {tx.itemName}
+                              </span>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground truncate">
+                              {tx.description || "No description"}
+                            </p>
+                          )}
+                        </div>
+                        <div
+                          className={`font-bold whitespace-nowrap ${
+                            tx.category === AssetCategory.Item
+                              ? "text-muted-foreground font-normal italic text-xs"
+                              : tx.type === "GIVEN"
+                                ? "text-blue-600"
+                                : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                  ? "text-red-600"
+                                  : tx.type === "RETURNED"
+                                    ? tx.returnDirection === "TO_ME"
+                                      ? "text-emerald-600"
+                                      : "text-blue-600"
+                                    : tx.type === "INCOME"
+                                      ? "text-emerald-600"
+                                      : tx.type === "GIFT"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-purple-600"
+                                          : "text-pink-600"
+                                        : "text-emerald-600"
+                          }`}
+                        >
+                          {tx.category === AssetCategory.Item ? (
+                            "Physical Item"
+                          ) : (
+                            <>
+                              {tx.type === "GIVEN" ||
+                              (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                              tx.type === "INCOME" ||
+                              (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                                ? "+"
+                                : "-"}
+                              {formatCurrency(tx.amount, tx.currency)}
+                            </>
+                          )}
                         </div>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
+
+                      {tx.witnesses && tx.witnesses.length > 0 && (
+                        <div className="mt-3 pt-3 border-t flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">Witnesses</span>
+                          <div className="flex -space-x-1.5">
+                            {tx.witnesses
+                              .filter((w) => w !== null)
+                              .map((w) => (
+                                <div
+                                  key={w.id}
+                                  className={`w-5 h-5 rounded-full border-2 border-background flex items-center justify-center text-[8px] text-white ${
+                                    w.status === "ACKNOWLEDGED"
+                                      ? "bg-green-500"
+                                      : w.status === "DECLINED"
+                                        ? "bg-red-500"
+                                        : "bg-yellow-500"
+                                  }`}
+                                  title={`Status: ${w.status}`}
+                                >
+                                  {w.status[0]}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </div>
         </TabsContent>
