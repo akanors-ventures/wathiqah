@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Coins, ExternalLink, Eye, Key, Plus, Trash2, UserPlus } from "lucide-react";
+import {
+  Calendar,
+  Coins,
+  ExternalLink,
+  Eye,
+  Key,
+  Plus,
+  Trash2,
+  User,
+  UserPlus,
+} from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +27,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSharedAccess } from "@/hooks/useSharedAccess";
 import { authGuard } from "@/utils/auth";
+import { cn } from "@/lib/utils";
 
 const SUPPORTED_CURRENCIES = [
   { code: "NGN", name: "Nigerian Naira", symbol: "₦" },
@@ -189,91 +200,127 @@ function SharedAccessSection() {
   return (
     <div className="space-y-8">
       {/* Shared With Me Section */}
-      <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Eye className="w-5 h-5" />
+      <div className="group relative bg-card border border-border/50 rounded-[32px] p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 relative z-10">
+          <div className="space-y-1">
+            <h2 className="text-base font-black flex items-center gap-3 uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+              <div className="p-2.5 rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:rotate-3">
+                <Eye className="w-5 h-5" />
+              </div>
               Shared With Me
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Profiles you have been granted read-only access to.
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider pl-14">
+              Profiles you have been granted read-only access to
             </p>
           </div>
         </div>
 
         {loadingReceived ? (
-          <div className="h-24 flex items-center justify-center">
+          <div className="h-32 flex items-center justify-center">
             <BrandLoader size="md" />
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="relative z-10">
             {receivedGrants.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">
-                No profiles shared with you yet.
-              </p>
+              <div className="text-center py-12 bg-muted/5 rounded-3xl border-2 border-dashed border-border/50">
+                <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">
+                  No profiles shared with you yet
+                </p>
+              </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
                 {receivedGrants.map((grant) => (
                   <div
                     key={grant.id}
-                    className="border rounded-lg p-4 flex items-center justify-between bg-muted/20"
+                    className="group/item relative border border-border/50 rounded-3xl p-5 flex items-center justify-between bg-card transition-all duration-500 hover:shadow-[0_15px_35px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30 overflow-hidden"
                   >
-                    <div>
-                      <p className="font-semibold">
-                        {grant.granter?.firstName} {grant.granter?.lastName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{grant.granter?.email}</p>
-                      <div className="mt-2">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-medium ${
-                            grant.status === "ACCEPTED"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-yellow-100 text-yellow-700"
-                          }`}
-                        >
-                          {grant.status}
-                        </span>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary font-black text-lg shadow-sm group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-all duration-500 group-hover/item:scale-110">
+                        {grant.granter?.firstName?.charAt(0)?.toUpperCase() ?? "U"}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-extrabold text-base text-foreground group-hover/item:text-primary transition-colors tracking-tight truncate">
+                          {grant.granter?.firstName} {grant.granter?.lastName}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest truncate">
+                          {grant.granter?.email}
+                        </p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <div
+                            className={cn(
+                              "w-1.5 h-1.5 rounded-full animate-pulse",
+                              grant.status === "ACCEPTED" ? "bg-emerald-500" : "bg-amber-500",
+                            )}
+                          />
+                          <span
+                            className={cn(
+                              "text-[9px] font-black uppercase tracking-widest",
+                              grant.status === "ACCEPTED" ? "text-emerald-600" : "text-amber-600",
+                            )}
+                          >
+                            {grant.status}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    {grant.status === "ACCEPTED" && (
-                      <Button size="sm" variant="outline" asChild>
-                        <Link to="/shared-access/view/$grantId" params={{ grantId: grant.id }}>
-                          View
-                          <ExternalLink className="w-3 h-3 ml-2" />
-                        </Link>
-                      </Button>
-                    )}
-                    {grant.status === "PENDING" && (
-                      <span className="text-xs text-muted-foreground italic">
-                        Check your email to accept
-                      </span>
-                    )}
+
+                    <div className="flex items-center gap-2">
+                      {grant.status === "ACCEPTED" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          asChild
+                          className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 hover:text-primary transition-all border border-transparent hover:border-primary/20"
+                        >
+                          <Link to="/shared-access/view/$grantId" params={{ grantId: grant.id }}>
+                            View Profile
+                            <ExternalLink className="w-3.5 h-3.5 ml-2" />
+                          </Link>
+                        </Button>
+                      )}
+                      {grant.status === "PENDING" && (
+                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest italic pr-2">
+                          Check email to accept
+                        </span>
+                      )}
+                    </div>
+                    <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-primary/5 rounded-full blur-2xl group-hover/item:bg-primary/10 transition-colors duration-500" />
                   </div>
                 ))}
               </div>
             )}
           </div>
         )}
+        <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
       </div>
 
       {/* Grant Access Section */}
-      <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <UserPlus className="w-5 h-5" />
+      <div className="group relative bg-card border border-border/50 rounded-[32px] p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 relative z-10">
+          <div className="space-y-1">
+            <h2 className="text-base font-black flex items-center gap-3 uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+              <div className="p-2.5 rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:-rotate-3">
+                <UserPlus className="w-5 h-5" />
+              </div>
               Share My Profile
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Grant read-only access to your transactions and promises.
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider pl-14">
+              Grant read-only access to your transactions and promises
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleGrant} className="flex gap-4 mb-8 items-end">
-          <div className="flex-1 space-y-2">
-            <Label htmlFor={grantEmailId}>Grant access to email</Label>
+        <form
+          onSubmit={handleGrant}
+          className="flex flex-col sm:flex-row gap-4 mb-10 items-end relative z-10"
+        >
+          <div className="flex-1 w-full space-y-2.5">
+            <Label
+              htmlFor={grantEmailId}
+              className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1"
+            >
+              Grant access to email
+            </Label>
             <Input
               id={grantEmailId}
               type="email"
@@ -281,9 +328,14 @@ function SharedAccessSection() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-12 rounded-2xl bg-muted/30 border-border/50 focus:bg-background focus:ring-primary/20 transition-all text-sm font-medium"
             />
           </div>
-          <Button type="submit" isLoading={granting}>
+          <Button
+            type="submit"
+            isLoading={granting}
+            className="h-12 px-8 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Grant Access
           </Button>
@@ -294,57 +346,81 @@ function SharedAccessSection() {
             <BrandLoader size="lg" />
           </div>
         ) : error ? (
-          <div className="text-destructive">Error loading viewers</div>
+          <div className="p-6 bg-rose-500/5 text-rose-600 rounded-2xl border border-rose-500/10 text-[11px] font-bold uppercase tracking-widest text-center">
+            Error loading viewers
+          </div>
         ) : (
-          <div className="space-y-4">
-            <h3 className="font-medium text-sm text-muted-foreground uppercase tracking-wider">
+          <div className="space-y-6 relative z-10">
+            <h3 className="font-black text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
               Active Viewers ({accessGrants.filter((g) => g.status !== "REVOKED").length || 0})
             </h3>
 
-            {accessGrants.length === 0 && (
-              <p className="text-sm text-muted-foreground italic">No access granted yet.</p>
-            )}
-
-            <div className="divide-y divide-border">
-              {accessGrants.map((grant) => (
-                <div key={grant.id} className="py-4 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{grant.email}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
-                          grant.status === "ACCEPTED"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : grant.status === "REVOKED"
-                              ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                        }`}
-                      >
-                        {grant.status}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Invited on {new Date(grant.createdAt as string).toLocaleDateString()}
-                      </span>
+            {accessGrants.length === 0 ? (
+              <div className="text-center py-12 bg-muted/5 rounded-3xl border-2 border-dashed border-border/50">
+                <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">
+                  No access granted yet
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/30 rounded-3xl border border-border/30 overflow-hidden bg-background/30">
+                {accessGrants.map((grant) => (
+                  <div
+                    key={grant.id}
+                    className="group/viewer p-5 flex items-center justify-between hover:bg-primary/[0.02] transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-11 w-11 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover/viewer:bg-primary group-hover/viewer:text-primary-foreground transition-all duration-500">
+                        <User size={20} />
+                      </div>
+                      <div>
+                        <p className="font-extrabold text-sm text-foreground group-hover/viewer:text-primary transition-colors tracking-tight">
+                          {grant.email}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span
+                            className={cn(
+                              "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg",
+                              grant.status === "ACCEPTED"
+                                ? "bg-emerald-500/10 text-emerald-600"
+                                : grant.status === "REVOKED"
+                                  ? "bg-rose-500/10 text-rose-600"
+                                  : "bg-amber-500/10 text-amber-600",
+                            )}
+                          >
+                            {grant.status}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1.5">
+                            <Calendar size={12} className="opacity-60" />
+                            {new Date(grant.createdAt as string).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {grant.status !== "REVOKED" && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => handleRevoke(grant.id)}
-                      isLoading={revokingId === grant.id}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="sr-only">Revoke</span>
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+                    {grant.status !== "REVOKED" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-9 w-9 rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 transition-all border border-transparent hover:border-rose-500/20"
+                        onClick={() => handleRevoke(grant.id)}
+                        isLoading={revokingId === grant.id}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="sr-only">Revoke</span>
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
+        <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
       </div>
     </div>
   );

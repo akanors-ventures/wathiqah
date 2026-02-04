@@ -72,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       "/verify-email",
       "/forgot-password",
       "/reset-password",
+      "/features",
     ];
     return publicPaths.includes(location.pathname);
   }, [location.pathname]);
@@ -144,11 +145,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       // Only attempt mutation if we thought we were authenticated
-      if (wasAuthenticated) {
-        await logoutMutation().catch(() => {
-          /* ignore errors during logout */
-        });
-      }
+      if (wasAuthenticated) await logoutMutation();
       await client.clearStore();
     } catch (error) {
       console.error("Error clearing store during logout:", error);

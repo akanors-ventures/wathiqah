@@ -59,7 +59,7 @@ function InviteComponent() {
           <p className="text-neutral-600 dark:text-neutral-400">
             Could not retrieve transaction or user details.
           </p>
-          <Button className="mt-4" onClick={() => navigate({ to: "/", search: {} })}>
+          <Button className="mt-4" onClick={() => navigate({ to: "/" })}>
             Go Home
           </Button>
         </div>
@@ -103,7 +103,7 @@ function InviteComponent() {
 
   const getTypeStyles = () => {
     const type = transaction.type as TransactionType;
-    const returnDirection = (transaction).returnDirection as ReturnDirection;
+    const returnDirection = transaction.returnDirection as ReturnDirection;
 
     switch (type) {
       case TransactionType.Received:
@@ -125,7 +125,7 @@ function InviteComponent() {
 
   const getTypeLabel = () => {
     const type = transaction.type as TransactionType;
-    const returnDirection = (transaction).returnDirection as ReturnDirection;
+    const returnDirection = transaction.returnDirection as ReturnDirection;
 
     if (type === TransactionType.Gift) {
       return returnDirection === ReturnDirection.ToMe ? "Gift Received" : "Gift Given";

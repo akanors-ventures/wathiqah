@@ -49,6 +49,7 @@ export const errorLink = (uri: string) =>
         "ResetPassword",
         "ResendVerificationEmail",
         "AcceptInvitation",
+        "features",
       ].includes(operationName);
 
       error.errors.forEach(({ extensions, message, locations, path }) => {

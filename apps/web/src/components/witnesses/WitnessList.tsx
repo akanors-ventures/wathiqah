@@ -17,8 +17,20 @@ export function WitnessList({ requests, activeTab, onAction, isLoading }: Witnes
 
   if (filteredRequests.length === 0) {
     return (
-      <div className="text-center py-12 bg-muted/50 rounded-lg border border-border">
-        <p className="text-muted-foreground">No {activeTab} witness requests found.</p>
+      <div className="text-center py-16 bg-muted/5 rounded-3xl border-2 border-dashed border-border/50 group">
+        <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 group-hover:bg-primary/5 transition-all duration-500">
+          <p className="text-2xl opacity-40 group-hover:opacity-100 transition-opacity">
+            {activeTab === "pending" ? "🔔" : "📜"}
+          </p>
+        </div>
+        <h3 className="text-base font-black text-foreground uppercase tracking-widest">
+          No {activeTab} requests
+        </h3>
+        <p className="mt-2 text-[11px] text-muted-foreground font-medium max-w-[240px] mx-auto leading-relaxed">
+          {activeTab === "pending"
+            ? "You don't have any witness requests waiting for your verification at the moment."
+            : "Your history of witness verification requests will appear here once actioned."}
+        </p>
       </div>
     );
   }

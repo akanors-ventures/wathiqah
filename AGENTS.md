@@ -133,6 +133,6 @@ This project is built using a collaborative AI workflow, leveraging advanced too
 4.  **Quality of Delivery**:
     - **No Placeholders**: Never use TODOs or placeholders in production-ready code.
     - **Verification**: Always verify changes through manual review or automated tests.
-    - **Clean Code**: Prioritize maintainability, proper naming, and adherence to DRY principles.
+    - **Clean Code**: Prioritize maintainability, proper naming, and adherence to DRY principles and avoid the use of any unless in a very complex scenario.
     - **Self-Correction**: Proactively identify and fix potential side effects or linter errors introduced by changes.
 5.  **Documentation as Truth**: Architectural decisions are documented in `.md` files, which serve as the primary source of truth for both human developers and AI agents.
