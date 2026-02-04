@@ -6,17 +6,17 @@ import type {
   CreateTransactionMutationVariables,
   MyContactTransactionsQuery,
   MyContactTransactionsQueryVariables,
+  RemoveTransactionMutation,
+  RemoveTransactionMutationVariables,
+  TotalBalanceQuery,
+  TotalBalanceQueryVariables,
   TransactionQuery,
   TransactionQueryVariables,
+  TransactionsGroupedByContactQuery,
   TransactionsQuery,
   TransactionsQueryVariables,
   UpdateTransactionMutation,
   UpdateTransactionMutationVariables,
-  RemoveTransactionMutation,
-  RemoveTransactionMutationVariables,
-  TransactionsGroupedByContactQuery,
-  TotalBalanceQuery,
-  TotalBalanceQueryVariables,
 } from "@/types/__generated__/graphql";
 
 export const GET_TOTAL_BALANCE: TypedDocumentNode<TotalBalanceQuery, TotalBalanceQueryVariables> =

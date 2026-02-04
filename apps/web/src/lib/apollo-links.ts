@@ -39,9 +39,17 @@ export const errorLink = (uri: string) =>
 
       // Skip refresh for login, logout, and refreshToken mutations to avoid infinite loops
       const operationName = operation.operationName || "";
-      const skipRefresh = ["Login", "Logout", "RefreshToken", "Signup", "VerifyEmail"].includes(
-        operationName,
-      );
+      const skipRefresh = [
+        "Login",
+        "Logout",
+        "RefreshToken",
+        "Signup",
+        "VerifyEmail",
+        "ForgotPassword",
+        "ResetPassword",
+        "ResendVerificationEmail",
+        "AcceptInvitation",
+      ].includes(operationName);
 
       error.errors.forEach(({ extensions, message, locations, path }) => {
         console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);

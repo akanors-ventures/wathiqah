@@ -12,10 +12,10 @@ import {
   Wallet,
 } from "lucide-react";
 import { Dashboard } from "@/components/dashboard/Dashboard";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
-import { PageLoader } from "@/components/ui/page-loader";
 import { AppLogo } from "@/components/ui/app-logo";
+import { Button } from "@/components/ui/button";
+import { PageLoader } from "@/components/ui/page-loader";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 

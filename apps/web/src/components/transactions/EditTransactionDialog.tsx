@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -33,8 +33,8 @@ import { useTransaction } from "@/hooks/useTransaction";
 import {
   AssetCategory,
   ReturnDirection,
-  TransactionType,
   type TransactionQuery,
+  TransactionType,
 } from "@/types/__generated__/graphql";
 
 const formSchema = z

@@ -1,28 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/utils/formatters";
 import {
   ArrowLeft,
   Calendar,
+  Edit2,
   FileText,
   Gift,
   Package,
-  UserPlus,
-  Edit2,
   Trash2,
+  UserPlus,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
 import { TransactionWitnessList } from "@/components/transactions/TransactionWitnessList";
-import { Button } from "@/components/ui/button";
-import { PageLoader } from "@/components/ui/page-loader";
-import { useTransaction } from "@/hooks/useTransaction";
-import { useTransactions } from "@/hooks/useTransactions";
-import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
-import { authGuard } from "@/utils/auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +27,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { PageLoader } from "@/components/ui/page-loader";
+import { useTransaction } from "@/hooks/useTransaction";
+import { useTransactions } from "@/hooks/useTransactions";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
+import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/transactions/$id")({
   component: TransactionDetailPage,

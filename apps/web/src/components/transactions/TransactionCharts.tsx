@@ -1,41 +1,40 @@
-import { useState, useMemo, useRef, useId } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Rectangle,
-  Sector,
-} from "recharts";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
 import {
   BarChart3,
+  ChevronDown,
+  FileSpreadsheet,
+  Image as ImageIcon,
   PieChart as PieChartIcon,
   Table as TableIcon,
-  Image as ImageIcon,
-  FileSpreadsheet,
-  ChevronDown,
 } from "lucide-react";
-import html2canvas from "html2canvas";
 import Papa from "papaparse";
+import { useId, useMemo, useRef, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Pie,
+  PieChart,
+  Rectangle,
+  ResponsiveContainer,
+  Sector,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import * as XLSX from "xlsx";
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { BrandLoader } from "@/components/ui/page-loader";
 import {
   Select,
   SelectContent,
@@ -43,15 +42,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionsGroupedByContact } from "@/hooks/useTransactionsGrouped";
+import { formatCurrency } from "@/lib/utils/formatters";
 import {
-  TransactionType,
   type FilterTransactionInput,
   type TransactionsGroupedByContactQuery,
+  TransactionType,
 } from "@/types/__generated__/graphql";
-import { formatCurrency } from "@/lib/utils/formatters";
-import { BrandLoader } from "@/components/ui/page-loader";
 
 export function TransactionCharts() {
   const [filter, setFilter] = useState<FilterTransactionInput>({});

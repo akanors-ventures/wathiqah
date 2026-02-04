@@ -1,6 +1,15 @@
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
-import { useNavigate } from "@tanstack/react-router";
-import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   ACCEPT_INVITATION_MUTATION,
   CHANGE_PASSWORD_MUTATION,
@@ -13,6 +22,7 @@ import {
   SIGNUP_MUTATION,
   VERIFY_EMAIL_MUTATION,
 } from "@/lib/apollo/queries/auth";
+import { deleteCookie } from "@/lib/cookies";
 import type {
   AcceptInvitationInput,
   AcceptInvitationMutation,
@@ -27,8 +37,6 @@ import type {
   VerifyEmailMutation,
 } from "@/types/__generated__/graphql";
 import { isAuthenticated } from "@/utils/auth";
-import { deleteCookie } from "@/lib/cookies";
-import { CombinedGraphQLErrors } from "@apollo/client/errors";
 
 interface AuthContextType {
   user: User | null | undefined;
@@ -53,11 +61,25 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const client = useApolloClient();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<User | null | undefined>(undefined);
+
+  const isPublicOnboarding = useMemo(() => {
+    const publicPaths = [
+      "/login",
+      "/signup",
+      "/signup-success",
+      "/verify-email",
+      "/forgot-password",
+      "/reset-password",
+    ];
+    return publicPaths.includes(location.pathname);
+  }, [location.pathname]);
 
   const { data, loading, error } = useQuery(ME_QUERY, {
     errorPolicy: "all",
     fetchPolicy: "network-only", // Ensure we validate the token on mount
+    skip: isPublicOnboarding,
   });
 
   const [loginMutation] = useMutation(LOGIN_MUTATION);

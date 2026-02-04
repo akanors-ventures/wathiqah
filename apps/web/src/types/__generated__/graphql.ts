@@ -639,7 +639,7 @@ export type RefreshTokenMutation = { refreshToken: { __typename: 'AuthPayload', 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null } };
+export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string } };
 
 export type LoginMutationVariables = Exact<{
   loginInput: LoginInput;
@@ -872,7 +872,7 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { updateUser: { __typename: 'User', id: string, firstName: string, lastName: string, phoneNumber: string | null, email: string } };
+export type UpdateUserMutation = { updateUser: { __typename: 'User', id: string, firstName: string, lastName: string, phoneNumber: string | null, email: string, preferredCurrency: string } };
 
 export type MyWitnessRequestsQueryVariables = Exact<{
   status?: InputMaybe<WitnessStatus>;

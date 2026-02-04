@@ -1,7 +1,7 @@
+import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, CheckCircle2, Package } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

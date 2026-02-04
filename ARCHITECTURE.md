@@ -155,7 +155,12 @@ apps/web/
 │   ├── routes/                   # TanStack Router pages
 │   │   ├── __root.tsx            # Root layout
 │   │   ├── index.tsx             # Dashboard/Home
-│   │   ├── auth/                 # Auth pages
+│   │   ├── login.tsx             # Login page
+│   │   ├── signup.tsx            # Registration page
+│   │   ├── signup-success.tsx    # Post-signup success/onboarding
+│   │   ├── verify-email.tsx      # Email verification landing
+│   │   ├── forgot-password.tsx   # Password recovery
+│   │   ├── reset-password.tsx    # Password reset landing
 │   │   ├── contacts/             # Contact pages
 │   │   ├── transactions/         # Transaction pages
 │   │   ├── witnesses/            # Witness pages
@@ -194,15 +199,21 @@ apps/web/
 
 ### Key Principles (Frontend)
 
-1. **Component-based Architecture**: Reusable, composable components
-2. **Feature-based Organization**: Group related components together
-3. **Separation of Concerns**:
+1. **Onboarding Isolation**:
+   - Onboarding pages (`/signup`, `/signup-success`, `/verify-email`, `/login`, `/forgot-password`, `/reset-password`) are isolated from the global `AuthContext` to prevent unintended side effects and unnecessary network calls.
+   - The `ME_QUERY` in `AuthContext` is skipped for these paths using route-based logic.
+   - These pages use the global `useAuth` hook for GraphQL mutations, ensuring code consistency and separation of concerns while maintaining isolation via the context's skip logic.
+   - Refresh token logic in `apollo-links.ts` is bypassed for these mutations to prevent infinite loops during the authentication and recovery processes.
+
+2. **Component-based Architecture**: Reusable, composable components
+3. **Feature-based Organization**: Group related components together
+4. **Separation of Concerns**:
    - `components/` for UI components
    - `routes/` for pages
    - `lib/` for business logic and API calls
    - `hooks/` for stateful logic
    - `types/` for TypeScript definitions
-4. **Colocation**: Keep related files close (e.g., all contact components in `components/contacts/`)
+5. **Colocation**: Keep related files close (e.g., all contact components in `components/contacts/`)
 
 ---
 
@@ -225,6 +236,32 @@ apps/web/
 │                                                              │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🔐 Authentication & Onboarding Flow
+
+Wathȋqah uses a multi-step onboarding process to ensure account security and email validity.
+
+### 1. Registration (`/signup`)
+- User provides name, email, and password.
+- System creates a `PENDING` user record and triggers a verification email.
+
+### 2. Success Feedback (`/signup-success`)
+- Immediately after signup, users are redirected to this celebratory page.
+- **Purpose**: Acknowledges registration, provides clear next steps, and allows resending the verification link if not received.
+- **Personalization**: Greets the user by name and displays their registered email for confirmation.
+
+### 3. Email Verification (`/verify-email`)
+- Triggered by clicking the link in the verification email.
+- **Process**: Validates the token against the backend.
+- **Outcome**: 
+    - **Success**: Activates the account and provides a direct CTA to log in.
+    - **Failure**: Displays clear error context and provides a resend form to get a new link.
+
+### 4. Login (`/login`)
+- Authenticates active users via JWT.
+- Redirects to the dashboard or the previously intended protected route.
 
 ---
 
