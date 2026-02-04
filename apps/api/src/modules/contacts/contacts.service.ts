@@ -112,11 +112,25 @@ export class ContactsService {
     });
   }
 
-  async getBalance(contactId: string): Promise<number> {
+  async getBalance(contactId: string, userId: string): Promise<number> {
+    const contact = await this.prisma.contact.findUnique({
+      where: { id: contactId },
+      select: { linkedUserId: true },
+    });
+
     const transactions = await this.prisma.transaction.findMany({
       where: {
-        contactId,
-        category: 'FUNDS',
+        OR: [
+          { contactId, category: 'FUNDS' },
+          {
+            // Transactions where the contact is the creator and the current user is the contact
+            createdById: contact?.linkedUserId,
+            contact: {
+              linkedUserId: userId,
+            },
+            category: 'FUNDS',
+          },
+        ],
       },
       select: {
         id: true,
@@ -124,6 +138,7 @@ export class ContactsService {
         amount: true,
         returnDirection: true,
         parentId: true,
+        createdById: true,
         conversions: {
           where: {
             type: 'GIFT',
@@ -137,10 +152,11 @@ export class ContactsService {
 
     let balance = 0;
     for (const tx of transactions) {
+      const isCreator = tx.createdById === userId;
+
       // If this is a GIFT transaction that has a parent, it's a conversion.
-      // The parent transaction's amount will be adjusted by the GIFT amount.
       if (tx.type === 'GIFT' && tx.parentId) {
-        continue; // Skip GIFT conversions, they are handled by adjusting the parent
+        continue;
       }
 
       let amount = tx.amount ? Number(tx.amount) : 0;
@@ -154,13 +170,25 @@ export class ContactsService {
         amount = Math.max(0, amount - totalGifted);
       }
 
-      if (tx.type === 'GIVEN') balance += amount;
-      else if (tx.type === 'RECEIVED') balance -= amount;
-      else if (tx.type === 'RETURNED') {
-        if (tx.returnDirection === 'TO_ME') balance -= amount;
-        else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
+      if (isCreator) {
+        if (tx.type === 'GIVEN') balance += amount;
+        else if (tx.type === 'RECEIVED') balance -= amount;
+        else if (tx.type === 'RETURNED') {
+          if (tx.returnDirection === 'TO_ME') balance -= amount;
+          else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
+        }
+      } else {
+        // Perspective flipping for shared transactions
+        if (tx.type === 'GIVEN')
+          balance -= amount; // They gave to me -> I received
+        else if (tx.type === 'RECEIVED')
+          balance += amount; // They received from me -> I gave
+        else if (tx.type === 'RETURNED') {
+          if (tx.returnDirection === 'TO_ME')
+            balance += amount; // They got it back -> I returned to contact
+          else if (tx.returnDirection === 'TO_CONTACT') balance -= amount; // They returned to me -> I got it back
+        }
       }
-      // standalone GIFT (no parent) does not affect debt; ignored for balance
     }
 
     return balance;

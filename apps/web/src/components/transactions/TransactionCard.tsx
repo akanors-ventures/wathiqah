@@ -1,10 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Package, UserCircle } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
-import { useAuth } from "@/hooks/use-auth";
 
 interface TransactionCardProps {
   transaction: {

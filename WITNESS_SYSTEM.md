@@ -150,6 +150,7 @@ The witness system provides:
 
 - ✅ **Accountability**: Third-party verification
 - ✅ **Trust**: Transparent record-keeping
+- ✅ **Shared Ledger**: Automatic synchronization with platform users
 - ✅ **Peace of Mind**: Clear documentation
 - ✅ **Dispute Resolution**: Evidence if disagreements arise
 

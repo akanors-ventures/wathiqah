@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
@@ -39,6 +40,7 @@ import {
   ReturnDirection,
   type TransactionQuery,
   TransactionType,
+  type WitnessInviteInput,
 } from "@/types/__generated__/graphql";
 
 const formSchema = z
@@ -60,6 +62,21 @@ const formSchema = z
     category: z.enum([AssetCategory.Funds, AssetCategory.Item]),
     returnDirection: z.enum([ReturnDirection.ToMe, ReturnDirection.ToContact]).optional(),
     currency: z.string().min(1, "Currency is required"),
+    witnesses: z
+      .array(
+        z.object({
+          userId: z.string().optional(),
+          invite: z
+            .object({
+              name: z.string().min(2, "Name is required"),
+              email: z.string().email({ message: "Invalid email" }),
+              phoneNumber: z.string().optional().nullable(),
+            })
+            .optional(),
+          displayName: z.string(),
+        }),
+      )
+      .default([]),
   })
   .refine(
     (data) => {
@@ -140,7 +157,8 @@ export function EditTransactionDialog({
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(formSchema),
+    // biome-ignore lint/suspicious/noExplicitAny: Complex type mismatch with zodResolver
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       type: transaction.type,
       contactId: transaction.contact?.id ?? undefined,
@@ -152,6 +170,7 @@ export function EditTransactionDialog({
       category: transaction.category,
       returnDirection: transaction.returnDirection ?? undefined,
       currency: transaction.currency ?? "NGN",
+      witnesses: [],
     },
   });
 
@@ -161,6 +180,13 @@ export function EditTransactionDialog({
 
   async function onSubmit(values: TransactionFormValues) {
     try {
+      const witnessUserIds = values.witnesses
+        .filter((w) => w.userId)
+        .map((w) => w.userId as string);
+      const witnessInvites = values.witnesses
+        .filter((w) => w.invite)
+        .map((w) => w.invite as WitnessInviteInput);
+
       await updateTransaction({
         id: transaction.id,
         category: values.category,
@@ -173,6 +199,8 @@ export function EditTransactionDialog({
         contactId: values.contactId || undefined,
         returnDirection: values.returnDirection,
         currency: values.currency,
+        witnessUserIds,
+        witnessInvites,
       });
       toast.success("Transaction updated successfully");
       onOpenChange(false);
@@ -415,6 +443,47 @@ export function EditTransactionDialog({
                 </FormItem>
               )}
             />
+
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex flex-col gap-1">
+                <h4 className="text-sm font-medium">Add Witnesses</h4>
+                <p className="text-xs text-muted-foreground">
+                  Invite others to verify this transaction.
+                </p>
+              </div>
+
+              {transaction.witnesses && transaction.witnesses.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Existing Witnesses:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {transaction.witnesses.map((w) => (
+                      <div
+                        key={w.id}
+                        className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md text-xs"
+                      >
+                        <span className="font-medium">{w.user?.name || "Unknown"}</span>
+                        <span
+                          className={`text-[10px] px-1 rounded-sm border ${
+                            w.status === "ACKNOWLEDGED"
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                              : w.status === "PENDING"
+                                ? "bg-amber-50 text-amber-600 border-amber-100"
+                                : "bg-gray-50 text-gray-600 border-gray-100"
+                          }`}
+                        >
+                          {w.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <WitnessSelector
+                selectedWitnesses={form.watch("witnesses") || []}
+                onChange={(witnesses) => form.setValue("witnesses", witnesses)}
+              />
+            </div>
 
             <DialogFooter>
               <Button

@@ -1029,43 +1029,56 @@ export class TransactionsService {
       }
     }
 
-    // Perform update and create history record in a transaction
-    const [updatedTransaction] = await this.prisma.$transaction([
-      this.prisma.transaction.update({
-        where: { id },
-        data: {
-          ...(category && { category }),
-          amount:
-            category === AssetCategory.FUNDS
-              ? amount
-              : category === AssetCategory.ITEM
-                ? null
-                : amount,
-          itemName:
-            category === AssetCategory.ITEM
-              ? itemName
-              : category === AssetCategory.FUNDS
-                ? null
-                : itemName,
-          quantity:
-            category === AssetCategory.ITEM
-              ? quantity
-              : category === AssetCategory.FUNDS
-                ? null
-                : quantity,
-          ...rest,
-        },
-      }),
-      this.prisma.transactionHistory.create({
-        data: {
-          transactionId: id,
-          userId,
-          changeType: hasAcknowledgedWitness ? 'UPDATE_POST_ACK' : 'UPDATE',
-          previousState: previousState as any,
-          newState: changes,
-        },
-      }),
-    ]);
+    const updatedTransaction = await this.prisma.$transaction(
+      async (prisma) => {
+        const updated = await prisma.transaction.update({
+          where: { id },
+          data: {
+            ...(category && { category }),
+            amount:
+              category === AssetCategory.FUNDS
+                ? amount
+                : category === AssetCategory.ITEM
+                  ? null
+                  : amount,
+            itemName:
+              category === AssetCategory.ITEM
+                ? itemName
+                : category === AssetCategory.FUNDS
+                  ? null
+                  : itemName,
+            quantity:
+              category === AssetCategory.ITEM
+                ? quantity
+                : category === AssetCategory.FUNDS
+                  ? null
+                  : quantity,
+            ...rest,
+          },
+        });
+
+        await prisma.transactionHistory.create({
+          data: {
+            transactionId: id,
+            userId,
+            changeType: hasAcknowledgedWitness ? 'UPDATE_POST_ACK' : 'UPDATE',
+            previousState: previousState as any,
+            newState: changes,
+          },
+        });
+
+        if (witnessUserIds || witnessInvites) {
+          await this.processWitnesses(
+            id,
+            witnessUserIds,
+            witnessInvites,
+            prisma as any,
+          );
+        }
+
+        return updated;
+      },
+    );
 
     return updatedTransaction;
   }

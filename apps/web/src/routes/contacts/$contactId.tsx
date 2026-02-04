@@ -27,12 +27,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/hooks/use-auth";
 import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
-import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/contacts/$contactId")({
   component: ContactDetailsPage,

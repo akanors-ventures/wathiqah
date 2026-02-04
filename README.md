@@ -28,6 +28,7 @@ Financial exchanges between people are often undocumented, leading to confusion 
   - **Relationship Standing**: Contact view reflects net debt (who owes whom).
 - **Contact Balances**: Track balances per contact (both financial and item counts).
 - **Audit Logs**: Full transaction history with timestamps and "Before/After" diffs for every update.
+- **Shared Ledger Synchronization**: Automatic cross-user visibility. If a contact is a registered user, transactions recorded by one party automatically appear in the other's ledger with correctly flipped perspectives (e.g., your "Lent" becomes their "Borrowed").
 - **Witness System**: Add witnesses to transactions for accountability.
   - Add existing users or invite new users via email.
   - Witnesses receive notifications to acknowledge transactions.

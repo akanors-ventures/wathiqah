@@ -6,6 +6,7 @@ import {
   Handshake,
   History,
   Package,
+  RefreshCw,
   Shield,
   Users,
   Wallet,
@@ -78,6 +79,11 @@ function FeaturesPage() {
               title="Relationship Standing"
               description="See exactly where you stand with every contact. Dynamic net debt logic shows who owes you and who you owe across all categories."
               to="/contacts"
+            />
+            <FeatureCard
+              icon={<RefreshCw className="w-8 h-8 text-yellow-500" />}
+              title="Shared Ledger Sync"
+              description="Automatic synchronization between users. When a contact records a transaction with you, it instantly appears in your ledger with adjusted perspectives."
             />
             <FeatureCard
               icon={<History className="w-8 h-8 text-orange-500" />}

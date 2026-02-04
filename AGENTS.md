@@ -28,9 +28,17 @@
   - **Mapping Rule**:
     - Parent `GIVEN` (I lent) → Gift `TO_CONTACT` (I gifted it out/forgave debt).
     - Parent `RECEIVED` (I borrowed) → Gift `TO_ME` (Contact gifted it to me/forgave my debt).
+- **Shared Ledger & Perspective Flipping**:
+  - **Visibility**: If a transaction's contact is a registered user (`linkedUserId`), the transaction is visible to both the creator and the contact.
+  - **Perspective Logic**: When a user views a transaction they didn't create (recorded on them by a contact), the system "flips" the perspective:
+    - `GIVEN` (Asset for creator) → `RECEIVED` (Liability for you).
+    - `RECEIVED` (Liability for creator) → `GIVEN` (Asset for you).
+    - `RETURNED TO ME` → `RETURNED TO CONTACT`.
+    - `GIFT RECEIVED` → `GIFT GIVEN`.
+  - **Identification**: These transactions are marked with a **SHARED** badge in the UI.
 - **Balance Logic**:
-  - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received).
-  - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you.
+  - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received). Includes flipped shared transactions for accurate liquidity.
+  - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you. Includes flipped shared transactions for accurate standing.
 - **Analytics & Reporting**:
   - **Context**: Visualizes financial trends and contact activity.
   - **Components**:
