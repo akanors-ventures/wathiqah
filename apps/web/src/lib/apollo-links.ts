@@ -129,6 +129,11 @@ export const errorLink = (uri: string) =>
           toast.error("A server error occurred. Please try again later.");
         } else if (code === "FORBIDDEN") {
           toast.error("You don't have permission to perform this action.");
+        } else if (code === "BAD_USER_INPUT" || code === "BAD_REQUEST") {
+          toast.error(message || "Invalid input. Please check your data.");
+        } else if (!skipRefresh && code !== "UNAUTHENTICATED" && code !== "UNAUTHORIZED") {
+          // General toast for other errors if not auth related (auth is handled above)
+          toast.error(message || "An error occurred");
         }
       });
 

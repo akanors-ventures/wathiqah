@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { toast } from "sonner";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -147,9 +148,10 @@ function NewTransactionPage() {
         amount: values.category === AssetCategory.Funds ? values.amount : undefined,
         itemName: values.category === AssetCategory.Item ? values.itemName : undefined,
         quantity: values.category === AssetCategory.Item ? values.quantity : undefined,
-        contactId: values.contactId || "", // Ensure string if undefined (though backend handles optional)
+        contactId: values.contactId || undefined,
         date: new Date(values.date).toISOString(),
       });
+      toast.success("Transaction created successfully");
       navigate({
         to: "/transactions",
         search: { tab: values.category === AssetCategory.Item ? "items" : "funds" },

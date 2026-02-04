@@ -97,8 +97,8 @@ export function ItemForm({ onSubmit, defaultValues, isLoading }: ItemFormProps) 
       returnDirection: values.returnDirection,
       itemName: values.itemName,
       quantity: values.quantity,
-      date: new Date(values.date), // Convert string to Date
-      contactId: values.contactId,
+      date: new Date(values.date).toISOString(), // Convert string to ISO string
+      contactId: values.contactId || undefined,
       description: values.description,
     };
     await onSubmit(apiValues);

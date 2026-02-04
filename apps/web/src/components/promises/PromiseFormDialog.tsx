@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import { usePromises } from "@/hooks/usePromises";
 import { Priority, type Promise as PromiseType } from "@/types/__generated__/graphql";
 
@@ -84,8 +85,10 @@ export function PromiseFormDialog({
           id: promise.id,
           ...values,
         });
+        toast.success("Promise updated successfully");
       } else {
         await createPromise(values);
+        toast.success("Promise created successfully");
       }
       onOpenChange?.(false);
       form.reset();

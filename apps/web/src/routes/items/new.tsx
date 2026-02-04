@@ -20,7 +20,6 @@ function NewItemPage() {
       toast.success("Item transaction recorded successfully");
       navigate({ to: "/items" });
     } catch (error) {
-      toast.error("Failed to record transaction");
       console.error(error);
     }
   };

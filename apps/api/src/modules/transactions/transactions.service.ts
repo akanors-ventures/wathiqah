@@ -243,6 +243,23 @@ export class TransactionsService {
         }
       }
 
+      // Validate contactId if provided
+      if (rest.contactId) {
+        const contact = await prisma.contact.findUnique({
+          where: { id: rest.contactId },
+        });
+
+        if (!contact) {
+          throw new NotFoundException(`Contact ${rest.contactId} not found`);
+        }
+
+        if (contact.userId !== userId) {
+          throw new ForbiddenException(
+            'Cannot create a transaction for a contact you do not own',
+          );
+        }
+      }
+
       const transaction = await prisma.transaction.create({
         data: {
           category,
@@ -751,6 +768,42 @@ export class TransactionsService {
     if (rest.contactId && rest.contactId !== transaction.contactId) {
       changes.contactId = rest.contactId;
       changeDescriptions.push('Contact updated');
+    }
+
+    // Validate contactId if it's being updated
+    if (rest.contactId && rest.contactId !== transaction.contactId) {
+      const contact = await this.prisma.contact.findUnique({
+        where: { id: rest.contactId },
+      });
+
+      if (!contact) {
+        throw new NotFoundException(`Contact ${rest.contactId} not found`);
+      }
+
+      if (contact.userId !== userId) {
+        throw new ForbiddenException(
+          'Cannot assign a transaction to a contact you do not own',
+        );
+      }
+    }
+
+    // Validate parentId if it's being updated
+    if (rest.parentId && rest.parentId !== transaction.parentId) {
+      const parent = await this.prisma.transaction.findUnique({
+        where: { id: rest.parentId },
+      });
+
+      if (!parent) {
+        throw new NotFoundException(
+          `Parent transaction ${rest.parentId} not found`,
+        );
+      }
+
+      if (parent.createdById !== userId) {
+        throw new ForbiddenException(
+          'Cannot link to a transaction you do not own',
+        );
+      }
     }
 
     const hasChanges = Object.keys(changes).length > 0;

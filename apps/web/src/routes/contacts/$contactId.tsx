@@ -234,9 +234,13 @@ function ContactDetailsPage() {
                         className={
                           tx.type === "GIVEN"
                             ? "text-blue-600 border-blue-200 bg-blue-50"
-                            : tx.type === "RECEIVED"
+                            : tx.type === "RECEIVED" || tx.type === "EXPENSE"
                               ? "text-red-600 border-red-200 bg-red-50"
-                              : "text-emerald-600 border-emerald-200 bg-emerald-50"
+                              : tx.type === "RETURNED" || tx.type === "INCOME"
+                                ? "text-green-600 border-green-200 bg-green-50"
+                                : tx.type === "GIFT"
+                                  ? "text-purple-600 border-purple-200 bg-purple-50"
+                                  : "text-gray-600 border-gray-200 bg-gray-50"
                         }
                       >
                         {tx.type}
@@ -260,16 +264,25 @@ function ContactDetailsPage() {
                           ? "text-muted-foreground font-normal italic text-xs"
                           : tx.type === "GIVEN"
                             ? "text-blue-600"
-                            : tx.type === "RECEIVED"
+                            : tx.type === "RECEIVED" || tx.type === "EXPENSE"
                               ? "text-red-600"
-                              : "text-emerald-600"
+                              : tx.type === "RETURNED" || tx.type === "INCOME"
+                                ? "text-green-600"
+                                : tx.type === "GIFT"
+                                  ? "text-purple-600"
+                                  : "text-emerald-600"
                       }`}
                     >
                       {tx.category === AssetCategory.Item ? (
                         "Physical Item"
                       ) : (
                         <>
-                          {tx.type === "GIVEN" ? "+" : "-"}
+                          {tx.type === "GIVEN" ||
+                          tx.type === "INCOME" ||
+                          tx.type === "RETURNED" ||
+                          tx.type === "GIFT"
+                            ? "+"
+                            : "-"}
                           {formatCurrency(tx.amount, tx.currency)}
                         </>
                       )}

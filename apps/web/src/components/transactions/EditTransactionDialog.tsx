@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { toast } from "sonner";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import {
@@ -165,10 +166,11 @@ export function EditTransactionDialog({
         quantity: values.category === AssetCategory.Item ? values.quantity : undefined,
         date: new Date(values.date).toISOString(),
         description: values.description,
-        contactId: values.contactId || null,
+        contactId: values.contactId || undefined,
         returnDirection: values.returnDirection,
         currency: values.currency,
       });
+      toast.success("Transaction updated successfully");
       onOpenChange(false);
     } catch (error) {
       console.error(error);

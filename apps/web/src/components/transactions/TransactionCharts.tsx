@@ -426,10 +426,20 @@ export function TransactionCharts() {
                           tick={{ fill: "currentColor", fontSize: 12, fontWeight: 500 }}
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={(val) => `₦${val >= 1000 ? `${val / 1000}k` : val}`}
+                          tickFormatter={(val) => {
+                            const currencySymbol =
+                              filter.currency === "USD"
+                                ? "$"
+                                : filter.currency === "GBP"
+                                  ? "£"
+                                  : filter.currency === "EUR"
+                                    ? "€"
+                                    : "₦";
+                            return `${currencySymbol}${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`;
+                          }}
                           className="text-foreground"
                           label={{
-                            value: "Amount (₦)",
+                            value: `Amount (${filter.currency || "NGN"})`,
                             angle: -90,
                             position: "insideLeft",
                             offset: -5,

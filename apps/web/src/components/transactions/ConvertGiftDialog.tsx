@@ -86,7 +86,6 @@ export function ConvertGiftDialog({
       onClose();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to convert transaction to gift");
     }
   }
 

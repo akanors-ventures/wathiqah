@@ -12,8 +12,9 @@ import {
   Min,
   IsArray,
   ValidateNested,
+  IsUUID,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 import { WitnessInviteInput } from '../../witnesses/dto/witness-invite.input';
 
 @InputType()
@@ -61,11 +62,14 @@ export class CreateTransactionInput {
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
-  @IsString()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsUUID()
   parentId?: string;
 
   @Field(() => ID, { nullable: true })
   @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsUUID()
   contactId?: string;
 
   @Field(() => [ID], { nullable: true })

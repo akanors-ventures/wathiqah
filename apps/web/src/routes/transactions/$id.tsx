@@ -116,7 +116,11 @@ function TransactionDetailPage() {
                     ? "Returned"
                     : currentTransaction.type === TransactionType.Gift
                       ? "Gift"
-                      : "Collected from"}{" "}
+                      : currentTransaction.type === TransactionType.Income
+                        ? "Income"
+                        : currentTransaction.type === TransactionType.Expense
+                          ? "Expense"
+                          : "Collected from"}{" "}
               {currentTransaction.contact?.name || "Personal"}
             </h1>
             <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2">
@@ -151,11 +155,20 @@ function TransactionDetailPage() {
                   className={`text-2xl font-bold ${
                     currentTransaction.type === "GIVEN"
                       ? "text-blue-600 dark:text-blue-400"
-                      : currentTransaction.type === "RETURNED"
+                      : currentTransaction.type === "RETURNED" ||
+                          currentTransaction.type === "INCOME"
                         ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-red-600 dark:text-red-400"
+                        : currentTransaction.type === "GIFT"
+                          ? "text-purple-600 dark:text-purple-400"
+                          : "text-red-600 dark:text-red-400"
                   }`}
                 >
+                  {currentTransaction.type === "GIVEN" ||
+                  currentTransaction.type === "RETURNED" ||
+                  currentTransaction.type === "INCOME" ||
+                  currentTransaction.type === "GIFT"
+                    ? "+"
+                    : "-"}
                   {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
                 </div>
               )}

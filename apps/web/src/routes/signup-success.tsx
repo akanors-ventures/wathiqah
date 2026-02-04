@@ -105,10 +105,7 @@ function SignupSuccessPage() {
         </div>
 
         <div className="relative">
-          <div
-            className="absolute left-4 top-0 bottom-0 w-0.5 bg-border sm:left-1/2 sm:-ml-px"
-            aria-hidden="true"
-          />
+          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-border" aria-hidden="true" />
           <div className="space-y-8 sm:space-y-12">
             {steps.map((step, index) => (
               <motion.div

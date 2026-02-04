@@ -100,12 +100,17 @@ function MyContactTransactionsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={
+                          variant="outline"
+                          className={
                             tx.type === "GIVEN"
-                              ? "destructive"
-                              : tx.type === "RECEIVED"
-                                ? "default"
-                                : "outline"
+                              ? "text-blue-600 border-blue-200 bg-blue-50"
+                              : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                ? "text-red-600 border-red-200 bg-red-50"
+                                : tx.type === "RETURNED" || tx.type === "INCOME"
+                                  ? "text-green-600 border-green-200 bg-green-50"
+                                  : tx.type === "GIFT"
+                                    ? "text-purple-600 border-purple-200 bg-purple-50"
+                                    : "text-gray-600 border-gray-200 bg-gray-50"
                           }
                         >
                           {tx.type}
@@ -115,7 +120,20 @@ function MyContactTransactionsPage() {
                       <TableCell className="max-w-xs truncate">{tx.description || "-"}</TableCell>
                       <TableCell className="text-right">
                         {tx.category === AssetCategory.Funds ? (
-                          <span className={tx.type === "GIVEN" ? "text-red-600" : "text-green-600"}>
+                          <span
+                            className={
+                              tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                ? "text-red-600 font-medium"
+                                : tx.type === "GIVEN" ||
+                                    tx.type === "RETURNED" ||
+                                    tx.type === "INCOME"
+                                  ? "text-green-600 font-medium"
+                                  : tx.type === "GIFT"
+                                    ? "text-purple-600 font-medium"
+                                    : "font-medium"
+                            }
+                          >
+                            {tx.type === "RECEIVED" || tx.type === "EXPENSE" ? "-" : "+"}
                             {formatCurrency(tx.amount || 0, tx.currency)}
                           </span>
                         ) : (
