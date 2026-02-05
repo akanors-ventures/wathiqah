@@ -24,7 +24,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { NotificationService } from '../notifications/notification.service';
-import { splitName } from '../../common/utils/string.utils';
+import { splitName, normalizeEmail } from '../../common/utils/string.utils';
 import { User } from 'src/generated/prisma/client';
 
 @Injectable()
@@ -71,7 +71,8 @@ export class AuthService {
   }
 
   async signup(signupInput: SignupInput): Promise<User> {
-    const existingUser = await this.usersService.findByEmail(signupInput.email);
+    const email = normalizeEmail(signupInput.email);
+    const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {
       throw new ConflictException('Email already in use');
     }
@@ -83,7 +84,7 @@ export class AuthService {
     }
 
     const user = await this.usersService.create({
-      email: signupInput.email,
+      email,
       firstName,
       lastName,
       passwordHash,
@@ -114,7 +115,8 @@ export class AuthService {
   }
 
   async login(loginInput: LoginInput): Promise<AuthPayload> {
-    const user = await this.usersService.findByEmail(loginInput.email);
+    const email = normalizeEmail(loginInput.email);
+    const user = await this.usersService.findByEmail(email);
     if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -280,7 +282,8 @@ export class AuthService {
   async forgotPassword(
     forgotPasswordInput: ForgotPasswordInput,
   ): Promise<boolean> {
-    const user = await this.usersService.findByEmail(forgotPasswordInput.email);
+    const email = normalizeEmail(forgotPasswordInput.email);
+    const user = await this.usersService.findByEmail(email);
     if (!user) {
       return true;
     }
@@ -310,7 +313,8 @@ export class AuthService {
   }
 
   async resendVerificationEmail(email: string): Promise<boolean> {
-    const user = await this.usersService.findByEmail(email);
+    const normalizedEmail = normalizeEmail(email);
+    const user = await this.usersService.findByEmail(normalizedEmail);
 
     // Return true even if user not found to prevent enumeration
     if (!user) {
@@ -424,6 +428,17 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: user.id },
       data: { isEmailVerified: true },
+    });
+
+    // Link existing contacts
+    await this.prisma.contact.updateMany({
+      where: {
+        email: user.email,
+        linkedUserId: null,
+      },
+      data: {
+        linkedUserId: user.id,
+      },
     });
 
     return {

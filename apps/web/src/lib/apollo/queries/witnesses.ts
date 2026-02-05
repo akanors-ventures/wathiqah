@@ -21,9 +21,11 @@ export const MY_WITNESS_REQUESTS: TypedDocumentNode<
       transaction {
         id
         amount
+        currency
         type
         description
         date
+        returnDirection
         createdBy {
           name
           email
@@ -57,9 +59,11 @@ export const GET_WITNESS_INVITATION: TypedDocumentNode<
       transaction {
         id
         amount
+        currency
         type
         description
         date
+        returnDirection
         createdBy {
           name
         }

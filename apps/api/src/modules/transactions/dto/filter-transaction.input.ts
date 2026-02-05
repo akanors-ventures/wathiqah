@@ -21,6 +21,9 @@ export class FilterTransactionInput {
   @Field({ nullable: true })
   currency?: string;
 
+  @Field({ nullable: true })
+  summaryCurrency?: string;
+
   @Field(() => Date, { nullable: true })
   startDate?: Date;
 

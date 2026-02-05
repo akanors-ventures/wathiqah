@@ -4,7 +4,10 @@ import { Transaction } from './entities/transaction.entity';
 import { AddWitnessInput } from './dto/add-witness.input';
 import { CreateTransactionInput } from './dto/create-transaction.input';
 import { UpdateTransactionInput } from './dto/update-transaction.input';
-import { TransactionsResponse } from './entities/transactions-response.entity';
+import {
+  TransactionsResponse,
+  TransactionsSummary,
+} from './entities/transactions-response.entity';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { ContactGroupedSummary } from './entities/contact-grouped-summary.entity';
 import { UseGuards } from '@nestjs/common';
@@ -16,6 +19,17 @@ import { User } from '../users/entities/user.entity';
 @UseGuards(GqlAuthGuard)
 export class TransactionsResolver {
   constructor(private readonly transactionsService: TransactionsService) {}
+
+  @Query(() => TransactionsSummary, { name: 'totalBalance' })
+  async getTotalBalance(
+    @CurrentUser() user: User,
+    @Args('currency', { nullable: true }) currency?: string,
+  ) {
+    const summary = await this.transactionsService.findAll(user.id, {
+      summaryCurrency: currency,
+    });
+    return summary.summary;
+  }
 
   @Mutation(() => Transaction)
   async createTransaction(

@@ -5,6 +5,7 @@ import {
   type Transaction,
   TransactionType,
 } from "@/types/__generated__/graphql";
+import { useAuth } from "./use-auth";
 import { useTransactions } from "./useTransactions";
 
 export interface AggregatedItem {
@@ -19,6 +20,7 @@ export interface AggregatedItem {
 }
 
 export function useItems() {
+  const { user } = useAuth();
   // We fetch all transactions and filter client-side because FilterTransactionInput doesn't support category yet
   const { transactions, loading, error, createTransaction, refetch } = useTransactions();
 
@@ -30,14 +32,19 @@ export function useItems() {
       .forEach((tx) => {
         if (!tx.itemName) return;
 
-        const key = `${tx.contact?.id || "unknown"}-${tx.itemName.toLowerCase().trim()}`;
+        const isCreator = user?.id === tx.createdBy?.id;
+        // For shared transactions, we need to associate with the creator as the contact
+        const contactId = isCreator ? tx.contact?.id : tx.createdBy?.id;
+        const contactName = isCreator ? tx.contact?.name : tx.createdBy?.name;
+
+        const key = `${contactId || "unknown"}-${tx.itemName.toLowerCase().trim()}`;
 
         if (!itemMap.has(key)) {
           itemMap.set(key, {
             id: key,
             itemName: tx.itemName,
-            contactName: tx.contact?.name || "Unknown",
-            contactId: tx.contact?.id,
+            contactName: contactName || "Unknown",
+            contactId: contactId,
             status: "RETURNED", // Default
             quantity: 0,
             lastUpdated: tx.date as string,
@@ -55,19 +62,35 @@ export function useItems() {
           item.lastUpdated = tx.date as string;
         }
 
-        // Calculate balance
+        // Calculate balance with perspective flipping
         const qty = tx.quantity || 1;
 
-        if (tx.type === TransactionType.Given) {
-          item.quantity += qty;
-        } else if (tx.type === TransactionType.Received) {
-          item.quantity -= qty;
-        } else if (tx.type === TransactionType.Returned || tx.type === TransactionType.Gift) {
-          const dir = tx.returnDirection;
-          if (dir === ReturnDirection.ToMe) {
-            item.quantity -= qty;
-          } else if (dir === ReturnDirection.ToContact) {
+        if (isCreator) {
+          if (tx.type === TransactionType.Given) {
             item.quantity += qty;
+          } else if (tx.type === TransactionType.Received) {
+            item.quantity -= qty;
+          } else if (tx.type === TransactionType.Returned || tx.type === TransactionType.Gift) {
+            const dir = tx.returnDirection;
+            if (dir === ReturnDirection.ToMe) {
+              item.quantity -= qty;
+            } else if (dir === ReturnDirection.ToContact) {
+              item.quantity += qty;
+            }
+          }
+        } else {
+          // Perspective flipping for shared transactions
+          if (tx.type === TransactionType.Given) {
+            item.quantity -= qty; // They gave it to me -> I received
+          } else if (tx.type === TransactionType.Received) {
+            item.quantity += qty; // They received it from me -> I gave
+          } else if (tx.type === TransactionType.Returned || tx.type === TransactionType.Gift) {
+            const dir = tx.returnDirection;
+            if (dir === ReturnDirection.ToMe) {
+              item.quantity += qty; // They got it back -> I returned to contact
+            } else if (dir === ReturnDirection.ToContact) {
+              item.quantity -= qty; // They returned to me -> I got it back
+            }
           }
         }
       });
@@ -84,7 +107,7 @@ export function useItems() {
       }
       return item;
     });
-  }, [transactions]);
+  }, [transactions, user?.id]);
 
   return {
     items,

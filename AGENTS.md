@@ -16,11 +16,29 @@
   - History snapshots preserve the currency active at the time of the change for accurate audit trails.
 - **Color Coding Logic**:
   - **RECEIVED (Red)**: Marked as Red because it represents a liability/debt. It is better to avoid owing people.
-  - **GIVEN (Blue/Emerald)**: Represented as Blue or Emerald because it represents an asset/credit. Giving out is viewed more favorably than receiving debt.
-  - **RETURNED (Emerald)**: Represents the resolution of a transaction (money coming back or being paid back), which is a positive action.
+  - **GIVEN (Blue)**: Represented as Blue because it represents an asset/credit. Giving out is viewed more favorably than receiving debt.
+  - **RETURNED**: Represents the resolution of a transaction (repayments). Relies on `returnDirection` for UI representation.
+    - **To Me (Emerald)**: Positive action (money coming back).
+    - **To Contact (Blue)**: Neutral/Resolution (paying back debt).
+  - **GIFT**: Non-balance affecting transactions. Relies on `returnDirection` for UI representation.
+    - **Received (Purple)**: Gift obtained from a contact (`TO_ME`).
+    - **Given (Pink)**: Gift given to a contact (`TO_CONTACT`).
+- **Transaction Conversion Logic**:
+  - Transactions can be converted to **GIFT** type (e.g., when a debt is forgiven).
+  - **Mapping Rule**:
+    - Parent `GIVEN` (I lent) → Gift `TO_CONTACT` (I gifted it out/forgave debt).
+    - Parent `RECEIVED` (I borrowed) → Gift `TO_ME` (Contact gifted it to me/forgave my debt).
+- **Shared Ledger & Perspective Flipping**:
+  - **Visibility**: If a transaction's contact is a registered user (`linkedUserId`), the transaction is visible to both the creator and the contact.
+  - **Perspective Logic**: When a user views a transaction they didn't create (recorded on them by a contact), the system "flips" the perspective:
+    - `GIVEN` (Asset for creator) → `RECEIVED` (Liability for you).
+    - `RECEIVED` (Liability for creator) → `GIVEN` (Asset for you).
+    - `RETURNED TO ME` → `RETURNED TO CONTACT`.
+    - `GIFT RECEIVED` → `GIFT GIVEN`.
+  - **Identification**: These transactions are marked with a **SHARED** badge in the UI.
 - **Balance Logic**:
-  - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToOther + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received).
-  - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you.
+  - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received). Includes flipped shared transactions for accurate liquidity.
+  - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you. Includes flipped shared transactions for accurate standing.
 - **Analytics & Reporting**:
   - **Context**: Visualizes financial trends and contact activity.
   - **Components**:
@@ -123,6 +141,6 @@ This project is built using a collaborative AI workflow, leveraging advanced too
 4.  **Quality of Delivery**:
     - **No Placeholders**: Never use TODOs or placeholders in production-ready code.
     - **Verification**: Always verify changes through manual review or automated tests.
-    - **Clean Code**: Prioritize maintainability, proper naming, and adherence to DRY principles.
+    - **Clean Code**: Prioritize maintainability, proper naming, and adherence to DRY principles and avoid the use of any unless in a very complex scenario.
     - **Self-Correction**: Proactively identify and fix potential side effects or linter errors introduced by changes.
 5.  **Documentation as Truth**: Architectural decisions are documented in `.md` files, which serve as the primary source of truth for both human developers and AI agents.

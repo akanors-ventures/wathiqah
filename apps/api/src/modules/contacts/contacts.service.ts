@@ -7,10 +7,10 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateContactInput } from './dto/create-contact.input';
 import { UpdateContactInput } from './dto/update-contact.input';
-import { splitName } from '../../common/utils/string.utils';
+import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { NotificationService } from '../notifications/notification.service';
 import { v4 as uuidv4 } from 'uuid';
-import { InvitationStatus } from '../../generated/prisma/client';
+import { InvitationStatus, Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class ContactsService {
@@ -19,16 +19,34 @@ export class ContactsService {
     private notificationService: NotificationService,
   ) {}
 
-  create(createContactInput: CreateContactInput, userId: string) {
-    const { name, ...rest } = createContactInput;
+  async create(createContactInput: CreateContactInput, userId: string) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required to create a contact');
+    }
+
+    const { name, email: rawEmail, ...rest } = createContactInput;
+    const email = rawEmail ? normalizeEmail(rawEmail) : undefined;
     const { firstName, lastName } = splitName(name);
+
+    let linkedUserId: string | undefined;
+
+    if (email) {
+      const registeredUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
+      if (registeredUser) {
+        linkedUserId = registeredUser.id;
+      }
+    }
 
     return this.prisma.contact.create({
       data: {
         ...rest,
+        email,
         firstName,
         lastName,
         userId,
+        linkedUserId,
       },
     });
   }
@@ -80,17 +98,23 @@ export class ContactsService {
       nameData = { firstName, lastName };
     }
 
+    const normalizedEmail = email ? normalizeEmail(email) : undefined;
+
     return this.prisma.contact.update({
       where: { id },
       data: {
         ...nameData,
-        ...(email !== undefined && { email }),
+        ...(email !== undefined && { email: normalizedEmail }),
         ...(phoneNumber !== undefined && { phoneNumber }),
       },
     });
   }
 
   async remove(id: string, userId: string) {
+    if (!userId) {
+      throw new BadRequestException('User ID is required to remove a contact');
+    }
+
     // Check existence and ownership
     await this.findOne(id, userId);
 
@@ -99,18 +123,36 @@ export class ContactsService {
     });
   }
 
-  async getBalance(contactId: string): Promise<number> {
-    const transactions = await this.prisma.transaction.findMany({
-      where: {
-        contactId,
+  async getBalance(contactId: string, userId: string): Promise<number> {
+    const contact = await this.prisma.contact.findUnique({
+      where: { id: contactId },
+      select: { linkedUserId: true },
+    });
+
+    const where: Prisma.TransactionWhereInput = {
+      OR: [{ contactId, category: 'FUNDS' }],
+    };
+
+    if (contact?.linkedUserId) {
+      where.OR.push({
+        // Transactions where the contact is the creator and the current user is the contact
+        createdById: contact.linkedUserId,
+        contact: {
+          linkedUserId: userId,
+        },
         category: 'FUNDS',
-      },
+      });
+    }
+
+    const transactions = await this.prisma.transaction.findMany({
+      where,
       select: {
         id: true,
         type: true,
         amount: true,
         returnDirection: true,
         parentId: true,
+        createdById: true,
         conversions: {
           where: {
             type: 'GIFT',
@@ -124,10 +166,11 @@ export class ContactsService {
 
     let balance = 0;
     for (const tx of transactions) {
+      const isCreator = tx.createdById === userId;
+
       // If this is a GIFT transaction that has a parent, it's a conversion.
-      // The parent transaction's amount will be adjusted by the GIFT amount.
       if (tx.type === 'GIFT' && tx.parentId) {
-        continue; // Skip GIFT conversions, they are handled by adjusting the parent
+        continue;
       }
 
       let amount = tx.amount ? Number(tx.amount) : 0;
@@ -141,13 +184,25 @@ export class ContactsService {
         amount = Math.max(0, amount - totalGifted);
       }
 
-      if (tx.type === 'GIVEN') balance += amount;
-      else if (tx.type === 'RECEIVED') balance -= amount;
-      else if (tx.type === 'RETURNED') {
-        if (tx.returnDirection === 'TO_ME') balance -= amount;
-        else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
+      if (isCreator) {
+        if (tx.type === 'GIVEN') balance += amount;
+        else if (tx.type === 'RECEIVED') balance -= amount;
+        else if (tx.type === 'RETURNED') {
+          if (tx.returnDirection === 'TO_ME') balance -= amount;
+          else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
+        }
+      } else {
+        // Perspective flipping for shared transactions
+        if (tx.type === 'GIVEN')
+          balance -= amount; // They gave to me -> I received
+        else if (tx.type === 'RECEIVED')
+          balance += amount; // They received from me -> I gave
+        else if (tx.type === 'RETURNED') {
+          if (tx.returnDirection === 'TO_ME')
+            balance += amount; // They got it back -> I returned to contact
+          else if (tx.returnDirection === 'TO_CONTACT') balance -= amount; // They returned to me -> I got it back
+        }
       }
-      // standalone GIFT (no parent) does not affect debt; ignored for balance
     }
 
     return balance;
@@ -233,5 +288,17 @@ export class ContactsService {
       message: 'Invitation sent successfully',
       invitation,
     };
+  }
+
+  async linkContactsForUser(userId: string, email: string) {
+    return this.prisma.contact.updateMany({
+      where: {
+        email,
+        linkedUserId: null,
+      },
+      data: {
+        linkedUserId: userId,
+      },
+    });
   }
 }

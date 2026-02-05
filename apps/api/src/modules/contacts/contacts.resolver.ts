@@ -52,8 +52,8 @@ export class ContactsResolver {
   }
 
   @ResolveField(() => Number)
-  async balance(@Parent() contact: Contact) {
-    return this.contactsService.getBalance(contact.id);
+  async balance(@Parent() contact: Contact, @CurrentUser() user: User) {
+    return this.contactsService.getBalance(contact.id, user.id);
   }
 
   @ResolveField(() => Boolean)

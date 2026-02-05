@@ -1,41 +1,40 @@
-import { useState, useMemo, useRef, useId } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Rectangle,
-  Sector,
-} from "recharts";
 import { format } from "date-fns";
+import html2canvas from "html2canvas";
 import {
   BarChart3,
+  ChevronDown,
+  FileSpreadsheet,
+  Image as ImageIcon,
   PieChart as PieChartIcon,
   Table as TableIcon,
-  Image as ImageIcon,
-  FileSpreadsheet,
-  ChevronDown,
 } from "lucide-react";
-import html2canvas from "html2canvas";
 import Papa from "papaparse";
+import { useId, useMemo, useRef, useState } from "react";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Pie,
+  PieChart,
+  Rectangle,
+  ResponsiveContainer,
+  Sector,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import * as XLSX from "xlsx";
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { BrandLoader } from "@/components/ui/page-loader";
 import {
   Select,
   SelectContent,
@@ -43,15 +42,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionsGroupedByContact } from "@/hooks/useTransactionsGrouped";
+import { formatCurrency } from "@/lib/utils/formatters";
 import {
-  TransactionType,
   type FilterTransactionInput,
   type TransactionsGroupedByContactQuery,
+  TransactionType,
 } from "@/types/__generated__/graphql";
-import { formatCurrency } from "@/lib/utils/formatters";
-import { BrandLoader } from "@/components/ui/page-loader";
 
 export function TransactionCharts() {
   const [filter, setFilter] = useState<FilterTransactionInput>({});
@@ -61,6 +60,7 @@ export function TransactionCharts() {
   const startDateId = useId();
   const endDateId = useId();
   const currencyId = useId();
+  const summaryCurrencyId = useId();
   const minAmountId = useId();
   const typeId = useId();
 
@@ -103,25 +103,25 @@ export function TransactionCharts() {
       {
         name: "Gift Given",
         value: totalSummary.totalGiftGiven,
-        fill: "#8b5cf6",
+        fill: "#ec4899",
         gradientId: "colorGiftGiven",
       },
       {
         name: "Gift Received",
         value: totalSummary.totalGiftReceived,
-        fill: "#ec4899",
+        fill: "#8b5cf6",
         gradientId: "colorGiftReceived",
       },
       {
         name: "Returned (Me)",
         value: totalSummary.totalReturnedToMe,
-        fill: "#059669",
+        fill: "#10b981",
         gradientId: "colorRetMe",
       },
       {
         name: "Returned (Other)",
         value: totalSummary.totalReturnedToOther,
-        fill: "#be123c",
+        fill: "#3b82f6",
         gradientId: "colorRetOther",
       },
     ]
@@ -249,7 +249,7 @@ export function TransactionCharts() {
             </div>
             <div className="space-y-2">
               <label htmlFor={currencyId} className="text-sm font-medium">
-                Currency
+                Filter Currency
               </label>
               <Select
                 value={filter.currency || "ALL"}
@@ -262,6 +262,28 @@ export function TransactionCharts() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ALL">All Currencies</SelectItem>
+                  <SelectItem value="NGN">NGN (₦)</SelectItem>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                  <SelectItem value="CAD">CAD ($)</SelectItem>
+                  <SelectItem value="AED">AED (د.إ)</SelectItem>
+                  <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label htmlFor={summaryCurrencyId} className="text-sm font-medium">
+                Summary Currency
+              </label>
+              <Select
+                value={filter.summaryCurrency || "NGN"}
+                onValueChange={(value) => setFilter({ ...filter, summaryCurrency: value })}
+              >
+                <SelectTrigger id={summaryCurrencyId}>
+                  <SelectValue placeholder="Summary Currency" />
+                </SelectTrigger>
+                <SelectContent>
                   <SelectItem value="NGN">NGN (₦)</SelectItem>
                   <SelectItem value="USD">USD ($)</SelectItem>
                   <SelectItem value="EUR">EUR (€)</SelectItem>
@@ -404,10 +426,20 @@ export function TransactionCharts() {
                           tick={{ fill: "currentColor", fontSize: 12, fontWeight: 500 }}
                           tickLine={false}
                           axisLine={false}
-                          tickFormatter={(val) => `₦${val >= 1000 ? `${val / 1000}k` : val}`}
+                          tickFormatter={(val) => {
+                            const currencySymbol =
+                              filter.currency === "USD"
+                                ? "$"
+                                : filter.currency === "GBP"
+                                  ? "£"
+                                  : filter.currency === "EUR"
+                                    ? "€"
+                                    : "₦";
+                            return `${currencySymbol}${val >= 1000 ? `${(val / 1000).toFixed(1)}k` : val}`;
+                          }}
                           className="text-foreground"
                           label={{
-                            value: "Amount (₦)",
+                            value: `Amount (${filter.currency || "NGN"})`,
                             angle: -90,
                             position: "insideLeft",
                             offset: -5,

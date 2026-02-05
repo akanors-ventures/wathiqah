@@ -1,7 +1,14 @@
-import { format } from "date-fns";
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, CheckCircle2, Package } from "lucide-react";
-import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { format } from "date-fns";
+import {
+  ArrowDownLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Calendar,
+  CheckCircle2,
+  Package,
+} from "lucide-react";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,56 +75,85 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
         </Select>
       </div>
 
-      <div className="hidden md:block rounded-md border">
+      <div className="hidden md:block rounded-3xl border border-border/50 bg-card overflow-hidden shadow-sm">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Item</TableHead>
-              <TableHead>Contact</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Last Updated</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+            <TableRow className="bg-muted/30 border-b border-border/30">
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12 pl-6">
+                Item
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                Contact
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                Status
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                Quantity
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                Last Updated
+              </TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12 text-right pr-6">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground font-medium"
+                >
                   Loading items...
                 </TableCell>
               </TableRow>
             ) : filteredItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  No items found.
+                <TableCell
+                  colSpan={6}
+                  className="h-32 text-center text-muted-foreground font-medium italic"
+                >
+                  No items found matching your criteria.
                 </TableCell>
               </TableRow>
             ) : (
               filteredItems.map((item) => (
                 <TableRow
                   key={item.id}
-                  className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                  className="cursor-pointer hover:bg-primary/[0.02] transition-colors group border-b border-border/20"
                   onClick={() => navigate({ to: "/transactions/$id", params: { id: item.id } })}
                 >
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-muted-foreground" />
-                      {item.itemName}
+                  <TableCell className="pl-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                        <Package className="h-4 w-4" />
+                      </div>
+                      <span className="font-bold text-sm tracking-tight group-hover:text-primary transition-colors">
+                        {item.itemName}
+                      </span>
                     </div>
                   </TableCell>
-                  <TableCell>{item.contactName}</TableCell>
+                  <TableCell className="text-sm font-medium text-muted-foreground">
+                    {item.contactName}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={item.status} />
                   </TableCell>
-                  <TableCell>{item.quantity}</TableCell>
-                  <TableCell>{format(new Date(item.lastUpdated), "MMM d, yyyy")}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end items-center gap-2">
+                  <TableCell className="text-sm font-black tracking-tight">
+                    {item.quantity}
+                  </TableCell>
+                  <TableCell className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    {format(new Date(item.lastUpdated), "MMM d, yyyy")}
+                  </TableCell>
+                  <TableCell className="text-right pr-6">
+                    <div className="flex justify-end items-center gap-3">
                       {item.status !== "RETURNED" && (
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-8 rounded-lg text-[10px] font-black uppercase tracking-widest px-3 border border-transparent hover:border-primary/20 hover:bg-primary/5 hover:text-primary transition-all"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedItem(item);
@@ -126,8 +162,8 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
                           Mark Returned
                         </Button>
                       )}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 group-hover:translate-x-1">
+                        <ArrowRight className="h-4 w-4 text-primary" />
                       </div>
                     </div>
                   </TableCell>
@@ -152,45 +188,58 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
             <button
               type="button"
               key={item.id}
-              className="w-full text-left bg-card rounded-lg border p-4 active:scale-[0.98] transition-transform cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="group relative w-full text-left bg-card rounded-3xl border border-border/50 p-5 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/30 cursor-pointer overflow-hidden"
               onClick={() => navigate({ to: "/transactions/$id", params: { id: item.id } })}
             >
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Package className="h-4 w-4 text-primary" />
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-primary/5 rounded-2xl text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:scale-110 group-hover:-rotate-3">
+                      <Package className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-extrabold text-base text-foreground group-hover:text-primary transition-colors truncate tracking-tight">
+                        {item.itemName}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
+                        {item.contactName}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-foreground">{item.itemName}</h3>
-                    <p className="text-xs text-muted-foreground">{item.contactName}</p>
+                  <div className="shrink-0">
+                    <StatusBadge status={item.status} />
                   </div>
                 </div>
-                <StatusBadge status={item.status} />
-              </div>
 
-              <div className="flex justify-between items-end">
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">
-                    Quantity: <span className="text-foreground font-medium">{item.quantity}</span>
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    Updated: {format(new Date(item.lastUpdated), "MMM d, yyyy")}
-                  </p>
+                <div className="flex justify-between items-end pt-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                        Quantity
+                      </span>
+                      <span className="text-sm font-black text-foreground">{item.quantity}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
+                      <Calendar className="w-3 h-3 opacity-60" />
+                      {format(new Date(item.lastUpdated), "MMM d, yyyy")}
+                    </div>
+                  </div>
+                  {item.status !== "RETURNED" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-9 rounded-xl text-[10px] font-black uppercase tracking-widest px-4 border border-transparent hover:border-primary/20 hover:bg-primary/5 hover:text-primary transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedItem(item);
+                      }}
+                    >
+                      Mark Returned
+                    </Button>
+                  )}
                 </div>
-                {item.status !== "RETURNED" && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 text-xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedItem(item);
-                    }}
-                  >
-                    Mark Returned
-                  </Button>
-                )}
               </div>
+              <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors duration-500" />
             </button>
           ))
         )}

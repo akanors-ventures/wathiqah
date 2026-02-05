@@ -26,7 +26,7 @@ The **Witness System** adds accountability and trust to financial transactions b
    - Immediate access to witness the transaction
 
 2. **Acknowledge Transactions**:
-   - View transaction details (amount, date, description)
+   - View transaction details (amount, date, description, and direction-aware type)
    - Choose to Acknowledge or Decline
    - See all pending witness requests in one place
 
@@ -150,6 +150,7 @@ The witness system provides:
 
 - ✅ **Accountability**: Third-party verification
 - ✅ **Trust**: Transparent record-keeping
+- ✅ **Shared Ledger**: Automatic synchronization with platform users
 - ✅ **Peace of Mind**: Clear documentation
 - ✅ **Dispute Resolution**: Evidence if disagreements arise
 

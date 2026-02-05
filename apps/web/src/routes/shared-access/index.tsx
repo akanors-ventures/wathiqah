@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useSharedAccess } from "@/hooks/useSharedAccess";
 
+import { authGuard } from "@/utils/auth";
+
 export const Route = createFileRoute("/shared-access/")({
   component: SharedAccessIndex,
+  beforeLoad: (ctx) => authGuard({ location: ctx.location }),
 });
 
 function SharedAccessIndex() {

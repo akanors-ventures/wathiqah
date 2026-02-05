@@ -1,12 +1,11 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { CheckCircle2 } from "lucide-react";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/ui/password-input";
 import { BrandLoader } from "@/components/ui/page-loader";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/hooks/use-auth";
 import { isAuthenticated } from "@/utils/auth";
 
@@ -23,10 +22,10 @@ export const Route = createFileRoute("/signup")({
 
 function SignupComponent() {
   const { signup, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,8 +38,11 @@ function SignupComponent() {
         setIsLoading(false);
         return;
       }
-      setIsSuccess(true);
       toast.success("Account created successfully!");
+      navigate({
+        to: "/signup-success",
+        search: { email, name },
+      });
     } catch (err) {
       console.error("Signup error:", err);
       if (err instanceof Error) {
@@ -58,31 +60,6 @@ function SignupComponent() {
     return (
       <div className="flex flex-1 items-center justify-center bg-background p-4">
         <BrandLoader size="lg" />
-      </div>
-    );
-  }
-
-  if (isSuccess) {
-    return (
-      <div className="flex flex-1 items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-lg shadow-lg border border-border text-center">
-          <div className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-            <CheckCircle2 className="w-6 h-6 text-primary" />
-          </div>
-          <h2 className="text-2xl font-bold text-foreground">Verify your email</h2>
-          <p className="text-muted-foreground">
-            We've sent a verification link to <strong>{email}</strong>. Please check your inbox to
-            activate your account.
-          </p>
-          <Button
-            asChild
-            className="w-full mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            <Link to="/login" search={{ redirectTo: undefined }}>
-              Go to Login
-            </Link>
-          </Button>
-        </div>
       </div>
     );
   }

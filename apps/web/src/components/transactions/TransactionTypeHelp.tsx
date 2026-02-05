@@ -53,8 +53,17 @@ export function TransactionTypeHelp() {
                   <span className="font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded text-[10px] border border-emerald-100 dark:border-emerald-900/30">
                     RETURNED
                   </span>
+                  <span className="text-[10px] font-bold text-emerald-600/80 uppercase tracking-tight">
+                    Repayment
+                  </span>
                 </div>
-                <p>Repayments or assets returned between you and a contact.</p>
+                <p>
+                  Repayments or assets returned.{" "}
+                  <span className="text-emerald-600 font-medium">To Me</span> (Emerald/+) indicates
+                  assets coming back to you.{" "}
+                  <span className="text-blue-600 font-medium">To Contact</span> (Blue/-) indicates
+                  you paying back a debt.
+                </p>
               </div>
 
               <div className="space-y-1">
@@ -62,8 +71,16 @@ export function TransactionTypeHelp() {
                   <span className="font-medium text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-1.5 py-0.5 rounded text-[10px] border border-purple-100 dark:border-purple-900/30">
                     GIFT
                   </span>
+                  <span className="text-[10px] font-bold text-purple-600/80 uppercase tracking-tight">
+                    Non-Balance Affecting
+                  </span>
                 </div>
-                <p>Assets given or received as a gift (does not affect net balance).</p>
+                <p>
+                  Assets given or received as a gift.{" "}
+                  <span className="text-purple-600 font-medium">Received</span> (Purple/+) for gifts
+                  you get. <span className="text-pink-600 font-medium">Given</span> (Pink/-) for
+                  gifts you give out.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 pt-2 border-t mt-1">

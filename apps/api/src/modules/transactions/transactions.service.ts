@@ -13,8 +13,8 @@ import {
   AssetCategory,
   WitnessStatus,
   TransactionStatus,
+  TransactionType,
   Prisma,
-  Witness,
 } from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
@@ -24,8 +24,9 @@ import { ConfigService } from '@nestjs/config';
 import * as ms from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
-import { splitName } from '../../common/utils/string.utils';
+import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
+import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 
 @Injectable()
 export class TransactionsService {
@@ -34,6 +35,7 @@ export class TransactionsService {
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
+    private readonly exchangeRateService: ExchangeRateService,
   ) {}
 
   private async processWitnesses(
@@ -51,6 +53,14 @@ export class TransactionsService {
           status: WitnessStatus.PENDING,
         })),
         skipDuplicates: true,
+      });
+
+      // Since createManyAndReturn doesn't support include for relations in some Prisma versions
+      // or might have issues, we fetch the witness info separately for notifications
+      const witnessDetails = await prisma.witness.findMany({
+        where: {
+          id: { in: witnesses.map((w) => w.id) },
+        },
         include: {
           user: {
             select: {
@@ -63,7 +73,7 @@ export class TransactionsService {
         },
       });
 
-      for (const witness of witnesses) {
+      for (const witness of witnessDetails) {
         const rawToken = uuidv4();
         const hashedToken = hashToken(rawToken);
 
@@ -89,9 +99,10 @@ export class TransactionsService {
     // Handle new user invites
     if (witnessInvites && witnessInvites.length > 0) {
       for (const invite of witnessInvites) {
+        const normalizedEmail = normalizeEmail(invite.email);
         // Check if user already exists by email
         let user = await prisma.user.findUnique({
-          where: { email: invite.email },
+          where: { email: normalizedEmail },
         });
 
         // If not, create a placeholder user
@@ -99,7 +110,7 @@ export class TransactionsService {
           const { firstName, lastName } = splitName(invite.name);
           user = await prisma.user.create({
             data: {
-              email: invite.email,
+              email: normalizedEmail,
               firstName,
               lastName,
               phoneNumber: invite.phoneNumber,
@@ -118,24 +129,19 @@ export class TransactionsService {
           },
         });
 
-        let witness: Witness = undefined;
+        let witnessId: string;
         if (!existingWitness) {
           // Create witness record WITHOUT invite token first (we'll store it in Redis)
-          witness = await prisma.witness.create({
+          const newWitness = await prisma.witness.create({
             data: {
               transactionId,
               userId: user.id,
               status: WitnessStatus.PENDING,
             },
           });
-        } else if (
-          existingWitness &&
-          existingWitness.status === WitnessStatus.PENDING
-        ) {
-          // Check if we have a valid phone number from the User record if not in invite
-          // We need to retrieve the existing token or create a new one if it expired.
-          // Since we don't easily have the token if it's hashed in Redis,
-          // simplest for re-invite is to generate a new token.
+          witnessId = newWitness.id;
+        } else {
+          witnessId = existingWitness.id;
         }
         // Generate secure token and hash it
         const rawToken = uuidv4();
@@ -145,7 +151,7 @@ export class TransactionsService {
         // TTL: 7 days (604800000 ms) by default
         await this.cacheManager.set(
           `invite:${hashedToken}`,
-          witness.id || existingWitness.id,
+          witnessId,
           ms(
             this.configService.getOrThrow<string>(
               'auth.inviteTokenExpiry',
@@ -154,16 +160,9 @@ export class TransactionsService {
         );
 
         const targetPhoneNumber = invite.phoneNumber || user.phoneNumber;
-        const targetEmail = invite.email || user.email;
+        const targetEmail = normalizedEmail || user.email;
         const { firstName } = splitName(invite.name);
         const targetName = firstName || user.firstName;
-
-        await this.notificationService.sendTransactionWitnessInvite(
-          targetEmail,
-          targetName,
-          rawToken,
-          targetPhoneNumber,
-        );
 
         await this.notificationService.sendTransactionWitnessInvite(
           targetEmail,
@@ -237,6 +236,23 @@ export class TransactionsService {
         ) {
           throw new BadRequestException(
             'Gift conversion amount cannot exceed parent transaction amount',
+          );
+        }
+      }
+
+      // Validate contactId if provided
+      if (rest.contactId) {
+        const contact = await prisma.contact.findUnique({
+          where: { id: rest.contactId },
+        });
+
+        if (!contact) {
+          throw new NotFoundException(`Contact ${rest.contactId} not found`);
+        }
+
+        if (contact.userId !== userId) {
+          throw new ForbiddenException(
+            'Cannot create a transaction for a contact you do not own',
           );
         }
       }
@@ -324,18 +340,38 @@ export class TransactionsService {
 
   async findAll(userId: string, filter?: FilterTransactionInput) {
     const where: Prisma.TransactionWhereInput = {
-      createdById: userId,
+      OR: [{ createdById: userId }, { contact: { linkedUserId: userId } }],
     };
 
     if (filter) {
+      if (filter.contactId) {
+        const contact = await this.prisma.contact.findUnique({
+          where: { id: filter.contactId },
+        });
+
+        if (contact?.linkedUserId) {
+          // If we're filtering by a contact who is also a user,
+          // we want transactions we created with them OR transactions they created with us
+          where.OR = [
+            { createdById: userId, contactId: filter.contactId },
+            {
+              createdById: contact.linkedUserId,
+              contact: { linkedUserId: userId },
+            },
+          ];
+        } else {
+          // Regular contact, only transactions we created
+          delete where.OR;
+          where.createdById = userId;
+          where.contactId = filter.contactId;
+        }
+      }
+
       if (filter.types && filter.types.length > 0) {
         where.type = { in: filter.types };
       }
       if (filter.status) {
         where.status = filter.status;
-      }
-      if (filter.contactId) {
-        where.contactId = filter.contactId;
       }
       if (filter.currency) {
         where.currency = filter.currency;
@@ -353,18 +389,32 @@ export class TransactionsService {
         };
       }
       if (filter.search) {
-        where.OR = [
-          { description: { contains: filter.search, mode: 'insensitive' } },
-          { itemName: { contains: filter.search, mode: 'insensitive' } },
-          {
-            contact: {
-              OR: [
-                { firstName: { contains: filter.search, mode: 'insensitive' } },
-                { lastName: { contains: filter.search, mode: 'insensitive' } },
-              ],
+        const searchFilter = {
+          OR: [
+            { description: { contains: filter.search, mode: 'insensitive' } },
+            { itemName: { contains: filter.search, mode: 'insensitive' } },
+            {
+              contact: {
+                OR: [
+                  {
+                    firstName: { contains: filter.search, mode: 'insensitive' },
+                  },
+                  {
+                    lastName: { contains: filter.search, mode: 'insensitive' },
+                  },
+                ],
+              },
             },
-          },
-        ];
+          ],
+        };
+
+        // Combine search with existing where
+        const existingWhere = { ...where };
+        delete where.OR;
+        delete where.createdById;
+        delete where.contactId;
+
+        where.AND = [existingWhere, searchFilter as any];
       }
     }
 
@@ -377,6 +427,7 @@ export class TransactionsService {
       where,
       include: {
         contact: true,
+        createdBy: true,
         witnesses: {
           include: {
             user: true,
@@ -388,14 +439,69 @@ export class TransactionsService {
       },
     });
 
-    // Calculate summary respecting all filters
-    const summaryWhere: Prisma.TransactionWhereInput = {
-      ...where,
-    };
+    const transformedItems = items.map((item) => {
+      if (item.createdById === userId) return item;
 
-    const aggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'returnDirection'],
-      where: summaryWhere,
+      // Flip perspective for the contact
+      const transformed = { ...item };
+      if (item.type === TransactionType.GIVEN) {
+        transformed.type = TransactionType.RECEIVED;
+      } else if (item.type === TransactionType.RECEIVED) {
+        transformed.type = TransactionType.GIVEN;
+      } else if (item.type === TransactionType.RETURNED) {
+        transformed.returnDirection =
+          item.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      } else if (item.type === TransactionType.GIFT) {
+        transformed.returnDirection =
+          item.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      }
+      return transformed;
+    });
+
+    // Determine target currency for summary
+    let targetCurrency = filter?.summaryCurrency || filter?.currency;
+    if (!targetCurrency) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { preferredCurrency: true },
+      });
+      targetCurrency = user?.preferredCurrency || 'NGN';
+    }
+
+    const summary = await this.calculateConvertedSummary(
+      userId,
+      where,
+      targetCurrency,
+    );
+
+    return {
+      items: transformedItems,
+      summary,
+    };
+  }
+
+  private async calculateConvertedSummary(
+    userId: string,
+    where: Prisma.TransactionWhereInput,
+    targetCurrency: string,
+  ) {
+    // 1. Aggregations for transactions created by the user
+    const ownAggregations = await this.prisma.transaction.groupBy({
+      by: ['type', 'returnDirection', 'currency'],
+      where: { ...where, createdById: userId },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 2. Aggregations for transactions where user is the contact (flip required)
+    const contactAggregations = await this.prisma.transaction.groupBy({
+      by: ['type', 'returnDirection', 'currency'],
+      where: {
+        ...where,
+        createdById: { not: userId },
+        contact: { linkedUserId: userId },
+      },
       _sum: {
         amount: true,
       },
@@ -412,33 +518,62 @@ export class TransactionsService {
       totalGiftGiven: 0,
       totalGiftReceived: 0,
       netBalance: 0,
+      currency: targetCurrency,
     };
 
-    aggregations.forEach((agg) => {
+    // Process own transactions
+    for (const agg of ownAggregations) {
       const amount = Number(agg._sum.amount) || 0;
-      if (agg.type === 'GIVEN') {
-        summary.totalGiven += amount;
-      } else if (agg.type === 'RECEIVED') {
-        summary.totalReceived += amount;
-      } else if (agg.type === 'RETURNED') {
-        summary.totalReturned += amount;
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalReturnedToMe += amount;
-        } else {
-          summary.totalReturnedToOther += amount;
-        }
-      } else if (agg.type === 'EXPENSE') {
-        summary.totalExpense += amount;
-      } else if (agg.type === 'INCOME') {
-        summary.totalIncome += amount;
-      } else if (agg.type === 'GIFT') {
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalGiftReceived += amount;
-        } else {
-          summary.totalGiftGiven += amount;
-        }
+      if (amount === 0) continue;
+
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        agg.currency,
+        targetCurrency,
+      );
+
+      this.updateSummaryWithTransaction(
+        summary,
+        agg.type,
+        agg.returnDirection,
+        convertedAmount,
+      );
+    }
+
+    // Process contact transactions (with flip)
+    for (const agg of contactAggregations) {
+      const amount = Number(agg._sum.amount) || 0;
+      if (amount === 0) continue;
+
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        agg.currency,
+        targetCurrency,
+      );
+
+      // Flip type and returnDirection for perspective
+      let flippedType = agg.type;
+      let flippedReturnDirection = agg.returnDirection;
+
+      if (agg.type === TransactionType.GIVEN) {
+        flippedType = TransactionType.RECEIVED;
+      } else if (agg.type === TransactionType.RECEIVED) {
+        flippedType = TransactionType.GIVEN;
+      } else if (agg.type === TransactionType.RETURNED) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      } else if (agg.type === TransactionType.GIFT) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
       }
-    });
+
+      this.updateSummaryWithTransaction(
+        summary,
+        flippedType,
+        flippedReturnDirection,
+        convertedAmount,
+      );
+    }
 
     summary.netBalance =
       summary.totalIncome -
@@ -450,46 +585,97 @@ export class TransactionsService {
       summary.totalGiftReceived -
       summary.totalGiftGiven;
 
-    return {
-      items,
-      summary,
-    };
+    return summary;
+  }
+
+  private updateSummaryWithTransaction(
+    summary: any,
+    type: TransactionType,
+    returnDirection: string,
+    amount: number,
+  ) {
+    if (type === 'GIVEN') {
+      summary.totalGiven += amount;
+    } else if (type === 'RECEIVED') {
+      summary.totalReceived += amount;
+    } else if (type === 'RETURNED') {
+      summary.totalReturned += amount;
+      if (returnDirection === 'TO_ME') {
+        summary.totalReturnedToMe += amount;
+      } else {
+        summary.totalReturnedToOther += amount;
+      }
+    } else if (type === 'EXPENSE') {
+      summary.totalExpense += amount;
+    } else if (type === 'INCOME') {
+      summary.totalIncome += amount;
+    } else if (type === 'GIFT') {
+      if (returnDirection === 'TO_ME') {
+        summary.totalGiftReceived += amount;
+      } else {
+        summary.totalGiftGiven += amount;
+      }
+    }
   }
 
   async groupByContact(userId: string, filter?: FilterTransactionInput) {
-    const summaryWhere: Prisma.TransactionWhereInput = {
-      createdById: userId,
+    const baseWhere: Prisma.TransactionWhereInput = {
       status: { not: TransactionStatus.CANCELLED },
     };
 
     if (filter?.types && filter.types.length > 0) {
-      summaryWhere.type = { in: filter.types };
-    }
-    if (filter?.contactId) {
-      summaryWhere.contactId = filter.contactId;
+      baseWhere.type = { in: filter.types };
     }
     if (filter?.startDate || filter?.endDate) {
-      summaryWhere.date = {
+      baseWhere.date = {
         ...(filter.startDate && { gte: filter.startDate }),
         ...(filter.endDate && { lte: filter.endDate }),
       };
     }
     if (filter?.minAmount !== undefined || filter?.maxAmount !== undefined) {
-      summaryWhere.amount = {
+      baseWhere.amount = {
         ...(filter.minAmount !== undefined && { gte: filter.minAmount }),
         ...(filter.maxAmount !== undefined && { lte: filter.maxAmount }),
       };
     }
     if (filter?.search) {
-      summaryWhere.OR = [
+      baseWhere.OR = [
         { description: { contains: filter.search, mode: 'insensitive' } },
         { itemName: { contains: filter.search, mode: 'insensitive' } },
       ];
     }
 
-    const aggregations = await this.prisma.transaction.groupBy({
-      by: ['contactId', 'type', 'returnDirection'],
-      where: summaryWhere,
+    // Determine target currency for summary
+    let targetCurrency = filter?.summaryCurrency || filter?.currency;
+    if (!targetCurrency) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { preferredCurrency: true },
+      });
+      targetCurrency = user?.preferredCurrency || 'NGN';
+    }
+
+    // 1. Aggregations for transactions created by the user
+    const ownAggregations = await this.prisma.transaction.groupBy({
+      by: ['contactId', 'type', 'returnDirection', 'currency'],
+      where: {
+        ...baseWhere,
+        createdById: userId,
+        contactId: filter?.contactId || undefined,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 2. Aggregations for transactions where user is the contact (flip required)
+    const sharedAggregations = await this.prisma.transaction.groupBy({
+      by: ['createdById', 'type', 'returnDirection', 'currency'],
+      where: {
+        ...baseWhere,
+        createdById: { not: userId },
+        contact: { linkedUserId: userId },
+      },
       _sum: {
         amount: true,
       },
@@ -501,53 +687,98 @@ export class TransactionsService {
     });
 
     const contactMap = new Map(contacts.map((c) => [c.id, c]));
+    // Map linkedUserId to local contactId for shared transactions
+    const linkedUserContactMap = new Map(
+      contacts.filter((c) => c.linkedUserId).map((c) => [c.linkedUserId, c.id]),
+    );
 
     // Group aggregations by contactId
     const groupedByContact = new Map<string | null, any>();
 
-    aggregations.forEach((agg) => {
+    const getInitialSummary = () => ({
+      totalGiven: 0,
+      totalReceived: 0,
+      totalReturned: 0,
+      totalReturnedToMe: 0,
+      totalReturnedToOther: 0,
+      totalExpense: 0,
+      totalIncome: 0,
+      totalGiftGiven: 0,
+      totalGiftReceived: 0,
+      netBalance: 0,
+      currency: targetCurrency,
+    });
+
+    // Process own transactions
+    for (const agg of ownAggregations) {
       const contactId = agg.contactId;
       if (!groupedByContact.has(contactId)) {
-        groupedByContact.set(contactId, {
-          totalGiven: 0,
-          totalReceived: 0,
-          totalReturned: 0,
-          totalReturnedToMe: 0,
-          totalReturnedToOther: 0,
-          totalExpense: 0,
-          totalIncome: 0,
-          totalGiftGiven: 0,
-          totalGiftReceived: 0,
-          netBalance: 0,
-        });
+        groupedByContact.set(contactId, getInitialSummary());
       }
 
       const summary = groupedByContact.get(contactId);
       const amount = Number(agg._sum.amount) || 0;
+      if (amount === 0) continue;
 
-      if (agg.type === 'GIVEN') {
-        summary.totalGiven += amount;
-      } else if (agg.type === 'RECEIVED') {
-        summary.totalReceived += amount;
-      } else if (agg.type === 'RETURNED') {
-        summary.totalReturned += amount;
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalReturnedToMe += amount;
-        } else {
-          summary.totalReturnedToOther += amount;
-        }
-      } else if (agg.type === 'EXPENSE') {
-        summary.totalExpense += amount;
-      } else if (agg.type === 'INCOME') {
-        summary.totalIncome += amount;
-      } else if (agg.type === 'GIFT') {
-        if (agg.returnDirection === 'TO_ME') {
-          summary.totalGiftReceived += amount;
-        } else {
-          summary.totalGiftGiven += amount;
-        }
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        agg.currency,
+        targetCurrency,
+      );
+
+      this.updateSummaryWithTransaction(
+        summary,
+        agg.type,
+        agg.returnDirection,
+        convertedAmount,
+      );
+    }
+
+    // Process shared transactions (with flip)
+    for (const agg of sharedAggregations) {
+      // Find the local contact representing the creator
+      const contactId = linkedUserContactMap.get(agg.createdById) || null;
+
+      // If we are filtering by contactId and this shared transaction doesn't match, skip
+      if (filter?.contactId && contactId !== filter.contactId) continue;
+
+      if (!groupedByContact.has(contactId)) {
+        groupedByContact.set(contactId, getInitialSummary());
       }
-    });
+
+      const summary = groupedByContact.get(contactId);
+      const amount = Number(agg._sum.amount) || 0;
+      if (amount === 0) continue;
+
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        agg.currency,
+        targetCurrency,
+      );
+
+      // Flip perspective
+      let flippedType = agg.type;
+      let flippedReturnDirection = agg.returnDirection;
+
+      if (agg.type === TransactionType.GIVEN) {
+        flippedType = TransactionType.RECEIVED;
+      } else if (agg.type === TransactionType.RECEIVED) {
+        flippedType = TransactionType.GIVEN;
+      } else if (agg.type === TransactionType.RETURNED) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      } else if (agg.type === TransactionType.GIFT) {
+        flippedReturnDirection =
+          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
+      }
+
+      this.updateSummaryWithTransaction(
+        summary,
+        flippedType,
+        flippedReturnDirection,
+        convertedAmount,
+      );
+    }
 
     // Calculate net balance for each contact and format result
     const result = Array.from(groupedByContact.entries()).map(
@@ -710,6 +941,42 @@ export class TransactionsService {
       changeDescriptions.push('Contact updated');
     }
 
+    // Validate contactId if it's being updated
+    if (rest.contactId && rest.contactId !== transaction.contactId) {
+      const contact = await this.prisma.contact.findUnique({
+        where: { id: rest.contactId },
+      });
+
+      if (!contact) {
+        throw new NotFoundException(`Contact ${rest.contactId} not found`);
+      }
+
+      if (contact.userId !== userId) {
+        throw new ForbiddenException(
+          'Cannot assign a transaction to a contact you do not own',
+        );
+      }
+    }
+
+    // Validate parentId if it's being updated
+    if (rest.parentId && rest.parentId !== transaction.parentId) {
+      const parent = await this.prisma.transaction.findUnique({
+        where: { id: rest.parentId },
+      });
+
+      if (!parent) {
+        throw new NotFoundException(
+          `Parent transaction ${rest.parentId} not found`,
+        );
+      }
+
+      if (parent.createdById !== userId) {
+        throw new ForbiddenException(
+          'Cannot link to a transaction you do not own',
+        );
+      }
+    }
+
     const hasChanges = Object.keys(changes).length > 0;
 
     // Business Rule: Check if any witness has acknowledged
@@ -758,43 +1025,56 @@ export class TransactionsService {
       }
     }
 
-    // Perform update and create history record in a transaction
-    const [updatedTransaction] = await this.prisma.$transaction([
-      this.prisma.transaction.update({
-        where: { id },
-        data: {
-          ...(category && { category }),
-          amount:
-            category === AssetCategory.FUNDS
-              ? amount
-              : category === AssetCategory.ITEM
-                ? null
-                : amount,
-          itemName:
-            category === AssetCategory.ITEM
-              ? itemName
-              : category === AssetCategory.FUNDS
-                ? null
-                : itemName,
-          quantity:
-            category === AssetCategory.ITEM
-              ? quantity
-              : category === AssetCategory.FUNDS
-                ? null
-                : quantity,
-          ...rest,
-        },
-      }),
-      this.prisma.transactionHistory.create({
-        data: {
-          transactionId: id,
-          userId,
-          changeType: hasAcknowledgedWitness ? 'UPDATE_POST_ACK' : 'UPDATE',
-          previousState: previousState as any,
-          newState: changes,
-        },
-      }),
-    ]);
+    const updatedTransaction = await this.prisma.$transaction(
+      async (prisma) => {
+        const updated = await prisma.transaction.update({
+          where: { id },
+          data: {
+            ...(category && { category }),
+            amount:
+              category === AssetCategory.FUNDS
+                ? amount
+                : category === AssetCategory.ITEM
+                  ? null
+                  : amount,
+            itemName:
+              category === AssetCategory.ITEM
+                ? itemName
+                : category === AssetCategory.FUNDS
+                  ? null
+                  : itemName,
+            quantity:
+              category === AssetCategory.ITEM
+                ? quantity
+                : category === AssetCategory.FUNDS
+                  ? null
+                  : quantity,
+            ...rest,
+          },
+        });
+
+        await prisma.transactionHistory.create({
+          data: {
+            transactionId: id,
+            userId,
+            changeType: hasAcknowledgedWitness ? 'UPDATE_POST_ACK' : 'UPDATE',
+            previousState: previousState as any,
+            newState: changes,
+          },
+        });
+
+        if (witnessUserIds || witnessInvites) {
+          await this.processWitnesses(
+            id,
+            witnessUserIds,
+            witnessInvites,
+            prisma as any,
+          );
+        }
+
+        return updated;
+      },
+    );
 
     return updatedTransaction;
   }

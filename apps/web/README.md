@@ -71,6 +71,7 @@ src/
 ## ✨ Key Features
 
 - **Dashboard**: Overview of net balance, recent transactions, and upcoming promises.
+- **Onboarding Flow**: Celebratory post-signup success page and robust email verification landing.
 - **Transactions**: Record and view history of funds/items exchanged.
 - **Contacts**: Manage people you interact with.
 - **Witnesses**: Invite and manage witnesses for transactions.

@@ -27,5 +27,8 @@ export class User {
   isEmailVerified: boolean;
 
   @Field()
+  preferredCurrency: string;
+
+  @Field()
   createdAt: Date;
 }

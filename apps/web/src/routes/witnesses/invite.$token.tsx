@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +9,7 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/hooks/use-auth";
 import { useAcknowledgeWitness, useWitnessInvitation } from "@/hooks/useWitnesses";
-import { WitnessStatus } from "@/types/__generated__/graphql";
+import { ReturnDirection, TransactionType, WitnessStatus } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/witnesses/invite/$token")({
   component: InviteComponent,
@@ -49,6 +50,23 @@ function InviteComponent() {
   }
 
   const { transaction, user: invitedUser } = witnessInvitation;
+
+  if (!transaction || !invitedUser) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-950">
+        <div className="text-center max-w-md p-6 bg-white dark:bg-neutral-900 rounded-lg shadow">
+          <h2 className="text-xl font-bold text-red-500 mb-2">Data Error</h2>
+          <p className="text-neutral-600 dark:text-neutral-400">
+            Could not retrieve transaction or user details.
+          </p>
+          <Button className="mt-4" onClick={() => navigate({ to: "/" })}>
+            Go Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const isExistingUser = !!invitedUser.passwordHash;
   const isCurrentUserInvited = currentUser?.email === invitedUser.email;
 
@@ -83,6 +101,41 @@ function InviteComponent() {
     }
   };
 
+  const getTypeStyles = () => {
+    const type = transaction.type as TransactionType;
+    const returnDirection = transaction.returnDirection as ReturnDirection;
+
+    switch (type) {
+      case TransactionType.Received:
+        return "text-red-600 border-red-200 bg-red-50";
+      case TransactionType.Given:
+        return "text-blue-600 border-blue-200 bg-blue-50";
+      case TransactionType.Gift:
+        return returnDirection === ReturnDirection.ToMe
+          ? "text-purple-600 border-purple-200 bg-purple-50"
+          : "text-pink-600 border-pink-200 bg-pink-50";
+      case TransactionType.Returned:
+        return returnDirection === ReturnDirection.ToMe
+          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
+          : "text-blue-600 border-blue-200 bg-blue-50";
+      default:
+        return "text-neutral-600 border-neutral-200 bg-neutral-50";
+    }
+  };
+
+  const getTypeLabel = () => {
+    const type = transaction.type as TransactionType;
+    const returnDirection = transaction.returnDirection as ReturnDirection;
+
+    if (type === TransactionType.Gift) {
+      return returnDirection === ReturnDirection.ToMe ? "Gift Received" : "Gift Given";
+    }
+    if (type === TransactionType.Returned) {
+      return returnDirection === ReturnDirection.ToMe ? "Returned to Me" : "Returned to Contact";
+    }
+    return type;
+  };
+
   return (
     <div className="flex flex-1 items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
       <div className="w-full max-w-lg space-y-8 bg-white dark:bg-neutral-900 p-8 rounded-lg shadow-lg border border-neutral-200 dark:border-neutral-800">
@@ -91,23 +144,23 @@ function InviteComponent() {
             Witness Invitation
           </h2>
           <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-            {transaction.createdBy.name} has invited you to witness a transaction.
+            {transaction.createdBy?.name} has invited you to witness a transaction.
           </p>
         </div>
 
         {/* Transaction Details Card */}
         <div className="bg-neutral-100 dark:bg-neutral-800 p-6 rounded-md space-y-3">
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-neutral-500">Amount</span>
             <span className="font-bold text-lg text-neutral-900 dark:text-neutral-50">
               {transaction.amount ? `₦${transaction.amount}` : "N/A"}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-sm font-medium text-neutral-500">Type</span>
-            <span className="font-medium text-neutral-900 dark:text-neutral-50">
-              {transaction.type}
-            </span>
+            <Badge variant="outline" className={getTypeStyles()}>
+              {getTypeLabel()}
+            </Badge>
           </div>
           <div className="flex justify-between">
             <span className="text-sm font-medium text-neutral-500">Date</span>
@@ -132,7 +185,11 @@ function InviteComponent() {
               <p className="text-blue-700 dark:text-blue-300 font-medium">
                 You have already {witnessInvitation.status.toLowerCase()} this transaction.
               </p>
-              <Button className="mt-4" variant="outline" onClick={() => navigate({ to: "/" })}>
+              <Button
+                className="mt-4"
+                variant="outline"
+                onClick={() => navigate({ to: "/", search: {} })}
+              >
                 Go to Dashboard
               </Button>
             </div>
@@ -164,7 +221,7 @@ function InviteComponent() {
                     : " Please log in to respond."}
                 </p>
                 <Button
-                  onClick={() => navigate({ to: "/login" })}
+                  onClick={() => navigate({ to: "/login", search: { redirectTo: undefined } })}
                   variant="outline"
                   className="w-full"
                 >

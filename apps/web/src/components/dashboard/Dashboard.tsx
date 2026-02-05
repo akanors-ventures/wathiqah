@@ -1,41 +1,55 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  CalendarClock,
-  CreditCard,
-  FileCheck,
-  Package,
-  Users,
-} from "lucide-react";
+import { CalendarClock, CreditCard, FileCheck, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/use-auth";
+import { useBalance } from "@/hooks/useBalance";
 import { useContacts } from "@/hooks/useContacts";
 import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
-import { formatCurrency } from "@/lib/utils/formatters";
-import { AssetCategory } from "@/types/__generated__/graphql";
 import { LedgerPhilosophy } from "./LedgerPhilosophy";
+import { StatsCard } from "./StatsCard";
 
 export function Dashboard() {
-  const navigate = useNavigate();
-  const { transactions, loading: loadingTx, summary } = useTransactions();
+  const { user } = useAuth();
+  const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (user?.preferredCurrency) {
+      setSelectedCurrency(user.preferredCurrency);
+    }
+  }, [user?.preferredCurrency]);
+
+  const { transactions, loading: loadingTx } = useTransactions();
   const { contacts, loading: loadingContacts } = useContacts();
+  const { balance, loading: loadingBalance } = useBalance(selectedCurrency);
   const { requests: witnessRequests, loading: loadingWitnesses } = useMyWitnessRequests();
   const { promises, loading: loadingPromises } = usePromises();
 
-  const loading = loadingTx || loadingContacts || loadingWitnesses || loadingPromises;
+  const loading =
+    loadingTx || loadingContacts || loadingWitnesses || loadingPromises || loadingBalance;
 
   // Calculate Stats
-  const totalBalance = summary?.netBalance || 0;
+  const totalBalance = balance?.netBalance || 0;
+  const balanceCurrency = balance?.currency || "NGN";
   const isDebtByRule = totalBalance < 0;
   const activePromises = promises.filter((p) => p.status === "PENDING").length;
   const pendingWitnessRequests = witnessRequests.length;
   const totalContacts = contacts.length;
+  const currencies = ["NGN", "USD", "EUR", "GBP", "CAD", "AED", "SAR"];
 
   const recentTransactions = transactions.slice(0, 5);
 
@@ -50,15 +64,20 @@ export function Dashboard() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
-            Your personal ledger for loans, promises, and shared expenses.
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-black tracking-tight text-foreground capitalize">
+            Dashboard
+          </h1>
+          <p className="text-sm text-muted-foreground font-medium capitalize tracking-tight opacity-70">
+            Personal ledger for loans, promises, and shared expenses
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild>
+        <div className="flex gap-3">
+          <Button
+            asChild
+            className="h-12 px-8 rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
             <Link to="/transactions/new" search={{ contactId: undefined }}>
               New Transaction
             </Link>
@@ -70,10 +89,27 @@ export function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Balance"
+          extra={
+            <Select
+              value={selectedCurrency || balanceCurrency}
+              onValueChange={(v) => setSelectedCurrency(v)}
+            >
+              <SelectTrigger className="h-7 w-[80px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0">
+                <SelectValue placeholder="NGN" />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((c) => (
+                  <SelectItem key={c} value={c} className="text-xs">
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
           value={
             <BalanceIndicator
               amount={totalBalance}
-              currency="NGN"
+              currency={balanceCurrency}
               overrideColor={isDebtByRule ? "red" : "green"}
               className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
             />
@@ -110,44 +146,67 @@ export function Dashboard() {
         </div>
 
         {/* Quick Actions / Recent Promises */}
-        <Card className="lg:col-span-3 h-full">
-          <CardHeader>
-            <CardTitle>Your Promises</CardTitle>
+        <Card className="lg:col-span-3 h-full rounded-[24px] border-border/50 overflow-hidden group/promises transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+          <CardHeader className="pb-4 p-5">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-bold capitalize tracking-tight text-muted-foreground group-hover/promises:text-primary transition-colors">
+                Your promises
+              </CardTitle>
+              <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover/promises:bg-primary group-hover/promises:text-primary-foreground transition-all duration-500 shadow-sm group-hover/promises:-rotate-3">
+                <CalendarClock className="w-5 h-5" />
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-5 pt-0">
+            <div className="space-y-3">
               {promises
                 .filter((p) => p.status === "PENDING")
                 .slice(0, 5)
                 .map((promise) => (
                   <div
                     key={promise.id}
-                    className="flex items-start justify-between border-b last:border-0 pb-4 last:pb-0"
+                    className="flex items-start justify-between p-4 rounded-2xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-background/50 transition-all duration-500 group/promise relative overflow-hidden"
                   >
-                    <div>
-                      <p className="text-sm font-medium">To: {promise.promiseTo}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">
+                    <div className="min-w-0 flex-1 pr-4 relative z-10">
+                      <p className="text-[10px] font-bold text-muted-foreground capitalize tracking-tight mb-0.5 opacity-60">
+                        To: {promise.promiseTo}
+                      </p>
+                      <p className="text-sm font-bold text-foreground truncate group-hover/promise:text-primary transition-colors tracking-tight">
                         {promise.description}
                       </p>
                     </div>
-                    <div className="text-xs text-muted-foreground text-right">
+                    <div className="text-[10px] font-bold capitalize tracking-tight text-primary bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/10 shadow-sm relative z-10">
                       {format(new Date(promise.dueDate as string), "MMM d")}
                     </div>
+                    {/* Hover decorative element */}
+                    <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.02] to-transparent translate-x-full group-hover/promise:translate-x-0 transition-transform duration-700" />
                   </div>
                 ))}
               {promises.filter((p) => p.status === "PENDING").length === 0 && (
-                <div className="text-center py-8">
-                  <p className="text-sm text-muted-foreground mb-4">
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover/promises:scale-110 transition-transform duration-700">
+                    <CalendarClock className="w-8 h-8 text-primary/30" />
+                  </div>
+                  <p className="text-[11px] font-bold text-muted-foreground capitalize tracking-tight mb-4 opacity-60">
                     No pending promises. Good job!
                   </p>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="rounded-full font-bold capitalize tracking-tight text-[11px] h-9 px-6 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                  >
                     <Link to="/promises">Make a Promise</Link>
                   </Button>
                 </div>
               )}
               {promises.filter((p) => p.status === "PENDING").length > 0 && (
-                <Button variant="outline" className="w-full" asChild>
-                  <Link to="/promises">View All Promises</Link>
+                <Button
+                  variant="outline"
+                  className="w-full rounded-xl font-bold capitalize tracking-tight text-[11px] h-10 mt-2 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all shadow-sm"
+                  asChild
+                >
+                  <Link to="/promises">View all promises</Link>
                 </Button>
               )}
             </div>
@@ -156,101 +215,52 @@ export function Dashboard() {
       </div>
 
       {/* Recent Activity - Full Width at Bottom */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+      <Card className="rounded-[24px] border-border/50 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+        <CardHeader className="flex flex-row items-center justify-between pb-6 p-6">
           <div>
-            <CardTitle>Recent Activity</CardTitle>
-            <p className="text-sm text-muted-foreground mt-1">
+            <CardTitle className="text-xl font-bold tracking-tight capitalize">
+              Recent activity
+            </CardTitle>
+            <p className="text-xs text-muted-foreground font-medium mt-1">
               Your latest financial interactions across the platform.
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="rounded-full font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+          >
             <Link to="/transactions" search={{ tab: "funds" }}>
-              View All History
+              View all history
             </Link>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 pt-0">
           <div className="space-y-6">
             {recentTransactions.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-sm text-muted-foreground mb-4">
+                <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="w-8 h-8 text-primary/40" />
+                </div>
+                <p className="text-xs font-bold text-muted-foreground mb-4 capitalize">
                   No transactions yet. Start by recording a loan or expense.
                 </p>
-                <Button variant="outline" size="sm" asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="rounded-full font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                >
                   <Link to="/transactions/new" search={{ contactId: undefined }}>
-                    Record Transaction
+                    Record transaction
                   </Link>
                 </Button>
               </div>
             ) : (
-              <div className="grid gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
                 {recentTransactions.map((tx) => (
-                  <button
-                    type="button"
-                    key={tx.id}
-                    className="w-full text-left flex items-center justify-between p-4 rounded-xl border bg-card/50 hover:bg-card transition-all cursor-pointer active:scale-[0.99] group focus:outline-none focus:ring-2 focus:ring-primary/50"
-                    onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-full border ${
-                          tx.type === "GIVEN"
-                            ? "bg-blue-500/10 border-blue-500/20 text-blue-500"
-                            : tx.type === "RETURNED"
-                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500"
-                              : "bg-red-500/10 border-red-500/20 text-red-500"
-                        }`}
-                      >
-                        {tx.type === "GIVEN" || tx.type === "RETURNED" ? (
-                          <ArrowUpRight className="h-5 w-5" />
-                        ) : (
-                          <ArrowDownLeft className="h-5 w-5" />
-                        )}
-                      </div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold leading-none">{tx.contact?.name}</p>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted font-medium uppercase tracking-wider text-muted-foreground">
-                            {tx.type}
-                          </span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(tx.date as string), "MMMM d, yyyy")} •{" "}
-                          {tx.category === AssetCategory.Item ? (
-                            <span className="inline-flex items-center gap-1">
-                              <Package className="h-3 w-3" />
-                              {tx.quantity}x {tx.itemName}
-                            </span>
-                          ) : (
-                            tx.description || "No description"
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div
-                        className={`text-sm font-bold ${
-                          tx.category === AssetCategory.Item
-                            ? "text-muted-foreground"
-                            : tx.type === "GIVEN"
-                              ? "text-blue-500"
-                              : tx.type === "RETURNED"
-                                ? "text-emerald-500"
-                                : "text-red-500"
-                        }`}
-                      >
-                        {tx.category === AssetCategory.Item ? (
-                          <span className="text-xs italic font-normal">Physical Item</span>
-                        ) : (
-                          <>
-                            {tx.type === "GIVEN" || tx.type === "RETURNED" ? "+" : "-"}
-                            {formatCurrency(tx.amount, tx.currency)}
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </button>
+                  <TransactionCard key={tx.id} transaction={tx} />
                 ))}
               </div>
             )}
@@ -259,43 +269,6 @@ export function Dashboard() {
       </Card>
     </div>
   );
-}
-
-function StatsCard({
-  title,
-  value,
-  icon,
-  description,
-  link,
-}: {
-  title: string;
-  value: string | React.ReactNode;
-  icon: React.ReactNode;
-  description: string;
-  link?: string;
-}) {
-  const content = (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        {icon}
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
-  );
-
-  if (link) {
-    return (
-      <Link to={link} className="block transition-transform hover:scale-[1.02] active:scale-[0.98]">
-        {content}
-      </Link>
-    );
-  }
-
-  return content;
 }
 
 function DashboardSkeleton() {

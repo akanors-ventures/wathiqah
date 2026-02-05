@@ -49,7 +49,7 @@ export function ItemReturnModal({ item, open, onOpenChange, onSuccess }: ItemRet
         type,
         itemName: item.itemName,
         quantity,
-        date: new Date(), // Today
+        date: new Date().toISOString(), // Today
         contactId: item.contactId,
         description: `Returned: ${item.itemName}`,
       });
@@ -58,7 +58,6 @@ export function ItemReturnModal({ item, open, onOpenChange, onSuccess }: ItemRet
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
-      toast.error("Failed to return item");
       console.error(error);
     } finally {
       setLoading(false);

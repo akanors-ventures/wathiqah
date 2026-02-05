@@ -39,9 +39,18 @@ export const errorLink = (uri: string) =>
 
       // Skip refresh for login, logout, and refreshToken mutations to avoid infinite loops
       const operationName = operation.operationName || "";
-      const skipRefresh = ["Login", "Logout", "RefreshToken", "Signup", "VerifyEmail"].includes(
-        operationName,
-      );
+      const skipRefresh = [
+        "Login",
+        "Logout",
+        "RefreshToken",
+        "Signup",
+        "VerifyEmail",
+        "ForgotPassword",
+        "ResetPassword",
+        "ResendVerificationEmail",
+        "AcceptInvitation",
+        "features",
+      ].includes(operationName);
 
       error.errors.forEach(({ extensions, message, locations, path }) => {
         console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
@@ -121,6 +130,11 @@ export const errorLink = (uri: string) =>
           toast.error("A server error occurred. Please try again later.");
         } else if (code === "FORBIDDEN") {
           toast.error("You don't have permission to perform this action.");
+        } else if (code === "BAD_USER_INPUT" || code === "BAD_REQUEST") {
+          toast.error(message || "Invalid input. Please check your data.");
+        } else if (!skipRefresh && code !== "UNAUTHENTICATED" && code !== "UNAUTHORIZED") {
+          // General toast for other errors if not auth related (auth is handled above)
+          toast.error(message || "An error occurred");
         }
       });
 

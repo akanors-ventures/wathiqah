@@ -46,6 +46,7 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
+            <NavLink to="/features">Features</NavLink>
             <NavLink to="/transactions" search={{ tab: "funds" }}>
               Transactions
             </NavLink>
@@ -73,6 +74,12 @@ export default function Header() {
                   Apps & Features
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/features" className="cursor-pointer flex items-center">
+                    <LayoutGrid className="mr-2 h-4 w-4 text-primary" />
+                    <span>Features</span>
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
                     to="/transactions"

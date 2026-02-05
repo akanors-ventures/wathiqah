@@ -107,6 +107,7 @@ export const SHARED_DATA_QUERY: TypedDocumentNode<SharedDataQuery, SharedDataQue
         category
         itemName
         quantity
+        returnDirection
         contact {
           name
         }

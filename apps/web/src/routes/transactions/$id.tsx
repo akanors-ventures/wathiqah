@@ -1,28 +1,22 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { formatCurrency } from "@/lib/utils/formatters";
 import {
   ArrowLeft,
   Calendar,
+  Edit2,
   FileText,
   Gift,
   Package,
-  UserPlus,
-  Edit2,
   Trash2,
+  UserPlus,
 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
 import { TransactionWitnessList } from "@/components/transactions/TransactionWitnessList";
-import { Button } from "@/components/ui/button";
-import { PageLoader } from "@/components/ui/page-loader";
-import { useTransaction } from "@/hooks/useTransaction";
-import { useTransactions } from "@/hooks/useTransactions";
-import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
-import { authGuard } from "@/utils/auth";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +27,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { PageLoader } from "@/components/ui/page-loader";
+import { useTransaction } from "@/hooks/useTransaction";
+import { useTransactions } from "@/hooks/useTransactions";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
+import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/transactions/$id")({
   component: TransactionDetailPage,
@@ -113,10 +113,18 @@ function TransactionDetailPage() {
                 : currentTransaction.type === TransactionType.Received
                   ? "Received from"
                   : currentTransaction.type === TransactionType.Returned
-                    ? "Returned"
+                    ? currentTransaction.returnDirection === "TO_ME"
+                      ? "Returned to me by"
+                      : "Returned to"
                     : currentTransaction.type === TransactionType.Gift
-                      ? "Gift"
-                      : "Collected from"}{" "}
+                      ? currentTransaction.returnDirection === "TO_ME"
+                        ? "Gift received from"
+                        : "Gift given to"
+                      : currentTransaction.type === TransactionType.Income
+                        ? "Income from"
+                        : currentTransaction.type === TransactionType.Expense
+                          ? "Expense to"
+                          : "Collected from"}{" "}
               {currentTransaction.contact?.name || "Personal"}
             </h1>
             <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2">
@@ -152,10 +160,26 @@ function TransactionDetailPage() {
                     currentTransaction.type === "GIVEN"
                       ? "text-blue-600 dark:text-blue-400"
                       : currentTransaction.type === "RETURNED"
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-red-600 dark:text-red-400"
+                        ? currentTransaction.returnDirection === "TO_ME"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-blue-600 dark:text-blue-400"
+                        : currentTransaction.type === "INCOME"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : currentTransaction.type === "GIFT"
+                            ? currentTransaction.returnDirection === "TO_ME"
+                              ? "text-purple-600 dark:text-purple-400"
+                              : "text-pink-600 dark:text-pink-400"
+                            : "text-red-600 dark:text-red-400"
                   }`}
                 >
+                  {currentTransaction.type === "GIVEN" ||
+                  (currentTransaction.type === "RETURNED" &&
+                    currentTransaction.returnDirection === "TO_ME") ||
+                  currentTransaction.type === "INCOME" ||
+                  (currentTransaction.type === "GIFT" &&
+                    currentTransaction.returnDirection === "TO_ME")
+                    ? "+"
+                    : "-"}
                   {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
                 </div>
               )}

@@ -49,7 +49,10 @@ function ResetPasswordPage() {
       await resetPassword({ token, newPassword });
       setSuccess(true);
       setTimeout(() => {
-        navigate({ to: "/login" });
+        navigate({
+          to: "/login",
+          search: { redirectTo: undefined },
+        });
       }, 3000);
     } catch (err) {
       if (err instanceof Error) {

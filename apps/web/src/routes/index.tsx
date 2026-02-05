@@ -2,8 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   ArrowRightLeft,
-  Eye,
-  FileSignature,
   Handshake,
   History,
   Lock,
@@ -12,10 +10,10 @@ import {
   Wallet,
 } from "lucide-react";
 import { Dashboard } from "@/components/dashboard/Dashboard";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
-import { PageLoader } from "@/components/ui/page-loader";
 import { AppLogo } from "@/components/ui/app-logo";
+import { Button } from "@/components/ui/button";
+import { PageLoader } from "@/components/ui/page-loader";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
@@ -31,493 +29,279 @@ function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1 bg-background text-foreground">
+    <div className="flex flex-col flex-1 bg-background text-foreground overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-24 pb-32 overflow-hidden">
+      <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-5xl mx-auto text-center">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary mb-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              <span className="flex h-2 w-2 rounded-full bg-primary mr-2.5 animate-pulse"></span>
-              Now with Verified Witness Invitations
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-bold text-primary mb-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 shadow-sm">
+              <span className="flex h-2 w-2 rounded-full bg-primary mr-3 animate-pulse"></span>
+              Verified Financial Documentation
             </div>
-            <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-foreground mb-8 leading-[1.1]">
-              The Ledger of Trust for <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-500">
-                People and Items
+            <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-foreground mb-8 leading-[0.9]">
+              The Ledger <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-primary/80">
+                of Trust
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed font-light">
-              Track funds given and owed, manage lent or borrowed items, and verify records with
-              witnesses.
+            <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed font-medium opacity-80">
+              Track funds, manage items, and verify records with a witness system built for
+              real-world relationships.
             </p>
             {!user && !loading && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button
                   size="lg"
-                  className="h-14 px-8 text-lg rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all"
+                  className="rounded-full px-8 h-12 text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                   asChild
                 >
-                  <Link to="/signup">Start Your Trust Ledger</Link>
+                  <Link to="/signup">Start Your Ledger</Link>
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-14 px-8 text-lg rounded-full border-2 hover:bg-muted/50"
+                  className="rounded-full px-8 h-12 text-sm font-bold hover:bg-muted/50 transition-all"
                   asChild
                 >
                   <Link to="/login" search={{ redirectTo: undefined }}>
                     Sign In
                   </Link>
                 </Button>
-                <div className="sm:ml-2 mt-2 sm:mt-0 text-sm text-muted-foreground">
-                  Returning user?
-                  <Link
-                    to="/transactions"
-                    search={{ tab: "funds" }}
-                    className="inline-flex items-center ml-2 font-medium text-primary hover:underline"
-                  >
-                    Explore transactions
-                    <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </div>
               </div>
             )}
           </div>
         </div>
 
         {/* Hero Background Elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full overflow-hidden -z-10 pointer-events-none">
-          <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]"></div>
-          <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px]"></div>
-          <div className="absolute top-[20%] right-[15%] w-64 h-64 bg-blue-500/10 rounded-full blur-[80px]"></div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] animate-pulse duration-[10s]"></div>
+          <div className="absolute bottom-[-20%] right-[-10%] w-[900px] h-[900px] bg-emerald-500/10 rounded-full blur-[140px] animate-pulse duration-[12s]"></div>
+          <div className="absolute top-[20%] right-[10%] w-96 h-96 bg-blue-500/5 rounded-full blur-[100px]"></div>
         </div>
       </section>
 
-      {/* Feature Grid */}
-      <section className="py-24 bg-muted/30">
+      {/* Core Value Propositions */}
+      <section className="py-24 relative">
         <div className="container mx-auto px-4">
-          <div className="text-center max-w-3xl mx-auto mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Everything You Need for Financial Clarity
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Wathȋqah provides a suite of tools designed to bring transparency to your personal
-              financial relationships.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-            <FeatureCard
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <ValueCard
               icon={<Wallet className="w-8 h-8 text-primary" />}
-              title="Smart Transactions"
-              description="Record every penny given, received, or collected. Categorize expenses and incomes with ease."
-              to="/transactions"
-              search={{ tab: "funds" }}
+              title="Funds"
+              description="Record loans, gifts, and repayments with multi-currency support and real-time formatting."
+              accent="primary"
             />
-            <FeatureCard
+            <ValueCard
               icon={<Package className="w-8 h-8 text-amber-500" />}
-              title="Physical Items"
-              description="Lend and borrow tools, books, or any object. Track quantities and return statuses with precision."
-              to="/items"
+              title="Items"
+              description="Lend or borrow physical objects with quantity tracking and condition monitoring."
+              accent="amber"
             />
-            <FeatureCard
-              icon={<Handshake className="w-8 h-8 text-emerald-500" />}
-              title="Promise Keeper"
-              description="Track commitments and IOUs. Set due dates and priorities so you never forget a promise made."
-              to="/promises"
-            />
-            <FeatureCard
-              icon={<ArrowRightLeft className="w-8 h-8 text-cyan-500" />}
-              title="Relationship Standing"
-              description="See exactly where you stand with every contact. Know who owes you and who you owe at a glance."
-              to="/contacts"
-            />
-            <FeatureCard
+            <ValueCard
               icon={<Users className="w-8 h-8 text-blue-500" />}
-              title="Verified Witnesses"
-              description="Invite trusted third parties to digitally acknowledge and verify your transactions via secure email links."
-              to="/witnesses"
-            />
-            <FeatureCard
-              icon={<History className="w-8 h-8 text-orange-500" />}
-              title="Audit Trail"
-              description="Every action creates a permanent, unalterable history log. Transparency that builds trust."
-            />
-            <FeatureCard
-              icon={<Eye className="w-8 h-8 text-purple-500" />}
-              title="Shared Access"
-              description="Grant read-only access to partners, accountants, or family members to keep everyone on the same page."
-            />
-            <FeatureCard
-              icon={<Lock className="w-8 h-8 text-red-500" />}
-              title="Bank-Grade Security"
-              description="Your data is encrypted and secure. We prioritize your privacy and data protection above all."
+              title="Witness"
+              description="Add digital accountability by inviting third parties to verify and acknowledge transactions."
+              accent="blue"
             />
           </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="py-32 overflow-hidden">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-20 max-w-7xl mx-auto">
-            <div className="lg:w-1/2 space-y-10">
-              <div>
-                <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                  Simple Steps to <br />
-                  <span className="text-primary">Unbreakable Trust</span>
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  Our process is designed to be as frictionless as possible while providing maximum
-                  security and verification.
-                </p>
+      {/* Trust Philosophy Section - Simplified */}
+      <section className="py-32 bg-muted/20 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-20 max-w-7xl mx-auto">
+            <div className="lg:w-1/2 space-y-8">
+              <div className="inline-block px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-bold mb-2">
+                Our Philosophy
               </div>
-
-              <div className="space-y-8">
-                <Step
-                  number="01"
-                  title="Record the Detail"
-                  description="Log the transaction or promise details, including amount, date, and the other party involved."
-                />
-                <Step
-                  number="02"
-                  title="Invite Verification"
-                  description="Optionally add a witness. We'll send them a secure link to review and acknowledge the record."
-                />
-                <Step
-                  number="03"
-                  title="Maintain Clarity"
-                  description="Keep a clear view of your financial standing with everyone. Settle debts with a single click."
-                />
-              </div>
-            </div>
-
-            <div className="lg:w-1/2 relative">
-              <div className="relative z-10 bg-card border border-border rounded-3xl p-8 shadow-2xl animate-in zoom-in duration-700">
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <FileSignature className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">Verification System</h3>
-                    <p className="text-sm text-muted-foreground">Digital Accountability</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-muted/50 border border-border/50">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Status
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase">
-                        Pending Witness
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 font-bold text-xs">
-                        JD
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Lent $500 to Sarah Smith</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Waiting for witness: Ahmad Sulaiman
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        Verified
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase">
-                        Acknowledged
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500">
-                        <Users className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Professional Camera Lens</p>
-                        <p className="text-[10px] text-muted-foreground">
-                          Returned on Oct 24, 2023
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Decorative circles */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl -z-10"></div>
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl -z-10"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Built for Real Relationships Section */}
-      <section className="py-24 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-16 max-w-7xl mx-auto">
-            <div className="lg:w-1/2 relative order-2 lg:order-1">
-              <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-emerald-500/20 rounded-full blur-3xl -z-10"></div>
-              <div className="relative z-10 grid grid-cols-2 gap-4">
-                <div className="space-y-4 mt-8">
-                  <div className="bg-card p-6 rounded-2xl shadow-lg border border-border animate-in slide-in-from-bottom-4 duration-700 delay-100">
-                    <Users className="w-8 h-8 text-blue-500 mb-3" />
-                    <h3 className="font-bold text-lg mb-1">Friends & Family</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Keep money matters clear without awkward conversations.
-                    </p>
-                  </div>
-                  <div className="bg-card p-6 rounded-2xl shadow-lg border border-border animate-in slide-in-from-bottom-4 duration-700 delay-300">
-                    <Handshake className="w-8 h-8 text-emerald-500 mb-3" />
-                    <h3 className="font-bold text-lg mb-1">Business Partners</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Track shared expenses and profit splits transparently.
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="bg-card p-6 rounded-2xl shadow-lg border border-border animate-in slide-in-from-bottom-4 duration-700 delay-200">
-                    <Package className="w-8 h-8 text-amber-500 mb-3" />
-                    <h3 className="font-bold text-lg mb-1">Item Lending</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Never lose track of books, tools, or equipment again.
-                    </p>
-                  </div>
-                  <div className="bg-card p-6 rounded-2xl shadow-lg border border-border animate-in slide-in-from-bottom-4 duration-700 delay-400">
-                    <FileSignature className="w-8 h-8 text-purple-500 mb-3" />
-                    <h3 className="font-bold text-lg mb-1">Verified Trust</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Add witnesses to important transactions for peace of mind.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="lg:w-1/2 order-1 lg:order-2">
-              <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                Built for Real <br />
-                <span className="text-primary">Relationships</span>
+              <h2 className="text-4xl md:text-6xl font-black text-foreground leading-[0.95] tracking-tighter">
+                Clarity Over <br />
+                <span className="text-primary">Conflict</span>
               </h2>
-              <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Money often complicates relationships. Wathȋqah simplifies them. Whether you're
-                splitting a bill, lending a camera, or managing a shared project, our platform
-                ensures everyone is on the same page.
+              <p className="text-lg text-muted-foreground leading-relaxed max-w-xl font-medium">
+                We believe financial relationships thrive on documentation, not memory. Wathȋqah
+                replaces awkward conversations with verified records.
               </p>
-              <ul className="space-y-4">
-                {[
-                  "Eliminate misunderstandings about who owes what",
-                  "Track return dates for physical items",
-                  "Build a history of reliability and trust",
-                  "Resolve debts with a single click",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <ArrowRight className="h-3.5 w-3.5 text-primary" />
-                    </div>
-                    <span className="text-foreground">{item}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="flex flex-wrap gap-4 pt-4">
+                <Button
+                  size="lg"
+                  className="rounded-full h-12 px-8 text-sm font-bold shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all group"
+                  asChild
+                >
+                  <Link to="/features">See How It Works</Link>
+                </Button>
+              </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Philosophy Section */}
-      <section className="py-24 bg-primary/5">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-8">The Wathȋqah Philosophy</h2>
-            <div className="grid md:grid-cols-2 gap-8 text-left">
-              <div className="p-6 rounded-2xl bg-background border border-border shadow-sm">
-                <h3 className="text-lg font-bold text-blue-600 mb-3 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-blue-600" />
-                  Asset-First Mindset
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  We believe it's better to be a creditor than a debtor. Our system highlights
-                  what's owed to you as assets, encouraging healthy financial giving and lending.
-                </p>
+            <div className="lg:w-1/2 grid grid-cols-1 sm:grid-cols-2 gap-6 w-full">
+              <div className="space-y-6">
+                <div className="p-8 bg-card border border-border/50 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group">
+                  <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 mb-6 group-hover:scale-110 transition-transform">
+                    <History className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold mb-3">Audit Logs</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                    Permanent snapshots of every change, ensuring absolute transparency.
+                  </p>
+                </div>
+                <div className="p-8 bg-card border border-border/50 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group translate-y-4">
+                  <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-transform">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold mb-3">Secure Access</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                    Read-only sharing for partners without compromising your account.
+                  </p>
+                </div>
               </div>
-              <div className="p-6 rounded-2xl bg-background border border-border shadow-sm">
-                <h3 className="text-lg font-bold text-red-600 mb-3 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-red-600" />
-                  Accountability by Default
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Debt is a liability that should be resolved quickly. By making debts visible and
-                  verified, we help maintain trust and clarity in every relationship.
-                </p>
+              <div className="space-y-6 sm:mt-12">
+                <div className="p-8 bg-card border border-border/50 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group">
+                  <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
+                    <Handshake className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold mb-3">Verified IOUs</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                    Promises with due dates and priorities that stay verified by both parties.
+                  </p>
+                </div>
+                <div className="p-8 bg-card border border-border/50 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group translate-y-4">
+                  <div className="h-12 w-12 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 mb-6 group-hover:scale-110 transition-transform">
+                    <ArrowRightLeft className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-base font-bold mb-3">Net Standing</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                    Automatically see who owes what across all your interactions.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Decorative background circles */}
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] -z-10 -translate-y-1/2 translate-x-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] -z-10 translate-y-1/2 -translate-x-1/2"></div>
       </section>
 
       {/* CTA Section */}
       {!user && !loading && (
-        <section className="py-32 relative overflow-hidden">
-          <div className="absolute inset-0 bg-primary/90"></div>
+        <section className="py-40 relative overflow-hidden">
+          <div className="absolute inset-0 bg-primary"></div>
           <div
-            className="absolute inset-0 opacity-10"
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{
               backgroundImage: "url('https://www.transparenttextures.com/patterns/cubes.png')",
             }}
           ></div>
+
           <div className="container mx-auto px-4 text-center relative z-10">
-            <h2 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-8">
-              Ready to Secure Your Peace of Mind?
+            <h2 className="text-5xl md:text-7xl font-black text-primary-foreground mb-10 tracking-tighter leading-[0.9]">
+              Ready to Secure Your <br />
+              <span className="opacity-60">Peace of Mind?</span>
             </h2>
-            <p className="text-primary-foreground/80 text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
-              Join Wathȋqah today. It's free to start, simple to use, and invaluable for your
-              personal relationships.
+            <p className="text-primary-foreground/70 text-lg mb-14 max-w-xl mx-auto font-medium tracking-wide">
+              Join Wathȋqah today. The digital standard for personal financial documentation.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
               <Button
                 size="lg"
-                className="h-16 px-12 text-lg rounded-full bg-background text-foreground hover:bg-white/90 font-bold shadow-xl transition-transform hover:scale-105"
+                className="rounded-full h-12 px-8 text-sm font-bold bg-background text-foreground hover:bg-white hover:scale-[1.02] active:scale-[0.98] shadow-2xl transition-all duration-500"
                 asChild
               >
-                <Link to="/signup">
-                  Create Free Account
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
+                <Link to="/signup">Create Free Account</Link>
               </Button>
             </div>
           </div>
+
+          {/* Decorative CTA background elements */}
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl animate-pulse delay-700"></div>
         </section>
       )}
 
       {/* Footer */}
-      <footer className="bg-background pt-24 pb-12 border-t border-border/50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-8">
-            {/* Brand Section */}
-            <div className="lg:col-span-5 space-y-6">
-              <div className="flex items-center gap-3 group w-fit">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-transform group-hover:scale-105">
-                  <AppLogo className="h-7 w-7" />
+      <footer className="bg-background pt-32 pb-16 border-t border-border/50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-16 lg:gap-8 max-w-7xl mx-auto">
+            <div className="space-y-8 max-w-sm">
+              <div className="flex items-center gap-4 group w-fit">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/20 transition-all group-hover:scale-110 group-hover:-rotate-3">
+                  <AppLogo className="h-8 w-8" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-bold text-2xl tracking-tight text-foreground leading-none">
+                  <span className="font-black text-3xl tracking-tighter text-foreground leading-none">
                     Wathȋqah
                   </span>
-                  <span className="text-[0.65rem] font-bold text-muted-foreground uppercase tracking-widest mt-1">
+                  <span className="text-xs font-bold text-muted-foreground mt-2 opacity-60">
                     Ledger of Trust
                   </span>
                 </div>
               </div>
-              <p className="text-muted-foreground max-w-sm text-base leading-relaxed">
-                The digital standard for personal financial documentation and verification. Built to
-                preserve trust and clarity in every relationship.
+              <p className="text-muted-foreground text-sm leading-relaxed font-medium">
+                Documenting financial trust for real-world relationships. Built to preserve clarity
+                and integrity in every interaction.
               </p>
-              <div className="flex items-center gap-4 pt-2">
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer">
-                  <Users className="h-4 w-4" />
-                </div>
-                <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer">
-                  <Lock className="h-4 w-4" />
-                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-12 sm:gap-24">
+              <div className="space-y-6">
+                <h4 className="text-xs font-bold text-foreground">Platform</h4>
+                <ul className="space-y-4">
+                  <li>
+                    <Link
+                      to="/features"
+                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Features
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/login"
+                      search={{ redirectTo: undefined }}
+                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                  </li>
+                  <li>
+                    <Link
+                      to="/signup"
+                      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      Sign Up
+                    </Link>
+                  </li>
+                </ul>
               </div>
-            </div>
-
-            {/* Quick Links */}
-            <div className="lg:col-span-2 space-y-6">
-              <h4 className="font-bold text-sm uppercase tracking-wider text-foreground">
-                Product
-              </h4>
-              <ul className="space-y-4">
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                  >
-                    Features
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/transactions"
-                    search={{ tab: "funds" }}
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                  >
-                    Transactions
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/witnesses"
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                  >
-                    Witness System
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div className="lg:col-span-2 space-y-6">
-              <h4 className="font-bold text-sm uppercase tracking-wider text-foreground">Legal</h4>
-              <ul className="space-y-4">
-                <li>
-                  <a
-                    href="/legal/privacy.html"
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                  >
-                    Privacy Policy
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/legal/terms.html"
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                  >
-                    Terms of Service
-                  </a>
-                </li>
-                <li>
-                  <Link
-                    to="/"
-                    className="text-muted-foreground hover:text-primary transition-colors text-sm font-medium"
-                  >
-                    Cookie Policy
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div className="lg:col-span-3 space-y-6">
-              <h4 className="font-bold text-sm uppercase tracking-wider text-foreground">
-                Stay Connected
-              </h4>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Join our community to stay updated on new features and financial best practices.
-              </p>
-              <div className="pt-2">
-                <Button variant="outline" size="sm" className="rounded-full px-6 border-primary/20">
-                  Contact Support
-                </Button>
+              <div className="space-y-6">
+                <h4 className="text-xs font-bold text-foreground">Legal</h4>
+                <ul className="space-y-4">
+                  <li>
+                    <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      Privacy
+                    </span>
+                  </li>
+                  <li>
+                    <span className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                      Terms
+                    </span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
-
-          <div className="mt-20 pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground font-medium">
-            <p>&copy; {new Date().getFullYear()} Wathȋqah. All rights reserved.</p>
-            <div className="flex items-center gap-6">
-              <span className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
-                System Operational
+          <div className="mt-24 pt-8 border-t border-border/30 flex flex-col md:flex-row justify-between items-center gap-6">
+            <p className="text-xs font-medium text-muted-foreground">
+              © {new Date().getFullYear()} Wathȋqah. All rights reserved.
+            </p>
+            <div className="flex gap-8">
+              <span className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                Twitter
               </span>
-              <span className="text-muted-foreground/30">|</span>
-              <span>v1.2.0</span>
+              <span className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer">
+                Github
+              </span>
             </div>
           </div>
         </div>
@@ -526,57 +310,49 @@ function LandingPage() {
   );
 }
 
-function FeatureCard({
+function ValueCard({
   icon,
   title,
   description,
-  to,
-  search,
+  accent = "primary",
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
-  to?: string;
-  search?: Record<string, unknown>;
+  accent?: "primary" | "amber" | "blue" | "emerald" | "purple";
 }) {
-  const content = (
-    <div className="group p-8 rounded-3xl bg-card border border-border hover:border-primary/20 hover:shadow-xl transition-all duration-300 h-full">
-      <div className="mb-6 p-3 rounded-2xl bg-muted group-hover:bg-primary/10 transition-colors inline-block">
+  const accentClasses = {
+    primary: "bg-primary/5 text-primary border-primary/20",
+    amber: "bg-amber-500/5 text-amber-500 border-amber-500/20",
+    blue: "bg-blue-500/5 text-blue-500 border-blue-500/20",
+    emerald: "bg-emerald-500/5 text-emerald-500 border-emerald-500/20",
+    purple: "bg-purple-500/5 text-purple-500 border-purple-500/20",
+  };
+
+  return (
+    <div className="group relative p-8 rounded-[32px] bg-card border border-border/50 hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 overflow-hidden">
+      {/* Background Glow */}
+      <div
+        className={`absolute -right-20 -bottom-20 w-40 h-40 rounded-full blur-[80px] opacity-0 group-hover:opacity-20 transition-opacity duration-700 ${accentClasses[accent].split(" ")[0]}`}
+      ></div>
+
+      <div
+        className={`relative mb-8 h-16 w-16 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 ${accentClasses[accent]}`}
+      >
         {icon}
       </div>
-      <h3 className="text-xl font-bold mb-3 text-foreground">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed">{description}</p>
-    </div>
-  );
 
-  if (to) {
-    return (
-      <Link to={to} search={search} className="block h-full">
-        {content}
-      </Link>
-    );
-  }
+      <h3 className="relative text-2xl font-black tracking-tighter mb-4 text-foreground group-hover:text-primary transition-colors">
+        {title}
+      </h3>
 
-  return content;
-}
+      <p className="relative text-lg text-muted-foreground leading-relaxed font-medium">
+        {description}
+      </p>
 
-function Step({
-  number,
-  title,
-  description,
-}: {
-  number: string;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="flex gap-6 group">
-      <span className="text-5xl font-black text-primary/20 group-hover:text-primary/40 transition-colors leading-none select-none">
-        {number}
-      </span>
-      <div>
-        <h4 className="text-lg font-bold mb-2 text-foreground">{title}</h4>
-        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+      <div className="relative mt-8 flex items-center text-sm font-bold text-primary opacity-0 group-hover:opacity-100 transition-all duration-500 translate-y-4 group-hover:translate-y-0">
+        Explore Detail
+        <ArrowRight className="ml-2 w-4 h-4" />
       </div>
     </div>
   );

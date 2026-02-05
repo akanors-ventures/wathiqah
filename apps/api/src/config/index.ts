@@ -5,6 +5,7 @@ import redisConfig from './redis.config';
 import sendgridConfig from './sendgrid.config';
 import twilioConfig from './twilio.config';
 import mailtrapConfig from './mailtrap.config';
+import exchangeRateConfig from './exchange-rate.config';
 
 export default [
   databaseConfig,
@@ -14,4 +15,5 @@ export default [
   sendgridConfig,
   twilioConfig,
   mailtrapConfig,
+  exchangeRateConfig,
 ];

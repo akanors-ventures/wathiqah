@@ -1,21 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Calendar, Eye, Lock, Package, User } from "lucide-react";
+import { ArrowLeft, Eye, History, Lock, Package, User } from "lucide-react";
+import { PromiseCard } from "@/components/promises/PromiseCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageLoader } from "@/components/ui/page-loader";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSharedData } from "@/hooks/useSharedData";
+import { cn } from "@/lib/utils";
 import { formatCurrency, formatDate } from "@/lib/utils/formatters";
-import { AssetCategory } from "@/types/__generated__/graphql";
+import { AssetCategory, type Promise as PromiseType } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/shared-access/view/$grantId")({
   component: SharedAccessView,
@@ -47,169 +42,249 @@ function SharedAccessView() {
   const { user, transactions, promises } = data;
 
   return (
-    <div className="container mx-auto py-8 space-y-8 max-w-6xl">
+    <div className="container mx-auto py-8 space-y-8 max-w-6xl px-4">
       {/* Header Bar */}
-      <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 text-amber-800 dark:text-amber-200">
-          <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-full">
-            <Eye className="w-5 h-5" />
+      <div className="group relative bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/50 rounded-[32px] p-6 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(245,158,11,0.05)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+          <div className="flex items-center gap-4 text-amber-800 dark:text-amber-200">
+            <div className="p-3 bg-amber-100 dark:bg-amber-900/50 rounded-2xl shadow-sm group-hover:rotate-3 transition-transform duration-500">
+              <Eye className="w-6 h-6" />
+            </div>
+            <div className="space-y-1">
+              <h1 className="font-black text-xl uppercase tracking-tight">Read-Only View</h1>
+              <p className="text-[11px] font-medium uppercase tracking-wider opacity-80">
+                You are viewing{" "}
+                <span className="font-black text-amber-900 dark:text-amber-100">
+                  {user?.firstName} {user?.lastName}
+                </span>
+                's shared data
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-semibold text-lg">Read-Only View</h1>
-            <p className="text-sm opacity-90">
-              You are viewing{" "}
-              <span className="font-bold">
-                {user?.firstName} {user?.lastName}
-              </span>
-              's shared data.
-            </p>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="h-11 rounded-2xl px-6 bg-background/50 border-amber-200/50 hover:bg-amber-100 dark:hover:bg-amber-900/50 text-[10px] font-black uppercase tracking-widest transition-all"
+          >
+            <Link to="/settings">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to My Profile
+            </Link>
+          </Button>
         </div>
-        <Button variant="outline" size="sm" asChild className="whitespace-nowrap bg-background">
-          <Link to="/settings">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to My Profile
-          </Link>
-        </Button>
+        <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-colors duration-500" />
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+      <div className="grid gap-8 md:grid-cols-[320px_1fr]">
         {/* Sidebar / Profile Card */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="w-5 h-5" />
+          <Card className="group relative overflow-hidden bg-card border border-border/50 rounded-[32px] p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+            <CardHeader className="p-0 mb-8 relative z-10">
+              <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-3 text-muted-foreground group-hover:text-primary transition-colors">
+                <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:scale-110">
+                  <User className="w-4 h-4" />
+                </div>
                 Profile Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <div className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">
+            <CardContent className="p-0 space-y-8 relative z-10">
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
                   Full Name
                 </div>
-                <div className="text-lg font-medium mt-1">
+                <div className="text-lg font-black text-foreground tracking-tight group-hover:text-primary transition-colors">
                   {user?.firstName} {user?.lastName}
                 </div>
               </div>
 
-              <div>
-                <div className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
                   Email
                 </div>
-                <div className="text-base mt-1 break-all">{user?.email}</div>
+                <div className="text-sm font-bold text-foreground/80 break-all">{user?.email}</div>
               </div>
 
-              <div className="pt-4 border-t">
-                <p className="text-xs text-muted-foreground">
-                  This information is shared with you securely. You cannot edit or modify any of
-                  these records.
-                </p>
+              <div className="pt-6 border-t border-border/30">
+                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 flex items-start gap-3">
+                  <Lock className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-[10px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wider">
+                    This information is shared with you securely. You cannot edit or modify any of
+                    these records.
+                  </p>
+                </div>
               </div>
             </CardContent>
+            <div className="absolute -right-12 -bottom-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-500" />
           </Card>
         </div>
 
         {/* Main Content */}
         <div className="space-y-6">
           <Tabs defaultValue="transactions" className="w-full">
-            <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent space-x-6">
+            <TabsList className="w-full justify-start bg-muted/20 p-1.5 rounded-2xl h-auto mb-8 border border-border/30">
               <TabsTrigger
                 value="transactions"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                className="rounded-xl px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all"
               >
                 Transactions
-                <Badge variant="secondary" className="ml-2">
+                <span className="ml-2.5 px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-black">
                   {transactions?.length}
-                </Badge>
+                </span>
               </TabsTrigger>
               <TabsTrigger
                 value="promises"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-3"
+                className="rounded-xl px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all"
               >
                 Promises
-                <Badge variant="secondary" className="ml-2">
+                <span className="ml-2.5 px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-black">
                   {promises?.length}
-                </Badge>
+                </span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="transactions" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Transaction History</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
+            <TabsContent value="transactions" className="mt-0 focus-visible:outline-none">
+              <div className="bg-card border border-border/50 rounded-[32px] overflow-hidden shadow-sm hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 group/table">
+                <div className="p-8 border-b border-border/30 flex items-center justify-between">
+                  <h3 className="text-base font-black uppercase tracking-widest text-foreground group-hover/table:text-primary transition-colors">
+                    Transaction History
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Contact</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
-                      </TableRow>
+                      <tr className="bg-muted/40 border-b border-border/30">
+                        <th className="p-5 pl-8 text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                          Date
+                        </th>
+                        <th className="p-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                          Type
+                        </th>
+                        <th className="p-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                          Contact
+                        </th>
+                        <th className="p-5 text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                          Description
+                        </th>
+                        <th className="p-5 pr-8 text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground/70">
+                          Amount
+                        </th>
+                      </tr>
                     </TableHeader>
                     <TableBody>
                       {transactions?.length === 0 ? (
                         <TableRow>
-                          <TableCell
-                            colSpan={5}
-                            className="text-center py-12 text-muted-foreground"
-                          >
-                            No transactions shared.
+                          <TableCell colSpan={5} className="text-center py-20 bg-muted/5">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="p-4 rounded-full bg-muted/20">
+                                <History className="w-8 h-8 text-muted-foreground/40" />
+                              </div>
+                              <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">
+                                No transactions shared.
+                              </p>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ) : (
                         transactions?.map((tx) => (
-                          <TableRow key={tx.id}>
-                            <TableCell>{formatDate(tx.date as string)}</TableCell>
-                            <TableCell>
+                          <TableRow
+                            key={tx.id}
+                            className="group/row hover:bg-primary/[0.02] transition-colors border-b border-border/10 last:border-0"
+                          >
+                            <TableCell className="p-5 pl-8">
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs font-black text-foreground">
+                                  {formatDate(tx.date as string)}
+                                </span>
+                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                  {new Date(tx.date as string).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="p-5">
                               <Badge
                                 variant="outline"
-                                className={
+                                className={cn(
+                                  "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-0 shadow-sm",
                                   tx.type === "GIVEN"
-                                    ? "text-red-600 border-red-200 bg-red-50"
-                                    : tx.type === "RECEIVED"
-                                      ? "text-green-600 border-green-200 bg-green-50"
-                                      : "text-blue-600 border-blue-200 bg-blue-50"
-                                }
+                                    ? "text-blue-600 bg-blue-500/10"
+                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-rose-600 bg-rose-500/10"
+                                      : tx.type === "RETURNED"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-emerald-600 bg-emerald-500/10"
+                                          : "text-blue-600 bg-blue-500/10"
+                                        : tx.type === "INCOME"
+                                          ? "text-emerald-600 bg-emerald-500/10"
+                                          : tx.type === "GIFT"
+                                            ? tx.returnDirection === "TO_ME"
+                                              ? "text-purple-600 bg-purple-500/10"
+                                              : "text-pink-600 bg-pink-500/10"
+                                            : "text-blue-600 bg-blue-500/10",
+                                )}
                               >
                                 {tx.type}
                               </Badge>
                             </TableCell>
-                            <TableCell>{tx.contact?.name || "-"}</TableCell>
-                            <TableCell
-                              className="max-w-[200px] truncate"
-                              title={tx.description as string}
-                            >
+                            <TableCell className="p-5 font-bold text-xs tracking-tight text-foreground/80 group-hover/row:text-primary transition-colors">
+                              {tx.contact?.name || "-"}
+                            </TableCell>
+                            <TableCell className="p-5">
                               {tx.category === AssetCategory.Item ? (
-                                <div className="flex items-center gap-1.5 font-medium text-foreground">
-                                  <Package className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex items-center gap-2 font-extrabold text-xs text-foreground tracking-tight">
+                                  <div className="p-1.5 rounded-lg bg-primary/5 text-primary">
+                                    <Package className="h-3.5 w-3.5" />
+                                  </div>
                                   <span>
                                     {tx.quantity}x {tx.itemName}
                                   </span>
                                 </div>
                               ) : (
-                                tx.description || "-"
+                                <span
+                                  className="text-xs font-medium text-muted-foreground truncate block max-w-[200px]"
+                                  title={tx.description as string}
+                                >
+                                  {tx.description || "-"}
+                                </span>
                               )}
                             </TableCell>
-                            <TableCell
-                              className={`text-right font-bold ${
-                                tx.category === AssetCategory.Item
-                                  ? "text-muted-foreground font-normal italic text-xs"
-                                  : tx.type === "GIVEN"
-                                    ? "text-red-600"
-                                    : "text-green-600"
-                              }`}
-                            >
+                            <TableCell className="p-5 pr-8 text-right">
                               {tx.category === AssetCategory.Item ? (
-                                "Physical Item"
+                                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">
+                                  Physical Item
+                                </span>
                               ) : (
-                                <>
-                                  {tx.type === "GIVEN" ? "-" : "+"}
-                                  {formatCurrency(tx.amount, tx.currency)}
-                                </>
+                                <div
+                                  className={cn(
+                                    "text-sm font-black tracking-tight",
+                                    tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-rose-600"
+                                      : tx.type === "GIVEN"
+                                        ? "text-blue-600"
+                                        : tx.type === "RETURNED"
+                                          ? tx.returnDirection === "TO_ME"
+                                            ? "text-emerald-600"
+                                            : "text-blue-600"
+                                          : tx.type === "INCOME"
+                                            ? "text-emerald-600"
+                                            : tx.type === "GIFT"
+                                              ? tx.returnDirection === "TO_ME"
+                                                ? "text-purple-600"
+                                                : "text-pink-600"
+                                              : "text-foreground",
+                                  )}
+                                >
+                                  {tx.type === "GIVEN" ||
+                                  (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                                  tx.type === "INCOME" ||
+                                  (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                                    ? "+"
+                                    : "-"}
+                                  {formatCurrency(tx.amount || 0, tx.currency)}
+                                </div>
                               )}
                             </TableCell>
                           </TableRow>
@@ -217,48 +292,25 @@ function SharedAccessView() {
                       )}
                     </TableBody>
                   </Table>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </TabsContent>
 
-            <TabsContent value="promises" className="mt-6">
-              <div className="grid gap-4 md:grid-cols-2">
+            <TabsContent value="promises" className="mt-0 focus-visible:outline-none">
+              <div className="grid gap-6 md:grid-cols-2">
                 {promises?.map((p) => (
-                  <Card key={p.id} className="border-l-4 border-l-primary">
-                    <CardContent className="pt-6">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="space-y-1">
-                          <span className="text-xs font-semibold text-muted-foreground uppercase">
-                            Promise To
-                          </span>
-                          <h3 className="font-semibold text-lg">{p.promiseTo}</h3>
-                        </div>
-                        <Badge
-                          variant={p.status === "PENDING" ? "outline" : "secondary"}
-                          className={
-                            p.status === "PENDING"
-                              ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                              : ""
-                          }
-                        >
-                          {p.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-foreground/80 mb-4 line-clamp-2 bg-muted/30 p-2 rounded">
-                        "{p.description}"
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-4 pt-4 border-t">
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Due: {formatDate(p.dueDate as string)}</span>
-                        <span className="mx-1">•</span>
-                        <span className="capitalize">{p.priority.toLowerCase()} Priority</span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <PromiseCard key={p.id} promise={p as PromiseType} readOnly />
                 ))}
                 {promises?.length === 0 && (
-                  <div className="col-span-full text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
-                    No promises shared.
+                  <div className="col-span-full text-center py-20 bg-muted/5 rounded-[32px] border-2 border-dashed border-border/50">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="p-4 rounded-full bg-muted/20">
+                        <Package className="w-8 h-8 text-muted-foreground/40" />
+                      </div>
+                      <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">
+                        No promises shared.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>

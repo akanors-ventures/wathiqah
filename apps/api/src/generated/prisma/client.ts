@@ -83,6 +83,16 @@ export type Promise = Prisma.PromiseModel
  */
 export type AccessGrant = Prisma.AccessGrantModel
 /**
+ * Model ExchangeRate
+ * 
+ */
+export type ExchangeRate = Prisma.ExchangeRateModel
+/**
+ * Model ExchangeRateHistory
+ * 
+ */
+export type ExchangeRateHistory = Prisma.ExchangeRateHistoryModel
+/**
  * Model ContactInvitation
  * 
  */

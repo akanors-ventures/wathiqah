@@ -17,4 +17,9 @@ export class UpdateUserInput {
   @IsOptional()
   @IsPhoneNumber()
   phoneNumber?: string;
+
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  preferredCurrency?: string;
 }

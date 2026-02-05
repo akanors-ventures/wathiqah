@@ -1,5 +1,5 @@
 import { useMutation } from "@apollo/client/react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,8 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { ADD_WITNESS, GET_TRANSACTION } from "@/lib/apollo/queries/transactions";
 
 interface AddWitnessDialogProps {
@@ -20,21 +19,14 @@ interface AddWitnessDialogProps {
 }
 
 export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessDialogProps) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
   const [error, setError] = useState("");
-  const nameId = useId();
-  const emailId = useId();
-  const phoneId = useId();
 
   const [addWitness, { loading }] = useMutation(ADD_WITNESS, {
     refetchQueries: [{ query: GET_TRANSACTION, variables: { id: transactionId } }],
     onCompleted: () => {
       onClose();
-      setName("");
-      setEmail("");
-      setPhoneNumber("");
+      setSelectedWitnesses([]);
       setError("");
     },
     onError: (err) => setError(err.message),
@@ -42,23 +34,23 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) {
-      setError("Name and Email are required");
+    if (selectedWitnesses.length === 0) {
+      setError("Please add at least one witness");
       return;
     }
+
+    const witnessUserIds = selectedWitnesses.filter((w) => w.userId).map((w) => w.userId as string);
+    const witnessInvites = selectedWitnesses
+      .filter((w) => w.invite)
+      .map((w) => w.invite as NonNullable<typeof w.invite>);
 
     try {
       await addWitness({
         variables: {
           input: {
             transactionId,
-            witnessInvites: [
-              {
-                name,
-                email,
-                phoneNumber: phoneNumber || null,
-              },
-            ],
+            witnessUserIds,
+            witnessInvites,
           },
         },
       });
@@ -69,59 +61,22 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Invite Witness</DialogTitle>
+          <DialogTitle>Add Witnesses</DialogTitle>
           <DialogDescription>
-            Enter the details of the person you want to invite as a witness.
+            Search for existing users or invite new ones to witness this transaction.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
+        <form onSubmit={handleSubmit} className="grid gap-6 py-4">
           {error && (
-            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-2 rounded border border-red-200 dark:border-red-900">
+            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-200 dark:border-red-900">
               {error}
             </div>
           )}
 
-          <div className="grid gap-2">
-            <Label htmlFor={nameId}>
-              Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id={nameId}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Ahmad Sulaiman"
-              required
-            />
-            <p className="text-[0.8rem] text-muted-foreground">First name first, last name last.</p>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor={emailId}>
-              Email <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id={emailId}
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ahmad.sulaiman@example.com"
-              required
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor={phoneId}>Phone Number (Optional)</Label>
-            <Input
-              id={phoneId}
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="+234..."
-            />
-          </div>
+          <WitnessSelector selectedWitnesses={selectedWitnesses} onChange={setSelectedWitnesses} />
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
@@ -130,9 +85,10 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
             <Button
               type="submit"
               isLoading={loading}
+              disabled={selectedWitnesses.length === 0}
               className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              Send Invitation
+              Add Witnesses
             </Button>
           </DialogFooter>
         </form>

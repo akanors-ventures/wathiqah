@@ -1,15 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as z from "zod";
+import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -28,13 +32,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransaction } from "@/hooks/useTransaction";
 import {
   AssetCategory,
   ReturnDirection,
-  TransactionType,
   type TransactionQuery,
+  TransactionType,
 } from "@/types/__generated__/graphql";
 
 const formSchema = z
@@ -56,6 +61,21 @@ const formSchema = z
     category: z.enum([AssetCategory.Funds, AssetCategory.Item]),
     returnDirection: z.enum([ReturnDirection.ToMe, ReturnDirection.ToContact]).optional(),
     currency: z.string().min(1, "Currency is required"),
+    witnesses: z
+      .array(
+        z.object({
+          userId: z.string().optional(),
+          invite: z
+            .object({
+              name: z.string().min(2, "Name is required"),
+              email: z.email({ message: "Invalid email" }),
+              phoneNumber: z.string().optional().nullable(),
+            })
+            .optional(),
+          displayName: z.string(),
+        }),
+      )
+      .default([]),
   })
   .refine(
     (data) => {
@@ -133,9 +153,11 @@ export function EditTransactionDialog({
 }: EditTransactionDialogProps) {
   const { updateTransaction, updating } = useTransaction(transaction.id);
   const { contacts } = useContacts();
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
 
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(formSchema),
+    // biome-ignore lint/suspicious/noExplicitAny: Complex type mismatch with zodResolver
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       type: transaction.type,
       contactId: transaction.contact?.id ?? undefined,
@@ -147,6 +169,7 @@ export function EditTransactionDialog({
       category: transaction.category,
       returnDirection: transaction.returnDirection ?? undefined,
       currency: transaction.currency ?? "NGN",
+      witnesses: [],
     },
   });
 
@@ -156,6 +179,17 @@ export function EditTransactionDialog({
 
   async function onSubmit(values: TransactionFormValues) {
     try {
+      const witnessUserIds = values.witnesses
+        .filter((w) => w.userId)
+        .map((w) => w.userId as string);
+      const witnessInvites = values.witnesses
+        .map((w) => w.invite)
+        .filter((invite): invite is NonNullable<typeof invite> => !!invite)
+        .map((invite) => ({
+          ...invite,
+          email: invite.email.trim().toLowerCase(),
+        }));
+
       await updateTransaction({
         id: transaction.id,
         category: values.category,
@@ -165,10 +199,13 @@ export function EditTransactionDialog({
         quantity: values.category === AssetCategory.Item ? values.quantity : undefined,
         date: new Date(values.date).toISOString(),
         description: values.description,
-        contactId: values.contactId || null,
-        returnDirection: values.returnDirection,
+        contactId: values.contactId || undefined,
+        returnDirection: values.returnDirection || undefined,
         currency: values.currency,
+        witnessUserIds,
+        witnessInvites,
       });
+      toast.success("Transaction updated successfully");
       onOpenChange(false);
     } catch (error) {
       console.error(error);
@@ -188,7 +225,19 @@ export function EditTransactionDialog({
               name="contactId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Contact</FormLabel>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                      onClick={() => setIsContactDialogOpen(true)}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      New Contact
+                    </Button>
+                  </div>
                   <Select
                     onValueChange={(value) => {
                       const hasContact = value !== "none";
@@ -212,7 +261,7 @@ export function EditTransactionDialog({
                         }
                       }
                     }}
-                    defaultValue={field.value}
+                    value={field.value ?? "none"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -242,7 +291,7 @@ export function EditTransactionDialog({
                     render={({ field }) => (
                       <FormItem className="col-span-1">
                         <FormLabel>Currency</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="NGN" />
@@ -282,7 +331,7 @@ export function EditTransactionDialog({
                     control={form.control}
                     name="itemName"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="col-span-2">
                         <FormLabel>Item Name</FormLabel>
                         <FormControl>
                           <Input placeholder="What item?" {...field} />
@@ -295,7 +344,7 @@ export function EditTransactionDialog({
                     control={form.control}
                     name="quantity"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="col-span-1">
                         <FormLabel>Quantity</FormLabel>
                         <FormControl>
                           <Input type="number" min="1" {...field} />
@@ -318,7 +367,7 @@ export function EditTransactionDialog({
                       Type
                       <TransactionTypeHelp />
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -353,7 +402,7 @@ export function EditTransactionDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Direction</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select direction" />
@@ -398,6 +447,47 @@ export function EditTransactionDialog({
               )}
             />
 
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex flex-col gap-1">
+                <h4 className="text-sm font-medium">Add Witnesses</h4>
+                <p className="text-xs text-muted-foreground">
+                  Invite others to verify this transaction.
+                </p>
+              </div>
+
+              {transaction.witnesses && transaction.witnesses.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Existing Witnesses:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {transaction.witnesses.map((w) => (
+                      <div
+                        key={w.id}
+                        className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-md text-xs"
+                      >
+                        <span className="font-medium">{w.user?.name || "Unknown"}</span>
+                        <span
+                          className={`text-[10px] px-1 rounded-sm border ${
+                            w.status === "ACKNOWLEDGED"
+                              ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                              : w.status === "PENDING"
+                                ? "bg-amber-50 text-amber-600 border-amber-100"
+                                : "bg-gray-50 text-gray-600 border-gray-100"
+                          }`}
+                        >
+                          {w.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <WitnessSelector
+                selectedWitnesses={form.watch("witnesses") || []}
+                onChange={(witnesses) => form.setValue("witnesses", witnesses)}
+              />
+            </div>
+
             <DialogFooter>
               <Button
                 type="button"
@@ -414,6 +504,10 @@ export function EditTransactionDialog({
           </form>
         </Form>
       </DialogContent>
+      <ContactFormDialog
+        isOpen={isContactDialogOpen}
+        onClose={() => setIsContactDialogOpen(false)}
+      />
     </Dialog>
   );
 }

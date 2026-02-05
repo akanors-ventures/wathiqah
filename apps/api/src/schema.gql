@@ -121,6 +121,7 @@ input FilterTransactionInput {
   search: String
   startDate: DateTime
   status: TransactionStatus
+  summaryCurrency: String
   types: [TransactionType!]
 }
 
@@ -205,6 +206,7 @@ type Query {
   checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
   contacts: [Contact!]!
+  convertCurrency(amount: Float!, from: String!, to: String!): Float!
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions: [Transaction!]!
@@ -214,6 +216,7 @@ type Query {
   receivedAccessGrants: [AccessGrant!]!
   searchWitness(input: SearchWitnessInput!): WitnessCandidate
   sharedData(grantId: String!): SharedDataEntity!
+  totalBalance(currency: String): TransactionsSummary!
   transaction(id: ID!): Transaction!
   transactions(filter: FilterTransactionInput): TransactionsResponse!
   transactionsGroupedByContact(filter: FilterTransactionInput): [ContactGroupedSummary!]!
@@ -313,6 +316,7 @@ type TransactionsResponse {
 }
 
 type TransactionsSummary {
+  currency: String!
   netBalance: Float!
   totalExpense: Float!
   totalGiftGiven: Float!
@@ -364,6 +368,7 @@ input UpdateUserInput {
   firstName: String
   lastName: String
   phoneNumber: String
+  preferredCurrency: String
 }
 
 type User {
@@ -376,6 +381,7 @@ type User {
   name: String!
   passwordHash: String
   phoneNumber: String
+  preferredCurrency: String!
 }
 
 type Witness {

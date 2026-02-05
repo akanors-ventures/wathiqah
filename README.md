@@ -21,11 +21,14 @@ Financial exchanges between people are often undocumented, leading to confusion 
 
 - **Transaction Management**: Record funds (given, received, collected) or physical items (lent, borrowed, returned).
 - **Multi-currency Support**: Track fund transactions in multiple currencies (NGN, USD, EUR, GBP, CAD, AED, SAR).
+  - **High-Performance Exchange Rates**: Real-time rate updates with dual-provider fallback (Open Exchange Rates & ExchangeRate-API).
+  - **User-Preferred Base Currency**: Set a persistent preferred currency for global balance aggregation.
 - **Dual Balance Logic**:
   - **Cash Position**: Dashboard balance reflects liquidity (Cash In vs. Cash Out).
   - **Relationship Standing**: Contact view reflects net debt (who owes whom).
 - **Contact Balances**: Track balances per contact (both financial and item counts).
 - **Audit Logs**: Full transaction history with timestamps and "Before/After" diffs for every update.
+- **Shared Ledger Synchronization**: Automatic cross-user visibility. If a contact is a registered user, transactions recorded by one party automatically appear in the other's ledger with correctly flipped perspectives (e.g., your "Lent" becomes their "Borrowed").
 - **Witness System**: Add witnesses to transactions for accountability.
   - Add existing users or invite new users via email.
   - Witnesses receive notifications to acknowledge transactions.

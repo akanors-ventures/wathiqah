@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PasswordInput } from "@/components/ui/password-input";
 import { BrandLoader } from "@/components/ui/page-loader";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/hooks/use-auth";
 import { isAuthenticated, parseRedirect } from "@/utils/auth";
 
@@ -40,7 +40,8 @@ function LoginComponent() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const result = await login({ email, password });
+      const result = await login({ email: email.trim().toLowerCase(), password });
+      console.log("Login result", result);
 
       if (!result) {
         toast.error("Invalid credentials");

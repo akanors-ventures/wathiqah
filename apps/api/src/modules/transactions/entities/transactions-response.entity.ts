@@ -32,6 +32,9 @@ export class TransactionsSummary {
 
   @Field(() => Float)
   netBalance: number;
+
+  @Field(() => String)
+  currency: string;
 }
 
 @ObjectType()

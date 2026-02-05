@@ -44,10 +44,16 @@ function MyContactTransactionsPage() {
       <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10">
         <div className="flex gap-3">
           <Info className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-          <p className="text-sm text-blue-700 dark:text-blue-300">
-            These are transactions that others have documented involving you. You can see the
-            details including any witnesses who have verified these transactions.
-          </p>
+          <div className="space-y-1">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              These are transactions that others have documented involving you. You can see the
+              details including any witnesses who have verified these transactions.
+            </p>
+            <p className="text-[11px] text-blue-600/80 dark:text-blue-400/80 italic">
+              Note: Colors and signs (+/-) are shown from your perspective (e.g., "+" means you
+              received money or assets).
+            </p>
+          </div>
         </div>
       </div>
 
@@ -100,22 +106,65 @@ function MyContactTransactionsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={
+                          variant="outline"
+                          className={
                             tx.type === "GIVEN"
-                              ? "destructive"
-                              : tx.type === "RECEIVED"
-                                ? "default"
-                                : "outline"
+                              ? "text-blue-600 border-blue-200 bg-blue-50"
+                              : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                ? "text-red-600 border-red-200 bg-red-50"
+                                : tx.type === "RETURNED"
+                                  ? tx.returnDirection === "TO_ME"
+                                    ? "text-green-600 border-green-200 bg-green-50"
+                                    : "text-blue-600 border-blue-200 bg-blue-50"
+                                  : tx.type === "INCOME"
+                                    ? "text-green-600 border-green-200 bg-green-50"
+                                    : tx.type === "GIFT"
+                                      ? tx.returnDirection === "TO_ME"
+                                        ? "text-purple-600 border-purple-200 bg-purple-50"
+                                        : "text-pink-600 border-pink-200 bg-pink-50"
+                                      : "text-gray-600 border-gray-200 bg-gray-50"
                           }
                         >
-                          {tx.type}
+                          {tx.type === "RETURNED"
+                            ? tx.returnDirection === "TO_ME"
+                              ? "RETURNED TO ME"
+                              : "RETURNED TO CONTACT"
+                            : tx.type === "GIFT"
+                              ? tx.returnDirection === "TO_ME"
+                                ? "GIFT RECEIVED"
+                                : "GIFT GIVEN"
+                              : tx.type}
                         </Badge>
                       </TableCell>
                       <TableCell>{tx.category}</TableCell>
                       <TableCell className="max-w-xs truncate">{tx.description || "-"}</TableCell>
                       <TableCell className="text-right">
                         {tx.category === AssetCategory.Funds ? (
-                          <span className={tx.type === "GIVEN" ? "text-red-600" : "text-green-600"}>
+                          <span
+                            className={
+                              tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                ? "text-red-600 font-medium"
+                                : tx.type === "GIVEN"
+                                  ? "text-blue-600 font-medium"
+                                  : tx.type === "RETURNED"
+                                    ? tx.returnDirection === "TO_ME"
+                                      ? "text-green-600 font-medium"
+                                      : "text-blue-600 font-medium"
+                                    : tx.type === "INCOME"
+                                      ? "text-green-600 font-medium"
+                                      : tx.type === "GIFT"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-purple-600 font-medium"
+                                          : "text-pink-600 font-medium"
+                                        : "font-medium"
+                            }
+                          >
+                            {tx.type === "GIVEN" ||
+                            (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                            tx.type === "INCOME" ||
+                            (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                              ? "+"
+                              : "-"}
                             {formatCurrency(tx.amount || 0, tx.currency)}
                           </span>
                         ) : (

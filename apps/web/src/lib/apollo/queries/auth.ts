@@ -29,6 +29,7 @@ export const ME_QUERY: TypedDocumentNode<MeQuery, MeQueryVariables> = gql`
       firstName
       lastName
       phoneNumber
+      preferredCurrency
     }
   }
 `;

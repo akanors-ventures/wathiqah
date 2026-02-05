@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -84,8 +85,10 @@ export function PromiseFormDialog({
           id: promise.id,
           ...values,
         });
+        toast.success("Promise updated successfully");
       } else {
         await createPromise(values);
+        toast.success("Promise created successfully");
       }
       onOpenChange?.(false);
       form.reset();

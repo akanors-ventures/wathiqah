@@ -4,8 +4,11 @@ import { ItemsList } from "@/components/items/ItemsList";
 import { Button } from "@/components/ui/button";
 import { useItems } from "@/hooks/useItems";
 
+import { authGuard } from "@/utils/auth";
+
 export const Route = createFileRoute("/items/")({
   component: ItemsPage,
+  beforeLoad: (ctx) => authGuard({ location: ctx.location }),
 });
 
 function ItemsPage() {

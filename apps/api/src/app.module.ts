@@ -13,6 +13,8 @@ import { ContactsModule } from './modules/contacts/contacts.module';
 import { WitnessesModule } from './modules/witnesses/witnesses.module';
 import { PromisesModule } from './modules/promises/promises.module';
 import { SharedAccessModule } from './modules/shared-access/shared-access.module';
+import { ExchangeRateModule } from './modules/exchange-rate/exchange-rate.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
@@ -28,6 +30,7 @@ import { GraphQLError } from 'graphql';
       cache: true,
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -170,6 +173,7 @@ import { GraphQLError } from 'graphql';
     WitnessesModule,
     PromisesModule,
     SharedAccessModule,
+    ExchangeRateModule,
   ],
   controllers: [AppController],
   providers: [AppService],

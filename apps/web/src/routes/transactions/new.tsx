@@ -1,8 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { format } from "date-fns";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import * as z from "zod";
+import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransactions } from "@/hooks/useTransactions";
 import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
@@ -56,6 +61,16 @@ const formSchema = z
     category: z.enum([AssetCategory.Funds, AssetCategory.Item]).default(AssetCategory.Funds),
     returnDirection: z.enum([ReturnDirection.ToMe, ReturnDirection.ToContact]).optional(),
     currency: z.string().min(1, "Currency is required").default("NGN"),
+    witnessUserIds: z.array(z.string()).optional(),
+    witnessInvites: z
+      .array(
+        z.object({
+          name: z.string(),
+          email: z.email({ message: "Invalid email address" }),
+          phoneNumber: z.string().optional(),
+        }),
+      )
+      .optional(),
   })
   .refine(
     (data) => {
@@ -124,6 +139,8 @@ function NewTransactionPage() {
   const search = useSearch({ from: "/transactions/new" });
   const { createTransaction, creating } = useTransactions();
   const { contacts, loading: loadingContacts } = useContacts();
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     // biome-ignore lint/suspicious/noExplicitAny: Complex type mismatch with zodResolver
@@ -133,6 +150,11 @@ function NewTransactionPage() {
       contactId: search.contactId,
       date: format(new Date(), "yyyy-MM-dd"),
       category: AssetCategory.Funds,
+      amount: 0,
+      currency: "NGN",
+      description: "",
+      itemName: "",
+      quantity: 1,
     },
   });
 
@@ -142,14 +164,28 @@ function NewTransactionPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      const witnessUserIds = selectedWitnesses
+        .filter((w) => w.userId)
+        .map((w) => w.userId as string);
+      const witnessInvites = selectedWitnesses
+        .map((w) => w.invite)
+        .filter((invite): invite is NonNullable<typeof invite> => !!invite)
+        .map((invite) => ({
+          ...invite,
+          email: invite.email.trim().toLowerCase(),
+        }));
+
       await createTransaction({
         ...values,
         amount: values.category === AssetCategory.Funds ? values.amount : undefined,
         itemName: values.category === AssetCategory.Item ? values.itemName : undefined,
         quantity: values.category === AssetCategory.Item ? values.quantity : undefined,
-        contactId: values.contactId || "", // Ensure string if undefined (though backend handles optional)
+        contactId: values.contactId || undefined,
         date: new Date(values.date).toISOString(),
+        witnessUserIds,
+        witnessInvites,
       });
+      toast.success("Transaction created successfully");
       navigate({
         to: "/transactions",
         search: { tab: values.category === AssetCategory.Item ? "items" : "funds" },
@@ -175,7 +211,7 @@ function NewTransactionPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
@@ -196,7 +232,19 @@ function NewTransactionPage() {
                   name="contactId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Contact</FormLabel>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => setIsContactDialogOpen(true)}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          New Contact
+                        </Button>
+                      </div>
                       <Select
                         onValueChange={(value) => {
                           field.onChange(value === "none" ? undefined : value);
@@ -207,7 +255,7 @@ function NewTransactionPage() {
                             form.setValue("type", TransactionType.Given);
                           }
                         }}
-                        defaultValue={field.value}
+                        value={field.value ?? "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -221,10 +269,6 @@ function NewTransactionPage() {
                               <div className="flex items-center justify-center gap-2">
                                 <BrandLoader size="sm" />
                               </div>
-                            </SelectItem>
-                          ) : contacts.length === 0 ? (
-                            <SelectItem value="none" disabled>
-                              No contacts found
                             </SelectItem>
                           ) : (
                             contacts.map((contact) => (
@@ -251,7 +295,7 @@ function NewTransactionPage() {
                         Type
                         <TransactionTypeHelp />
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />
@@ -286,7 +330,7 @@ function NewTransactionPage() {
                       render={({ field }) => (
                         <FormItem className="col-span-1">
                           <FormLabel>Currency</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="NGN" />
@@ -361,7 +405,7 @@ function NewTransactionPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Direction</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select direction" />
@@ -397,10 +441,10 @@ function NewTransactionPage() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Description (Optional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="What was this for?"
+                        placeholder="Add some details about this transaction..."
                         className="resize-none"
                         {...field}
                       />
@@ -410,22 +454,31 @@ function NewTransactionPage() {
                 )}
               />
 
-              <div className="flex justify-end gap-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate({ to: "/transactions", search: { tab: "funds" } })}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" isLoading={creating}>
-                  Create Transaction
-                </Button>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="text-base font-semibold">Witnesses (Optional)</FormLabel>
+                </div>
+                <p className="text-sm text-neutral-500">
+                  Add people to witness this transaction. They will receive an invitation to
+                  acknowledge it.
+                </p>
+                <WitnessSelector
+                  selectedWitnesses={selectedWitnesses}
+                  onChange={setSelectedWitnesses}
+                />
               </div>
+
+              <Button type="submit" className="w-full h-12 rounded-full" isLoading={creating}>
+                Create Transaction
+              </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
+      <ContactFormDialog
+        isOpen={isContactDialogOpen}
+        onClose={() => setIsContactDialogOpen(false)}
+      />
     </div>
   );
 }
