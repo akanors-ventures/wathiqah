@@ -37,7 +37,7 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
                 <div
                   className={cn(
                     "w-2.5 h-2.5 rounded-full ring-2 ring-background shadow-inner",
-                    status === WitnessStatus.Pending
+                    status === WitnessStatus.Pending || status === WitnessStatus.Modified
                       ? "bg-amber-500 animate-pulse"
                       : status === WitnessStatus.Acknowledged
                         ? "bg-emerald-500"
@@ -104,7 +104,7 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
         )}
 
         <div className="flex flex-col gap-3">
-          {status === WitnessStatus.Pending && (
+          {(status === WitnessStatus.Pending || status === WitnessStatus.Modified) && (
             <div className="grid grid-cols-2 gap-3">
               <Button
                 onClick={() => onAcknowledge(request.id)}

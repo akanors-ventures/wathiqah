@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { CalendarClock, CreditCard, FileCheck, Users } from "lucide-react";
 import { useEffect, useState } from "react";
+import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
@@ -46,8 +47,10 @@ export function Dashboard() {
   const totalBalance = balance?.netBalance || 0;
   const balanceCurrency = balance?.currency || "NGN";
   const isDebtByRule = totalBalance < 0;
-  const activePromises = promises.filter((p) => p.status === "PENDING").length;
-  const pendingWitnessRequests = witnessRequests.length;
+  const activePromises = promises.filter((p) => p.status === PromiseStatus.Pending).length;
+  const pendingWitnessRequests = witnessRequests.filter(
+    (r) => r.status === WitnessStatus.Pending || r.status === WitnessStatus.Modified,
+  ).length;
   const totalContacts = contacts.length;
   const currencies = ["NGN", "USD", "EUR", "GBP", "CAD", "AED", "SAR"];
 

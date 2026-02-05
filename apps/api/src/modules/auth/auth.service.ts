@@ -245,15 +245,6 @@ export class AuthService {
       throw new NotFoundException('Witness record not found');
     }
 
-    // Update Witness Status to ACKNOWLEDGED
-    await this.prisma.witness.update({
-      where: { id: witnessId },
-      data: {
-        status: 'ACKNOWLEDGED',
-        acknowledgedAt: new Date(),
-      },
-    });
-
     // 3. Hash the new password
     const passwordHash = await bcrypt.hash(password, 10);
 

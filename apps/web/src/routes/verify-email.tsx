@@ -151,37 +151,28 @@ function VerifyEmailPage() {
         {status === "already-verified" && (
           <motion.div
             key="already-verified"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             className="w-full max-w-md space-y-8 bg-card p-8 sm:p-10 rounded-2xl shadow-xl border border-border text-center"
           >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
-              className="mx-auto w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6"
-            >
-              <CheckCircle2 className="w-10 h-10 text-primary" />
-            </motion.div>
+            <div className="flex justify-center">
+              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center">
+                <CheckCircle2 className="w-12 h-12 text-primary" />
+              </div>
+            </div>
 
             <div className="space-y-4">
               <h1 className="text-3xl font-extrabold tracking-tight text-foreground">
-                Already Verified!
+                You're All Set!
               </h1>
-              <p className="text-lg text-muted-foreground">
-                Your account has already been verified. You can log in to access your dashboard.
+              <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                Your email address has already been verified. We're glad to have you back! You can
+                now proceed to your dashboard to manage your finances.
               </p>
             </div>
 
-            <Button
-              asChild
-              size="lg"
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 text-lg rounded-xl shadow-lg transition-all hover:scale-[1.02]"
-            >
-              <Link to="/login" search={{ redirectTo: undefined }}>
-                Go to Dashboard
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+            <Button asChild className="w-full h-12 rounded-xl text-lg font-semibold" size="lg">
+              <Link to="/">Go to Dashboard</Link>
             </Button>
           </motion.div>
         )}

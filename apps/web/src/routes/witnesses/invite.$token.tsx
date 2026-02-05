@@ -76,7 +76,7 @@ function InviteComponent() {
     try {
       await acceptInvitation({ token, password });
       toast.success("Account created successfully!");
-      navigate({ to: "/" });
+      navigate({ to: "/witnesses/next-action" });
     } catch (err) {
       if (err instanceof Error) {
         toast.error(err.message || "Failed to create account");
@@ -221,7 +221,12 @@ function InviteComponent() {
                     : " Please log in to respond."}
                 </p>
                 <Button
-                  onClick={() => navigate({ to: "/login", search: { redirectTo: undefined } })}
+                  onClick={() =>
+                    navigate({
+                      to: "/login",
+                      search: { redirectTo: "/witnesses/next-action" },
+                    })
+                  }
                   variant="outline"
                   className="w-full"
                 >

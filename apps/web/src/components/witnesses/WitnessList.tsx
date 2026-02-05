@@ -12,8 +12,12 @@ export function WitnessList({ requests, activeTab, onAction, isLoading }: Witnes
   // Client-side filtering logic from the original implementation
   const filteredRequests =
     activeTab === "pending"
-      ? requests.filter((r) => r.status === WitnessStatus.Pending)
-      : requests.filter((r) => r.status !== WitnessStatus.Pending);
+      ? requests.filter(
+          (r) => r.status === WitnessStatus.Pending || r.status === WitnessStatus.Modified,
+        )
+      : requests.filter(
+          (r) => r.status !== WitnessStatus.Pending && r.status !== WitnessStatus.Modified,
+        );
 
   if (filteredRequests.length === 0) {
     return (

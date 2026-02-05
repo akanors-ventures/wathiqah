@@ -26,6 +26,7 @@ import { Route as SharedAccessIndexRouteImport } from './routes/shared-access/in
 import { Route as PromisesIndexRouteImport } from './routes/promises/index'
 import { Route as ItemsIndexRouteImport } from './routes/items/index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts/index'
+import { Route as WitnessesNextActionRouteImport } from './routes/witnesses/next-action'
 import { Route as TransactionsNewRouteImport } from './routes/transactions/new'
 import { Route as TransactionsMyContactTransactionsRouteImport } from './routes/transactions/my-contact-transactions'
 import { Route as TransactionsIdRouteImport } from './routes/transactions/$id'
@@ -119,6 +120,11 @@ const ContactsIndexRoute = ContactsIndexRouteImport.update({
   path: '/contacts/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WitnessesNextActionRoute = WitnessesNextActionRouteImport.update({
+  id: '/witnesses/next-action',
+  path: '/witnesses/next-action',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TransactionsNewRoute = TransactionsNewRouteImport.update({
   id: '/transactions/new',
   path: '/transactions/new',
@@ -173,6 +179,7 @@ export interface FileRoutesByFullPath {
   '/transactions/$id': typeof TransactionsIdRoute
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
+  '/witnesses/next-action': typeof WitnessesNextActionRoute
   '/contacts/': typeof ContactsIndexRoute
   '/items/': typeof ItemsIndexRoute
   '/promises/': typeof PromisesIndexRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/transactions/$id': typeof TransactionsIdRoute
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
+  '/witnesses/next-action': typeof WitnessesNextActionRoute
   '/contacts': typeof ContactsIndexRoute
   '/items': typeof ItemsIndexRoute
   '/promises': typeof PromisesIndexRoute
@@ -226,6 +234,7 @@ export interface FileRoutesById {
   '/transactions/$id': typeof TransactionsIdRoute
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
+  '/witnesses/next-action': typeof WitnessesNextActionRoute
   '/contacts/': typeof ContactsIndexRoute
   '/items/': typeof ItemsIndexRoute
   '/promises/': typeof PromisesIndexRoute
@@ -254,6 +263,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
+    | '/witnesses/next-action'
     | '/contacts/'
     | '/items/'
     | '/promises/'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
+    | '/witnesses/next-action'
     | '/contacts'
     | '/items'
     | '/promises'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/transactions/$id'
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
+    | '/witnesses/next-action'
     | '/contacts/'
     | '/items/'
     | '/promises/'
@@ -333,6 +345,7 @@ export interface RootRouteChildren {
   TransactionsIdRoute: typeof TransactionsIdRoute
   TransactionsMyContactTransactionsRoute: typeof TransactionsMyContactTransactionsRoute
   TransactionsNewRoute: typeof TransactionsNewRoute
+  WitnessesNextActionRoute: typeof WitnessesNextActionRoute
   ContactsIndexRoute: typeof ContactsIndexRoute
   ItemsIndexRoute: typeof ItemsIndexRoute
   PromisesIndexRoute: typeof PromisesIndexRoute
@@ -464,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/witnesses/next-action': {
+      id: '/witnesses/next-action'
+      path: '/witnesses/next-action'
+      fullPath: '/witnesses/next-action'
+      preLoaderRoute: typeof WitnessesNextActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/transactions/new': {
       id: '/transactions/new'
       path: '/transactions/new'
@@ -534,6 +554,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransactionsMyContactTransactionsRoute:
     TransactionsMyContactTransactionsRoute,
   TransactionsNewRoute: TransactionsNewRoute,
+  WitnessesNextActionRoute: WitnessesNextActionRoute,
   ContactsIndexRoute: ContactsIndexRoute,
   ItemsIndexRoute: ItemsIndexRoute,
   PromisesIndexRoute: PromisesIndexRoute,

@@ -128,19 +128,29 @@ export class NotificationService {
     const subject =
       'Witness Request: You have been requested to verify a transaction on Wathȋqah';
 
+    const appUrl = this.configService.get('app.url')?.replace(/\/$/, '');
+    const templateData = {
+      name,
+      inviteUrl,
+      subject,
+      appUrl,
+      logoUrl: `${appUrl}/appLogo.png`,
+      year: new Date().getFullYear(),
+    };
+
     const emailOptions = {
       to: email,
       subject,
       html: this.templateService.render(
         'transaction-witness-invite',
         'email',
-        { name, inviteUrl, subject },
+        templateData,
         'html',
       ),
       text: this.templateService.render(
         'transaction-witness-invite',
         'email',
-        { name, inviteUrl, subject },
+        templateData,
         'txt',
       ),
     };
@@ -295,7 +305,7 @@ export class NotificationService {
     templateName: string,
     data: Record<string, any>,
   ): Promise<void> {
-    const appUrl = this.configService.get('app.url');
+    const appUrl = this.configService.get('app.url')?.replace(/\/$/, '');
     const templateData = {
       ...data,
       appUrl,
