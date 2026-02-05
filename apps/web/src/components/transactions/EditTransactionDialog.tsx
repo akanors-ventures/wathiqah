@@ -261,7 +261,7 @@ export function EditTransactionDialog({
                         }
                       }
                     }}
-                    defaultValue={field.value}
+                    value={field.value ?? "none"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -291,7 +291,7 @@ export function EditTransactionDialog({
                     render={({ field }) => (
                       <FormItem className="col-span-1">
                         <FormLabel>Currency</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="NGN" />
@@ -331,7 +331,7 @@ export function EditTransactionDialog({
                     control={form.control}
                     name="itemName"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="col-span-2">
                         <FormLabel>Item Name</FormLabel>
                         <FormControl>
                           <Input placeholder="What item?" {...field} />
@@ -344,7 +344,7 @@ export function EditTransactionDialog({
                     control={form.control}
                     name="quantity"
                     render={({ field }) => (
-                      <FormItem>
+                      <FormItem className="col-span-1">
                         <FormLabel>Quantity</FormLabel>
                         <FormControl>
                           <Input type="number" min="1" {...field} />
@@ -367,7 +367,7 @@ export function EditTransactionDialog({
                       Type
                       <TransactionTypeHelp />
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -402,7 +402,7 @@ export function EditTransactionDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Direction</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select direction" />

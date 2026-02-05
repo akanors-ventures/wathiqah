@@ -21,7 +21,7 @@ import { hashToken } from '../../common/utils/crypto.utils';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
-import ms from 'ms';
+import * as ms from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
 import { normalizeEmail, splitName } from '../../common/utils/string.utils';

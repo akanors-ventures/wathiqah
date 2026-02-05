@@ -150,6 +150,11 @@ function NewTransactionPage() {
       contactId: search.contactId,
       date: format(new Date(), "yyyy-MM-dd"),
       category: AssetCategory.Funds,
+      amount: 0,
+      currency: "NGN",
+      description: "",
+      itemName: "",
+      quantity: 1,
     },
   });
 
@@ -206,7 +211,7 @@ function NewTransactionPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select category" />
@@ -250,7 +255,7 @@ function NewTransactionPage() {
                             form.setValue("type", TransactionType.Given);
                           }
                         }}
-                        defaultValue={field.value}
+                        value={field.value ?? "none"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -290,7 +295,7 @@ function NewTransactionPage() {
                         Type
                         <TransactionTypeHelp />
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select type" />
@@ -325,7 +330,7 @@ function NewTransactionPage() {
                       render={({ field }) => (
                         <FormItem className="col-span-1">
                           <FormLabel>Currency</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="NGN" />
@@ -400,7 +405,7 @@ function NewTransactionPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Direction</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Select direction" />
