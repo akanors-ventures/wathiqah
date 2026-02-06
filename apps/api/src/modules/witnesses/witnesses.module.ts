@@ -4,15 +4,9 @@ import { WitnessesResolver } from './witnesses.resolver';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
-import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
-  imports: [
-    PrismaModule,
-    AuthModule,
-    NotificationsModule,
-    CacheModule.register(),
-  ],
+  imports: [PrismaModule, AuthModule, NotificationsModule],
   providers: [WitnessesResolver, WitnessesService],
   exports: [WitnessesService],
 })

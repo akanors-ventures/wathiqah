@@ -73,8 +73,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       "/forgot-password",
       "/reset-password",
       "/features",
+      "/witnesses/invite",
     ];
-    return publicPaths.includes(location.pathname);
+    return publicPaths.some((path) => location.pathname.startsWith(path));
   }, [location.pathname]);
 
   const { data, loading, error } = useQuery(ME_QUERY, {

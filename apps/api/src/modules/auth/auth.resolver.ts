@@ -112,9 +112,14 @@ export class AuthResolver {
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token not found');
     }
-    const payload = await this.authService.refreshToken(refreshToken);
-    this.setCookies(res, payload);
-    return payload;
+
+    try {
+      const payload = await this.authService.refreshToken(refreshToken);
+      this.setCookies(res, payload);
+      return payload;
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
   }
 
   @Mutation(() => Boolean)
