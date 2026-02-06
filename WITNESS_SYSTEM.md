@@ -20,15 +20,16 @@ The **Witness System** adds accountability and trust to financial transactions b
 
 ### For Witnesses
 
-1. **Easy Onboarding**:
-   - New users receive an invitation link
-   - Simple signup process (just set a password)
-   - Immediate access to witness the transaction
+1. **Seamless Invitation**:
+   - New users receive an invitation link with pre-filled email details.
+   - Secure token-based onboarding automatically links the new account to **ALL** relevant contact records globally.
+   - No manual linking required; transaction access is granted instantly.
 
 2. **Acknowledge Transactions**:
    - View transaction details (amount, date, description, and direction-aware type)
    - Choose to Acknowledge or Decline
    - See all pending witness requests in one place
+   - Receive notifications when a witnessed transaction is modified.
 
 ## 📊 Witness Status Flow
 

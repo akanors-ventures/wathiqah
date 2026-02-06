@@ -1,13 +1,15 @@
 import { InputType, Field, ID } from '@nestjs/graphql';
-import { IsEnum, IsNotEmpty, IsUUID } from 'class-validator';
+import { IsEnum, IsUUID } from 'class-validator';
 import { WitnessStatus } from '../../../generated/prisma/client';
 
 @InputType()
 export class AcknowledgeWitnessInput {
-  @Field(() => ID)
-  @IsNotEmpty()
+  @Field(() => ID, { nullable: true })
   @IsUUID()
-  witnessId: string;
+  witnessId?: string;
+
+  @Field({ nullable: true })
+  token?: string;
 
   @Field(() => WitnessStatus)
   @IsEnum(WitnessStatus)

@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -63,9 +63,8 @@ interface ItemFormProps {
 export function ItemForm({ onSubmit, defaultValues, isLoading }: ItemFormProps) {
   const { contacts } = useContacts();
 
-  // biome-ignore lint/suspicious/noExplicitAny: Form types are complex with zod coercion
-  const form = useForm<any>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: {
       itemName: "",
       quantity: 1,

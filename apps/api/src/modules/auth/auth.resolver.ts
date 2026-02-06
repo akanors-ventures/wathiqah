@@ -76,6 +76,11 @@ export class AuthResolver {
     return { user };
   }
 
+  @Query(() => Witness, { name: 'getWitnessInvitation' })
+  async getWitnessInvitation(@Args('token') token: string) {
+    return this.authService.getWitnessInvitation(token);
+  }
+
   @Mutation(() => AuthPayload)
   async verifyEmail(
     @Args('token') token: string,

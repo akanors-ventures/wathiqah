@@ -42,15 +42,47 @@ When a transaction is updated _after_ witnesses have already acknowledged it, th
 
 ### Future Requirements
 
-1.  **Notification System**:
-    - Trigger an email/push notification to all witnesses when a transaction they witnessed is updated.
+1.  **Notification System**: (Completed ✅)
+    - Trigger an email notification to all witnesses when a transaction they witnessed is updated.
     - Message: "A transaction you witnessed has been modified. Please review and re-acknowledge."
     - Differentiate notification content based on change type (e.g., minor description fix vs. amount change).
 
-2.  **Frontend History Viewer**:
+2.  **Frontend History Viewer**: (Completed ✅)
     - **Timeline View**: A UI component to visualize the lifecycle of a transaction (Created -> Acknowledged -> Updated -> Re-acknowledged).
     - **Diff View**: A visual comparison tool showing "Before" vs "After" for each history entry (using the `previousState` and `newState` JSON fields).
     - **Status Indicators**: Distinct badges for `PENDING` (never seen), `ACKNOWLEDGED` (seen & verified), and `MODIFIED` (seen old version, needs to verify new).
+
+---
+
+## Invitation & Contact Linking System
+
+**Status:** Completed ✅
+**Priority:** High (Onboarding Experience)
+
+### Description
+
+A zero-friction onboarding system that automatically links new users to existing contact records that invited them.
+
+### Implementation Details
+
+1.  **Secure Invitations**: Generates unique tokens for invited contacts, sent via SendGrid.
+2.  **Smart Onboarding**: Signup links carry `token` and `email` to pre-fill registration forms.
+3.  **Automatic Reconciliation**: On signup, the system validates the token and automatically sets the `linkedUserId` on the originating contact record.
+4.  **Legacy Data Linking**: New users immediately see all transactions previously recorded against their email address with flipped perspectives.
+
+---
+
+## System-Wide Quality & Type Safety
+
+**Status:** Completed ✅
+**Priority:** Critical (Maintenance)
+
+### Achievements
+
+1.  **Strict Type Safety**: Eliminated all `any` type usages across the entire codebase (frontend & backend).
+2.  **Automated Validation**: Integrated Zod with TanStack Router and NestJS for end-to-end schema validation.
+3.  **Interceptor Logging**: Implemented a type-safe logging interceptor that redacts sensitive information.
+4.  **Prisma Type Integration**: Leveraged full Prisma client types for all database operations and history snapshots.
 
 3.  **Export Capability**:
     - Generate PDF/CSV reports that include the full audit trail/history of transactions for legal/record-keeping purposes.

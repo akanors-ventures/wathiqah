@@ -25,7 +25,8 @@ enum AccessStatus {
 
 input AcknowledgeWitnessInput {
   status: WitnessStatus!
-  witnessId: ID!
+  token: String
+  witnessId: ID
 }
 
 input AddWitnessInput {
@@ -207,6 +208,7 @@ type Query {
   contact(id: ID!): Contact!
   contacts: [Contact!]!
   convertCurrency(amount: Float!, from: String!, to: String!): Float!
+  getWitnessInvitation(token: String!): Witness!
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions: [Transaction!]!

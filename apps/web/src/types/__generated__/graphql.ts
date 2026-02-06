@@ -42,7 +42,8 @@ export enum AccessStatus {
 
 export type AcknowledgeWitnessInput = {
   status: WitnessStatus;
-  witnessId: Scalars['ID']['input'];
+  token?: InputMaybe<Scalars['String']['input']>;
+  witnessId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type AddWitnessInput = {
@@ -347,6 +348,7 @@ export type Query = {
   contact: Contact;
   contacts: Array<Contact>;
   convertCurrency: Scalars['Float']['output'];
+  getWitnessInvitation: Witness;
   me: User;
   myAccessGrants: Array<AccessGrant>;
   myContactTransactions: Array<Transaction>;
@@ -379,6 +381,11 @@ export type QueryConvertCurrencyArgs = {
   amount: Scalars['Float']['input'];
   from: Scalars['String']['input'];
   to: Scalars['String']['input'];
+};
+
+
+export type QueryGetWitnessInvitationArgs = {
+  token: Scalars['String']['input'];
 };
 
 

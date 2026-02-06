@@ -25,11 +25,14 @@ export function useAcknowledgeWitness(onCompleted?: () => void) {
     onCompleted,
   });
 
-  const acknowledge = async (witnessId: string, status: WitnessStatus) => {
+  const acknowledge = async (
+    params: { witnessId?: string; token?: string },
+    status: WitnessStatus,
+  ) => {
     return mutate({
       variables: {
         input: {
-          witnessId,
+          ...params,
           status,
         },
       },

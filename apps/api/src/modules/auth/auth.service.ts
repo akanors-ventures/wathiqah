@@ -136,13 +136,20 @@ export class AuthService {
             invitedUserId: newUser.id,
           },
         });
-
-        // Also link the contact record to the new user immediately
-        await prisma.contact.update({
-          where: { id: invitation.contactId },
-          data: { linkedUserId: newUser.id },
-        });
       }
+
+      // GLOBAL LINKING: Link ALL existing contact records with this email to the new user
+      // This ensures that any user who had this person as a contact (even without an invite)
+      // now has their record correctly linked for shared transaction visibility.
+      await prisma.contact.updateMany({
+        where: {
+          email: email,
+          linkedUserId: null, // Only link if not already linked
+        },
+        data: {
+          linkedUserId: newUser.id,
+        },
+      });
 
       return newUser;
     });

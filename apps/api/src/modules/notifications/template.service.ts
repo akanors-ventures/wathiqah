@@ -95,7 +95,7 @@ export class TemplateService {
   render(
     name: string,
     type: 'email' | 'sms',
-    data: Record<string, any>,
+    data: Record<string, unknown>,
     format: 'html' | 'txt' = 'html',
   ): string {
     const template = this.getTemplate(name, type, format);

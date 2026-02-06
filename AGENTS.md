@@ -78,7 +78,17 @@
 
 1.  **Configuration First**: Check `.cursorrules` and project config files (`package.json`, `tsconfig.json`, `components.json`) before making assumptions.
 2.  **Monorepo Commands**: Run commands from the root using `pnpm` or `turbo` unless working strictly within one app. - Example: `pnpm --filter api dev` or `turbo dev`.
-3.  **Type Safety**: Strict TypeScript. No `any`. Use Zod or DTOs for validation.
+3.  **Type Safety**: Strict TypeScript. No `any` is allowed in any part of the codebase (frontend and backend). Use Zod for schema validation and DTOs for API data structures. All core services and components must be fully typed.
+
+### Invitation & Contact Linking Flow
+
+- **Context**: Users can invite contacts who are not yet on the platform.
+- **Process**:
+  1.  **Invite Creation**: When a contact is invited, a unique secure token is generated.
+  2.  **Notification**: An invitation email is sent containing a signup link with `token` and `email` parameters (e.g., `/signup?token=...&email=...`).
+  3.  **Pre-filling**: The signup form automatically pre-fills the email address and validates the invitation token.
+  4.  **Automatic Linking**: Upon successful registration, the system automatically links the new user's account to **ALL** existing contact records across the entire platform that match their email address.
+  5.  **Legacy Data Access**: The new user immediately gains access to all shared transactions previously recorded with their email address by any user, not just the inviter.
 
 ### Backend Rules (NestJS)
 

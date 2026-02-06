@@ -469,8 +469,7 @@ export function TransactionCharts() {
                             fontWeight: "600",
                             color: "hsl(var(--foreground))",
                           }}
-                          // biome-ignore lint/suspicious/noExplicitAny: Recharts Tooltip value can be complex
-                          formatter={(value: any) => [
+                          formatter={(value: number | string | undefined) => [
                             formatCurrency(value ?? 0, filter.currency || "NGN"),
                             "Amount",
                           ]}
@@ -538,8 +537,7 @@ export function TransactionCharts() {
                             fontWeight: "600",
                             color: "hsl(var(--foreground))",
                           }}
-                          // biome-ignore lint/suspicious/noExplicitAny: Recharts Tooltip value can be complex
-                          formatter={(value: any) => [
+                          formatter={(value: number | string | undefined) => [
                             formatCurrency(value ?? 0, filter.currency || "NGN"),
                             "Total",
                           ]}
@@ -641,8 +639,7 @@ export function TransactionCharts() {
                           fontWeight: "600",
                           color: "hsl(var(--foreground))",
                         }}
-                        // biome-ignore lint/suspicious/noExplicitAny: Recharts Tooltip value can be complex
-                        formatter={(value: any) => [
+                        formatter={(value: number | string | undefined) => [
                           formatCurrency(value ?? 0, filter.currency || "NGN"),
                           "Amount",
                         ]}

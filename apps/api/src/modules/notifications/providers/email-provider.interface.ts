@@ -1,10 +1,12 @@
+import { TemplateVariables } from 'mailtrap';
+
 export interface EmailPayload {
   to: string;
   subject: string;
   html?: string;
   text?: string;
   templateId?: string;
-  templateData?: Record<string, any>;
+  templateData?: TemplateVariables;
 }
 
 export abstract class EmailProvider {

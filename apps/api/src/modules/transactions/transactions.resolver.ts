@@ -75,7 +75,7 @@ export class TransactionsResolver {
     @Args('id', { type: () => ID }) id: string,
     @CurrentUser() user: User,
   ) {
-    return this.transactionsService.findOne(id, user.id);
+    return this.transactionsService.findOne(id, user.id, true);
   }
 
   @Mutation(() => Transaction)

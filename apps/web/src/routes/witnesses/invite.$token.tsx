@@ -95,14 +95,15 @@ function InviteComponent() {
 
   const handleAcknowledge = async (status: WitnessStatus) => {
     try {
-      await acknowledge(witnessInvitation.id, status);
+      // Use token instead of witness ID for more reliability from email
+      await acknowledge({ token }, status);
       toast.success(`Transaction ${status.toLowerCase()} successfully!`);
       navigate({ to: "/" });
     } catch (err) {
       if (err instanceof Error) {
-        toast.error(err.message || "Failed to update status");
+        toast.error(err.message || `Failed to ${status.toLowerCase()} transaction`);
       } else {
-        toast.error("Failed to update status");
+        toast.error(`Failed to ${status.toLowerCase()} transaction`);
       }
     }
   };

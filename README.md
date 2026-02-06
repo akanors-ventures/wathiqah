@@ -20,6 +20,7 @@ Financial exchanges between people are often undocumented, leading to confusion 
 ## ✨ Features (MVP)
 
 - **Transaction Management**: Record funds (given, received, collected) or physical items (lent, borrowed, returned).
+  - **Gift Conversions**: Convert debt to gifts (forgiving loans) with automatic perspective flipping.
 - **Multi-currency Support**: Track fund transactions in multiple currencies (NGN, USD, EUR, GBP, CAD, AED, SAR).
   - **High-Performance Exchange Rates**: Real-time rate updates with dual-provider fallback (Open Exchange Rates & ExchangeRate-API).
   - **User-Preferred Base Currency**: Set a persistent preferred currency for global balance aggregation.

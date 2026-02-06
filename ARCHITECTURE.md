@@ -124,6 +124,16 @@ apps/api/
     - **Automated Sync**: A cron job runs every other hour to fetch the latest rates and archive history in `ExchangeRateHistory`.
     - **Precision**: Uses `Prisma.Decimal` for all financial calculations to prevent floating-point errors.
     - **Base Currency**: Uses a USD-base cross-conversion logic to allow any-to-any currency conversion efficiently.
+  - **Invitation & Onboarding System**:
+    - **Secure Tokens**: Uses UUID-based secure tokens for invitations, stored with an expiration in the database.
+    - **Contextual Onboarding**: Invitation links carry `token` and `email` to streamline the signup process.
+    - **Automatic Reconciliation**: Automatically links new users to **all** existing contact records across the platform matching their email address on signup.
+    - **Email Integration**: Leverages SendGrid for high-deliverability invitation and verification emails.
+7. **Strict Type Safety**:
+   - The codebase strictly enforces **No `any`** types.
+   - All external API responses are typed with interfaces.
+   - Form validation is handled by Zod, with types inferred directly from schemas.
+   - Backend services use DTOs and Prisma-generated types for end-to-end safety.
 
 ---
 

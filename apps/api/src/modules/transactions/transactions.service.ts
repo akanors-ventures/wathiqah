@@ -14,7 +14,9 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
+  ReturnDirection,
   Prisma,
+  Witness,
 } from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
@@ -28,7 +30,7 @@ import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 
-interface WitnessNotification {
+export interface WitnessNotification {
   witnessId: string;
   email: string;
   firstName: string;
@@ -45,7 +47,7 @@ interface WitnessNotification {
   };
 }
 
-interface TransactionSummary {
+export interface TransactionSummary {
   totalGiven: number;
   totalReceived: number;
   totalReturned: number;
@@ -105,32 +107,52 @@ export class TransactionsService {
 
     // Handle existing users as witnesses
     if (witnessUserIds && witnessUserIds.length > 0) {
-      const witnesses = await prisma.witness.createManyAndReturn({
-        data: witnessUserIds.map((witnessUserId) => ({
-          transactionId,
-          userId: witnessUserId,
-          status: WitnessStatus.PENDING,
-        })),
-        skipDuplicates: true,
-      });
+      const witnessDetails: (Witness & {
+        user: {
+          email: string;
+          firstName: string;
+          lastName: string;
+          phoneNumber: string | null;
+        };
+      })[] = [];
 
-      // Since createManyAndReturn doesn't support include for relations in some Prisma versions
-      // or might have issues, we fetch the witness info separately for notifications
-      const witnessDetails = await prisma.witness.findMany({
-        where: {
-          id: { in: witnesses.map((w) => w.id) },
-        },
-        include: {
-          user: {
-            select: {
-              email: true,
-              firstName: true,
-              lastName: true,
-              phoneNumber: true,
+      for (const witnessUserId of witnessUserIds) {
+        // Use upsert to handle duplicates and get the witness record
+        const witness = await prisma.witness.upsert({
+          where: {
+            transactionId_userId: {
+              transactionId,
+              userId: witnessUserId,
             },
           },
-        },
-      });
+          update: {}, // No updates needed if it exists
+          create: {
+            transactionId,
+            userId: witnessUserId,
+            status: WitnessStatus.PENDING,
+          },
+          include: {
+            user: {
+              select: {
+                email: true,
+                firstName: true,
+                lastName: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        });
+        witnessDetails.push(
+          witness as Witness & {
+            user: {
+              email: string;
+              firstName: string;
+              lastName: string;
+              phoneNumber: string | null;
+            };
+          },
+        );
+      }
 
       for (const witness of witnessDetails) {
         const rawToken = uuidv4();
@@ -431,6 +453,69 @@ export class TransactionsService {
     return updatedTransaction;
   }
 
+  private flipStatePerspective(state: Record<string, unknown> | null) {
+    if (!state) return null;
+    const flipped = { ...state };
+    if (state.type === TransactionType.GIVEN) {
+      flipped.type = TransactionType.RECEIVED;
+    } else if (state.type === TransactionType.RECEIVED) {
+      flipped.type = TransactionType.GIVEN;
+    }
+    if (state.returnDirection === 'TO_ME') {
+      flipped.returnDirection = 'TO_CONTACT';
+    } else if (state.returnDirection === 'TO_CONTACT') {
+      flipped.returnDirection = 'TO_ME';
+    }
+    return flipped;
+  }
+
+  private applyPerspective<
+    T extends {
+      createdById: string;
+      type: TransactionType;
+      returnDirection?: ReturnDirection | null;
+      history?: {
+        previousState: unknown;
+        newState: unknown;
+      }[];
+    },
+  >(transaction: T, userId: string): T {
+    if (transaction.createdById === userId) return transaction;
+
+    // Flip perspective for the contact
+    const transformed = { ...transaction };
+    if (transaction.type === TransactionType.GIVEN) {
+      transformed.type = TransactionType.RECEIVED;
+    } else if (transaction.type === TransactionType.RECEIVED) {
+      transformed.type = TransactionType.GIVEN;
+    } else if (transaction.type === TransactionType.RETURNED) {
+      transformed.returnDirection =
+        transaction.returnDirection === ReturnDirection.TO_ME
+          ? ReturnDirection.TO_CONTACT
+          : ReturnDirection.TO_ME;
+    } else if (transaction.type === TransactionType.GIFT) {
+      transformed.returnDirection =
+        transaction.returnDirection === ReturnDirection.TO_ME
+          ? ReturnDirection.TO_CONTACT
+          : ReturnDirection.TO_ME;
+    }
+
+    // Flip history entries if present
+    if (transformed.history && Array.isArray(transformed.history)) {
+      transformed.history = transformed.history.map((h) => ({
+        ...h,
+        previousState: this.flipStatePerspective(
+          h.previousState as Record<string, unknown>,
+        ),
+        newState: this.flipStatePerspective(
+          h.newState as Record<string, unknown>,
+        ),
+      }));
+    }
+
+    return transformed;
+  }
+
   async findAll(userId: string, filter?: FilterTransactionInput) {
     const where: Prisma.TransactionWhereInput = {
       OR: [{ createdById: userId }, { contact: { linkedUserId: userId } }],
@@ -535,24 +620,9 @@ export class TransactionsService {
       },
     });
 
-    const transformedItems = items.map((item) => {
-      if (item.createdById === userId) return item;
-
-      // Flip perspective for the contact
-      const transformed = { ...item };
-      if (item.type === TransactionType.GIVEN) {
-        transformed.type = TransactionType.RECEIVED;
-      } else if (item.type === TransactionType.RECEIVED) {
-        transformed.type = TransactionType.GIVEN;
-      } else if (item.type === TransactionType.RETURNED) {
-        transformed.returnDirection =
-          item.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      } else if (item.type === TransactionType.GIFT) {
-        transformed.returnDirection =
-          item.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      }
-      return transformed;
-    });
+    const transformedItems = items.map((item) =>
+      this.applyPerspective(item, userId),
+    );
 
     // Determine target currency for summary
     let targetCurrency = filter?.summaryCurrency || filter?.currency;
@@ -899,10 +969,11 @@ export class TransactionsService {
     return result;
   }
 
-  async findOne(id: string, userId: string) {
+  async findOne(id: string, userId: string, flipPerspective = false) {
     const transaction = await this.prisma.transaction.findUnique({
       where: { id },
       include: {
+        contact: true,
         conversions: {
           orderBy: {
             date: 'desc',
@@ -928,13 +999,18 @@ export class TransactionsService {
       throw new NotFoundException(`Transaction with ID ${id} not found`);
     }
 
-    if (transaction.createdById !== userId) {
+    const isCreator = transaction.createdById === userId;
+    const isLinkedContact = transaction.contact?.linkedUserId === userId;
+
+    if (!isCreator && !isLinkedContact) {
       throw new ForbiddenException(
         'You do not have permission to access this transaction',
       );
     }
 
-    return transaction;
+    return flipPerspective
+      ? this.applyPerspective(transaction, userId)
+      : transaction;
   }
 
   async update(
@@ -943,6 +1019,12 @@ export class TransactionsService {
     userId: string,
   ) {
     const transaction = await this.findOne(id, userId);
+
+    if (transaction.createdById !== userId) {
+      throw new ForbiddenException(
+        'Only the creator can update this transaction',
+      );
+    }
 
     // Create audit log entry
     const previousState = {
@@ -1077,7 +1159,7 @@ export class TransactionsService {
 
     // Business Rule: Check if any witness has acknowledged
     const acknowledgedWitnesses = transaction.witnesses.filter(
-      (w) => w.status === WitnessStatus.ACKNOWLEDGED,
+      (w: { status: WitnessStatus }) => w.status === WitnessStatus.ACKNOWLEDGED,
     );
     const hasAcknowledgedWitness = acknowledgedWitnesses.length > 0;
 
@@ -1178,6 +1260,12 @@ export class TransactionsService {
   async remove(id: string, userId: string) {
     const transaction = await this.findOne(id, userId);
 
+    if (transaction.createdById !== userId) {
+      throw new ForbiddenException(
+        'Only the creator can remove this transaction',
+      );
+    }
+
     // If there are no witnesses, we can safely hard-delete
     if (transaction.witnesses.length === 0) {
       return this.prisma.transaction.delete({
@@ -1209,7 +1297,7 @@ export class TransactionsService {
 
     // Notify acknowledged witnesses
     const acknowledgedWitnesses = transaction.witnesses.filter(
-      (w) => w.status === WitnessStatus.ACKNOWLEDGED,
+      (w: { status: WitnessStatus }) => w.status === WitnessStatus.ACKNOWLEDGED,
     );
 
     if (acknowledgedWitnesses.length > 0) {

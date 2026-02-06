@@ -4,7 +4,7 @@ import { WitnessCard } from "./WitnessCard";
 interface WitnessListProps {
   requests: MyWitnessRequestsQuery["myWitnessRequests"];
   activeTab: "pending" | "history";
-  onAction: (id: string, status: WitnessStatus) => void;
+  onAction: (params: { witnessId?: string; token?: string }, status: WitnessStatus) => void;
   isLoading?: boolean;
 }
 
@@ -45,8 +45,8 @@ export function WitnessList({ requests, activeTab, onAction, isLoading }: Witnes
         <WitnessCard
           key={request.id}
           request={request}
-          onAcknowledge={(id) => onAction(id, WitnessStatus.Acknowledged)}
-          onDecline={(id) => onAction(id, WitnessStatus.Declined)}
+          onAcknowledge={(id) => onAction({ witnessId: id }, WitnessStatus.Acknowledged)}
+          onDecline={(id) => onAction({ witnessId: id }, WitnessStatus.Declined)}
           isLoading={isLoading}
         />
       ))}

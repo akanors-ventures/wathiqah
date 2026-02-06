@@ -57,6 +57,11 @@ function FeaturesPage() {
               search={{ tab: "funds" }}
             />
             <FeatureCard
+              icon={<RefreshCw className="w-8 h-8 text-pink-500" />}
+              title="Debt Forgiveness"
+              description="Easily convert any lending or borrowing transaction into a gift. Perfect for forgiving debts or documenting unexpected generosity."
+            />
+            <FeatureCard
               icon={<Package className="w-8 h-8 text-amber-500" />}
               title="Physical Items"
               description="Lend and borrow tools, books, or any object. Track quantities, conditions, and return statuses with precision. Never lose an item again."
@@ -71,19 +76,19 @@ function FeaturesPage() {
             <FeatureCard
               icon={<Users className="w-8 h-8 text-blue-500" />}
               title="Verified Witnesses"
-              description="Invite trusted third parties to digitally acknowledge and verify your transactions. Adds a layer of accountability that traditional ledgers lack."
+              description="Invite trusted third parties to verify your transactions. Our seamless invitation system handles onboarding automatically for new users."
               to="/witnesses"
             />
             <FeatureCard
               icon={<ArrowRightLeft className="w-8 h-8 text-cyan-500" />}
               title="Relationship Standing"
-              description="See exactly where you stand with every contact. Dynamic net debt logic shows who owes you and who you owe across all categories."
+              description="See exactly where you stand with every contact. New users are automatically linked to existing records for an instant financial history."
               to="/contacts"
             />
             <FeatureCard
               icon={<RefreshCw className="w-8 h-8 text-yellow-500" />}
               title="Shared Ledger Sync"
-              description="Automatic synchronization between users. When a contact records a transaction with you, it instantly appears in your ledger with adjusted perspectives."
+              description="Automatic sync between users. Invitation links pre-fill details and link accounts instantly, ensuring zero-friction collaboration."
             />
             <FeatureCard
               icon={<History className="w-8 h-8 text-orange-500" />}
@@ -123,7 +128,8 @@ function FeaturesPage() {
                 <ul className="space-y-4">
                   {[
                     "Secure, non-account-holder verification",
-                    "Email-based invitation system",
+                    "Email-based invitation with automatic account linking",
+                    "Pre-filled onboarding for invited witnesses",
                     "Digital acknowledgment status tracking",
                     "Audit trail preservation for verified records",
                   ].map((item) => (

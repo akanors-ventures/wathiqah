@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { normalizeEmail } from '../../common/utils/string.utils';
+import { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
+  create(data: Prisma.UserCreateInput) {
     const createData = { ...data };
     if (createData.email) {
       createData.email = normalizeEmail(createData.email);
@@ -28,9 +29,9 @@ export class UsersService {
     });
   }
 
-  update(id: string, data: any) {
+  update(id: string, data: Prisma.UserUpdateInput) {
     const updateData = { ...data };
-    if (updateData.email) {
+    if (typeof updateData.email === 'string') {
       updateData.email = normalizeEmail(updateData.email);
     }
     return this.prisma.user.update({

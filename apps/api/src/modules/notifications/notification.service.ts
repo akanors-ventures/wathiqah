@@ -332,7 +332,7 @@ export class NotificationService {
     to: string,
     subject: string,
     templateName: string,
-    data: Record<string, any>,
+    data: Record<string, unknown>,
   ): Promise<void> {
     const appUrl = this.configService.get('app.url')?.replace(/\/$/, '');
     const templateData = {
