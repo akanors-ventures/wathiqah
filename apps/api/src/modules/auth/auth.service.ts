@@ -5,6 +5,7 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -29,6 +30,8 @@ import { User } from 'src/generated/prisma/client';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
@@ -169,12 +172,15 @@ export class AuthService {
       ),
     );
 
-    // Send verification email
-    await this.notificationService.sendVerificationEmail(
-      user.email,
-      user.firstName,
-      verificationToken,
-    );
+    // Send verification email (Queue handled)
+    this.notificationService
+      .sendVerificationEmail(user.email, user.firstName, verificationToken)
+      .catch((err) =>
+        this.logger.error(
+          `Failed to queue verification email for ${user.email}`,
+          err,
+        ),
+      );
     return user;
   }
 
@@ -358,11 +364,14 @@ export class AuthService {
       ),
     );
 
-    await this.notificationService.sendPasswordResetEmail(
-      user.email,
-      user.firstName,
-      resetToken,
-    );
+    this.notificationService
+      .sendPasswordResetEmail(user.email, user.firstName, resetToken)
+      .catch((err) =>
+        this.logger.error(
+          `Failed to queue password reset email for ${user.email}`,
+          err,
+        ),
+      );
 
     return true;
   }
@@ -396,11 +405,14 @@ export class AuthService {
       ),
     );
 
-    await this.notificationService.sendVerificationEmail(
-      user.email,
-      user.firstName,
-      verificationToken,
-    );
+    this.notificationService
+      .sendVerificationEmail(user.email, user.firstName, verificationToken)
+      .catch((err) =>
+        this.logger.error(
+          `Failed to queue verification email for ${user.email}`,
+          err,
+        ),
+      );
 
     return true;
   }

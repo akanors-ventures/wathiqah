@@ -226,7 +226,7 @@ export function TransactionCharts() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <div className="space-y-2">
               <label htmlFor={startDateId} className="text-sm font-medium">
                 Start Date
@@ -234,6 +234,7 @@ export function TransactionCharts() {
               <Input
                 id={startDateId}
                 type="date"
+                className="w-full"
                 onChange={(e) => setFilter({ ...filter, startDate: e.target.value || undefined })}
               />
             </div>
@@ -244,6 +245,7 @@ export function TransactionCharts() {
               <Input
                 id={endDateId}
                 type="date"
+                className="w-full"
                 onChange={(e) => setFilter({ ...filter, endDate: e.target.value || undefined })}
               />
             </div>
@@ -257,7 +259,7 @@ export function TransactionCharts() {
                   setFilter({ ...filter, currency: value === "ALL" ? undefined : value })
                 }
               >
-                <SelectTrigger id={currencyId}>
+                <SelectTrigger id={currencyId} className="w-full">
                   <SelectValue placeholder="All Currencies" />
                 </SelectTrigger>
                 <SelectContent>
@@ -280,7 +282,7 @@ export function TransactionCharts() {
                 value={filter.summaryCurrency || "NGN"}
                 onValueChange={(value) => setFilter({ ...filter, summaryCurrency: value })}
               >
-                <SelectTrigger id={summaryCurrencyId}>
+                <SelectTrigger id={summaryCurrencyId} className="w-full">
                   <SelectValue placeholder="Summary Currency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -302,6 +304,7 @@ export function TransactionCharts() {
                 id={minAmountId}
                 type="number"
                 placeholder="0"
+                className="w-full"
                 onChange={(e) =>
                   setFilter({
                     ...filter,

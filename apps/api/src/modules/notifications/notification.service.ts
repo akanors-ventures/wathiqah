@@ -1,22 +1,15 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailProvider } from './providers/email-provider.interface';
-import { SmsProvider } from './providers/sms-provider.interface';
-import { TemplateService } from './template.service';
-import {
-  EmailNotificationOptions,
-  MultiChannelNotificationOptions,
-  SmsNotificationOptions,
-} from './interfaces/notification-options.interface';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { AssetCategory } from 'src/generated/prisma/enums';
+import type { NotificationJobData } from './interfaces/job-data.interface';
 
 @Injectable()
 export class NotificationService {
-  private readonly logger = new Logger(NotificationService.name);
-
   constructor(
-    private readonly emailProvider: EmailProvider,
-    private readonly smsProvider: SmsProvider,
-    private readonly templateService: TemplateService,
+    @InjectQueue('notifications')
+    private readonly notificationsQueue: Queue<NotificationJobData>,
     private readonly configService: ConfigService,
   ) {}
 
@@ -127,7 +120,7 @@ export class NotificationService {
       amount?: string;
       itemName?: string;
       currency?: string;
-      category: string;
+      category: AssetCategory;
       type: string;
     },
     phoneNumber?: string,
@@ -139,7 +132,10 @@ export class NotificationService {
 
     // Format amount for email if category is FUNDS
     let formattedAmount = transactionDetails.amount;
-    if (transactionDetails.category === 'FUNDS' && transactionDetails.amount) {
+    if (
+      transactionDetails.category === AssetCategory.FUNDS &&
+      transactionDetails.amount
+    ) {
       const amount = parseFloat(transactionDetails.amount);
       const currency = transactionDetails.currency || 'NGN';
       formattedAmount = new Intl.NumberFormat('en-NG', {
@@ -149,7 +145,7 @@ export class NotificationService {
         maximumFractionDigits: 2,
       }).format(amount);
     } else if (
-      transactionDetails.category === 'PHYSICAL_ITEMS' &&
+      transactionDetails.category === AssetCategory.ITEM &&
       transactionDetails.amount
     ) {
       formattedAmount = `${transactionDetails.amount} ${transactionDetails.itemName || 'items'}`;
@@ -167,41 +163,45 @@ export class NotificationService {
       amount: formattedAmount,
     };
 
-    const emailOptions = {
-      to: email,
-      subject,
-      html: this.templateService.render(
-        'transaction-witness-invite',
-        'email',
+    // Queue Email
+    await this.notificationsQueue.add(
+      'send-email',
+      {
+        to: email,
+        subject,
+        templateName: 'transaction-witness-invite',
         templateData,
-        'html',
-      ),
-      text: this.templateService.render(
-        'transaction-witness-invite',
-        'email',
-        templateData,
-        'txt',
-      ),
-    };
+      },
+      {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+        removeOnComplete: true,
+      },
+    );
 
-    let smsOptions;
+    // Queue SMS if phone number provided
     if (phoneNumber) {
-      const smsBody = this.templateService.render(
-        'transaction-witness-invite',
-        'sms',
-        { name, inviteUrl },
-        'txt',
-      );
-      smsOptions = {
-        to: phoneNumber,
-        body: smsBody,
-      };
-    }
+      const smsBody = `Hello ${name}, you have been requested to witness a transaction on Wathȋqah. View details: ${inviteUrl}`;
 
-    await this.sendMultiChannel({
-      email: emailOptions,
-      sms: smsOptions,
-    });
+      await this.notificationsQueue.add(
+        'send-sms',
+        {
+          to: phoneNumber,
+          body: smsBody,
+        },
+        {
+          attempts: 3,
+          backoff: {
+            type: 'fixed',
+            delay: 5000,
+          },
+          removeOnComplete: true,
+        },
+      );
+    }
   }
 
   /**
@@ -324,75 +324,28 @@ export class NotificationService {
     }
   }
 
-  private async sendEmail(options: EmailNotificationOptions): Promise<void> {
-    await this.emailProvider.sendEmail(options);
-  }
-
   private async sendEmailWithTemplate(
     to: string,
     subject: string,
     templateName: string,
     data: Record<string, unknown>,
   ): Promise<void> {
-    const appUrl = this.configService.get('app.url')?.replace(/\/$/, '');
-    const templateData = {
-      ...data,
-      appUrl,
-      logoUrl: `${appUrl}/appLogo.png`,
-      year: new Date().getFullYear(),
-    };
-
-    const html = this.templateService.render(
-      templateName,
-      'email',
-      templateData,
-      'html',
+    await this.notificationsQueue.add(
+      'send-email',
+      {
+        to,
+        subject,
+        templateName,
+        templateData: data,
+      },
+      {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+        removeOnComplete: true,
+      },
     );
-    const text = this.templateService.render(
-      templateName,
-      'email',
-      templateData,
-      'txt',
-    );
-
-    await this.sendEmail({
-      to,
-      subject,
-      html,
-      text,
-    });
-  }
-
-  private async sendSms(options: SmsNotificationOptions): Promise<void> {
-    await this.smsProvider.sendSms(options);
-  }
-
-  private async sendMultiChannel(
-    options: MultiChannelNotificationOptions,
-  ): Promise<void> {
-    const promises: Promise<void>[] = [];
-
-    if (options.email) {
-      promises.push(this.sendEmail(options.email));
-    }
-
-    if (options.sms) {
-      promises.push(this.sendSms(options.sms));
-    }
-
-    if (promises.length === 0) {
-      this.logger.warn('sendMultiChannel called with no channels specified');
-      return;
-    }
-
-    const results = await Promise.allSettled(promises);
-    const rejected = results.filter((r) => r.status === 'rejected');
-
-    if (rejected.length > 0) {
-      this.logger.error(
-        `One or more notification channels failed: ${rejected.length}`,
-      );
-      // Optionally, throw a custom error or emit a monitoring event
-    }
   }
 }

@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { BullModule } from '@nestjs/bullmq';
 import { NotificationService } from './notification.service';
+import { NotificationsProcessor } from './notifications.processor';
 import { TemplateService } from './template.service';
 import { MailtrapEmailProvider } from './providers/mailtrap-email.provider';
 import { SendGridEmailProvider } from './providers/sendgrid-email.provider';
@@ -9,9 +11,15 @@ import { EmailProvider } from './providers/email-provider.interface';
 import { SmsProvider } from './providers/sms-provider.interface';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [
+    ConfigModule,
+    BullModule.registerQueue({
+      name: 'notifications',
+    }),
+  ],
   providers: [
     NotificationService,
+    NotificationsProcessor,
     TemplateService,
     {
       provide: EmailProvider,

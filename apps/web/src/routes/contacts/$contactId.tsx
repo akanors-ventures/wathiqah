@@ -1,12 +1,14 @@
 import { useMutation, useQuery } from "@apollo/client/react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowRightLeft,
   ArrowUpRight,
+  ChevronRight,
   Clock,
+  Download,
   Package,
   Plus,
   ShieldCheck,
@@ -30,8 +32,9 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
+import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { AssetCategory } from "@/types/__generated__/graphql";
+import { AssetCategory, type Transaction } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/contacts/$contactId")({
@@ -40,6 +43,7 @@ export const Route = createFileRoute("/contacts/$contactId")({
 });
 
 function ContactDetailsPage() {
+  const navigate = useNavigate();
   const { contactId } = Route.useParams();
 
   const {
@@ -74,8 +78,33 @@ function ContactDetailsPage() {
   if (!contactData?.contact) return <div className="p-8 text-center">Contact not found</div>;
 
   const contact = contactData.contact;
-  const transactions = txData?.transactions.items || [];
+  const transactions = (txData?.transactions.items as Transaction[]) || [];
   const summary = txData?.transactions.summary;
+
+  const exportToCSV = (items: Transaction[], contactName: string) => {
+    const headers = ["Date", "Type", "Description", "Amount", "Currency", "Category"];
+    const csvData = items.map((tx) => [
+      format(new Date(tx.date), "yyyy-MM-dd"),
+      tx.type,
+      tx.description ||
+        (tx.category === AssetCategory.Item ? `${tx.quantity}x ${tx.itemName}` : "-"),
+      tx.amount,
+      tx.currency || "NGN",
+      tx.category,
+    ]);
+
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      [headers.join(","), ...csvData.map((row) => row.join(","))].join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `transactions_${contactName.replace(/\s+/g, "_")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -191,152 +220,297 @@ function ContactDetailsPage() {
       )}
 
       {/* Transactions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+      <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
+        <CardHeader className="p-6 border-b border-border/30">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
+              Transaction History
+            </CardTitle>
+            {transactions.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-[10px] font-bold uppercase tracking-wider"
+                onClick={() => exportToCSV(transactions, contact.name)}
+              >
+                <Download className="mr-2 h-3.5 w-3.5" />
+                CSV
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>
-                  <div className="flex items-center gap-1">
-                    Type
-                    <TransactionTypeHelp />
-                  </div>
-                </TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {txLoading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10">
-                    <div className="flex justify-center">
-                      <BrandLoader size="sm" />
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : transactions.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
-                    No transactions found with this contact.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                transactions.map((tx) => {
+          {txLoading ? (
+            <div className="flex justify-center py-20">
+              <BrandLoader size="sm" />
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="text-center py-20 text-muted-foreground">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 opacity-20">
+                <Package className="w-8 h-8" />
+              </div>
+              <p className="font-bold text-sm">No transactions found with this contact.</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30 border-b border-border/30">
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12 pl-6">
+                        Date
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                        <div className="flex items-center gap-1">
+                          Type
+                          <TransactionTypeHelp />
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                        Description
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12 text-right">
+                        Amount
+                      </TableHead>
+                      <TableHead className="w-10"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((tx) => {
+                      const isCreator = user?.id === tx.createdBy?.id;
+                      return (
+                        <TableRow
+                          key={tx.id}
+                          className="group hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/30 last:border-0"
+                          onClick={() =>
+                            navigate({
+                              to: "/transactions/$id",
+                              params: { id: tx.id },
+                            })
+                          }
+                        >
+                          <TableCell className="pl-6 font-medium text-xs text-muted-foreground/80">
+                            {format(new Date(tx.date as string), "MMM d, yyyy")}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col gap-1.5">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[10px] font-bold px-2 py-0.5",
+                                  tx.type === "GIVEN"
+                                    ? "text-blue-600 border-blue-200 bg-blue-50"
+                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-red-600 border-red-200 bg-red-50"
+                                      : tx.type === "RETURNED"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          : "text-blue-600 border-blue-200 bg-blue-50"
+                                        : tx.type === "INCOME"
+                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          : tx.type === "GIFT"
+                                            ? tx.returnDirection === "TO_ME"
+                                              ? "text-purple-600 border-purple-200 bg-purple-50"
+                                              : "text-pink-600 border-pink-200 bg-pink-50"
+                                            : "text-gray-600 border-gray-200 bg-gray-50",
+                                )}
+                              >
+                                {tx.type === "RETURNED"
+                                  ? tx.returnDirection === "TO_ME"
+                                    ? "RETURNED TO ME"
+                                    : "RETURNED TO CONTACT"
+                                  : tx.type === "GIFT"
+                                    ? tx.returnDirection === "TO_ME"
+                                      ? "GIFT RECEIVED"
+                                      : "GIFT GIVEN"
+                                    : tx.type}
+                              </Badge>
+                              {!isCreator && (
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
+                                  <UserCircle className="w-2.5 h-2.5" />
+                                  SHARED
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground/90">
+                            {tx.category === AssetCategory.Item ? (
+                              <div className="flex items-center gap-1.5 font-medium text-foreground">
+                                <Package className="h-4 w-4 text-muted-foreground" />
+                                <span>
+                                  {tx.quantity}x {tx.itemName}
+                                </span>
+                              </div>
+                            ) : (
+                              tx.description || "-"
+                            )}
+                          </TableCell>
+                          <TableCell
+                            className={cn(
+                              "text-right font-bold text-sm",
+                              tx.category === AssetCategory.Item
+                                ? "text-muted-foreground font-normal italic text-xs"
+                                : tx.type === "GIVEN"
+                                  ? "text-blue-600"
+                                  : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                    ? "text-red-600"
+                                    : tx.type === "RETURNED"
+                                      ? tx.returnDirection === "TO_ME"
+                                        ? "text-green-600"
+                                        : "text-blue-600"
+                                      : tx.type === "INCOME"
+                                        ? "text-green-600"
+                                        : tx.type === "GIFT"
+                                          ? tx.returnDirection === "TO_ME"
+                                            ? "text-purple-600"
+                                            : "text-pink-600"
+                                          : "text-emerald-600",
+                            )}
+                          >
+                            {tx.category === AssetCategory.Item ? (
+                              "Physical Item"
+                            ) : (
+                              <>
+                                {tx.type === "GIVEN" ||
+                                (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                                tx.type === "INCOME" ||
+                                (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                                  ? "+"
+                                  : "-"}
+                                {formatCurrency(tx.amount, tx.currency || "NGN")}
+                              </>
+                            )}
+                          </TableCell>
+                          <TableCell className="pr-6">
+                            <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile View */}
+              <div className="md:hidden space-y-3 p-4">
+                {transactions.map((tx) => {
                   const isCreator = user?.id === tx.createdBy?.id;
                   return (
-                    <TableRow key={tx.id}>
-                      <TableCell className="font-medium">
-                        {format(new Date(tx.date as string), "MMM d, yyyy")}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1.5">
-                          <Badge
-                            variant="outline"
-                            className={
-                              tx.type === "GIVEN"
-                                ? "text-blue-600 border-blue-200 bg-blue-50"
-                                : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600 border-red-200 bg-red-50"
-                                  : tx.type === "RETURNED"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "text-green-600 border-green-200 bg-green-50"
-                                      : "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "INCOME"
-                                      ? "text-green-600 border-green-200 bg-green-50"
-                                      : tx.type === "GIFT"
+                    <Card
+                      key={tx.id}
+                      className="overflow-hidden border-border/50 hover:border-primary/30 transition-all active:scale-[0.98]"
+                      onClick={() =>
+                        navigate({
+                          to: "/transactions/$id",
+                          params: { id: tx.id },
+                        })
+                      }
+                    >
+                      <div className="p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                              {format(new Date(tx.date as string), "MMM d, yyyy")}
+                            </p>
+                            <div className="flex flex-col gap-1">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "text-[10px] font-bold px-2 py-0.5 w-fit",
+                                  tx.type === "GIVEN"
+                                    ? "text-blue-600 border-blue-200 bg-blue-50"
+                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-red-600 border-red-200 bg-red-50"
+                                      : tx.type === "RETURNED"
                                         ? tx.returnDirection === "TO_ME"
-                                          ? "text-purple-600 border-purple-200 bg-purple-50"
-                                          : "text-pink-600 border-pink-200 bg-pink-50"
-                                        : "text-gray-600 border-gray-200 bg-gray-50"
-                            }
-                          >
-                            {tx.type === "RETURNED"
-                              ? tx.returnDirection === "TO_ME"
-                                ? "RETURNED TO ME"
-                                : "RETURNED TO CONTACT"
-                              : tx.type === "GIFT"
-                                ? tx.returnDirection === "TO_ME"
-                                  ? "GIFT RECEIVED"
-                                  : "GIFT GIVEN"
-                                : tx.type}
-                          </Badge>
-                          {!isCreator && (
-                            <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
-                              <UserCircle className="w-2.5 h-2.5" />
-                              SHARED
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell
-                        className="max-w-[300px] truncate"
-                        title={tx.description as string}
-                      >
-                        {tx.category === AssetCategory.Item ? (
-                          <div className="flex items-center gap-1.5 font-medium text-foreground">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {tx.quantity}x {tx.itemName}
-                            </span>
-                          </div>
-                        ) : (
-                          tx.description || "-"
-                        )}
-                      </TableCell>
-                      <TableCell
-                        className={`text-right font-bold ${
-                          tx.category === AssetCategory.Item
-                            ? "text-muted-foreground font-normal italic text-xs"
-                            : tx.type === "GIVEN"
-                              ? "text-blue-600"
-                              : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                ? "text-red-600"
-                                : tx.type === "RETURNED"
+                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          : "text-blue-600 border-blue-200 bg-blue-50"
+                                        : tx.type === "INCOME"
+                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          : tx.type === "GIFT"
+                                            ? tx.returnDirection === "TO_ME"
+                                              ? "text-purple-600 border-purple-200 bg-purple-50"
+                                              : "text-pink-600 border-pink-200 bg-pink-50"
+                                            : "text-gray-600 border-gray-200 bg-gray-50",
+                                )}
+                              >
+                                {tx.type === "RETURNED"
                                   ? tx.returnDirection === "TO_ME"
-                                    ? "text-green-600"
-                                    : "text-blue-600"
-                                  : tx.type === "INCOME"
-                                    ? "text-green-600"
-                                    : tx.type === "GIFT"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-purple-600"
-                                        : "text-pink-600"
-                                      : "text-emerald-600"
-                        }`}
-                      >
-                        {tx.category === AssetCategory.Item ? (
-                          "Physical Item"
-                        ) : (
-                          <>
-                            {tx.type === "GIVEN" ||
-                            (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                            tx.type === "INCOME" ||
-                            (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                              ? "+"
-                              : "-"}
-                            {formatCurrency(tx.amount, tx.currency)}
-                          </>
+                                    ? "RETURNED TO ME"
+                                    : "RETURNED TO CONTACT"
+                                  : tx.type === "GIFT"
+                                    ? tx.returnDirection === "TO_ME"
+                                      ? "GIFT RECEIVED"
+                                      : "GIFT GIVEN"
+                                    : tx.type}
+                              </Badge>
+                              {!isCreator && (
+                                <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
+                                  <UserCircle className="w-2 h-2" />
+                                  SHARED
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            {tx.category === AssetCategory.Item ? (
+                              <div className="text-[10px] font-medium text-muted-foreground italic">
+                                Physical Item
+                              </div>
+                            ) : (
+                              <div
+                                className={cn(
+                                  "font-bold text-sm",
+                                  tx.type === "GIVEN"
+                                    ? "text-blue-600"
+                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                      ? "text-red-600"
+                                      : tx.type === "RETURNED"
+                                        ? tx.returnDirection === "TO_ME"
+                                          ? "text-green-600"
+                                          : "text-blue-600"
+                                        : tx.type === "INCOME"
+                                          ? "text-green-600"
+                                          : tx.type === "GIFT"
+                                            ? tx.returnDirection === "TO_ME"
+                                              ? "text-purple-600"
+                                              : "text-pink-600"
+                                            : "text-emerald-600",
+                                )}
+                              >
+                                {tx.type === "GIVEN" ||
+                                (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
+                                tx.type === "INCOME" ||
+                                (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                                  ? "+"
+                                  : "-"}
+                                {formatCurrency(tx.amount, tx.currency || "NGN")}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {(tx.description || tx.category === AssetCategory.Item) && (
+                          <div className="text-xs text-muted-foreground/90 line-clamp-1 border-t border-border/30 pt-2">
+                            {tx.category === AssetCategory.Item ? (
+                              <div className="flex items-center gap-1.5">
+                                <Package className="h-3 w-3" />
+                                <span>
+                                  {tx.quantity}x {tx.itemName}
+                                </span>
+                              </div>
+                            ) : (
+                              tx.description
+                            )}
+                          </div>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to="/transactions/$id" params={{ id: tx.id }}>
-                            View
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                      </div>
+                    </Card>
                   );
-                })
-              )}
-            </TableBody>
-          </Table>
+                })}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

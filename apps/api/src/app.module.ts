@@ -19,6 +19,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
+import { QueueModule } from './common/queue/queue.module';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 as uuidv4 } from 'uuid';
 import { GraphQLError } from 'graphql';
@@ -176,6 +177,7 @@ import { GraphQLError } from 'graphql';
     PromisesModule,
     SharedAccessModule,
     ExchangeRateModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

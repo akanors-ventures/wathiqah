@@ -245,57 +245,59 @@ function TransactionsPage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by description or contact..."
-                className="pl-8"
+                className="pl-8 w-full"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Filter Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="GIVEN">Given (Lent)</SelectItem>
-                <SelectItem value="RECEIVED">Received (Borrowed)</SelectItem>
-                <SelectItem value="RETURNED">Returned</SelectItem>
-                <SelectItem value="EXPENSE">Expense</SelectItem>
-                <SelectItem value="INCOME">Income</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="flex-1 sm:w-[150px]">
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Filter Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Types</SelectItem>
+                  <SelectItem value="GIVEN">Given (Lent)</SelectItem>
+                  <SelectItem value="RECEIVED">Received (Borrowed)</SelectItem>
+                  <SelectItem value="RETURNED">Returned</SelectItem>
+                  <SelectItem value="EXPENSE">Expense</SelectItem>
+                  <SelectItem value="INCOME">Income</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <Package className="w-4 h-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">Active</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="CANCELLED">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="flex-1 sm:w-[150px]">
+                  <Package className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">Active</SelectItem>
+                  <SelectItem value="COMPLETED">Completed</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-              <SelectTrigger className="w-full sm:w-[150px]">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground font-medium">$</span>
-                  <SelectValue placeholder="Currency" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Currencies</SelectItem>
-                <SelectItem value="NGN">NGN (₦)</SelectItem>
-                <SelectItem value="USD">USD ($)</SelectItem>
-                <SelectItem value="EUR">EUR (€)</SelectItem>
-                <SelectItem value="GBP">GBP (£)</SelectItem>
-                <SelectItem value="CAD">CAD ($)</SelectItem>
-                <SelectItem value="AED">AED (د.إ)</SelectItem>
-                <SelectItem value="SAR">SAR (ر.س)</SelectItem>
-              </SelectContent>
-            </Select>
+              <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
+                <SelectTrigger className="flex-1 sm:w-[150px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground font-medium">$</span>
+                    <SelectValue placeholder="Currency" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Currencies</SelectItem>
+                  <SelectItem value="NGN">NGN (₦)</SelectItem>
+                  <SelectItem value="USD">USD ($)</SelectItem>
+                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                  <SelectItem value="CAD">CAD ($)</SelectItem>
+                  <SelectItem value="AED">AED (د.إ)</SelectItem>
+                  <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Transactions Table */}
