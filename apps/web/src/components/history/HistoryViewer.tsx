@@ -10,6 +10,7 @@ import {
   Search,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { AssetCategory } from "@/types/__generated__/graphql";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -64,7 +65,7 @@ const formatValue = (
       category?: string;
     };
     const parts = [`Between ${details.creator} and ${details.contact}`];
-    if (details.category === "FUNDS" && details.amount) {
+    if (details.category === AssetCategory.Funds && details.amount) {
       parts.push(`(${details.currency} ${details.amount})`);
     }
     return parts.join(" ");
@@ -83,8 +84,12 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
   const getChanges = (item: HistoryEntry) => {
     if (!item.newState) return [];
 
-    const isFunds = item.newState.category === "FUNDS" || item.previousState?.category === "FUNDS";
-    const isItem = item.newState.category === "ITEM" || item.previousState?.category === "ITEM";
+    const isFunds =
+      item.newState.category === AssetCategory.Funds ||
+      item.previousState?.category === AssetCategory.Funds;
+    const isItem =
+      item.newState.category === AssetCategory.Item ||
+      item.previousState?.category === AssetCategory.Item;
 
     return Object.keys(item.newState)
       .filter((key) => {

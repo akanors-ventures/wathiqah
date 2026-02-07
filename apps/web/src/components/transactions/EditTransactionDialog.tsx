@@ -97,7 +97,7 @@ const formSchema = z
       return true;
     },
     {
-      message: "Item name and quantity are required for physical items",
+      message: "Item name and quantity are required for physical items (ITEM category)",
       path: ["itemName"],
     },
   )

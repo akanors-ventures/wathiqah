@@ -85,7 +85,7 @@ function SignupSuccessPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-2xl space-y-8 bg-card p-6 sm:p-10 rounded-2xl shadow-xl border border-border"
+        className="w-full max-w-2xl space-y-8 bg-card p-5 sm:p-10 rounded-2xl shadow-xl border border-border"
       >
         <div className="text-center space-y-4">
           <motion.div
@@ -143,35 +143,34 @@ function SignupSuccessPage() {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 pt-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-4">
           <Button
-            size="lg"
-            className="w-full sm:col-span-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-6 text-lg rounded-xl shadow-lg transition-all hover:scale-[1.02]"
+            className="w-full sm:col-span-2 bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 text-base rounded-xl shadow-md transition-all hover:scale-[1.01] h-auto whitespace-normal px-4"
             onClick={() => window.open(`mailto:${email}`)}
           >
-            <Mail className="mr-2 h-5 w-5" />
-            Check your email
+            <Mail className="mr-2 h-4 w-4 shrink-0" />
+            <span className="text-center">Check your email</span>
           </Button>
 
           <Button
             variant="outline"
-            size="lg"
-            className="w-full py-6 rounded-xl border-2"
+            className="w-full py-4 rounded-xl border-2 h-auto whitespace-normal px-4 text-sm sm:text-base"
             onClick={handleResend}
             disabled={isResending || countdown > 0}
           >
-            <RefreshCcw className={`mr-2 h-4 w-4 ${isResending ? "animate-spin" : ""}`} />
-            {countdown > 0 ? `Resend in ${countdown}s` : "Resend verification email"}
+            <RefreshCcw className={`mr-2 h-4 w-4 shrink-0 ${isResending ? "animate-spin" : ""}`} />
+            <span className="text-center">
+              {countdown > 0 ? `Resend in ${countdown}s` : "Resend verification email"}
+            </span>
           </Button>
 
           <Button
             variant="ghost"
-            size="lg"
-            className="w-full py-6 rounded-xl text-muted-foreground"
+            className="w-full py-4 rounded-xl text-muted-foreground h-auto whitespace-normal px-4 text-sm sm:text-base"
             asChild
           >
             <Link to="/login" search={{ redirectTo: undefined }}>
-              Already verified? Sign in
+              <span className="text-center">Already verified? Sign in</span>
             </Link>
           </Button>
         </div>

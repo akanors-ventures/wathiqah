@@ -139,7 +139,7 @@ function TransactionsPage() {
             The Wathȋqah Ledger
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base truncate">
-            Manage your funds and physical items history.
+            Manage your transaction history.
           </p>
         </div>
         <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto shrink-0 relative z-10">

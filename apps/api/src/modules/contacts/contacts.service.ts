@@ -10,7 +10,11 @@ import { UpdateContactInput } from './dto/update-contact.input';
 import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { NotificationService } from '../notifications/notification.service';
 import { v4 as uuidv4 } from 'uuid';
-import { InvitationStatus, Prisma } from '../../generated/prisma/client';
+import {
+  AssetCategory,
+  InvitationStatus,
+  Prisma,
+} from '../../generated/prisma/client';
 
 @Injectable()
 export class ContactsService {
@@ -130,7 +134,7 @@ export class ContactsService {
     });
 
     const where: Prisma.TransactionWhereInput = {
-      OR: [{ contactId, category: 'FUNDS' }],
+      OR: [{ contactId, category: AssetCategory.FUNDS }],
     };
 
     if (contact?.linkedUserId) {
@@ -140,7 +144,7 @@ export class ContactsService {
         contact: {
           linkedUserId: userId,
         },
-        category: 'FUNDS',
+        category: AssetCategory.FUNDS,
       });
     }
 

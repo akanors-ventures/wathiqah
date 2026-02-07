@@ -30,3 +30,7 @@ pnpm-debug.log*
 # temp
 .temp
 .cache
+
+/.claude
+/.trae
+/.vscode
