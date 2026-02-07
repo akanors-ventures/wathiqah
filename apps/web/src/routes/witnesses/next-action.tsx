@@ -23,52 +23,54 @@ function NextActionComponent() {
           </p>
         </div>
 
-        <Card className="border-border/50 shadow-xl rounded-[32px] overflow-hidden bg-white dark:bg-neutral-900">
-          <CardHeader className="pb-2 p-8">
-            <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <FileCheck className="w-6 h-6 text-primary" />
+        <Card className="border-border/50 shadow-lg rounded-[24px] sm:rounded-[32px] overflow-hidden bg-white dark:bg-neutral-900">
+          <CardHeader className="pb-2 p-5 sm:p-8">
+            <CardTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
+              <FileCheck className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               What's Next?
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-8 pt-0 space-y-8">
-            <div className="space-y-6">
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold">
+          <CardContent className="p-5 sm:p-8 pt-0 space-y-6 sm:space-y-8">
+            <div className="space-y-5 sm:space-y-6">
+              <div className="flex gap-3 sm:gap-4 items-start">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-sm sm:text-base">
                   1
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-bold text-neutral-900 dark:text-neutral-50">
+                  <h3 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-50">
                     Review the Transaction
                   </h3>
-                  <p className="text-sm text-neutral-500 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                     You'll see the full details of the transaction including the amount, date, and
                     participants.
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold">
+              <div className="flex gap-3 sm:gap-4 items-start">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-sm sm:text-base">
                   2
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-bold text-neutral-900 dark:text-neutral-50">
+                  <h3 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-50">
                     Acknowledge or Decline
                   </h3>
-                  <p className="text-sm text-neutral-500 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                     If everything looks correct, click "Acknowledge". If you don't recognize the
                     transaction or the details are wrong, click "Decline".
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-4 items-start">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold">
+              <div className="flex gap-3 sm:gap-4 items-start">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0 font-bold text-sm sm:text-base">
                   3
                 </div>
                 <div className="space-y-1">
-                  <h3 className="font-bold text-neutral-900 dark:text-neutral-50">Secure Record</h3>
-                  <p className="text-sm text-neutral-500 leading-relaxed">
+                  <h3 className="text-sm sm:text-base font-bold text-neutral-900 dark:text-neutral-50">
+                    Secure Record
+                  </h3>
+                  <p className="text-xs sm:text-sm text-neutral-500 leading-relaxed">
                     Once acknowledged, your verification becomes a permanent part of the
                     transaction's audit trail.
                   </p>
@@ -79,11 +81,11 @@ function NextActionComponent() {
             <div className="pt-6 border-t border-border/50">
               <Button
                 asChild
-                className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="w-full h-auto py-4 rounded-xl text-base sm:text-lg font-bold shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-[0.98] transition-all whitespace-normal px-6"
               >
                 <Link to="/witnesses">
-                  Process Your Witness Confirmation
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <span className="text-center">Process Your Witness Confirmation</span>
+                  <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                 </Link>
               </Button>
             </div>

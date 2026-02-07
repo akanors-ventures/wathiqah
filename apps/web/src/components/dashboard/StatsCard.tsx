@@ -24,26 +24,26 @@ export function StatsCard({
   const content = (
     <Card
       className={cn(
-        "group relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/40 border-border/50 rounded-[24px] bg-card",
+        "group relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/40 border-border/50 rounded-[20px] sm:rounded-[24px] bg-card",
         className,
       )}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10 p-5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2 relative z-10 p-4 sm:p-5">
         <div className="flex flex-col gap-1">
-          <CardTitle className="text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors">
+          <CardTitle className="text-[10px] sm:text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors">
             {title}
           </CardTitle>
           {extra}
         </div>
-        <div className="p-2.5 rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:-rotate-6">
+        <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:-rotate-6">
           {icon}
         </div>
       </CardHeader>
-      <CardContent className="relative z-10 pt-0 p-5">
-        <div className="text-2xl font-bold tracking-tight mb-1 group-hover:scale-[1.02] transition-transform origin-left duration-500">
+      <CardContent className="relative z-10 pt-0 p-4 sm:p-5">
+        <div className="text-xl sm:text-2xl font-bold tracking-tight mb-1 group-hover:scale-[1.02] transition-transform origin-left duration-500">
           {value}
         </div>
-        <p className="text-[11px] text-muted-foreground font-medium opacity-70 group-hover:text-foreground/70 transition-colors">
+        <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium opacity-70 group-hover:text-foreground/70 transition-colors">
           {description}
         </p>
       </CardContent>

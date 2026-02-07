@@ -149,36 +149,36 @@ export function Dashboard() {
         </div>
 
         {/* Quick Actions / Recent Promises */}
-        <Card className="lg:col-span-3 h-full rounded-[24px] border-border/50 overflow-hidden group/promises transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-          <CardHeader className="pb-4 p-5">
+        <Card className="lg:col-span-3 h-full rounded-[20px] sm:rounded-[24px] border-border/50 overflow-hidden group/promises transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+          <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-bold capitalize tracking-tight text-muted-foreground group-hover/promises:text-primary transition-colors">
+              <CardTitle className="text-sm sm:text-base font-bold capitalize tracking-tight text-muted-foreground group-hover/promises:text-primary transition-colors">
                 Your promises
               </CardTitle>
-              <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover/promises:bg-primary group-hover/promises:text-primary-foreground transition-all duration-500 shadow-sm group-hover/promises:-rotate-3">
-                <CalendarClock className="w-5 h-5" />
+              <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-primary/5 text-primary group-hover/promises:bg-primary group-hover/promises:text-primary-foreground transition-all duration-500 shadow-sm group-hover/promises:-rotate-3">
+                <CalendarClock className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-5 pt-0">
-            <div className="space-y-3">
+          <CardContent className="p-4 sm:p-5 pt-0">
+            <div className="space-y-2.5 sm:space-y-3">
               {promises
                 .filter((p) => p.status === "PENDING")
                 .slice(0, 5)
                 .map((promise) => (
                   <div
                     key={promise.id}
-                    className="flex items-start justify-between p-4 rounded-2xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-background/50 transition-all duration-500 group/promise relative overflow-hidden"
+                    className="flex items-start justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-muted/20 border border-transparent hover:border-primary/20 hover:bg-background/50 transition-all duration-500 group/promise relative overflow-hidden"
                   >
-                    <div className="min-w-0 flex-1 pr-4 relative z-10">
-                      <p className="text-[10px] font-bold text-muted-foreground capitalize tracking-tight mb-0.5 opacity-60">
+                    <div className="min-w-0 flex-1 pr-3 sm:pr-4 relative z-10">
+                      <p className="text-[9px] sm:text-[10px] font-bold text-muted-foreground capitalize tracking-tight mb-0.5 opacity-60">
                         To: {promise.promiseTo}
                       </p>
-                      <p className="text-sm font-bold text-foreground truncate group-hover/promise:text-primary transition-colors tracking-tight">
+                      <p className="text-xs sm:text-sm font-bold text-foreground truncate group-hover/promise:text-primary transition-colors tracking-tight">
                         {promise.description}
                       </p>
                     </div>
-                    <div className="text-[10px] font-bold capitalize tracking-tight text-primary bg-primary/5 px-2.5 py-1 rounded-lg border border-primary/10 shadow-sm relative z-10">
+                    <div className="text-[9px] sm:text-[10px] font-bold capitalize tracking-tight text-primary bg-primary/5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg border border-primary/10 shadow-sm relative z-10">
                       {format(new Date(promise.dueDate as string), "MMM d")}
                     </div>
                     {/* Hover decorative element */}
@@ -219,12 +219,12 @@ export function Dashboard() {
 
       {/* Recent Activity - Full Width at Bottom */}
       <Card className="rounded-[24px] border-border/50 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-        <CardHeader className="flex flex-row items-center justify-between pb-6 p-6">
+        <CardHeader className="flex flex-row items-center justify-between pb-4 sm:pb-6 p-4 sm:p-6">
           <div>
-            <CardTitle className="text-xl font-bold tracking-tight capitalize">
+            <CardTitle className="text-lg sm:text-xl font-bold tracking-tight capitalize">
               Recent activity
             </CardTitle>
-            <p className="text-xs text-muted-foreground font-medium mt-1">
+            <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-1">
               Your latest financial interactions across the platform.
             </p>
           </div>
@@ -232,15 +232,15 @@ export function Dashboard() {
             variant="outline"
             size="sm"
             asChild
-            className="rounded-full font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+            className="rounded-full font-bold capitalize tracking-tight text-[10px] sm:text-[11px] h-8 sm:h-9 px-4 sm:px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
           >
             <Link to="/transactions" search={{ tab: "funds" }}>
               View all history
             </Link>
           </Button>
         </CardHeader>
-        <CardContent className="p-6 pt-0">
-          <div className="space-y-6">
+        <CardContent className="p-4 sm:p-6 pt-0">
+          <div className="space-y-4 sm:space-y-6">
             {recentTransactions.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -261,7 +261,7 @@ export function Dashboard() {
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                 {recentTransactions.map((tx) => (
                   <TransactionCard key={tx.id} transaction={tx} />
                 ))}

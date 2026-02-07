@@ -35,7 +35,7 @@ export function WitnessStatusBadge({ status, className }: WitnessStatusBadgeProp
   return (
     <div
       className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border",
+        "inline-flex items-center px-2 py-0.5 sm:px-2.5 sm:py-0.5 rounded-full text-[9px] sm:text-xs font-bold border whitespace-nowrap shrink-0 shadow-sm transition-all uppercase tracking-tight",
         config.className,
         className,
       )}

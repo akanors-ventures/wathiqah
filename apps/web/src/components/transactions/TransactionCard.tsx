@@ -100,92 +100,108 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
       to="/transactions/$id"
       params={{ id: tx.id }}
       className={cn(
-        "group relative flex items-center justify-between p-5 rounded-[24px] border border-border/50 bg-card transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30",
+        "group relative flex items-center justify-between p-3.5 sm:p-5 lg:p-6 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30",
         className,
       )}
     >
-      <div className="flex items-center gap-4 min-w-0 relative z-10">
+      <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 relative z-10">
         <div className="relative shrink-0">
           <div
             className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3",
+              "flex h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:-rotate-3",
               theme.gradient,
               `shadow-${theme.text.split("-")[1]}-500/20`,
             )}
           >
             {isPositive ? (
-              <ArrowUpRight className="h-6 w-6" />
+              <ArrowUpRight className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
             ) : (
-              <ArrowDownLeft className="h-6 w-6" />
+              <ArrowDownLeft className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
             )}
           </div>
           <div className="absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full bg-background border border-border/50 shadow-md">
             <div
               className={cn(
-                "w-2 h-2 rounded-full ring-2 ring-background",
+                "w-1.5 h-1.5 sm:w-2 sm:h-2 lg:w-2.5 lg:h-2.5 rounded-full ring-2 ring-background",
                 isPositive ? "bg-emerald-500" : "bg-rose-500",
               )}
             />
           </div>
         </div>
 
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-lg font-bold leading-none truncate group-hover:text-primary transition-colors tracking-tight">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-col gap-1 sm:gap-1.5">
+            <h3 className="text-sm sm:text-lg lg:text-xl font-bold leading-tight truncate group-hover:text-primary transition-colors tracking-tight">
               {isCreator ? tx.contact?.name || "Self" : tx.createdBy?.name}
             </h3>
-            {!isCreator && (
-              <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30">
-                <UserCircle className="w-2.5 h-2.5" />
-                SHARED
-              </span>
-            )}
-            <span
-              className={cn(
-                "text-[10px] px-2 py-0.5 rounded-full font-bold capitalize tracking-tight border shadow-sm transition-colors",
-                theme.bg,
-                theme.text,
-                theme.border,
+
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {!isCreator && (
+                <span className="flex items-center gap-1 text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 shrink-0 shadow-sm">
+                  <UserCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  SHARED
+                </span>
               )}
-            >
-              {tx.type.toLowerCase().replace(/_/g, " ")}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-medium opacity-80">
-            <span>{format(new Date(tx.date as string), "MMM d, yyyy")}</span>
-            <span className="w-1 h-1 rounded-full bg-border" />
-            {tx.category === AssetCategory.Item ? (
-              <span className="flex items-center gap-1.5 text-primary/80">
-                <Package className="h-3 w-3" />
-                {tx.quantity}x {tx.itemName}
+              <span
+                className={cn(
+                  "text-[8px] sm:text-[10px] lg:text-[11px] px-2 py-0.5 rounded-full font-bold capitalize tracking-tight border shadow-sm transition-colors shrink-0",
+                  theme.bg,
+                  theme.text,
+                  theme.border,
+                )}
+              >
+                {tx.type.toLowerCase().replace(/_/g, " ")}
               </span>
-            ) : (
-              <span className="truncate max-w-[180px]">{tx.description || "No description"}</span>
-            )}
+
+              <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[11px] lg:text-xs text-muted-foreground font-medium opacity-70 ml-0.5">
+                <span className="w-1 h-1 rounded-full bg-border shrink-0 hidden sm:block" />
+                <span className="shrink-0">{format(new Date(tx.date as string), "MMM d")}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[11px] lg:text-xs text-muted-foreground font-medium opacity-60">
+              {tx.category === AssetCategory.Item ? (
+                <span className="flex items-center gap-1 sm:gap-1.5 lg:gap-2 text-primary/80 truncate">
+                  <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3 lg:h-3.5 lg:w-3.5 shrink-0" />
+                  <span className="truncate">
+                    {tx.quantity}x {tx.itemName}
+                  </span>
+                </span>
+              ) : (
+                <span className="truncate">{tx.description || "No description"}</span>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="text-right shrink-0 flex items-center gap-3 relative z-10">
+      <div className="text-right shrink-0 flex items-center gap-2 sm:gap-3 lg:gap-5 relative z-10 ml-2 lg:ml-4">
         <div className="flex flex-col items-end">
-          <div className={cn("text-xl font-black tracking-tighter", theme.text)}>
+          <div
+            className={cn(
+              "text-base sm:text-xl lg:text-2xl font-black tracking-tighter",
+              theme.text,
+            )}
+          >
             {tx.category === AssetCategory.Item ? (
-              <span className="text-[10px] font-bold opacity-60">Item</span>
+              <span className="text-[8px] sm:text-[10px] lg:text-[11px] font-bold opacity-60">
+                Item
+              </span>
             ) : (
               <>
-                <span className="text-sm mr-0.5 opacity-70 font-medium">
+                <span className="text-xs sm:text-sm lg:text-base mr-0.5 opacity-70 font-medium">
                   {isPositive ? "+" : "-"}
                 </span>
                 {formatCurrency(tx.amount || 0, tx.currency)}
               </>
             )}
           </div>
-          <div className="text-[10px] font-bold capitalize tracking-tight opacity-40 mt-0.5">
+          <div className="text-[8px] sm:text-[10px] lg:text-[11px] font-bold capitalize tracking-tight opacity-40 mt-0.5">
             {tx.category.toLowerCase()}
           </div>
         </div>
-        <div className="w-7 h-7 rounded-full bg-muted/50 flex items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
-          <ArrowRight className="w-3.5 h-3.5 text-primary" />
+        <div className="hidden sm:flex w-7 h-7 lg:w-9 lg:h-9 rounded-full bg-muted/50 items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
+          <ArrowRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
         </div>
       </div>
 
