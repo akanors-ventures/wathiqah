@@ -2,7 +2,14 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useGeoIP } from "@/hooks/useGeoIP";
 import { cn } from "@/lib/utils";
@@ -29,9 +36,9 @@ function PricingPage() {
     if (geoIP) {
       let autoCurrency = CURRENCIES[0];
       if (isNigeria) {
-        autoCurrency = CURRENCIES.find(c => c.code === "NGN") || CURRENCIES[0];
+        autoCurrency = CURRENCIES.find((c) => c.code === "NGN") || CURRENCIES[0];
       } else if (isUK) {
-        autoCurrency = CURRENCIES.find(c => c.code === "GBP") || CURRENCIES[0];
+        autoCurrency = CURRENCIES.find((c) => c.code === "GBP") || CURRENCIES[0];
       }
       setSelectedCurrency(autoCurrency);
     }
@@ -90,17 +97,24 @@ function PricingPage() {
           Upgrade to <span className="text-primary">Pro</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
-          Unlock the full power of Wathȋqah and bring professional-grade accountability to your financial relationships.
+          Unlock the full power of Wathȋqah and bring professional-grade accountability to your
+          financial relationships.
         </p>
       </div>
 
       {isVpn && (
         <div className="max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
-          <Alert variant="destructive" className="bg-destructive/5 border-destructive/20 rounded-[32px] p-6">
+          <Alert
+            variant="destructive"
+            className="bg-destructive/5 border-destructive/20 rounded-[32px] p-6"
+          >
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="font-black uppercase tracking-widest text-[10px] mb-2">VPN/Proxy Detected</AlertTitle>
+            <AlertTitle className="font-black uppercase tracking-widest text-[10px] mb-2">
+              VPN/Proxy Detected
+            </AlertTitle>
             <AlertDescription className="text-sm font-medium">
-              We've detected you're using a VPN or Proxy. Prices are shown in USD as a fallback. Please disable your VPN to see local pricing for your region.
+              We've detected you're using a VPN or Proxy. Prices are shown in USD as a fallback.
+              Please disable your VPN to see local pricing for your region.
             </AlertDescription>
           </Alert>
         </div>
@@ -112,7 +126,10 @@ function PricingPage() {
           <div className="inline-flex items-center bg-muted/50 px-4 py-2 rounded-2xl border border-border/50 animate-in fade-in zoom-in duration-500">
             <Globe className="w-3.5 h-3.5 mr-2 text-primary" />
             <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Pricing for: <span className="text-foreground">{geoIP?.countryName || selectedCurrency.label.split(' ')[0]}</span>
+              Pricing for:{" "}
+              <span className="text-foreground">
+                {geoIP?.countryName || selectedCurrency.label.split(" ")[0]}
+              </span>
             </span>
           </div>
         )}
@@ -120,13 +137,13 @@ function PricingPage() {
 
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {tiers.map((t) => (
-          <Card 
-            key={t.name} 
+          <Card
+            key={t.name}
             className={cn(
               "relative flex flex-col transition-all duration-500 rounded-[40px] overflow-hidden border-2",
-              t.highlight 
-                ? "border-primary shadow-2xl shadow-primary/10 scale-105 z-10" 
-                : "border-border/50 hover:border-border shadow-sm"
+              t.highlight
+                ? "border-primary shadow-2xl shadow-primary/10 scale-105 z-10"
+                : "border-border/50 hover:border-border shadow-sm",
             )}
           >
             {t.highlight && (
@@ -134,7 +151,7 @@ function PricingPage() {
                 Most Popular
               </div>
             )}
-            
+
             <CardHeader className={cn("pt-12 pb-8", t.highlight && "pt-14")}>
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -142,13 +159,21 @@ function PricingPage() {
                     {t.name}
                     {t.active && <TierBadge tier={t.name.toUpperCase()} showIcon={false} />}
                   </CardTitle>
-                  <CardDescription className="text-sm font-medium mt-1">{t.description}</CardDescription>
+                  <CardDescription className="text-sm font-medium mt-1">
+                    {t.description}
+                  </CardDescription>
                 </div>
-                <div className={cn(
-                  "p-3 rounded-2xl",
-                  t.highlight ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                )}>
-                  {t.name === "Basic" ? <Shield className="w-6 h-6" /> : <Zap className="w-6 h-6" />}
+                <div
+                  className={cn(
+                    "p-3 rounded-2xl",
+                    t.highlight ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {t.name === "Basic" ? (
+                    <Shield className="w-6 h-6" />
+                  ) : (
+                    <Zap className="w-6 h-6" />
+                  )}
                 </div>
               </div>
               <div className="flex items-baseline gap-1">
@@ -156,47 +181,47 @@ function PricingPage() {
                 {t.period && <span className="text-muted-foreground font-bold">{t.period}</span>}
               </div>
             </CardHeader>
-            
+
             <CardContent className="flex-1 space-y-6">
               <div className="space-y-3">
                 {t.features.map((feature) => (
                   <div key={feature.name} className="flex items-center gap-3">
-                    <div className={cn(
-                      "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
-                      feature.included 
-                        ? "bg-primary/10 text-primary" 
-                        : "bg-muted text-muted-foreground/40"
-                    )}>
+                    <div
+                      className={cn(
+                        "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
+                        feature.included
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground/40",
+                      )}
+                    >
                       {feature.included ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                     </div>
-                    <span className={cn(
-                      "text-sm font-medium",
-                      !feature.included && "text-muted-foreground/60"
-                    )}>
+                    <span
+                      className={cn(
+                        "text-sm font-medium",
+                        !feature.included && "text-muted-foreground/60",
+                      )}
+                    >
                       {feature.name}
                     </span>
                   </div>
                 ))}
               </div>
             </CardContent>
-            
+
             <CardFooter className="pb-10 pt-6">
-              <Button 
+              <Button
                 className={cn(
                   "w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs transition-all",
-                  t.highlight && !t.active && "hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20"
+                  t.highlight &&
+                    !t.active &&
+                    "hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20",
                 )}
                 variant={t.buttonVariant}
                 disabled={t.active || loading}
                 asChild={!t.active}
               >
-                {t.active ? (
-                  <span>{t.buttonText}</span>
-                ) : (
-                  <Link to="/pricing">
-                    {t.buttonText}
-                  </Link>
-                )}
+                {t.active ? <span>{t.buttonText}</span> : <Link to="/pricing">{t.buttonText}</Link>}
               </Button>
             </CardFooter>
           </Card>
@@ -210,19 +235,28 @@ function PricingPage() {
             Frequently Asked Questions
           </h2>
         </div>
-        
+
         <div className="grid gap-6">
           <div className="bg-card border border-border/50 rounded-3xl p-8 space-y-2">
             <h3 className="font-bold text-lg">Do you offer localized pricing?</h3>
-            <p className="text-muted-foreground font-medium">Yes! We automatically detect your region to show pricing in your local currency (USD, NGN, or GBP) to ensure Wathȋqah is accessible globally.</p>
+            <p className="text-muted-foreground font-medium">
+              Yes! We automatically detect your region to show pricing in your local currency (USD,
+              NGN, or GBP) to ensure Wathȋqah is accessible globally.
+            </p>
           </div>
           <div className="bg-card border border-border/50 rounded-3xl p-8 space-y-2">
             <h3 className="font-bold text-lg">Can I cancel my subscription?</h3>
-            <p className="text-muted-foreground font-medium">Yes, you can cancel your subscription at any time from your account settings. You'll keep your Pro features until the end of your billing period.</p>
+            <p className="text-muted-foreground font-medium">
+              Yes, you can cancel your subscription at any time from your account settings. You'll
+              keep your Pro features until the end of your billing period.
+            </p>
           </div>
           <div className="bg-card border border-border/50 rounded-3xl p-8 space-y-2">
             <h3 className="font-bold text-lg">What happens to my data if I downgrade?</h3>
-            <p className="text-muted-foreground font-medium">Nothing! All your data stays safe. You'll simply revert to Basic limits for new witness requests and lose access to Pro-only features like advanced analytics.</p>
+            <p className="text-muted-foreground font-medium">
+              Nothing! All your data stays safe. You'll simply revert to Basic limits for new
+              witness requests and lose access to Pro-only features like advanced analytics.
+            </p>
           </div>
         </div>
       </div>

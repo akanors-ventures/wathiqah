@@ -49,7 +49,8 @@ export default function HeaderUser() {
   }
 
   // Use a more robust check for authenticated state
-  const isCurrentlyAuthenticated = typeof isAuthenticated === "function" ? isAuthenticated() : !!isAuthenticated;
+  const isCurrentlyAuthenticated =
+    typeof isAuthenticated === "function" ? isAuthenticated() : !!isAuthenticated;
 
   if (loading || (user === undefined && isCurrentlyAuthenticated)) {
     return (
@@ -111,15 +112,16 @@ export default function HeaderUser() {
                 <p className="text-sm font-semibold leading-none">{user.name || "User"}</p>
                 <TierBadge tier={tier} />
               </div>
-              <p className="text-xs leading-none text-muted-foreground truncate">
-                {user.email}
-              </p>
+              <p className="text-xs leading-none text-muted-foreground truncate">{user.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           {!isPro && (
             <>
-              <DropdownMenuItem asChild className="text-primary focus:text-primary focus:bg-primary/5 cursor-pointer font-bold">
+              <DropdownMenuItem
+                asChild
+                className="text-primary focus:text-primary focus:bg-primary/5 cursor-pointer font-bold"
+              >
                 <Link to="/pricing">
                   <Zap className="mr-2 h-4 w-4 fill-primary" />
                   <span>Upgrade to Pro</span>

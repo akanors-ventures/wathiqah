@@ -53,13 +53,20 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-1 min-w-0">
             <NavDropdown label="Ledger" icon={<ArrowRightLeft className="w-4 h-4" />}>
               <DropdownMenuItem asChild>
-                <Link to="/transactions" search={{ tab: "funds" }} className="flex items-center gap-2 cursor-pointer">
+                <Link
+                  to="/transactions"
+                  search={{ tab: "funds" }}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <ArrowRightLeft className="w-4 h-4 text-blue-500" />
                   <span>Transactions</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/transactions/my-contact-transactions" className="flex items-center gap-2 cursor-pointer">
+                <Link
+                  to="/transactions/my-contact-transactions"
+                  className="flex items-center gap-2 cursor-pointer"
+                >
                   <History className="w-4 h-4 text-orange-500" />
                   <span>My Records</span>
                 </Link>
@@ -254,7 +261,10 @@ function NavDropdown({
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-52 mt-1 animate-in fade-in zoom-in duration-200">
+      <DropdownMenuContent
+        align="start"
+        className="w-52 mt-1 animate-in fade-in zoom-in duration-200"
+      >
         {children}
       </DropdownMenuContent>
     </DropdownMenu>
