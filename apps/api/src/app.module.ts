@@ -18,6 +18,8 @@ import { DonationsModule } from './modules/donations/donations.module';
 import { ExchangeRateModule } from './modules/exchange-rate/exchange-rate.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { GeoIPModule } from './modules/geoip/geoip.module';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
@@ -181,7 +183,9 @@ import { GraphQLError } from 'graphql';
     SubscriptionModule,
     DonationsModule,
     ExchangeRateModule,
+    ProjectsModule,
     QueueModule,
+    GeoIPModule,
   ],
   controllers: [AppController],
   providers: [AppService],

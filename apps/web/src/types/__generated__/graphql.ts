@@ -120,6 +120,13 @@ export type CreateDonationInput = {
   paymentProvider?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreateProjectInput = {
+  budget?: InputMaybe<Scalars['Float']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+};
+
 export type CreatePromiseInput = {
   category?: InputMaybe<Scalars['String']['input']>;
   description: Scalars['String']['input'];
@@ -165,7 +172,7 @@ export type Donation = {
 
 export type DonationOption = {
   __typename: 'DonationOption';
-  amount: Scalars['Int']['output'];
+  amount: Scalars['Float']['output'];
   currency: Scalars['String']['output'];
   description: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -195,6 +202,17 @@ export type ForgotPasswordInput = {
   email: Scalars['String']['input'];
 };
 
+export type GeoIpInfo = {
+  __typename: 'GeoIPInfo';
+  cityName: Scalars['String']['output'];
+  countryCode: Scalars['String']['output'];
+  countryName: Scalars['String']['output'];
+  currencyCode: Maybe<Scalars['String']['output']>;
+  ip: Scalars['String']['output'];
+  isVpn: Scalars['Boolean']['output'];
+  regionName: Scalars['String']['output'];
+};
+
 export type GrantAccessInput = {
   email: Scalars['String']['input'];
 };
@@ -203,6 +221,15 @@ export type InviteContactResponse = {
   __typename: 'InviteContactResponse';
   message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
+};
+
+export type LogProjectTransactionInput = {
+  amount: Scalars['Float']['input'];
+  category?: InputMaybe<Scalars['String']['input']>;
+  date?: InputMaybe<Scalars['DateTime']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  projectId: Scalars['String']['input'];
+  type: ProjectTransactionType;
 };
 
 export type LoginInput = {
@@ -220,12 +247,14 @@ export type Mutation = {
   createContact: Contact;
   createDonation: Donation;
   createDonationSession: CheckoutSession;
+  createProject: Project;
   createPromise: Promise;
   createSubscriptionSession: CheckoutSession;
   createTransaction: Transaction;
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
   inviteContactToPlatform: InviteContactResponse;
+  logProjectTransaction: ProjectTransaction;
   login: AuthPayload;
   logout: Scalars['Boolean']['output'];
   refreshToken: AuthPayload;
@@ -240,6 +269,7 @@ export type Mutation = {
   revokeAccess: AccessGrant;
   signup: AuthPayload;
   updateContact: Contact;
+  updateProject: Project;
   updatePromise: Promise;
   updateTransaction: Transaction;
   updateUser: User;
@@ -288,6 +318,11 @@ export type MutationCreateDonationSessionArgs = {
 };
 
 
+export type MutationCreateProjectArgs = {
+  input: CreateProjectInput;
+};
+
+
 export type MutationCreatePromiseArgs = {
   createPromiseInput: CreatePromiseInput;
 };
@@ -315,6 +350,11 @@ export type MutationGrantAccessArgs = {
 
 export type MutationInviteContactToPlatformArgs = {
   contactId: Scalars['ID']['input'];
+};
+
+
+export type MutationLogProjectTransactionArgs = {
+  input: LogProjectTransactionInput;
 };
 
 
@@ -383,6 +423,11 @@ export type MutationUpdateContactArgs = {
 };
 
 
+export type MutationUpdateProjectArgs = {
+  input: UpdateProjectInput;
+};
+
+
 export type MutationUpdatePromiseArgs = {
   updatePromiseInput: UpdatePromiseInput;
 };
@@ -406,6 +451,38 @@ export enum Priority {
   High = 'HIGH',
   Low = 'LOW',
   Medium = 'MEDIUM'
+}
+
+export type Project = {
+  __typename: 'Project';
+  balance: Scalars['Float']['output'];
+  budget: Maybe<Scalars['Float']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  currency: Scalars['String']['output'];
+  description: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  transactions: Array<ProjectTransaction>;
+  updatedAt: Scalars['DateTime']['output'];
+  userId: Scalars['String']['output'];
+};
+
+export type ProjectTransaction = {
+  __typename: 'ProjectTransaction';
+  amount: Scalars['Float']['output'];
+  category: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  date: Scalars['DateTime']['output'];
+  description: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  projectId: Scalars['String']['output'];
+  type: ProjectTransactionType;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export enum ProjectTransactionType {
+  Expense = 'EXPENSE',
+  Income = 'INCOME'
 }
 
 export type Promise = {
@@ -437,14 +514,17 @@ export type Query = {
   donation: Donation;
   donationOptions: Array<DonationOption>;
   donations: Array<Donation>;
+  getGeoIPInfo: GeoIpInfo;
   getWitnessInvitation: Witness;
   me: User;
   myAccessGrants: Array<AccessGrant>;
   myContactTransactions: Array<Transaction>;
   myDonations: Array<Donation>;
+  myProjects: Array<Project>;
   myPromises: Array<Promise>;
   mySubscription: SubscriptionInfo;
   myWitnessRequests: Array<Witness>;
+  project: Project;
   promise: Promise;
   receivedAccessGrants: Array<AccessGrant>;
   searchWitness: Maybe<WitnessCandidate>;
@@ -487,6 +567,11 @@ export type QueryGetWitnessInvitationArgs = {
 
 export type QueryMyWitnessRequestsArgs = {
   status?: InputMaybe<WitnessStatus>;
+};
+
+
+export type QueryProjectArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -673,6 +758,14 @@ export type UpdateContactInput = {
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateProjectInput = {
+  budget?: InputMaybe<Scalars['Float']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['String']['input'];
+  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePromiseInput = {
@@ -879,6 +972,48 @@ export type DeleteContactMutationVariables = Exact<{
 
 
 export type DeleteContactMutation = { removeContact: { __typename: 'Contact', id: string } };
+
+export type GetGeoIpInfoQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: string, countryCode: string, countryName: string, regionName: string, cityName: string, currencyCode: string | null, isVpn: boolean } };
+
+export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string };
+
+export type ProjectTransactionFieldsFragment = { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string };
+
+export type GetMyProjectsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetMyProjectsQuery = { myProjects: Array<{ __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string }> };
+
+export type GetProjectQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetProjectQuery = { project: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string, transactions: Array<{ __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string }> } };
+
+export type CreateProjectMutationVariables = Exact<{
+  input: CreateProjectInput;
+}>;
+
+
+export type CreateProjectMutation = { createProject: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string } };
+
+export type UpdateProjectMutationVariables = Exact<{
+  input: UpdateProjectInput;
+}>;
+
+
+export type UpdateProjectMutation = { updateProject: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string } };
+
+export type LogProjectTransactionMutationVariables = Exact<{
+  input: LogProjectTransactionInput;
+}>;
+
+
+export type LogProjectTransactionMutation = { logProjectTransaction: { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string } };
 
 export type MyPromisesQueryVariables = Exact<{ [key: string]: never; }>;
 

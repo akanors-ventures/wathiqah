@@ -7,6 +7,7 @@ import twilioConfig from './twilio.config';
 import mailtrapConfig from './mailtrap.config';
 import notificationConfig from './notification.config';
 import exchangeRateConfig from './exchange-rate.config';
+import geoipConfig from './geoip.config';
 
 export default [
   databaseConfig,
@@ -18,4 +19,5 @@ export default [
   mailtrapConfig,
   notificationConfig,
   exchangeRateConfig,
+  geoipConfig,
 ];

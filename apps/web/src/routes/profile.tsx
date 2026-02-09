@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Mail, Phone, Shield, User } from "lucide-react";
+import { Mail, Phone, User, Zap, AlertCircle, ArrowUpCircle } from "lucide-react";
 import { useEffect, useId, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,8 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoader } from "@/components/ui/page-loader";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { TierBadge } from "@/components/ui/tier-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
+import { useSubscription } from "@/hooks/useSubscription";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/profile")({
@@ -21,6 +25,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { user, loading } = useAuth();
   const { updateUser, updating } = useProfile();
+  const { tier, isPro, witnessUsage, maxWitnessesPerMonth, witnessRemaining } = useSubscription();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -51,6 +56,9 @@ function ProfilePage() {
     );
   }
 
+  const witnessPercentage = maxWitnessesPerMonth > 0 ? (witnessUsage / maxWitnessesPerMonth) * 100 : 0;
+  const isWitnessLimitLow = witnessRemaining <= 1 && !isPro;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -73,26 +81,64 @@ function ProfilePage() {
         <p className="text-muted-foreground">Manage your personal information and preferences.</p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-[250px_1fr]">
+      <div className="grid gap-8 md:grid-cols-[280px_1fr]">
         {/* Sidebar / User Info Summary */}
         <div className="space-y-6">
-          <Card>
-            <CardContent className="pt-6 flex flex-col items-center text-center">
-              <Avatar className="h-24 w-24 mb-4">
-                <AvatarImage src={undefined} />
-                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                  {user.firstName?.charAt(0)}
-                  {user.lastName?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <h2 className="text-xl font-semibold">{user.name}</h2>
-              <p className="text-sm text-muted-foreground mb-4">{user.email}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
-                <Shield className="w-3 h-3" />
-                <span>Verified Member</span>
+          <Card className="overflow-hidden border-2 border-border/50">
+            <CardContent className="pt-8 flex flex-col items-center text-center">
+              <div className="relative mb-4">
+                <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
+                  <AvatarImage src={undefined} />
+                  <AvatarFallback className="text-2xl bg-primary/10 text-primary font-black">
+                    {user.firstName?.charAt(0)}
+                    {user.lastName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-1 -right-1">
+                  <TierBadge tier={tier} className="shadow-lg" />
+                </div>
+              </div>
+              <h2 className="text-xl font-black tracking-tight">{user.firstName} {user.lastName}</h2>
+              <p className="text-sm text-muted-foreground mb-6 font-medium">{user.email}</p>
+              
+              <div className="w-full space-y-4 text-left">
+                <div className="p-4 bg-muted/30 rounded-2xl border border-border/50 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Witness Limit</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">{witnessUsage} / {maxWitnessesPerMonth || "∞"}</span>
+                  </div>
+                  <Progress value={maxWitnessesPerMonth > 0 ? witnessPercentage : 0} className="h-1.5" />
+                  <p className="text-[10px] text-muted-foreground font-medium">
+                    {isPro ? "Unlimited requests" : `${witnessRemaining} requests remaining this month`}
+                  </p>
+                </div>
+
+                {!isPro && (
+                  <Button asChild variant="outline" className="w-full h-11 rounded-xl border-primary/20 hover:bg-primary/5 hover:text-primary transition-all group">
+                    <Link to="/pricing">
+                      <Zap className="w-4 h-4 mr-2 group-hover:fill-primary transition-all" />
+                      Upgrade to Pro
+                    </Link>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
+
+          {isWitnessLimitLow && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex gap-3 animate-in slide-in-from-left duration-500">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-amber-800 uppercase tracking-tight">Limit Reached Soon</p>
+                <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
+                  You're almost out of witness requests. Upgrade to Pro for unlimited access.
+                </p>
+                <Link to="/pricing" className="text-[10px] font-black text-amber-800 uppercase tracking-widest hover:underline flex items-center gap-1 mt-1">
+                  Upgrade Now <ArrowUpCircle className="w-3 h-3" />
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}

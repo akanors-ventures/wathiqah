@@ -13,7 +13,7 @@ export interface TierLimits {
 export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
   [SubscriptionTier.FREE]: {
     maxContacts: 50,
-    maxWitnessesPerMonth: 3,
+    maxWitnessesPerMonth: 10,
     allowSMS: false,
     allowAdvancedAnalytics: false,
     allowProfessionalReports: false,
