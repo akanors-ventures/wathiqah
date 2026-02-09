@@ -10,10 +10,12 @@ import {
 } from './entities/transactions-response.entity';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { ContactGroupedSummary } from './entities/contact-grouped-summary.entity';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
+import { CheckFeature } from '../subscription/decorators/check-feature.decorator';
+import { FeatureLimitInterceptor } from '../subscription/interceptors/feature-limit.interceptor';
 
 @Resolver(() => Transaction)
 @UseGuards(GqlAuthGuard)
@@ -32,6 +34,8 @@ export class TransactionsResolver {
   }
 
   @Mutation(() => Transaction)
+  @CheckFeature('maxWitnessesPerMonth')
+  @UseInterceptors(FeatureLimitInterceptor)
   async createTransaction(
     @Args('input') createTransactionInput: CreateTransactionInput,
     @CurrentUser() user: User,
@@ -40,6 +44,8 @@ export class TransactionsResolver {
   }
 
   @Mutation(() => Transaction)
+  @CheckFeature('maxWitnessesPerMonth')
+  @UseInterceptors(FeatureLimitInterceptor)
   async addWitness(
     @Args('input') addWitnessInput: AddWitnessInput,
     @CurrentUser() user: User,
@@ -63,6 +69,8 @@ export class TransactionsResolver {
   @Query(() => [ContactGroupedSummary], {
     name: 'transactionsGroupedByContact',
   })
+  @CheckFeature('allowAdvancedAnalytics')
+  @UseInterceptors(FeatureLimitInterceptor)
   async groupByContact(
     @CurrentUser() user: User,
     @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
@@ -79,6 +87,8 @@ export class TransactionsResolver {
   }
 
   @Mutation(() => Transaction)
+  @CheckFeature('maxWitnessesPerMonth')
+  @UseInterceptors(FeatureLimitInterceptor)
   async updateTransaction(
     @Args('input') updateTransactionInput: UpdateTransactionInput,
     @CurrentUser() user: User,

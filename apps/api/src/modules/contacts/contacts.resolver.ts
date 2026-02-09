@@ -7,7 +7,7 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { ContactsService } from './contacts.service';
 import { Contact } from './entities/contact.entity';
 import { CreateContactInput } from './dto/create-contact.input';
@@ -19,6 +19,8 @@ import {
   InviteContactResponse,
   ContactPlatformStatus,
 } from './entities/invite-response.entity';
+import { CheckFeature } from '../subscription/decorators/check-feature.decorator';
+import { FeatureLimitInterceptor } from '../subscription/interceptors/feature-limit.interceptor';
 
 @Resolver(() => Contact)
 @UseGuards(GqlAuthGuard)
@@ -26,6 +28,8 @@ export class ContactsResolver {
   constructor(private readonly contactsService: ContactsService) {}
 
   @Mutation(() => Contact)
+  @CheckFeature('maxContacts')
+  @UseInterceptors(FeatureLimitInterceptor)
   createContact(
     @Args('createContactInput') createContactInput: CreateContactInput,
     @CurrentUser() user: User,

@@ -77,3 +77,8 @@ export type ExchangeRateHistory = Prisma.ExchangeRateHistoryModel
  * 
  */
 export type ContactInvitation = Prisma.ContactInvitationModel
+/**
+ * Model Donation
+ * 
+ */
+export type Donation = Prisma.DonationModel

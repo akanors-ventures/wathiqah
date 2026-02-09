@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { normalizeEmail } from '../../common/utils/string.utils';
 import { Prisma } from '../../generated/prisma/client';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -95,6 +96,24 @@ export class UsersService {
       firstName: this.maskString(user.firstName),
       lastName: this.maskString(user.lastName),
     };
+  }
+
+  toEntity(prismaUser: Prisma.UserGetPayload<Record<string, never>>): User {
+    if (!prismaUser) return null;
+
+    // Convert featureUsage from JsonValue to Record<string, unknown>
+    const user = { ...prismaUser } as unknown as User;
+    if (
+      user.featureUsage &&
+      typeof user.featureUsage === 'object' &&
+      !Array.isArray(user.featureUsage)
+    ) {
+      user.featureUsage = user.featureUsage as Record<string, unknown>;
+    } else if (user.featureUsage === null || user.featureUsage === undefined) {
+      user.featureUsage = null;
+    }
+
+    return user;
   }
 
   private maskString(str: string): string {

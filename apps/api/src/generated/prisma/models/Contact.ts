@@ -229,7 +229,6 @@ export type ContactOrderByWithRelationInput = {
 
 export type ContactWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  linkedUserId?: string
   AND?: Prisma.ContactWhereInput | Prisma.ContactWhereInput[]
   OR?: Prisma.ContactWhereInput[]
   NOT?: Prisma.ContactWhereInput | Prisma.ContactWhereInput[]
@@ -239,11 +238,12 @@ export type ContactWhereUniqueInput = Prisma.AtLeast<{
   userId?: Prisma.StringFilter<"Contact"> | string
   firstName?: Prisma.StringFilter<"Contact"> | string
   lastName?: Prisma.StringFilter<"Contact"> | string
+  linkedUserId?: Prisma.StringNullableFilter<"Contact"> | string | null
   invitations?: Prisma.ContactInvitationListRelationFilter
   linkedUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   transactions?: Prisma.TransactionListRelationFilter
-}, "id" | "linkedUserId">
+}, "id">
 
 export type ContactOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -281,7 +281,7 @@ export type ContactCreateInput = {
   firstName: string
   lastName: string
   invitations?: Prisma.ContactInvitationCreateNestedManyWithoutContactInput
-  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactInput
+  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactsInput
   user: Prisma.UserCreateNestedOneWithoutContactsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutContactInput
 }
@@ -307,7 +307,7 @@ export type ContactUpdateInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   invitations?: Prisma.ContactInvitationUpdateManyWithoutContactNestedInput
-  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactNestedInput
+  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutContactNestedInput
 }
@@ -356,11 +356,6 @@ export type ContactUncheckedUpdateManyInput = {
   linkedUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
-export type ContactNullableScalarRelationFilter = {
-  is?: Prisma.ContactWhereInput | null
-  isNot?: Prisma.ContactWhereInput | null
-}
-
 export type ContactListRelationFilter = {
   every?: Prisma.ContactWhereInput
   some?: Prisma.ContactWhereInput
@@ -404,15 +399,21 @@ export type ContactMinOrderByAggregateInput = {
   linkedUserId?: Prisma.SortOrder
 }
 
+export type ContactNullableScalarRelationFilter = {
+  is?: Prisma.ContactWhereInput | null
+  isNot?: Prisma.ContactWhereInput | null
+}
+
 export type ContactScalarRelationFilter = {
   is?: Prisma.ContactWhereInput
   isNot?: Prisma.ContactWhereInput
 }
 
-export type ContactCreateNestedOneWithoutLinkedUserInput = {
-  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput>
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput
-  connect?: Prisma.ContactWhereUniqueInput
+export type ContactCreateNestedManyWithoutLinkedUserInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput> | Prisma.ContactCreateWithoutLinkedUserInput[] | Prisma.ContactUncheckedCreateWithoutLinkedUserInput[]
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput | Prisma.ContactCreateOrConnectWithoutLinkedUserInput[]
+  createMany?: Prisma.ContactCreateManyLinkedUserInputEnvelope
+  connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
 }
 
 export type ContactCreateNestedManyWithoutUserInput = {
@@ -422,10 +423,11 @@ export type ContactCreateNestedManyWithoutUserInput = {
   connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
 }
 
-export type ContactUncheckedCreateNestedOneWithoutLinkedUserInput = {
-  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput>
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput
-  connect?: Prisma.ContactWhereUniqueInput
+export type ContactUncheckedCreateNestedManyWithoutLinkedUserInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput> | Prisma.ContactCreateWithoutLinkedUserInput[] | Prisma.ContactUncheckedCreateWithoutLinkedUserInput[]
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput | Prisma.ContactCreateOrConnectWithoutLinkedUserInput[]
+  createMany?: Prisma.ContactCreateManyLinkedUserInputEnvelope
+  connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
 }
 
 export type ContactUncheckedCreateNestedManyWithoutUserInput = {
@@ -435,14 +437,18 @@ export type ContactUncheckedCreateNestedManyWithoutUserInput = {
   connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
 }
 
-export type ContactUpdateOneWithoutLinkedUserNestedInput = {
-  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput>
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput
-  upsert?: Prisma.ContactUpsertWithoutLinkedUserInput
-  disconnect?: Prisma.ContactWhereInput | boolean
-  delete?: Prisma.ContactWhereInput | boolean
-  connect?: Prisma.ContactWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutLinkedUserInput, Prisma.ContactUpdateWithoutLinkedUserInput>, Prisma.ContactUncheckedUpdateWithoutLinkedUserInput>
+export type ContactUpdateManyWithoutLinkedUserNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput> | Prisma.ContactCreateWithoutLinkedUserInput[] | Prisma.ContactUncheckedCreateWithoutLinkedUserInput[]
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput | Prisma.ContactCreateOrConnectWithoutLinkedUserInput[]
+  upsert?: Prisma.ContactUpsertWithWhereUniqueWithoutLinkedUserInput | Prisma.ContactUpsertWithWhereUniqueWithoutLinkedUserInput[]
+  createMany?: Prisma.ContactCreateManyLinkedUserInputEnvelope
+  set?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  disconnect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  delete?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  update?: Prisma.ContactUpdateWithWhereUniqueWithoutLinkedUserInput | Prisma.ContactUpdateWithWhereUniqueWithoutLinkedUserInput[]
+  updateMany?: Prisma.ContactUpdateManyWithWhereWithoutLinkedUserInput | Prisma.ContactUpdateManyWithWhereWithoutLinkedUserInput[]
+  deleteMany?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
 }
 
 export type ContactUpdateManyWithoutUserNestedInput = {
@@ -459,14 +465,18 @@ export type ContactUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
 }
 
-export type ContactUncheckedUpdateOneWithoutLinkedUserNestedInput = {
-  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput>
-  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput
-  upsert?: Prisma.ContactUpsertWithoutLinkedUserInput
-  disconnect?: Prisma.ContactWhereInput | boolean
-  delete?: Prisma.ContactWhereInput | boolean
-  connect?: Prisma.ContactWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.ContactUpdateToOneWithWhereWithoutLinkedUserInput, Prisma.ContactUpdateWithoutLinkedUserInput>, Prisma.ContactUncheckedUpdateWithoutLinkedUserInput>
+export type ContactUncheckedUpdateManyWithoutLinkedUserNestedInput = {
+  create?: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput> | Prisma.ContactCreateWithoutLinkedUserInput[] | Prisma.ContactUncheckedCreateWithoutLinkedUserInput[]
+  connectOrCreate?: Prisma.ContactCreateOrConnectWithoutLinkedUserInput | Prisma.ContactCreateOrConnectWithoutLinkedUserInput[]
+  upsert?: Prisma.ContactUpsertWithWhereUniqueWithoutLinkedUserInput | Prisma.ContactUpsertWithWhereUniqueWithoutLinkedUserInput[]
+  createMany?: Prisma.ContactCreateManyLinkedUserInputEnvelope
+  set?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  disconnect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  delete?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  connect?: Prisma.ContactWhereUniqueInput | Prisma.ContactWhereUniqueInput[]
+  update?: Prisma.ContactUpdateWithWhereUniqueWithoutLinkedUserInput | Prisma.ContactUpdateWithWhereUniqueWithoutLinkedUserInput[]
+  updateMany?: Prisma.ContactUpdateManyWithWhereWithoutLinkedUserInput | Prisma.ContactUpdateManyWithWhereWithoutLinkedUserInput[]
+  deleteMany?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
 }
 
 export type ContactUncheckedUpdateManyWithoutUserNestedInput = {
@@ -542,6 +552,11 @@ export type ContactCreateOrConnectWithoutLinkedUserInput = {
   create: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput>
 }
 
+export type ContactCreateManyLinkedUserInputEnvelope = {
+  data: Prisma.ContactCreateManyLinkedUserInput | Prisma.ContactCreateManyLinkedUserInput[]
+  skipDuplicates?: boolean
+}
+
 export type ContactCreateWithoutUserInput = {
   id?: string
   email?: string | null
@@ -550,7 +565,7 @@ export type ContactCreateWithoutUserInput = {
   firstName: string
   lastName: string
   invitations?: Prisma.ContactInvitationCreateNestedManyWithoutContactInput
-  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactInput
+  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutContactInput
 }
 
@@ -576,39 +591,34 @@ export type ContactCreateManyUserInputEnvelope = {
   skipDuplicates?: boolean
 }
 
-export type ContactUpsertWithoutLinkedUserInput = {
+export type ContactUpsertWithWhereUniqueWithoutLinkedUserInput = {
+  where: Prisma.ContactWhereUniqueInput
   update: Prisma.XOR<Prisma.ContactUpdateWithoutLinkedUserInput, Prisma.ContactUncheckedUpdateWithoutLinkedUserInput>
   create: Prisma.XOR<Prisma.ContactCreateWithoutLinkedUserInput, Prisma.ContactUncheckedCreateWithoutLinkedUserInput>
-  where?: Prisma.ContactWhereInput
 }
 
-export type ContactUpdateToOneWithWhereWithoutLinkedUserInput = {
-  where?: Prisma.ContactWhereInput
+export type ContactUpdateWithWhereUniqueWithoutLinkedUserInput = {
+  where: Prisma.ContactWhereUniqueInput
   data: Prisma.XOR<Prisma.ContactUpdateWithoutLinkedUserInput, Prisma.ContactUncheckedUpdateWithoutLinkedUserInput>
 }
 
-export type ContactUpdateWithoutLinkedUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  invitations?: Prisma.ContactInvitationUpdateManyWithoutContactNestedInput
-  user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
-  transactions?: Prisma.TransactionUpdateManyWithoutContactNestedInput
+export type ContactUpdateManyWithWhereWithoutLinkedUserInput = {
+  where: Prisma.ContactScalarWhereInput
+  data: Prisma.XOR<Prisma.ContactUpdateManyMutationInput, Prisma.ContactUncheckedUpdateManyWithoutLinkedUserInput>
 }
 
-export type ContactUncheckedUpdateWithoutLinkedUserInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  userId?: Prisma.StringFieldUpdateOperationsInput | string
-  firstName?: Prisma.StringFieldUpdateOperationsInput | string
-  lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  invitations?: Prisma.ContactInvitationUncheckedUpdateManyWithoutContactNestedInput
-  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutContactNestedInput
+export type ContactScalarWhereInput = {
+  AND?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
+  OR?: Prisma.ContactScalarWhereInput[]
+  NOT?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
+  id?: Prisma.StringFilter<"Contact"> | string
+  email?: Prisma.StringNullableFilter<"Contact"> | string | null
+  phoneNumber?: Prisma.StringNullableFilter<"Contact"> | string | null
+  createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
+  userId?: Prisma.StringFilter<"Contact"> | string
+  firstName?: Prisma.StringFilter<"Contact"> | string
+  lastName?: Prisma.StringFilter<"Contact"> | string
+  linkedUserId?: Prisma.StringNullableFilter<"Contact"> | string | null
 }
 
 export type ContactUpsertWithWhereUniqueWithoutUserInput = {
@@ -627,20 +637,6 @@ export type ContactUpdateManyWithWhereWithoutUserInput = {
   data: Prisma.XOR<Prisma.ContactUpdateManyMutationInput, Prisma.ContactUncheckedUpdateManyWithoutUserInput>
 }
 
-export type ContactScalarWhereInput = {
-  AND?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
-  OR?: Prisma.ContactScalarWhereInput[]
-  NOT?: Prisma.ContactScalarWhereInput | Prisma.ContactScalarWhereInput[]
-  id?: Prisma.StringFilter<"Contact"> | string
-  email?: Prisma.StringNullableFilter<"Contact"> | string | null
-  phoneNumber?: Prisma.StringNullableFilter<"Contact"> | string | null
-  createdAt?: Prisma.DateTimeFilter<"Contact"> | Date | string
-  userId?: Prisma.StringFilter<"Contact"> | string
-  firstName?: Prisma.StringFilter<"Contact"> | string
-  lastName?: Prisma.StringFilter<"Contact"> | string
-  linkedUserId?: Prisma.StringNullableFilter<"Contact"> | string | null
-}
-
 export type ContactCreateWithoutTransactionsInput = {
   id?: string
   email?: string | null
@@ -649,7 +645,7 @@ export type ContactCreateWithoutTransactionsInput = {
   firstName: string
   lastName: string
   invitations?: Prisma.ContactInvitationCreateNestedManyWithoutContactInput
-  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactInput
+  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactsInput
   user: Prisma.UserCreateNestedOneWithoutContactsInput
 }
 
@@ -689,7 +685,7 @@ export type ContactUpdateWithoutTransactionsInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   invitations?: Prisma.ContactInvitationUpdateManyWithoutContactNestedInput
-  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactNestedInput
+  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
 }
 
@@ -712,7 +708,7 @@ export type ContactCreateWithoutInvitationsInput = {
   createdAt?: Date | string
   firstName: string
   lastName: string
-  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactInput
+  linkedUser?: Prisma.UserCreateNestedOneWithoutLinkedContactsInput
   user: Prisma.UserCreateNestedOneWithoutContactsInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutContactInput
 }
@@ -752,7 +748,7 @@ export type ContactUpdateWithoutInvitationsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
-  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactNestedInput
+  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutContactNestedInput
 }
@@ -769,6 +765,16 @@ export type ContactUncheckedUpdateWithoutInvitationsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutContactNestedInput
 }
 
+export type ContactCreateManyLinkedUserInput = {
+  id?: string
+  email?: string | null
+  phoneNumber?: string | null
+  createdAt?: Date | string
+  userId: string
+  firstName: string
+  lastName: string
+}
+
 export type ContactCreateManyUserInput = {
   id?: string
   email?: string | null
@@ -779,6 +785,40 @@ export type ContactCreateManyUserInput = {
   linkedUserId?: string | null
 }
 
+export type ContactUpdateWithoutLinkedUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  invitations?: Prisma.ContactInvitationUpdateManyWithoutContactNestedInput
+  user?: Prisma.UserUpdateOneRequiredWithoutContactsNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutContactNestedInput
+}
+
+export type ContactUncheckedUpdateWithoutLinkedUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  invitations?: Prisma.ContactInvitationUncheckedUpdateManyWithoutContactNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutContactNestedInput
+}
+
+export type ContactUncheckedUpdateManyWithoutLinkedUserInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
 export type ContactUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -787,7 +827,7 @@ export type ContactUpdateWithoutUserInput = {
   firstName?: Prisma.StringFieldUpdateOperationsInput | string
   lastName?: Prisma.StringFieldUpdateOperationsInput | string
   invitations?: Prisma.ContactInvitationUpdateManyWithoutContactNestedInput
-  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactNestedInput
+  linkedUser?: Prisma.UserUpdateOneWithoutLinkedContactsNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutContactNestedInput
 }
 

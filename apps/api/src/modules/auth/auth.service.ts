@@ -213,7 +213,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user,
+      user: this.usersService.toEntity(user),
     };
   }
 
@@ -245,7 +245,7 @@ export class AuthService {
       return {
         accessToken,
         refreshToken: newRefreshToken,
-        user,
+        user: this.usersService.toEntity(user),
       };
     } catch (error) {
       throw new UnauthorizedException(`Access Denied: ${error.message}`);
@@ -336,7 +336,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: updatedUser,
+      user: this.usersService.toEntity(updatedUser),
     };
   }
 
@@ -529,7 +529,7 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
-      user: { ...user, isEmailVerified: true },
+      user: this.usersService.toEntity({ ...user, isEmailVerified: true }),
     };
   }
 }

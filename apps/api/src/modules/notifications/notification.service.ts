@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { AssetCategory } from 'src/generated/prisma/enums';
+import { SubscriptionService } from '../subscription/subscription.service';
 import type { NotificationJobData } from './interfaces/job-data.interface';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class NotificationService {
     @InjectQueue('notifications')
     private readonly notificationsQueue: Queue<NotificationJobData>,
     private readonly configService: ConfigService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   /**
@@ -107,6 +109,7 @@ export class NotificationService {
    * @param name - The witness's name.
    * @param token - The invitation token.
    * @param transactionDetails - Details about the transaction and parties.
+   * @param senderId - The ID of the user sending the invite (for subscription checks).
    * @param phoneNumber - Optional phone number for SMS notification.
    * @throws BadRequestException if any parameter is missing or empty.
    */
@@ -123,6 +126,7 @@ export class NotificationService {
       category: AssetCategory;
       type: string;
     },
+    senderId: string,
     phoneNumber?: string,
   ): Promise<void> {
     this.validateParams({ email, name, token });
@@ -182,25 +186,37 @@ export class NotificationService {
       },
     );
 
-    // Queue SMS if phone number provided
-    if (phoneNumber) {
-      const smsBody = `Hello ${name}, you have been requested to witness a transaction on Wathȋqah. View details: ${inviteUrl}`;
+    // Queue SMS if phone number provided and user has permission
+    if (phoneNumber && senderId) {
+      let canSendSMS = false;
+      try {
+        await this.subscriptionService.checkFeatureLimit(senderId, 'allowSMS');
+        canSendSMS = true;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_error) {
+        // Limit reached or feature not available
+        canSendSMS = false;
+      }
 
-      await this.notificationsQueue.add(
-        'send-sms',
-        {
-          to: phoneNumber,
-          body: smsBody,
-        },
-        {
-          attempts: 3,
-          backoff: {
-            type: 'fixed',
-            delay: 5000,
+      if (canSendSMS) {
+        const smsBody = `Hello ${name}, you have been requested to witness a transaction on Wathȋqah. View details: ${inviteUrl}`;
+
+        await this.notificationsQueue.add(
+          'send-sms',
+          {
+            to: phoneNumber,
+            body: smsBody,
           },
-          removeOnComplete: true,
-        },
-      );
+          {
+            attempts: 3,
+            backoff: {
+              type: 'fixed',
+              delay: 5000,
+            },
+            removeOnComplete: true,
+          },
+        );
+      }
     }
   }
 

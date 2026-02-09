@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SEARCH_WITNESS_QUERY } from "@/lib/apollo/queries/users";
+import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
+import { Lock } from "lucide-react";
 import {
   SearchType,
   type SearchWitnessQuery,
@@ -26,6 +28,7 @@ interface WitnessSelectorProps {
 }
 
 export function WitnessSelector({ selectedWitnesses, onChange, className }: WitnessSelectorProps) {
+  const { allowSMS, witnessRemaining } = useSubscription();
   const inviteNameId = useId();
   const inviteEmailId = useId();
   const invitePhoneId = useId();
@@ -129,22 +132,33 @@ export function WitnessSelector({ selectedWitnesses, onChange, className }: Witn
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="flex flex-wrap gap-2">
-        {selectedWitnesses.map((witness, index) => (
-          <div
-            key={witness.userId || witness.invite?.email || index}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-900 text-sm font-medium"
-          >
-            <span>{witness.displayName}</span>
-            <button
-              type="button"
-              onClick={() => removeWitness(index)}
-              className="hover:text-emerald-900 dark:hover:text-emerald-200"
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {selectedWitnesses.map((witness, index) => (
+            <div
+              key={witness.userId || witness.invite?.email || index}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-900 text-sm font-medium"
             >
-              <X size={14} />
-            </button>
+              <span>{witness.displayName}</span>
+              <button
+                type="button"
+                onClick={() => removeWitness(index)}
+                className="hover:text-emerald-900 dark:hover:text-emerald-200"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {witnessRemaining !== undefined && (
+          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md">
+            Witnesses remaining:{" "}
+            <span className={cn(witnessRemaining === 0 ? "text-red-500" : "text-emerald-600")}>
+              {witnessRemaining}
+            </span>
           </div>
-        ))}
+        )}
       </div>
 
       {!showInviteForm && !searchResult && (
@@ -247,15 +261,29 @@ export function WitnessSelector({ selectedWitnesses, onChange, className }: Witn
                 placeholder="email@example.com"
               />
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor={invitePhoneId}>Phone (Optional)</Label>
+            <div className="grid gap-2">
+              <Label htmlFor={invitePhoneId} className="flex items-center gap-2">
+                Phone (Optional)
+                {!allowSMS && (
+                  <span className="flex items-center gap-1 text-[10px] bg-amber-100 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-900 font-normal">
+                    <Lock size={10} />
+                    PRO
+                  </span>
+                )}
+              </Label>
               <Input
                 id={invitePhoneId}
                 type="tel"
                 value={invitePhone}
                 onChange={(e) => setInvitePhone(e.target.value)}
                 placeholder="+234..."
+                disabled={!allowSMS}
               />
+              {!allowSMS && (
+                <p className="text-[10px] text-amber-600 dark:text-amber-400">
+                  SMS notifications are only available on PRO plan.
+                </p>
+              )}
             </div>
             <Button
               type="button"
