@@ -56,7 +56,8 @@ function ProfilePage() {
     );
   }
 
-  const witnessPercentage = maxWitnessesPerMonth > 0 ? (witnessUsage / maxWitnessesPerMonth) * 100 : 0;
+  const witnessPercentage =
+    maxWitnessesPerMonth > 0 ? (witnessUsage / maxWitnessesPerMonth) * 100 : 0;
   const isWitnessLimitLow = witnessRemaining <= 1 && !isPro;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -98,23 +99,38 @@ function ProfilePage() {
                   <TierBadge tier={tier} className="shadow-lg" />
                 </div>
               </div>
-              <h2 className="text-xl font-black tracking-tight">{user.firstName} {user.lastName}</h2>
+              <h2 className="text-xl font-black tracking-tight">
+                {user.firstName} {user.lastName}
+              </h2>
               <p className="text-sm text-muted-foreground mb-6 font-medium">{user.email}</p>
-              
+
               <div className="w-full space-y-4 text-left">
                 <div className="p-4 bg-muted/30 rounded-2xl border border-border/50 space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Witness Limit</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">{witnessUsage} / {maxWitnessesPerMonth || "∞"}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      Witness Limit
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-primary">
+                      {witnessUsage} / {maxWitnessesPerMonth || "∞"}
+                    </span>
                   </div>
-                  <Progress value={maxWitnessesPerMonth > 0 ? witnessPercentage : 0} className="h-1.5" />
+                  <Progress
+                    value={maxWitnessesPerMonth > 0 ? witnessPercentage : 0}
+                    className="h-1.5"
+                  />
                   <p className="text-[10px] text-muted-foreground font-medium">
-                    {isPro ? "Unlimited requests" : `${witnessRemaining} requests remaining this month`}
+                    {isPro
+                      ? "Unlimited requests"
+                      : `${witnessRemaining} requests remaining this month`}
                   </p>
                 </div>
 
                 {!isPro && (
-                  <Button asChild variant="outline" className="w-full h-11 rounded-xl border-primary/20 hover:bg-primary/5 hover:text-primary transition-all group">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full h-11 rounded-xl border-primary/20 hover:bg-primary/5 hover:text-primary transition-all group"
+                  >
                     <Link to="/pricing">
                       <Zap className="w-4 h-4 mr-2 group-hover:fill-primary transition-all" />
                       Upgrade to Pro
@@ -129,11 +145,16 @@ function ProfilePage() {
             <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex gap-3 animate-in slide-in-from-left duration-500">
               <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="text-xs font-bold text-amber-800 uppercase tracking-tight">Limit Reached Soon</p>
+                <p className="text-xs font-bold text-amber-800 uppercase tracking-tight">
+                  Limit Reached Soon
+                </p>
                 <p className="text-[10px] text-amber-700 font-medium leading-relaxed">
                   You're almost out of witness requests. Upgrade to Pro for unlimited access.
                 </p>
-                <Link to="/pricing" className="text-[10px] font-black text-amber-800 uppercase tracking-widest hover:underline flex items-center gap-1 mt-1">
+                <Link
+                  to="/pricing"
+                  className="text-[10px] font-black text-amber-800 uppercase tracking-widest hover:underline flex items-center gap-1 mt-1"
+                >
                   Upgrade Now <ArrowUpCircle className="w-3 h-3" />
                 </Link>
               </div>

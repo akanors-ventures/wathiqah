@@ -97,7 +97,7 @@ model Project {
   description String?
   budget      Decimal? @db.Decimal(10, 2) // Target amount
   balance     Decimal  @default(0.00) @db.Decimal(10, 2) // Current funds available
-  currency    String   @default("USD")
+  currency    String   @default("NGN")
   
   userId      String
   user        User     @relation(fields: [userId], references: [id])
