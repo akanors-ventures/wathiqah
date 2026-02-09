@@ -15,6 +15,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
@@ -24,12 +25,15 @@ import { Route as WitnessesIndexRouteImport } from './routes/witnesses/index'
 import { Route as TransactionsIndexRouteImport } from './routes/transactions/index'
 import { Route as SharedAccessIndexRouteImport } from './routes/shared-access/index'
 import { Route as PromisesIndexRouteImport } from './routes/promises/index'
+import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
 import { Route as ItemsIndexRouteImport } from './routes/items/index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts/index'
 import { Route as WitnessesNextActionRouteImport } from './routes/witnesses/next-action'
 import { Route as TransactionsNewRouteImport } from './routes/transactions/new'
 import { Route as TransactionsMyContactTransactionsRouteImport } from './routes/transactions/my-contact-transactions'
 import { Route as TransactionsIdRouteImport } from './routes/transactions/$id'
+import { Route as ProjectsNewRouteImport } from './routes/projects/new'
+import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projectId'
 import { Route as ItemsNewRouteImport } from './routes/items/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
@@ -63,6 +67,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -110,6 +119,11 @@ const PromisesIndexRoute = PromisesIndexRouteImport.update({
   path: '/promises/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsIndexRoute = ProjectsIndexRouteImport.update({
+  id: '/projects/',
+  path: '/projects/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsIndexRoute = ItemsIndexRouteImport.update({
   id: '/items/',
   path: '/items/',
@@ -141,6 +155,16 @@ const TransactionsIdRoute = TransactionsIdRouteImport.update({
   path: '/transactions/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsNewRoute = ProjectsNewRouteImport.update({
+  id: '/projects/new',
+  path: '/projects/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsProjectIdRoute = ProjectsProjectIdRouteImport.update({
+  id: '/projects/$projectId',
+  path: '/projects/$projectId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsNewRoute = ItemsNewRouteImport.update({
   id: '/items/new',
   path: '/items/new',
@@ -168,6 +192,7 @@ export interface FileRoutesByFullPath {
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -176,12 +201,15 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/new': typeof ProjectsNewRoute
   '/transactions/$id': typeof TransactionsIdRoute
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
   '/witnesses/next-action': typeof WitnessesNextActionRoute
   '/contacts/': typeof ContactsIndexRoute
   '/items/': typeof ItemsIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
   '/promises/': typeof PromisesIndexRoute
   '/shared-access/': typeof SharedAccessIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
@@ -195,6 +223,7 @@ export interface FileRoutesByTo {
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -203,12 +232,15 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/new': typeof ProjectsNewRoute
   '/transactions/$id': typeof TransactionsIdRoute
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
   '/witnesses/next-action': typeof WitnessesNextActionRoute
   '/contacts': typeof ContactsIndexRoute
   '/items': typeof ItemsIndexRoute
+  '/projects': typeof ProjectsIndexRoute
   '/promises': typeof PromisesIndexRoute
   '/shared-access': typeof SharedAccessIndexRoute
   '/transactions': typeof TransactionsIndexRoute
@@ -223,6 +255,7 @@ export interface FileRoutesById {
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
   '/profile': typeof ProfileRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -231,12 +264,15 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/projects/$projectId': typeof ProjectsProjectIdRoute
+  '/projects/new': typeof ProjectsNewRoute
   '/transactions/$id': typeof TransactionsIdRoute
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
   '/witnesses/next-action': typeof WitnessesNextActionRoute
   '/contacts/': typeof ContactsIndexRoute
   '/items/': typeof ItemsIndexRoute
+  '/projects/': typeof ProjectsIndexRoute
   '/promises/': typeof PromisesIndexRoute
   '/shared-access/': typeof SharedAccessIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
@@ -252,6 +288,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/forgot-password'
     | '/login'
+    | '/pricing'
     | '/profile'
     | '/reset-password'
     | '/settings'
@@ -260,12 +297,15 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/projects/$projectId'
+    | '/projects/new'
     | '/transactions/$id'
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
     | '/witnesses/next-action'
     | '/contacts/'
     | '/items/'
+    | '/projects/'
     | '/promises/'
     | '/shared-access/'
     | '/transactions/'
@@ -279,6 +319,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/forgot-password'
     | '/login'
+    | '/pricing'
     | '/profile'
     | '/reset-password'
     | '/settings'
@@ -287,12 +328,15 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/projects/$projectId'
+    | '/projects/new'
     | '/transactions/$id'
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
     | '/witnesses/next-action'
     | '/contacts'
     | '/items'
+    | '/projects'
     | '/promises'
     | '/shared-access'
     | '/transactions'
@@ -306,6 +350,7 @@ export interface FileRouteTypes {
     | '/features'
     | '/forgot-password'
     | '/login'
+    | '/pricing'
     | '/profile'
     | '/reset-password'
     | '/settings'
@@ -314,12 +359,15 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/projects/$projectId'
+    | '/projects/new'
     | '/transactions/$id'
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
     | '/witnesses/next-action'
     | '/contacts/'
     | '/items/'
+    | '/projects/'
     | '/promises/'
     | '/shared-access/'
     | '/transactions/'
@@ -334,6 +382,7 @@ export interface RootRouteChildren {
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
   ProfileRoute: typeof ProfileRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
@@ -342,12 +391,15 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   ContactsContactIdRoute: typeof ContactsContactIdRoute
   ItemsNewRoute: typeof ItemsNewRoute
+  ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
+  ProjectsNewRoute: typeof ProjectsNewRoute
   TransactionsIdRoute: typeof TransactionsIdRoute
   TransactionsMyContactTransactionsRoute: typeof TransactionsMyContactTransactionsRoute
   TransactionsNewRoute: typeof TransactionsNewRoute
   WitnessesNextActionRoute: typeof WitnessesNextActionRoute
   ContactsIndexRoute: typeof ContactsIndexRoute
   ItemsIndexRoute: typeof ItemsIndexRoute
+  ProjectsIndexRoute: typeof ProjectsIndexRoute
   PromisesIndexRoute: typeof PromisesIndexRoute
   SharedAccessIndexRoute: typeof SharedAccessIndexRoute
   TransactionsIndexRoute: typeof TransactionsIndexRoute
@@ -398,6 +450,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -463,6 +522,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PromisesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/': {
+      id: '/projects/'
+      path: '/projects'
+      fullPath: '/projects/'
+      preLoaderRoute: typeof ProjectsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items/': {
       id: '/items/'
       path: '/items'
@@ -505,6 +571,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransactionsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/new': {
+      id: '/projects/new'
+      path: '/projects/new'
+      fullPath: '/projects/new'
+      preLoaderRoute: typeof ProjectsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/$projectId': {
+      id: '/projects/$projectId'
+      path: '/projects/$projectId'
+      fullPath: '/projects/$projectId'
+      preLoaderRoute: typeof ProjectsProjectIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items/new': {
       id: '/items/new'
       path: '/items/new'
@@ -542,6 +622,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
   ProfileRoute: ProfileRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
@@ -550,6 +631,8 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   ContactsContactIdRoute: ContactsContactIdRoute,
   ItemsNewRoute: ItemsNewRoute,
+  ProjectsProjectIdRoute: ProjectsProjectIdRoute,
+  ProjectsNewRoute: ProjectsNewRoute,
   TransactionsIdRoute: TransactionsIdRoute,
   TransactionsMyContactTransactionsRoute:
     TransactionsMyContactTransactionsRoute,
@@ -557,6 +640,7 @@ const rootRouteChildren: RootRouteChildren = {
   WitnessesNextActionRoute: WitnessesNextActionRoute,
   ContactsIndexRoute: ContactsIndexRoute,
   ItemsIndexRoute: ItemsIndexRoute,
+  ProjectsIndexRoute: ProjectsIndexRoute,
   PromisesIndexRoute: PromisesIndexRoute,
   SharedAccessIndexRoute: SharedAccessIndexRoute,
   TransactionsIndexRoute: TransactionsIndexRoute,

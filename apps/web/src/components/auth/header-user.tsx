@@ -9,6 +9,7 @@ import {
   Settings,
   Sun,
   User,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
@@ -27,10 +28,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { TierBadge } from "@/components/ui/tier-badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useSubscription } from "@/hooks/useSubscription";
 
 export default function HeaderUser() {
   const { user, loading, logout, isAuthenticated } = useAuth();
+  const { tier, isPro } = useSubscription();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -45,7 +49,7 @@ export default function HeaderUser() {
   }
 
   // Use a more robust check for authenticated state
-  const isCurrentlyAuthenticated = isAuthenticated();
+  const isCurrentlyAuthenticated = typeof isAuthenticated === "function" ? isAuthenticated() : !!isAuthenticated;
 
   if (loading || (user === undefined && isCurrentlyAuthenticated)) {
     return (
@@ -82,7 +86,7 @@ export default function HeaderUser() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-12 w-auto gap-2 rounded-full pl-2 pr-3 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-all duration-200 group data-[state=open]:bg-muted/50"
+                className="relative h-12 w-auto gap-2 rounded-full pl-2 pr-3 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 group data-[state=open]:bg-muted/50 shrink-0"
                 aria-label="User menu"
               >
                 <Avatar className="h-9 w-9 border border-border transition-transform group-hover:scale-105 group-active:scale-95">
@@ -100,14 +104,30 @@ export default function HeaderUser() {
           </TooltipContent>
         </Tooltip>
 
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent className="w-64" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
-              <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold leading-none">{user.name || "User"}</p>
+                <TierBadge tier={tier} />
+              </div>
+              <p className="text-xs leading-none text-muted-foreground truncate">
+                {user.email}
+              </p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {!isPro && (
+            <>
+              <DropdownMenuItem asChild className="text-primary focus:text-primary focus:bg-primary/5 cursor-pointer font-bold">
+                <Link to="/pricing">
+                  <Zap className="mr-2 h-4 w-4 fill-primary" />
+                  <span>Upgrade to Pro</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+            </>
+          )}
           <DropdownMenuItem asChild>
             <Link to="/promises" className="cursor-pointer">
               <FileSignature className="mr-2 h-4 w-4" />

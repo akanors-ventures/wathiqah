@@ -98,6 +98,13 @@ input CreateDonationInput {
   paymentProvider: String
 }
 
+input CreateProjectInput {
+  budget: Float
+  currency: String
+  description: String
+  name: String!
+}
+
 input CreatePromiseInput {
   category: String
   description: String!
@@ -176,6 +183,16 @@ input ForgotPasswordInput {
   email: String!
 }
 
+type GeoIPInfo {
+  cityName: String!
+  countryCode: String!
+  countryName: String!
+  currencyCode: String
+  ip: String!
+  isVpn: Boolean!
+  regionName: String!
+}
+
 input GrantAccessInput {
   email: String!
 }
@@ -189,6 +206,15 @@ type InviteContactResponse {
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+input LogProjectTransactionInput {
+  amount: Float!
+  category: String
+  date: DateTime
+  description: String
+  projectId: String!
+  type: ProjectTransactionType!
+}
 
 input LoginInput {
   email: String!
@@ -204,12 +230,14 @@ type Mutation {
   createContact(createContactInput: CreateContactInput!): Contact!
   createDonation(createDonationInput: CreateDonationInput!): Donation!
   createDonationSession(amount: Float!, currency: String!): CheckoutSession!
+  createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
   createSubscriptionSession(tier: SubscriptionTier!): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
   inviteContactToPlatform(contactId: ID!): InviteContactResponse!
+  logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
@@ -224,6 +252,7 @@ type Mutation {
   revokeAccess(id: String!): AccessGrant!
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
+  updateProject(input: UpdateProjectInput!): Project!
   updatePromise(updatePromiseInput: UpdatePromiseInput!): Promise!
   updateTransaction(input: UpdateTransactionInput!): Transaction!
   updateUser(updateUserInput: UpdateUserInput!): User!
@@ -234,6 +263,36 @@ enum Priority {
   HIGH
   LOW
   MEDIUM
+}
+
+type Project {
+  balance: Float!
+  budget: Float
+  createdAt: DateTime!
+  currency: String!
+  description: String
+  id: ID!
+  name: String!
+  transactions: [ProjectTransaction!]!
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type ProjectTransaction {
+  amount: Float!
+  category: String
+  createdAt: DateTime!
+  date: DateTime!
+  description: String
+  id: ID!
+  projectId: String!
+  type: ProjectTransactionType!
+  updatedAt: DateTime!
+}
+
+enum ProjectTransactionType {
+  EXPENSE
+  INCOME
 }
 
 type Promise {
@@ -263,14 +322,17 @@ type Query {
   donation(id: ID!): Donation!
   donationOptions: [DonationOption!]!
   donations: [Donation!]!
+  getGeoIPInfo: GeoIPInfo!
   getWitnessInvitation(token: String!): Witness!
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions: [Transaction!]!
   myDonations: [Donation!]!
+  myProjects: [Project!]!
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
   myWitnessRequests(status: WitnessStatus): [Witness!]!
+  project(id: ID!): Project!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
   searchWitness(input: SearchWitnessInput!): WitnessCandidate
@@ -415,6 +477,14 @@ input UpdateContactInput {
   id: ID!
   name: String
   phoneNumber: String
+}
+
+input UpdateProjectInput {
+  budget: Float
+  currency: String
+  description: String
+  id: String!
+  name: String
 }
 
 input UpdatePromiseInput {
