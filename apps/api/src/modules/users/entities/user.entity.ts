@@ -1,4 +1,11 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { SubscriptionTier } from '../../subscription/subscription.constants';
+import { GraphQLJSON } from 'graphql-type-json';
+
+registerEnumType(SubscriptionTier, {
+  name: 'SubscriptionTier',
+  description: 'The subscription tier of the user',
+});
 
 @ObjectType()
 export class User {
@@ -28,6 +35,18 @@ export class User {
 
   @Field()
   preferredCurrency: string;
+
+  @Field(() => SubscriptionTier)
+  tier: SubscriptionTier;
+
+  @Field({ nullable: true })
+  subscriptionStatus?: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  featureUsage?: Record<string, unknown> | null;
+
+  @Field()
+  isDonated: boolean;
 
   @Field()
   createdAt: Date;

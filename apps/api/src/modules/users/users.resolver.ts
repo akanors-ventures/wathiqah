@@ -31,17 +31,22 @@ export class UsersResolver {
   }
 
   @Query(() => User, { name: 'user', nullable: true })
-  findOne(@Args('id', { type: () => String }) id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Args('id', { type: () => String }) id: string) {
+    const user = await this.usersService.findOne(id);
+    return this.usersService.toEntity(user);
   }
 
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
-  updateUser(
+  async updateUser(
     @Args('updateUserInput') updateUserInput: UpdateUserInput,
     @CurrentUser() user: User,
   ) {
-    return this.usersService.update(user.id, updateUserInput);
+    const updatedUser = await this.usersService.update(
+      user.id,
+      updateUserInput,
+    );
+    return this.usersService.toEntity(updatedUser);
   }
 
   @Query(() => WitnessCandidate, { name: 'searchWitness', nullable: true })

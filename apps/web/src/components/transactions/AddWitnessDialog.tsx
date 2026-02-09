@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { ADD_WITNESS, GET_TRANSACTION } from "@/lib/apollo/queries/transactions";
+import { useSubscription } from "@/hooks/useSubscription";
+import { Lock } from "lucide-react";
 
 interface AddWitnessDialogProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface AddWitnessDialogProps {
 }
 
 export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessDialogProps) {
+  const { witnessRemaining, isPro } = useSubscription();
   const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
   const [error, setError] = useState("");
 
@@ -36,6 +39,13 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
     e.preventDefault();
     if (selectedWitnesses.length === 0) {
       setError("Please add at least one witness");
+      return;
+    }
+
+    if (!isPro && selectedWitnesses.length > witnessRemaining) {
+      setError(
+        `You only have ${witnessRemaining} witness invites remaining this month. Upgrade to PRO to add more.`,
+      );
       return;
     }
 
@@ -73,6 +83,19 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
           {error && (
             <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-200 dark:border-red-900">
               {error}
+            </div>
+          )}
+
+          {!isPro && witnessRemaining <= 2 && (
+            <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-900 flex items-start gap-2">
+              <Lock size={14} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold mb-1">Witness Limit Warning</p>
+                <p>
+                  You have {witnessRemaining} witness invites remaining this month. Upgrade to PRO
+                  for unlimited witnesses.
+                </p>
+              </div>
             </div>
           )}
 

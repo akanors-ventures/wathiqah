@@ -19,6 +19,11 @@ model User {
   lastName                   String
   phoneNumber                String?
   preferredCurrency          String               @default("NGN")
+  tier                       SubscriptionTier     @default(FREE)
+  subscriptionStatus         String?
+  subscriptionId             String?
+  featureUsage               Json?                @default("{}")
+  isDonated                  Boolean              @default(false)
   accessGrants               AccessGrant[]
   contactInvitationsReceived ContactInvitation[]  @relation("InvitedUser")
   contactInvitationsSent     ContactInvitation[]  @relation("InviterUser")
@@ -29,6 +34,7 @@ model User {
   transactionHistory         TransactionHistory[] @relation("HistoryUser")
   transactions               Transaction[]        @relation("TransactionCreator")
   witnessRecords             Witness[]            @relation("WitnessUser")
+  donations                  Donation[]
 
   @@index([phoneNumber])
   @@map("users")
@@ -267,4 +273,35 @@ enum InvitationStatus {
   ACCEPTED
   EXPIRED
   CANCELLED
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+}
+
+model Donation {
+  id              String         @id @default(uuid())
+  amount          Decimal        @db.Decimal(20, 2)
+  currency        String         @default("NGN")
+  status          DonationStatus @default(PENDING)
+  paymentProvider String? // e.g., "paystack", "stripe"
+  paymentRef      String?        @unique
+  donorId         String?
+  donorName       String?
+  donorEmail      String?
+  message         String?
+  isAnonymous     Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  donor User? @relation(fields: [donorId], references: [id])
+
+  @@map("donations")
+}
+
+enum DonationStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
 }

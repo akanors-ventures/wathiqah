@@ -35,6 +35,7 @@ export interface WitnessNotification {
   email: string;
   firstName: string;
   rawToken: string;
+  senderId: string;
   phoneNumber?: string;
   transactionDetails: {
     creatorName: string;
@@ -134,6 +135,7 @@ export class TransactionsService {
           include: {
             user: {
               select: {
+                id: true,
                 email: true,
                 firstName: true,
                 lastName: true,
@@ -142,6 +144,7 @@ export class TransactionsService {
             },
           },
         });
+
         witnessDetails.push(
           witness as Witness & {
             user: {
@@ -156,12 +159,14 @@ export class TransactionsService {
 
       for (const witness of witnessDetails) {
         const rawToken = uuidv4();
+
         notifications.push({
           witnessId: witness.id,
           email: witness.user.email,
           firstName: witness.user.firstName,
           rawToken,
-          phoneNumber: witness.user.phoneNumber,
+          senderId: transaction.createdById,
+          phoneNumber: witness.user.phoneNumber || undefined,
           transactionDetails,
         });
       }
@@ -216,7 +221,7 @@ export class TransactionsService {
         }
 
         const rawToken = uuidv4();
-        const targetPhoneNumber = invite.phoneNumber || user.phoneNumber;
+
         const targetEmail = normalizedEmail || user.email;
         const { firstName } = splitName(invite.name);
         const targetName = firstName || user.firstName;
@@ -226,7 +231,8 @@ export class TransactionsService {
           email: targetEmail,
           firstName: targetName,
           rawToken,
-          phoneNumber: targetPhoneNumber,
+          senderId: transaction.createdById,
+          phoneNumber: invite.phoneNumber || user.phoneNumber || undefined,
           transactionDetails,
         });
       }
@@ -242,6 +248,7 @@ export class TransactionsService {
         email,
         firstName,
         rawToken,
+        senderId,
         phoneNumber,
         transactionDetails,
       } = notification;
@@ -264,6 +271,7 @@ export class TransactionsService {
         firstName,
         rawToken,
         transactionDetails,
+        senderId,
         phoneNumber,
       );
     }
@@ -398,17 +406,18 @@ export class TransactionsService {
 
     // Send notifications after transaction commits
     if (notifications.length > 0) {
-      this.notifyWitnesses(notifications).catch((err) => {
+      await this.notifyWitnesses(notifications).catch((err) => {
         console.error('Failed to send witness notifications:', err);
       });
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (user) {
-      await this.notificationService.sendTransactionCreatedEmail(
-        user.email,
-        user.firstName,
-      );
+      this.notificationService
+        .sendTransactionCreatedEmail(user.email, user.firstName)
+        .catch((err) => {
+          console.error('Failed to send created transaction email:', err);
+        });
     }
 
     return transaction;
@@ -445,7 +454,7 @@ export class TransactionsService {
 
     // Send notifications after transaction commits
     if (notifications.length > 0) {
-      this.notifyWitnesses(notifications).catch((err) => {
+      await this.notifyWitnesses(notifications).catch((err) => {
         console.error('Failed to send witness notifications:', err);
       });
     }

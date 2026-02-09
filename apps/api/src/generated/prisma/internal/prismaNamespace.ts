@@ -395,7 +395,8 @@ export const ModelName = {
   AccessGrant: 'AccessGrant',
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
-  ContactInvitation: 'ContactInvitation'
+  ContactInvitation: 'ContactInvitation',
+  Donation: 'Donation'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -411,7 +412,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation"
+    modelProps: "user" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "donation"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1303,6 +1304,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Donation: {
+      payload: Prisma.$DonationPayload<ExtArgs>
+      fields: Prisma.DonationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.DonationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.DonationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        findFirst: {
+          args: Prisma.DonationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.DonationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        findMany: {
+          args: Prisma.DonationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>[]
+        }
+        create: {
+          args: Prisma.DonationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        createMany: {
+          args: Prisma.DonationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.DonationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>[]
+        }
+        delete: {
+          args: Prisma.DonationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        update: {
+          args: Prisma.DonationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        deleteMany: {
+          args: Prisma.DonationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.DonationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.DonationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>[]
+        }
+        upsert: {
+          args: Prisma.DonationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$DonationPayload>
+        }
+        aggregate: {
+          args: Prisma.DonationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateDonation>
+        }
+        groupBy: {
+          args: Prisma.DonationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.DonationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.DonationCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1352,7 +1427,12 @@ export const UserScalarFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   phoneNumber: 'phoneNumber',
-  preferredCurrency: 'preferredCurrency'
+  preferredCurrency: 'preferredCurrency',
+  tier: 'tier',
+  subscriptionStatus: 'subscriptionStatus',
+  subscriptionId: 'subscriptionId',
+  featureUsage: 'featureUsage',
+  isDonated: 'isDonated'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1517,12 +1597,39 @@ export const ContactInvitationScalarFieldEnum = {
 export type ContactInvitationScalarFieldEnum = (typeof ContactInvitationScalarFieldEnum)[keyof typeof ContactInvitationScalarFieldEnum]
 
 
+export const DonationScalarFieldEnum = {
+  id: 'id',
+  amount: 'amount',
+  currency: 'currency',
+  status: 'status',
+  paymentProvider: 'paymentProvider',
+  paymentRef: 'paymentRef',
+  donorId: 'donorId',
+  donorName: 'donorName',
+  donorEmail: 'donorEmail',
+  message: 'message',
+  isAnonymous: 'isAnonymous',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DonationScalarFieldEnum = (typeof DonationScalarFieldEnum)[keyof typeof DonationScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const JsonNullValueInput = {
@@ -1540,14 +1647,6 @@ export const QueryMode = {
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
-export const NullsOrder = {
-  first: 'first',
-  last: 'last'
-} as const
-
-export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
 export const JsonNullValueFilter = {
   DbNull: DbNull,
   JsonNull: JsonNull,
@@ -1555,6 +1654,14 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
 
@@ -1595,6 +1702,34 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'SubscriptionTier'
+ */
+export type EnumSubscriptionTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionTier'>
+    
+
+
+/**
+ * Reference to a field of type 'SubscriptionTier[]'
+ */
+export type ListEnumSubscriptionTierFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SubscriptionTier[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -1683,20 +1818,6 @@ export type ListEnumReturnDirectionFieldRefInput<$PrismaModel> = FieldRefInputTy
 
 
 /**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
-    
-
-
-/**
  * Reference to a field of type 'WitnessStatus'
  */
 export type EnumWitnessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WitnessStatus'>
@@ -1777,6 +1898,20 @@ export type EnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<
  * Reference to a field of type 'InvitationStatus[]'
  */
 export type ListEnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvitationStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationStatus'
+ */
+export type EnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'DonationStatus[]'
+ */
+export type ListEnumDonationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DonationStatus[]'>
     
 
 
@@ -1900,6 +2035,7 @@ export type GlobalOmitConfig = {
   exchangeRate?: Prisma.ExchangeRateOmit
   exchangeRateHistory?: Prisma.ExchangeRateHistoryOmit
   contactInvitation?: Prisma.ContactInvitationOmit
+  donation?: Prisma.DonationOmit
 }
 
 /* Types for Logging */

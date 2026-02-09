@@ -7,6 +7,7 @@ import {
   Image as ImageIcon,
   PieChart as PieChartIcon,
   Table as TableIcon,
+  Lock,
 } from "lucide-react";
 import Papa from "papaparse";
 import { useId, useMemo, useRef, useState } from "react";
@@ -45,6 +46,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionsGroupedByContact } from "@/hooks/useTransactionsGrouped";
+import { useSubscription } from "@/hooks/useSubscription";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
   type FilterTransactionInput,
@@ -150,6 +152,8 @@ export function TransactionCharts() {
       .slice(0, 10); // Top 10 contacts
   }, [groupedData]);
 
+  const { allowProfessionalReports, allowAdvancedAnalytics } = useSubscription();
+
   const handleExportImage = async () => {
     if (!chartRef.current) return;
     const canvas = await html2canvas(chartRef.current);
@@ -160,6 +164,7 @@ export function TransactionCharts() {
   };
 
   const handleExportCSV = () => {
+    if (!allowProfessionalReports) return;
     const data =
       viewMode === "total"
         ? [totalSummary]
@@ -179,6 +184,7 @@ export function TransactionCharts() {
   };
 
   const handleExportExcel = () => {
+    if (!allowProfessionalReports) return;
     const data =
       viewMode === "total"
         ? [totalSummary]
@@ -210,17 +216,35 @@ export function TransactionCharts() {
               </CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleExportImage}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportImage}
+                disabled={!allowProfessionalReports}
+              >
                 <ImageIcon className="w-4 h-4 mr-2" />
                 Image
+                {!allowProfessionalReports && <Lock className="w-3 h-3 ml-2" />}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExportCSV}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportCSV}
+                disabled={!allowProfessionalReports}
+              >
                 <TableIcon className="w-4 h-4 mr-2" />
                 CSV
+                {!allowProfessionalReports && <Lock className="w-3 h-3 ml-2" />}
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExportExcel}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportExcel}
+                disabled={!allowProfessionalReports}
+              >
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Excel
+                {!allowProfessionalReports && <Lock className="w-3 h-3 ml-2" />}
               </Button>
             </div>
           </div>
@@ -351,9 +375,14 @@ export function TransactionCharts() {
                 <BarChart3 className="w-4 h-4" />
                 Aggregate Summary
               </TabsTrigger>
-              <TabsTrigger value="contact" className="flex items-center gap-2">
+              <TabsTrigger
+                value="contact"
+                disabled={!allowAdvancedAnalytics}
+                className="flex items-center gap-2"
+              >
                 <PieChartIcon className="w-4 h-4" />
                 By Contact
+                {!allowAdvancedAnalytics && <Lock className="w-3 h-3 ml-1" />}
               </TabsTrigger>
             </TabsList>
 

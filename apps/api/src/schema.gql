@@ -51,6 +51,11 @@ input ChangePasswordInput {
   newPassword: String!
 }
 
+type CheckoutSession {
+  sessionId: String
+  url: String!
+}
+
 type Contact {
   balance: Float!
   createdAt: DateTime!
@@ -83,6 +88,16 @@ input CreateContactInput {
   phoneNumber: String
 }
 
+input CreateDonationInput {
+  amount: Float!
+  currency: String! = "NGN"
+  donorEmail: String
+  donorName: String
+  isAnonymous: Boolean! = false
+  message: String
+  paymentProvider: String
+}
+
 input CreatePromiseInput {
   category: String
   description: String!
@@ -112,6 +127,37 @@ input CreateTransactionInput {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+type Donation {
+  amount: Float!
+  createdAt: DateTime!
+  currency: String!
+  donor: User
+  donorEmail: String
+  donorId: String
+  donorName: String
+  id: ID!
+  isAnonymous: Boolean!
+  message: String
+  paymentProvider: String
+  paymentRef: String
+  status: DonationStatus!
+  updatedAt: DateTime!
+}
+
+type DonationOption {
+  amount: Float!
+  currency: String!
+  description: String
+  id: ID!
+  label: String!
+}
+
+enum DonationStatus {
+  FAILED
+  PENDING
+  SUCCESSFUL
+}
 
 input FilterTransactionInput {
   contactId: String
@@ -156,7 +202,10 @@ type Mutation {
   addWitness(input: AddWitnessInput!): Transaction!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createContact(createContactInput: CreateContactInput!): Contact!
+  createDonation(createDonationInput: CreateDonationInput!): Donation!
+  createDonationSession(amount: Float!, currency: String!): CheckoutSession!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
+  createSubscriptionSession(tier: SubscriptionTier!): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
@@ -211,11 +260,16 @@ type Query {
   contact(id: ID!): Contact!
   contacts: [Contact!]!
   convertCurrency(amount: Float!, from: String!, to: String!): Float!
+  donation(id: ID!): Donation!
+  donationOptions: [DonationOption!]!
+  donations: [Donation!]!
   getWitnessInvitation(token: String!): Witness!
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions: [Transaction!]!
+  myDonations: [Donation!]!
   myPromises: [Promise!]!
+  mySubscription: SubscriptionInfo!
   myWitnessRequests(status: WitnessStatus): [Witness!]!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
@@ -264,6 +318,27 @@ input SignupInput {
   name: String!
   password: String!
   token: String
+}
+
+type SubscriptionInfo {
+  featureUsage: JSON
+  limits: TierLimitsEntity!
+  subscriptionStatus: String
+  tier: String!
+}
+
+"""The subscription tier of the user"""
+enum SubscriptionTier {
+  FREE
+  PRO
+}
+
+type TierLimitsEntity {
+  allowAdvancedAnalytics: Boolean!
+  allowProfessionalReports: Boolean!
+  allowSMS: Boolean!
+  maxContacts: Int!
+  maxWitnessesPerMonth: Int!
 }
 
 type Transaction {
@@ -380,14 +455,18 @@ input UpdateUserInput {
 type User {
   createdAt: DateTime!
   email: String!
+  featureUsage: JSON
   firstName: String!
   id: ID!
+  isDonated: Boolean!
   isEmailVerified: Boolean!
   lastName: String!
   name: String!
   passwordHash: String
   phoneNumber: String
   preferredCurrency: String!
+  subscriptionStatus: String
+  tier: SubscriptionTier!
 }
 
 type Witness {

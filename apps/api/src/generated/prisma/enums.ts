@@ -99,3 +99,20 @@ export const InvitationStatus = {
 } as const
 
 export type InvitationStatus = (typeof InvitationStatus)[keyof typeof InvitationStatus]
+
+
+export const SubscriptionTier = {
+  FREE: 'FREE',
+  PRO: 'PRO'
+} as const
+
+export type SubscriptionTier = (typeof SubscriptionTier)[keyof typeof SubscriptionTier]
+
+
+export const DonationStatus = {
+  PENDING: 'PENDING',
+  SUCCESSFUL: 'SUCCESSFUL',
+  FAILED: 'FAILED'
+} as const
+
+export type DonationStatus = (typeof DonationStatus)[keyof typeof DonationStatus]

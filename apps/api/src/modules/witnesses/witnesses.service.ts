@@ -169,13 +169,13 @@ export class WitnessesService {
       type: witness.transaction.type,
     };
 
-    // Send notification
     await this.notificationService.sendTransactionWitnessInvite(
       witness.user.email,
       witness.user.firstName,
       rawToken,
       transactionDetails,
-      witness.user.phoneNumber,
+      userId,
+      witness.user.phoneNumber || undefined,
     );
 
     // Update invitedAt timestamp

@@ -12,7 +12,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CREATE_CONTACT, GET_CONTACTS, UPDATE_CONTACT } from "@/lib/apollo/queries/contacts";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useContacts } from "@/hooks/useContacts";
 import type { Contact } from "@/types/__generated__/graphql";
+import { Lock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type ContactMinimal = Pick<Contact, "id" | "name" | "email" | "phoneNumber">;
 
@@ -23,6 +27,8 @@ interface ContactFormDialogProps {
 }
 
 export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialogProps) {
+  const { maxContacts } = useSubscription();
+  const { contacts } = useContacts();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -32,6 +38,7 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
   const phoneId = useId();
 
   const isEditing = !!contact;
+  const isAtLimit = !isEditing && contacts.length >= maxContacts && maxContacts > 0;
 
   useEffect(() => {
     if (isOpen) {
@@ -64,6 +71,13 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
     e.preventDefault();
     if (!name.trim()) {
       setError("Name is required");
+      return;
+    }
+
+    if (isAtLimit) {
+      setError(
+        `You have reached your limit of ${maxContacts} contacts. Upgrade to PRO for unlimited contacts.`,
+      );
       return;
     }
 
@@ -105,14 +119,17 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
           <DialogDescription>
             {isEditing
               ? "Update the contact details below."
-              : "Enter the details for your new contact."}
+              : isAtLimit
+                ? "You have reached your contact limit. Upgrade to add more."
+                : "Enter the details for your new contact."}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           {error && (
-            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-2 rounded border border-red-200 dark:border-red-900">
-              {error}
+            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-2 rounded border border-red-200 dark:border-red-900 flex items-start gap-2">
+              <span className="mt-0.5">⚠️</span>
+              <span>{error}</span>
             </div>
           )}
 
@@ -126,6 +143,7 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
               onChange={(e) => setName(e.target.value)}
               placeholder="Ahmad Sulaiman"
               required
+              disabled={isAtLimit}
             />
             <p className="text-[0.8rem] text-muted-foreground">First name first, last name last.</p>
           </div>
@@ -138,6 +156,7 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="ahmad.sulaiman@example.com"
+              disabled={isAtLimit}
             />
           </div>
 
@@ -149,6 +168,7 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="+234..."
+              disabled={isAtLimit}
             />
           </div>
 
@@ -159,8 +179,10 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
             <Button
               type="submit"
               isLoading={loading}
-              className="bg-emerald-600 hover:bg-emerald-700"
+              disabled={isAtLimit}
+              className={cn("bg-emerald-600 hover:bg-emerald-700", isAtLimit && "opacity-50")}
             >
+              {isAtLimit && <Lock className="w-4 h-4 mr-2" />}
               {isEditing ? "Save Changes" : "Create Contact"}
             </Button>
           </DialogFooter>
