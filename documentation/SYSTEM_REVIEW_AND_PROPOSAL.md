@@ -1,17 +1,17 @@
 # System Review & Feature Proposal: Project & Fund Management
 
 **Date:** 2026-01-26
-**Project:** Wathȋqah
+**Project:** Wathīqah
 **Author:** Trae AI Assistant
 
 ---
 
 ## 1. Executive Summary
 
-This document provides a comprehensive technical review of the Wathȋqah application and a detailed proposal for integrating a **Project & Fund Management** feature. This feature aligns directly with Wathȋqah's mission as a "Trusted Ledger" by closing the loop between fund collection and fund utilization.
+This document provides a comprehensive technical review of the Wathīqah application and a detailed proposal for integrating a **Project & Fund Management** feature. This feature aligns directly with Wathīqah's mission as a "Trusted Ledger" by closing the loop between fund collection and fund utilization.
 
 **Overall Status:**
-Wathȋqah is a well-structured, modern monorepo application. It leverages a strong type system (TypeScript) across the stack, utilizing NestJS for a robust backend and TanStack Start for a performant frontend. The code quality is high, with established patterns for modularity and scalability.
+Wathīqah is a well-structured, modern monorepo application. It leverages a strong type system (TypeScript) across the stack, utilizing NestJS for a robust backend and TanStack Start for a performant frontend. The code quality is high, with established patterns for modularity and scalability.
 
 ---
 
@@ -59,7 +59,7 @@ Wathȋqah is a well-structured, modern monorepo application. It leverages a stro
 ## 3. Feature Proposal: Project & Fund Management
 
 ### 3.1 Overview
-Currently, Wathȋqah excels at tracking **Interpersonal Trust** (funds given/received between people). This feature introduces **Project Trust** (funds allocated and spent for a specific purpose).
+Currently, Wathīqah excels at tracking **Interpersonal Trust** (funds given/received between people). This feature introduces **Project Trust** (funds allocated and spent for a specific purpose).
 
 **The Gap:** Users can track that they *collected* $5,000 for a "Home Renovation", but cannot easily track how that money was *spent* (e.g., $2,000 on "Materials").
 
@@ -82,7 +82,7 @@ Currently, Wathȋqah excels at tracking **Interpersonal Trust** (funds given/rec
     *   Expense breakdown by category.
 
 ### 3.3 User Stories
-- **US-01:** As a community leader, I want to create a "Winter Relief Fund" project so I can track donations vs. purchases of blankets.
+- **US-01:** As a community leader, I want to create a "Winter Relief Fund" project so I can track contributions vs. purchases of blankets.
 - **US-02:** As a homeowner, I want to log every hardware store purchase against my "Kitchen Reno" project to ensure I stay within my $10k budget.
 - **US-03:** As a user, I want to see exactly how much money is remaining in my "Vacation Fund".
 

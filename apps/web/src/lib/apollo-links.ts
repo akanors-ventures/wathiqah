@@ -39,18 +39,43 @@ export const errorLink = (uri: string) =>
 
       // Skip refresh for login, logout, and refreshToken mutations to avoid infinite loops
       const operationName = operation.operationName || "";
-      const skipRefresh = [
-        "Login",
-        "Logout",
-        "RefreshToken",
-        "Signup",
-        "VerifyEmail",
-        "ForgotPassword",
-        "ResetPassword",
-        "ResendVerificationEmail",
-        "AcceptInvitation",
-        "features",
-      ].includes(operationName);
+      const isPublicPath =
+        typeof window !== "undefined" &&
+        [
+          "/",
+          "/login",
+          "/signup",
+          "/signup-success",
+          "/verify-email",
+          "/forgot-password",
+          "/reset-password",
+          "/features",
+          "/pricing",
+          "/shared-access/",
+          "/witnesses/invite/",
+        ].some(
+          (path) => window.location.pathname === path || window.location.pathname.startsWith(path),
+        );
+
+      const skipRefresh =
+        [
+          "Login",
+          "Logout",
+          "RefreshToken",
+          "Signup",
+          "VerifyEmail",
+          "ForgotPassword",
+          "ResetPassword",
+          "ResendVerificationEmail",
+          "AcceptInvitation",
+          "SharedData",
+          "GetGeoIPInfo",
+          "ContributionOptions",
+          "GetWitnessInvitation",
+          "AcknowledgeWitnessRequest",
+          "CreateCheckoutSession",
+        ].includes(operationName) ||
+        (isPublicPath && operationName === "Me");
 
       error.errors.forEach(({ extensions, message, locations, path }) => {
         console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);

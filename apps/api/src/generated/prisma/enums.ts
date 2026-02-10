@@ -9,6 +9,24 @@
 * 🟢 You can import this file directly.
 */
 
+export const PaymentStatus = {
+  PENDING: 'PENDING',
+  SUCCESSFUL: 'SUCCESSFUL',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED'
+} as const
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const PaymentType = {
+  SUBSCRIPTION: 'SUBSCRIPTION',
+  CONTRIBUTION: 'CONTRIBUTION'
+} as const
+
+export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
+
+
 export const ReturnDirection = {
   TO_ME: 'TO_ME',
   TO_CONTACT: 'TO_CONTACT'
@@ -109,10 +127,10 @@ export const SubscriptionTier = {
 export type SubscriptionTier = (typeof SubscriptionTier)[keyof typeof SubscriptionTier]
 
 
-export const DonationStatus = {
+export const ContributionStatus = {
   PENDING: 'PENDING',
   SUCCESSFUL: 'SUCCESSFUL',
   FAILED: 'FAILED'
 } as const
 
-export type DonationStatus = (typeof DonationStatus)[keyof typeof DonationStatus]
+export type ContributionStatus = (typeof ContributionStatus)[keyof typeof ContributionStatus]

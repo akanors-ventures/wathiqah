@@ -72,7 +72,7 @@ function SignupSuccessPage() {
       status: "upcoming",
     },
     {
-      title: "Start using Wathȋqah",
+      title: "Start using Wathīqah",
       description: "Log in and start tracking your funds and items.",
       icon: ArrowRight,
       status: "upcoming",
@@ -100,7 +100,7 @@ function SignupSuccessPage() {
             Welcome aboard, {name.split(" ")[0]}!
           </h1>
           <p className="text-lg text-muted-foreground max-w-md mx-auto">
-            Your account has been created successfully. We're excited to have you join Wathȋqah.
+            Your account has been created successfully. We're excited to have you join Wathīqah.
           </p>
         </div>
 

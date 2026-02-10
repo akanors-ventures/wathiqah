@@ -82,13 +82,44 @@ type ContactPlatformStatus {
   linkedUserId: String
 }
 
+type Contribution {
+  amount: Float!
+  createdAt: DateTime!
+  currency: String!
+  donor: User
+  donorEmail: String
+  donorId: String
+  donorName: String
+  id: ID!
+  isAnonymous: Boolean!
+  message: String
+  paymentProvider: String
+  paymentRef: String
+  status: ContributionStatus!
+  updatedAt: DateTime!
+}
+
+type ContributionOption {
+  amount: Float!
+  currency: String!
+  description: String
+  id: ID!
+  label: String!
+}
+
+enum ContributionStatus {
+  FAILED
+  PENDING
+  SUCCESSFUL
+}
+
 input CreateContactInput {
   email: String
   name: String!
   phoneNumber: String
 }
 
-input CreateDonationInput {
+input CreateContributionInput {
   amount: Float!
   currency: String! = "NGN"
   donorEmail: String
@@ -134,37 +165,6 @@ input CreateTransactionInput {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
-
-type Donation {
-  amount: Float!
-  createdAt: DateTime!
-  currency: String!
-  donor: User
-  donorEmail: String
-  donorId: String
-  donorName: String
-  id: ID!
-  isAnonymous: Boolean!
-  message: String
-  paymentProvider: String
-  paymentRef: String
-  status: DonationStatus!
-  updatedAt: DateTime!
-}
-
-type DonationOption {
-  amount: Float!
-  currency: String!
-  description: String
-  id: ID!
-  label: String!
-}
-
-enum DonationStatus {
-  FAILED
-  PENDING
-  SUCCESSFUL
-}
 
 input FilterTransactionInput {
   contactId: String
@@ -226,13 +226,14 @@ type Mutation {
   acceptInvitation(acceptInvitationInput: AcceptInvitationInput!): AuthPayload!
   acknowledgeWitness(input: AcknowledgeWitnessInput!): Witness!
   addWitness(input: AddWitnessInput!): Transaction!
+  cancelSubscription: Boolean!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
+  createCheckoutSession(currency: String, tier: SubscriptionTier!): CheckoutSession!
   createContact(createContactInput: CreateContactInput!): Contact!
-  createDonation(createDonationInput: CreateDonationInput!): Donation!
-  createDonationSession(amount: Float!, currency: String!): CheckoutSession!
+  createContribution(createContributionInput: CreateContributionInput!): Contribution!
+  createContributionSession(amount: Float, currency: String): CheckoutSession!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
-  createSubscriptionSession(tier: SubscriptionTier!): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
@@ -318,16 +319,16 @@ type Query {
   checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
   contacts: [Contact!]!
+  contribution(id: ID!): Contribution!
+  contributionOptions(currency: String): [ContributionOption!]!
+  contributions: [Contribution!]!
   convertCurrency(amount: Float!, from: String!, to: String!): Float!
-  donation(id: ID!): Donation!
-  donationOptions: [DonationOption!]!
-  donations: [Donation!]!
   getGeoIPInfo: GeoIPInfo!
   getWitnessInvitation(token: String!): Witness!
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions: [Transaction!]!
-  myDonations: [Donation!]!
+  myContributions: [Contribution!]!
   myProjects: [Project!]!
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
@@ -528,7 +529,7 @@ type User {
   featureUsage: JSON
   firstName: String!
   id: ID!
-  isDonated: Boolean!
+  isContributor: Boolean!
   isEmailVerified: Boolean!
   lastName: String!
   name: String!

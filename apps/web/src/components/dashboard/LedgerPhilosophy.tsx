@@ -9,12 +9,12 @@ export function LedgerPhilosophy() {
           <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:rotate-3">
             <Info className="w-4 h-4" />
           </div>
-          The Wathȋqah Ledger Philosophy
+          The Wathīqah Ledger Philosophy
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 relative z-10">
         <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
-          Wathȋqah is built on{" "}
+          Wathīqah is built on{" "}
           <span className="font-black text-foreground underline decoration-primary/20 decoration-2 underline-offset-4">
             Accountability First
           </span>

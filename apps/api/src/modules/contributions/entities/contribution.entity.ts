@@ -1,13 +1,13 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
-import { DonationStatus } from '../../../generated/prisma/client';
+import { ContributionStatus } from '../../../generated/prisma/client';
 import { User } from '../../users/entities/user.entity';
 
-registerEnumType(DonationStatus, {
-  name: 'DonationStatus',
+registerEnumType(ContributionStatus, {
+  name: 'ContributionStatus',
 });
 
 @ObjectType()
-export class Donation {
+export class Contribution {
   @Field(() => ID)
   id: string;
 
@@ -17,8 +17,8 @@ export class Donation {
   @Field()
   currency: string;
 
-  @Field(() => DonationStatus)
-  status: DonationStatus;
+  @Field(() => ContributionStatus)
+  status: ContributionStatus;
 
   @Field({ nullable: true })
   paymentProvider?: string;
@@ -52,7 +52,7 @@ export class Donation {
 }
 
 @ObjectType()
-export class DonationOption {
+export class ContributionOption {
   @Field(() => ID)
   id: string;
 

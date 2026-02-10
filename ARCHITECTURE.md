@@ -1,4 +1,4 @@
-# Wathȋqah - Architecture & Folder Structure
+# Wathīqah - Architecture & Folder Structure
 
 ## 📁 Monorepo Structure
 
@@ -251,7 +251,7 @@ apps/web/
 
 ## 🔐 Authentication & Onboarding Flow
 
-Wathȋqah uses a multi-step onboarding process to ensure account security and email validity.
+Wathīqah uses a multi-step onboarding process to ensure account security and email validity.
 
 ### 1. Registration (`/signup`)
 - User provides name, email, and password.

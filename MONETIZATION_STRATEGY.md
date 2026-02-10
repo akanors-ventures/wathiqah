@@ -1,7 +1,7 @@
-# Wathȋqah Monetization & Sustainability Strategy
+# Wathīqah Monetization & Sustainability Strategy
 
 ## 1. Executive Summary
-This document outlines the strategic plan to transition Wathȋqah from a pure utility tool into a sustainable platform. The goal is to cover operational expenses (infrastructure, API services) and provide for continued development while maintaining high accessibility.
+This document outlines the strategic plan to transition Wathīqah from a pure utility tool into a sustainable platform. The goal is to cover operational expenses (infrastructure, API services) and provide for continued development while maintaining high accessibility.
 
 ---
 
@@ -35,36 +35,60 @@ This document outlines the strategic plan to transition Wathȋqah from a pure ut
 - **Deliverables**: "Go Pro" landing page, Tier badges, usage progress bars in settings.
 - **Success Criteria**: Users can see their current usage and limitations clearly.
 
-### Phase 3: Payment & Automation
-- **Milestone**: Automated billing.
-- **Deliverables**: Stripe/LemonSqueezy integration, Webhook handlers, Automated tier upgrades.
-- **Success Criteria**: Seamless transition from FREE to PRO upon payment.
+## Phase 3: Payment & Automation (Implementation)
 
-### Phase 4: Donation System & Community Support
+### Payment Provider Evaluation (2026 Update)
+
+To support global growth while maintaining strong local performance in Nigeria, the following providers were evaluated:
+
+| Provider | Type | Regional Strength | Tax/VAT Handling | Fees |
+| :--- | :--- | :--- | :--- | :--- |
+| **Stripe** | Gateway | Global (US/UK/EU) | No (Requires Stripe Tax) | 2.9% + $0.30 |
+| **Flutterwave** | Gateway | Africa (Nigeria/Kenya) | No | 1.4% (NG), 3.8% (Intl) |
+| **Paystack** | Gateway | Nigeria/Ghana | No | 1.5% + ₦100 (NG) |
+| **Lemon Squeezy** | MoR | Global | **Yes** (Merchant of Record) | 5% + $0.50 |
+
+**Selected Strategy**: **Hybrid Gateway Approach**
+- **Stripe**: Primary for Global USD/EUR card payments.
+- **Flutterwave**: Primary for Nigerian NGN payments (Bank Transfer, USSD, local cards).
+- **Rationale**: This combination provides the best conversion rates by offering local payment methods in Nigeria while using the most trusted global processor for international users.
+
+### Implementation Deliverables
+
+- **Schema**: Add `Subscription`, `PaymentIntent`, and `WebhookLog` to Prisma.
+- **Backend**:
+  - `PaymentModule` with Stripe and Flutterwave services.
+  - Webhook handlers for asynchronous payment confirmation.
+  - Subscription lifecycle management (trial, active, past_due, canceled).
+- **Frontend**:
+  - Unified Checkout UI using Stripe Elements and Flutterwave Inline.
+  - Billing management portal.
+
+### Phase 4: Contribution System & Community Support
 - **Milestone**: Voluntary funding enabled.
-- **Deliverables**: Donation widget, Supporter badges, Transparency dashboard.
+- **Deliverables**: Contribution widget, Supporter badges, Transparency dashboard.
 
 ---
 
-## 4. Donation System: Deep Dive
+## 4. Contribution System: Deep Dive
 
 ### A. Feasibility & Technical Requirements
 - **Providers**: 
     - **Global**: Stripe (Checkout), BuyMeACoffee API.
     - **Local (NGN)**: Paystack or Flutterwave.
-- **Integration**: Requires a `DonationModule` to handle one-time payment intents and success callbacks.
+- **Integration**: Requires a `ContributionModule` to handle one-time payment intents and success callbacks.
 
 ### B. Security & Compliance (PCI DSS)
-- **Zero-Storage Policy**: Wathȋqah will **never** store credit card numbers. All sensitive data stays within the payment provider's (Stripe/Paystack) secure environment.
+- **Zero-Storage Policy**: Wathīqah will **never** store credit card numbers. All sensitive data stays within the payment provider's (Stripe/Paystack) secure environment.
 - **Tokenization**: Use provider-hosted fields or checkout pages to minimize PCI scope to SAQ-A (the simplest level).
 
 ### C. Legal & Tax Considerations
-- **Categorization**: Donations for non-charity apps are usually treated as "Tips" or "Gifts" and are taxable income.
+- **Categorization**: Contributions for non-charity apps are usually treated as "Tips" or "Gifts" and are taxable income.
 - **VAT/GST**: Digital services taxes may apply depending on the user's region. LemonSqueezy handles this automatically (Merchant of Record), making it highly recommended.
 
 ### D. Administrative Requirements
 - **Payouts**: Automatic or manual transfers from the provider to your bank account.
-- **Transparency**: A simple admin dashboard to track total donations vs. server costs.
+- **Transparency**: A simple admin dashboard to track total contributions vs. server costs.
 
 ---
 
@@ -75,17 +99,35 @@ This document outlines the strategic plan to transition Wathȋqah from a pure ut
 - **Mutation** `createSubscriptionSession`: Returns a checkout URL/session for upgrading.
 - **Webhook (REST)** `/subscription/webhook`: *Note: Webhooks remain REST-based as they are called by external providers.*
 
-### `Donation`
-- **Query** `donationOptions`: Returns available donation amounts and methods.
-- **Mutation** `createDonationSession`: Returns a checkout URL/session for a donation.
+### `Contribution`
+- **Query** `contributionOptions`: Returns available contribution amounts and methods.
+- **Mutation** `createContributionSession`: Returns a checkout URL/session for a contribution.
+- **Webhook**: Handles asynchronous payment confirmation and updates user's `isContributor` status.
+- **Badge System**: Triggers "Supporter" badge on user profile upon first successful contribution.
+
+## 5. Integration Roadmap
+
+### Phase 1: Subscription Core (Current)
+- **Status**: Implementation in progress.
+- **Focus**: Flutterwave integration, Tier logic, Pro features gatekeeping.
+
+### Phase 2: Webhooks & Automation
+- **Focus**: Handling payment success/failure, auto-downgrading, notification emails.
+
+### Phase 3: Contribution System
+- **Focus**: Voluntary support flow, Supporter badges.
+
+### Phase 4: Analytics & Insights
+- **Focus**: Advanced financial reporting for Pro users.
+
+## 6. Technical Deliverables
+
+- **`SubscriptionModule`**: Backend logic for tier management.
+- **`ContributionModule`**: Backend logic for voluntary funding.
+- **`BillingDashboard`**: Frontend view for managing plans.
+- **`SupporterWidget`**: Frontend component for contributions.
+- **`featureUsage`**: Dynamic JSON field in User model for tracking limits.
 
 ---
 
-## 6. Integration Analysis
-The monetization system will integrate with the existing architecture as a **Cross-Cutting Concern**.
-- **User Module**: Extended to store tier data.
-- **Notification Module**: Gated to restrict SMS to PRO users.
-- **Witness Module**: GraphQL resolvers gated to enforce monthly limits.
-- **Frontend**: New views consuming `mySubscription` query and `createDonationSession` mutations.
-
-**Development Effort**: Estimated at 40-60 engineering hours for full automation (Phase 1-3).
+**Note**: All financial terminology follows the core philosophy of Wathīqah, prioritizing clarity and transparency in all user interactions.

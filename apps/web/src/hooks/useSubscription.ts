@@ -1,9 +1,13 @@
 import { useQuery } from "@apollo/client/react";
 import { MY_SUBSCRIPTION_QUERY } from "../lib/apollo/queries/subscription";
 import type { MySubscriptionQuery } from "../types/__generated__/graphql";
+import { useAuth } from "./use-auth";
 
 export function useSubscription() {
-  const { data, loading, error, refetch } = useQuery<MySubscriptionQuery>(MY_SUBSCRIPTION_QUERY);
+  const { user } = useAuth();
+  const { data, loading, error, refetch } = useQuery<MySubscriptionQuery>(MY_SUBSCRIPTION_QUERY, {
+    skip: !user,
+  });
 
   const subscription = data?.mySubscription;
   const limits = subscription?.limits;

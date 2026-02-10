@@ -8,6 +8,7 @@ import mailtrapConfig from './mailtrap.config';
 import notificationConfig from './notification.config';
 import exchangeRateConfig from './exchange-rate.config';
 import geoipConfig from './geoip.config';
+import paymentConfig from './payment.config';
 
 export default [
   databaseConfig,
@@ -20,4 +21,5 @@ export default [
   notificationConfig,
   exchangeRateConfig,
   geoipConfig,
+  paymentConfig,
 ];

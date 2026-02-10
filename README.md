@@ -1,60 +1,45 @@
-# Wathȋqah
+# Wathīqah (Digital Ledger)
 
-## 🔖 Project Title & Description
+**Wathīqah** is a digital ledger application for personal and shared finances, allowing users to track funds (given, received, collected) and physical items. It features a **Witness System** for accountability. Developed by **Akanors Ventures Ltd** ([akanors.com](https://akanors.com)).
 
-**Wathȋqah — Your digital ledger for personal and shared finances.**
+## 🚀 Quick Links
+- **Web App**: [wathiqah.akanors.com](https://wathiqah.akanors.com)
+- **Company Website**: [akanors.com](https://akanors.com)
+- **Legal**: [Terms of Service](https://wathiqah.akanors.com/legal/terms) | [Privacy Policy](https://wathiqah.akanors.com/legal/privacy)
 
-Wathȋqah is a secure, user-friendly application for recording, tracking, and managing funds—whether personal savings or money entrusted by others. Users can log amounts given, received, or collected, with transparent running balances and transaction histories per contact.
 
-**Who it's for:**
 
-- Individuals managing personal loans or shared expenses
-- Small groups or families needing clear financial records
-- Anyone who wants peace of mind through organized tracking
+## Philosophy & Financial Logic
 
-**Why it matters:**
-Financial exchanges between people are often undocumented, leading to confusion or disputes. Wathȋqah provides clarity, accountability, and trust with a well-structured digital ledger.
-
----
-
-## ✨ Features (MVP)
-
-- **Transaction Management**: Record funds (given, received, collected) or physical items (lent, borrowed, returned).
-  - **Gift Conversions**: Convert debt to gifts (forgiving loans) with automatic perspective flipping.
-- **Multi-currency Support**: Track fund transactions in multiple currencies (NGN, USD, EUR, GBP, CAD, AED, SAR).
-  - **High-Performance Exchange Rates**: Real-time rate updates with dual-provider fallback (Open Exchange Rates & ExchangeRate-API).
-  - **User-Preferred Base Currency**: Set a persistent preferred currency for global balance aggregation.
-- **Dual Balance Logic**:
-  - **Cash Position**: Dashboard balance reflects liquidity (Cash In vs. Cash Out).
-  - **Relationship Standing**: Contact view reflects net debt (who owes whom).
-- **Contact Balances**: Track balances per contact (both financial and item counts).
-- **Audit Logs**: Full transaction history with timestamps and "Before/After" diffs for every update.
-- **Shared Ledger Synchronization**: Automatic cross-user visibility. If a contact is a registered user, transactions recorded by one party automatically appear in the other's ledger with correctly flipped perspectives (e.g., your "Lent" becomes their "Borrowed").
-- **Witness System**: Add witnesses to transactions for accountability.
-  - Add existing users or invite new users via email.
-  - Witnesses receive notifications to acknowledge transactions.
-  - Easy onboarding for new witnesses via invitation link.
-  - **Invitation Management**: Resend pending invitations and manage witness lists (add/remove).
-  - Track witness acknowledgment status (Pending, Acknowledged, Declined, Modified).
-  - View all witnessed transactions.
-- **Privacy-Preserving Witness Search**: Search existing users by exact email or phone and only receive the user ID with masked names (no email/phone exposure).
-- **Flexible Contacts**: Contacts can exist independently without linking to an app user; linking (userId) is optional.
-- **Shared Access**: Grant read-only access to specific transactions or witness records to external parties.
-- **Analytics Dashboard**: Comprehensive visualization of financial data.
-  - **Financial Volume**: Bar charts for Aggregate Summary.
-  - **Asset Allocation**: Pie charts for distribution.
-  - **Contact Activity**: Breakdown of top contacts by Given/Received/Net.
-  - **Export Options**: Export charts as Images, and raw data as CSV or Excel.
-- **Promise Tracker**: Dedicated module for documenting and tracking personal promises with due dates.
-- **Authentication**: Secure JWT-based authentication.
-- **API**: Flexible GraphQL API.
-
-**Planned Features & Enhancements:**
-
-- **Project & Fund Management**: Create projects, set budgets, and track project-specific expenses.
-- **Advanced Exportable reports** (PDF).
-- **Real-time updates** (GraphQL subscriptions).
-- **Mobile app**.
+- **Core Principle**: It is better to give out (be a creditor) than to owe people (be a debtor).
+- **Categories**:
+  - **FUNDS**: For monetary transactions (Cash, Bank transfers). Quantity and Item Name are excluded from UI and audit logs for this category. Supports **multi-currency** (NGN, USD, EUR, GBP, CAD, AED, SAR) with NGN as default.
+  - **PHYSICAL ITEMS**: For lending/borrowing physical objects (e.g., Tools, Books). Uses Quantity and Item Name.
+- **Color Coding Logic**:
+  - **RECEIVED (Red)**: Marked as Red because it represents a liability/debt. It is better to avoid owing people.
+  - **GIVEN (Blue)**: Represented as Blue because it represents an asset/credit. Giving out is viewed more favorably than receiving debt.
+  - **RETURNED**: Represents the resolution of a transaction (repayments). Relies on `returnDirection` for UI representation.
+    - **To Me (Emerald)**: Positive action (money coming back).
+    - **To Contact (Blue)**: Neutral/Resolution (paying back debt).
+  - **GIFT**: Non-balance affecting transactions. Relies on `returnDirection` for UI representation.
+    - **Received (Purple)**: Gift obtained from a contact (`TO_ME`).
+    - **Given (Pink)**: Gift given to a contact (`TO_CONTACT`).
+- **Transaction Conversion Logic**:
+  - Transactions can be converted to **GIFT** type (e.g., when a debt is forgiven).
+  - **Mapping Rule**:
+    - Parent `GIVEN` (I lent) → Gift `TO_CONTACT` (I gifted it out/forgave debt).
+    - Parent `RECEIVED` (I borrowed) → Gift `TO_ME` (Contact gifted it to me/forgave my debt).
+- **Shared Ledger & Perspective Flipping**:
+  - **Visibility**: If a transaction's contact is a registered user (`linkedUserId`), the transaction is visible to both the creator and the contact.
+  - **Perspective Logic**: When a user views a transaction they didn't create (recorded on them by a contact), the system "flips" the perspective:
+    - `GIVEN` (Asset for creator) → `RECEIVED` (Liability for you).
+    - `RECEIVED` (Liability for creator) → `GIVEN` (Asset for you).
+    - `RETURNED TO ME` → `RETURNED TO CONTACT`.
+    - `GIFT RECEIVED` → `GIFT GIVEN`.
+  - **Identification**: These transactions are marked with a **SHARED** badge in the UI.
+- **Balance Logic**:
+  - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received). Includes flipped shared transactions for accurate liquidity.
+  - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you. Includes flipped shared transactions for accurate standing.
 
 ---
 
@@ -133,7 +118,7 @@ wathiqah/                          # Monorepo root
 ### Clone Repository
 
 ```bash
-git clone https://github.com/fawazabdganiyu/wathiqah.git
+git clone https://github.com/akanors-ventures/wathiqah.git
 cd wathiqah
 ```
 
@@ -370,33 +355,13 @@ cd apps/web && pnpm build
 
 ---
 
-## 🧠 AI Integration Strategy
+## Shared Access
 
-Wathȋqah leverages cutting-edge AI tools to boost productivity, ensure maintainability, and accelerate development cycles.
+Users can grant "Shared Access" to their contacts, allowing them to view and interact with shared transactions in a collaborative way.
 
-### Development Environment
+## Contribution / Donation System
 
-- **Primary IDE:** **Trae**, an AI-first IDE powered by **Google Gemini AI**.
-- **Agentic Workflow:** Utilizing **Antigravity** for autonomous coding tasks, context-aware code generation, and project-wide refactoring.
-- **Version Control:** **GitLens** for tracking version changes, visualizing code authorship, and comprehensive commit history exploration.
-
-### Code Generation & Assistance
-
-- Leverage Trae's integrated AI to scaffold React components, backend NestJS modules, and GraphQL resolvers.
-- Use predictive code completion and smart refactoring driven by Gemini models.
-
-### Testing & Quality Assurance
-
-- Employ AI agents to draft unit and integration tests for key business logic.
-- Automated code reviews and optimization suggestions during the development process.
-
-### Documentation
-
-- Auto-generate docstrings, inline comments, and maintain up-to-date documentation (like this README) using context-aware AI.
-
-### Context-aware Techniques
-
-- Feed API specs (via GraphQL schema), database schemas, and file diffs into Trae's context engine for highly accurate, project-specific code generation.
+The system allows users to contribute to the platform's development (Wathīqah Pro). This is managed through Stripe and Flutterwave.
 
 ---
 
@@ -452,10 +417,5 @@ Wathȋqah leverages cutting-edge AI tools to boost productivity, ensure maintain
 
 ---
 
-## License
-
-[MIT](LICENSE)
-
----
-
-✨ With Wathȋqah, financial clarity is just a record away.
+© 2026 **Akanors Ventures Ltd**. All rights reserved.
+[wathiqah.akanors.com](https://wathiqah.akanors.com)

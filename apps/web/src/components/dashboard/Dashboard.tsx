@@ -67,19 +67,19 @@ export function Dashboard() {
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-black tracking-tight text-foreground capitalize">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+        <div className="space-y-1 w-full sm:w-auto text-center sm:text-left">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
             Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground font-medium capitalize tracking-tight opacity-70">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium capitalize tracking-tight opacity-70">
             Personal ledger for loans, promises, and shared expenses
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex w-full sm:w-auto gap-3">
           <Button
             asChild
-            className="h-12 px-8 rounded-full font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             <Link to="/transactions/new" search={{ contactId: undefined }}>
               New Transaction
@@ -197,7 +197,7 @@ export function Dashboard() {
                     variant="outline"
                     size="sm"
                     asChild
-                    className="rounded-full font-bold capitalize tracking-tight text-[11px] h-9 px-6 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                    className="rounded-md font-bold capitalize tracking-tight text-[11px] h-9 px-6 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
                   >
                     <Link to="/promises">Make a Promise</Link>
                   </Button>
@@ -232,7 +232,7 @@ export function Dashboard() {
             variant="outline"
             size="sm"
             asChild
-            className="rounded-full font-bold capitalize tracking-tight text-[10px] sm:text-[11px] h-8 sm:h-9 px-4 sm:px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+            className="rounded-md font-bold capitalize tracking-tight text-[10px] sm:text-[11px] h-8 sm:h-9 px-4 sm:px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
           >
             <Link to="/transactions" search={{ tab: "funds" }}>
               View all history
@@ -253,7 +253,7 @@ export function Dashboard() {
                   variant="outline"
                   size="sm"
                   asChild
-                  className="rounded-full font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+                  className="rounded-md font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
                 >
                   <Link to="/transactions/new" search={{ contactId: undefined }}>
                     Record transaction

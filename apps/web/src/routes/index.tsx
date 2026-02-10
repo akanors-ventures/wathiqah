@@ -52,7 +52,7 @@ function LandingPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Button
                   size="lg"
-                  className="rounded-full px-8 h-12 text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="rounded-md px-8 h-12 text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                   asChild
                 >
                   <Link to="/signup">Start Your Ledger</Link>
@@ -60,7 +60,7 @@ function LandingPage() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-8 h-12 text-sm font-bold hover:bg-muted/50 transition-all"
+                  className="rounded-md px-8 h-12 text-sm font-bold hover:bg-muted/50 transition-all"
                   asChild
                 >
                   <Link to="/login" search={{ redirectTo: undefined }}>
@@ -119,13 +119,13 @@ function LandingPage() {
                 <span className="text-primary">Conflict</span>
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed max-w-xl font-medium">
-                We believe financial relationships thrive on documentation, not memory. Wathȋqah
+                We believe financial relationships thrive on documentation, not memory. Wathīqah
                 replaces awkward conversations with verified records.
               </p>
               <div className="flex flex-wrap gap-4 pt-4">
                 <Button
                   size="lg"
-                  className="rounded-full h-12 px-8 text-sm font-bold shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all group"
+                  className="rounded-md h-12 px-8 text-sm font-bold shadow-xl shadow-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all group"
                   asChild
                 >
                   <Link to="/features">See How It Works</Link>
@@ -200,12 +200,12 @@ function LandingPage() {
               <span className="opacity-60">Peace of Mind?</span>
             </h2>
             <p className="text-primary-foreground/70 text-lg mb-14 max-w-xl mx-auto font-medium tracking-wide">
-              Join Wathȋqah today. The digital standard for personal financial documentation.
+              Join Wathīqah today. The digital standard for personal financial documentation.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
               <Button
                 size="lg"
-                className="rounded-full h-12 px-8 text-sm font-bold bg-background text-foreground hover:bg-white hover:scale-[1.02] active:scale-[0.98] shadow-2xl transition-all duration-500"
+                className="rounded-md h-12 px-8 text-sm font-bold bg-background text-foreground hover:bg-white hover:scale-[1.02] active:scale-[0.98] shadow-2xl transition-all duration-500"
                 asChild
               >
                 <Link to="/signup">Create Free Account</Link>
@@ -230,7 +230,7 @@ function LandingPage() {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-black text-3xl tracking-tighter text-foreground leading-none">
-                    Wathȋqah
+                    Wathīqah
                   </span>
                   <span className="text-xs font-bold text-muted-foreground mt-2 opacity-60">
                     Ledger of Trust
@@ -293,7 +293,7 @@ function LandingPage() {
           </div>
           <div className="mt-24 pt-8 border-t border-border/30 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-xs font-medium text-muted-foreground">
-              © {new Date().getFullYear()} Wathȋqah. All rights reserved.
+              © {new Date().getFullYear()} Wathīqah. All rights reserved.
             </p>
             <div className="flex gap-8">
               <span className="text-xs font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer">

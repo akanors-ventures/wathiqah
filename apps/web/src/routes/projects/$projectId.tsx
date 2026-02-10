@@ -165,7 +165,7 @@ function ProjectDetailsPage() {
                 <Label htmlFor={categoryId}>Category (Optional)</Label>
                 <Input
                   id={categoryId}
-                  placeholder="e.g., Materials, Labor, Donation"
+                  placeholder="e.g., Materials, Labor, Contribution"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                 />
