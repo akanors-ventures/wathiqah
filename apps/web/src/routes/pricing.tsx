@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle } from "lucide-react";
+import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,11 +11,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useContribution } from "@/hooks/useContribution";
 import { useGeoIP } from "@/hooks/useGeoIP";
 import { cn } from "@/lib/utils";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useMutation } from "@apollo/client/react";
+import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
+import { toast } from "sonner";
+import { SubscriptionTier } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -29,8 +34,36 @@ const CURRENCIES = [
 
 function PricingPage() {
   const { isPro, loading: subLoading } = useSubscription();
+  const { contribute, loading: contributing } = useContribution();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+
+  const [createCheckoutSession, { loading: checkoutLoading }] = useMutation(
+    CREATE_CHECKOUT_SESSION,
+    {
+      onCompleted: (data: { createCheckoutSession?: { url: string } }) => {
+        if (data.createCheckoutSession?.url) {
+          window.location.href = data.createCheckoutSession.url;
+        }
+      },
+      onError: (error) => {
+        toast.error(error.message || "Failed to initiate checkout");
+      },
+    },
+  );
+
+  const handleUpgrade = async () => {
+    try {
+      await createCheckoutSession({
+        variables: {
+          tier: SubscriptionTier.Pro,
+          currency: selectedCurrency.code,
+        },
+      });
+    } catch (_error) {
+      // Error handled by onError
+    }
+  };
 
   useEffect(() => {
     if (geoIP) {
@@ -44,7 +77,7 @@ function PricingPage() {
     }
   }, [geoIP, isNigeria, isUK]);
 
-  const loading = subLoading || geoLoading;
+  const loading = subLoading || geoLoading || checkoutLoading;
 
   const tiers = [
     {
@@ -54,7 +87,7 @@ function PricingPage() {
       features: [
         { name: "Unlimited Transactions", included: true },
         { name: "Unlimited Items", included: true },
-        { name: "3 Witness Requests / month", included: true },
+        { name: "10 Witness Requests / month", included: true },
         { name: "Basic Analytics", included: true },
         { name: "Email Notifications", included: true },
         { name: "SMS Notifications", included: false },
@@ -97,7 +130,7 @@ function PricingPage() {
           Upgrade to <span className="text-primary">Pro</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
-          Unlock the full power of Wathȋqah and bring professional-grade accountability to your
+          Unlock the full power of Wathīqah and bring professional-grade accountability to your
           financial relationships.
         </p>
       </div>
@@ -135,7 +168,7 @@ function PricingPage() {
         )}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
         {tiers.map((t) => (
           <Card
             key={t.name}
@@ -212,20 +245,83 @@ function PricingPage() {
             <CardFooter className="pb-10 pt-6">
               <Button
                 className={cn(
-                  "w-full h-14 rounded-2xl font-black uppercase tracking-widest text-xs transition-all",
+                  "w-full h-14 rounded-md font-black uppercase tracking-widest text-xs transition-all",
                   t.highlight &&
                     !t.active &&
                     "hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20",
                 )}
                 variant={t.buttonVariant}
                 disabled={t.active || loading}
-                asChild={!t.active}
+                onClick={t.name === "Pro" && !t.active ? handleUpgrade : undefined}
+                asChild={t.name === "Basic" && !t.active}
               >
-                {t.active ? <span>{t.buttonText}</span> : <Link to="/pricing">{t.buttonText}</Link>}
+                {t.active ? (
+                  <span>{t.buttonText}</span>
+                ) : t.name === "Basic" ? (
+                  <Link to="/"> {t.buttonText}</Link>
+                ) : (
+                  <span>{t.buttonText}</span>
+                )}
               </Button>
             </CardFooter>
           </Card>
         ))}
+      </div>
+
+      {/* Contribution Section */}
+      <div className="max-w-4xl mx-auto px-0 sm:px-4">
+        <Card className="bg-pink-500/5 border-2 border-pink-500/20 rounded-[32px] sm:rounded-[40px] overflow-hidden">
+          <CardContent className="p-6 sm:p-12 flex flex-col md:flex-row items-center gap-8 sm:gap-12">
+            <div className="flex-1 space-y-4 sm:space-y-6 text-center md:text-left">
+              <div className="inline-flex items-center bg-pink-500/10 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border border-pink-500/20">
+                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2 text-pink-500 fill-pink-500" />
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-pink-600">
+                  Wathīqah Supporter
+                </span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+                Support the <span className="text-pink-600">Vision</span>
+              </h2>
+              <p className="text-base sm:text-lg text-muted-foreground font-medium leading-relaxed">
+                Wathīqah is built by Akanors Ventures to bring trust and accountability to financial
+                relationships. If you find value in what we're building, consider a one-time
+                contribution to help us keep the service running and free for everyone.
+              </p>
+              <div className="flex flex-wrap gap-3 sm:gap-4 justify-center md:justify-start">
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-muted-foreground">
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
+                  No Commitment
+                </div>
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-muted-foreground">
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
+                  One-time Contribution
+                </div>
+                <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-muted-foreground">
+                  <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
+                  Exclusive Badge
+                </div>
+              </div>
+            </div>
+            <div className="w-full md:w-auto shrink-0 flex flex-col items-center gap-4 sm:gap-6">
+              <div className="text-center">
+                <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+                  Flexible Amount
+                </p>
+                <p className="text-3xl sm:text-4xl font-black text-pink-600">Pay what you want</p>
+              </div>
+              <Button
+                onClick={() => contribute(undefined, selectedCurrency.code)}
+                disabled={contributing || loading}
+                className="w-full md:w-64 h-14 sm:h-16 rounded-md bg-pink-600 hover:bg-pink-700 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-pink-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                {contributing ? "Processing..." : "Contribute Now"}
+              </Button>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium max-w-[200px] text-center">
+                Secure payment via {isNigeria ? "Flutterwave" : "Lemon Squeezy"}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="mt-24 max-w-3xl mx-auto">
@@ -241,7 +337,7 @@ function PricingPage() {
             <h3 className="font-bold text-lg">Do you offer localized pricing?</h3>
             <p className="text-muted-foreground font-medium">
               Yes! We automatically detect your region to show pricing in your local currency (USD,
-              NGN, or GBP) to ensure Wathȋqah is accessible globally.
+              NGN, or GBP) to ensure Wathīqah is accessible globally.
             </p>
           </div>
           <div className="bg-card border border-border/50 rounded-3xl p-8 space-y-2">

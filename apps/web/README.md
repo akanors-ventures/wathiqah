@@ -1,6 +1,6 @@
-# Wathȋqah Web
+# Wathīqah Web
 
-The frontend for the Wathȋqah application, built with [TanStack Start](https://tanstack.com/start) (React + TypeScript). It provides a modern, responsive UI for managing your financial ledger.
+The frontend for the Wathīqah application, built with [TanStack Start](https://tanstack.com/start) (React + TypeScript). It provides a modern, responsive UI for managing your financial ledger.
 
 ## 🛠️ Tech Stack
 
@@ -17,7 +17,7 @@ The frontend for the Wathȋqah application, built with [TanStack Start](https://
 
 - Node.js >= 18
 - pnpm
-- Wathȋqah API running (usually at `http://localhost:3001`)
+- Wathīqah API running (usually at `http://localhost:3001`)
 
 ### Environment Variables
 

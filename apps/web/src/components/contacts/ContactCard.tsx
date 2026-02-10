@@ -183,7 +183,7 @@ export function ContactCard<T extends ContactSummary>({
                 variant="outline"
                 size="sm"
                 onClick={() => onInvite(contact.id)}
-                className="h-8 rounded-full text-[11px] font-bold border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all px-4"
+                className="h-8 rounded-md text-[11px] font-bold border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all px-4"
               >
                 Invite
               </Button>

@@ -1,6 +1,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SUBSCRIPTION_LIMITS, TierLimits } from './subscription.constants';
+import { SubscriptionTier } from '../../generated/prisma/enums';
 
 interface FeatureUsage {
   [key: string]: number;
@@ -9,6 +10,119 @@ interface FeatureUsage {
 @Injectable()
 export class SubscriptionService {
   constructor(private prisma: PrismaService) {}
+
+  async activateSubscription(data: {
+    userId: string;
+    externalId: string;
+    status: string;
+    provider: 'stripe' | 'flutterwave' | 'lemonsqueezy';
+    tier: SubscriptionTier;
+    currentPeriodStart: Date;
+    currentPeriodEnd: Date;
+  }) {
+    const {
+      userId,
+      externalId,
+      status,
+      provider,
+      tier,
+      currentPeriodStart,
+      currentPeriodEnd,
+    } = data;
+
+    await this.prisma.subscription.upsert({
+      where: { userId },
+      update: {
+        externalId,
+        status,
+        provider,
+        tier,
+        currentPeriodStart,
+        currentPeriodEnd,
+      },
+      create: {
+        userId,
+        externalId,
+        status,
+        provider,
+        tier,
+        currentPeriodStart,
+        currentPeriodEnd,
+      },
+    });
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        tier,
+        subscriptionStatus: status,
+        subscriptionId: externalId,
+      },
+    });
+  }
+
+  async updateSubscriptionStatus(data: {
+    externalId: string;
+    status: string;
+    currentPeriodStart?: Date;
+    currentPeriodEnd?: Date;
+    cancelAtPeriodEnd?: boolean;
+  }) {
+    const {
+      externalId,
+      status,
+      currentPeriodStart,
+      currentPeriodEnd,
+      cancelAtPeriodEnd,
+    } = data;
+
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { externalId },
+    });
+
+    if (!subscription) return;
+
+    await this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        status,
+        ...(currentPeriodStart && { currentPeriodStart }),
+        ...(currentPeriodEnd && { currentPeriodEnd }),
+        ...(cancelAtPeriodEnd !== undefined && { cancelAtPeriodEnd }),
+      },
+    });
+
+    return this.prisma.user.update({
+      where: { id: subscription.userId },
+      data: {
+        subscriptionStatus: status,
+      },
+    });
+  }
+
+  async deactivateSubscription(externalId: string) {
+    const subscription = await this.prisma.subscription.findFirst({
+      where: { externalId },
+    });
+
+    if (!subscription) return;
+
+    await this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: {
+        status: 'cancelled',
+        tier: SubscriptionTier.FREE,
+      },
+    });
+
+    return this.prisma.user.update({
+      where: { id: subscription.userId },
+      data: {
+        tier: SubscriptionTier.FREE,
+        subscriptionStatus: 'cancelled',
+      },
+    });
+  }
 
   async checkFeatureLimit(
     userId: string,

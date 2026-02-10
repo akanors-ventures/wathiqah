@@ -1,6 +1,6 @@
-# Wathȋqah API
+# Wathīqah API
 
-The backend for the Wathȋqah application, built with [NestJS](https://nestjs.com/) and [Prisma](https://www.prisma.io/). It provides a GraphQL API for managing financial transactions, contacts, witnesses, and shared access.
+The backend for the Wathīqah application, built with [NestJS](https://nestjs.com/) and [Prisma](https://www.prisma.io/). It provides a GraphQL API for managing financial transactions, contacts, witnesses, and shared access.
 
 ## 🛠️ Tech Stack
 

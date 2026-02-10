@@ -435,10 +435,6 @@ export type EnumWitnessStatusFieldUpdateOperationsInput = {
   set?: $Enums.WitnessStatus
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type WitnessCreateWithoutUserInput = {
   id?: string
   status?: $Enums.WitnessStatus

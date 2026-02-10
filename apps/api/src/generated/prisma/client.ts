@@ -43,6 +43,21 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model Subscription
+ * 
+ */
+export type Subscription = Prisma.SubscriptionModel
+/**
+ * Model Payment
+ * 
+ */
+export type Payment = Prisma.PaymentModel
+/**
+ * Model WebhookLog
+ * 
+ */
+export type WebhookLog = Prisma.WebhookLogModel
+/**
  * Model Contact
  * 
  */
@@ -98,7 +113,7 @@ export type ExchangeRateHistory = Prisma.ExchangeRateHistoryModel
  */
 export type ContactInvitation = Prisma.ContactInvitationModel
 /**
- * Model Donation
+ * Model Contribution
  * 
  */
-export type Donation = Prisma.DonationModel
+export type Contribution = Prisma.ContributionModel

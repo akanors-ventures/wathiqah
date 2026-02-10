@@ -87,7 +87,7 @@ export default function HeaderUser() {
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
-                className="relative h-12 w-auto gap-2 rounded-full pl-2 pr-3 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 group data-[state=open]:bg-muted/50 shrink-0"
+                className="relative h-12 w-auto gap-2 rounded-md pl-2 pr-3 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-200 group data-[state=open]:bg-muted/50 shrink-0"
                 aria-label="User menu"
               >
                 <Avatar className="h-9 w-9 border border-border transition-transform group-hover:scale-105 group-active:scale-95">

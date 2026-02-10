@@ -122,7 +122,7 @@ function FeaturesPage() {
               <div>
                 <h2 className="text-3xl font-bold mb-6">The Witness System</h2>
                 <p className="text-muted-foreground mb-6 leading-relaxed">
-                  The cornerstone of Wathȋqah is accountability. When you record a transaction, you
+                  The cornerstone of Wathīqah is accountability. When you record a transaction, you
                   can add a witness who receives a secure link to verify the details.
                 </p>
                 <ul className="space-y-4">
@@ -211,7 +211,7 @@ function FeaturesPage() {
               <div className="order-1 md:order-2">
                 <h2 className="text-3xl font-bold mb-6">Relationship Intelligence</h2>
                 <p className="text-muted-foreground mb-6 leading-relaxed">
-                  Wathȋqah doesn't just list transactions; it understands your relationships. Our
+                  Wathīqah doesn't just list transactions; it understands your relationships. Our
                   system automatically calculates your standing with every contact.
                 </p>
                 <ul className="space-y-4">
@@ -242,14 +242,14 @@ function FeaturesPage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button
-              className="rounded-full h-12 px-8 font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="rounded-md h-12 px-8 font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
               asChild
             >
               <Link to="/signup">Get Started Free</Link>
             </Button>
             <Button
               variant="outline"
-              className="rounded-full h-12 px-8 font-bold border-primary/20 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
+              className="rounded-md h-12 px-8 font-bold border-primary/20 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98] transition-all"
               asChild
             >
               <Link to="/login" search={{ redirectTo: undefined }}>

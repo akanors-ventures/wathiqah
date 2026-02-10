@@ -486,7 +486,7 @@ function NewTransactionPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 sm:h-11 rounded-full text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                className="w-full h-12 sm:h-11 rounded-md text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
                 isLoading={creating}
               >
                 Create Transaction

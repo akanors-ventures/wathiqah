@@ -14,7 +14,8 @@ import { WitnessesModule } from './modules/witnesses/witnesses.module';
 import { PromisesModule } from './modules/promises/promises.module';
 import { SharedAccessModule } from './modules/shared-access/shared-access.module';
 import { SubscriptionModule } from './modules/subscription/subscription.module';
-import { DonationsModule } from './modules/donations/donations.module';
+import { PaymentModule } from './modules/payment/payment.module';
+import { ContributionsModule } from './modules/contributions/contributions.module';
 import { ExchangeRateModule } from './modules/exchange-rate/exchange-rate.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -181,7 +182,8 @@ import { GraphQLError } from 'graphql';
     PromisesModule,
     SharedAccessModule,
     SubscriptionModule,
-    DonationsModule,
+    PaymentModule,
+    ContributionsModule,
     ExchangeRateModule,
     ProjectsModule,
     QueueModule,

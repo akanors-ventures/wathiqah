@@ -136,7 +136,7 @@ function TransactionsPage() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="flex-1 min-w-0 w-full">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">
-            The Wathȋqah Ledger
+            The Wathīqah Ledger
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base truncate">
             Manage your transaction history.

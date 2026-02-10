@@ -104,13 +104,46 @@ export type ContactPlatformStatus = {
   linkedUserId: Maybe<Scalars['String']['output']>;
 };
 
+export type Contribution = {
+  __typename: 'Contribution';
+  amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  currency: Scalars['String']['output'];
+  donor: Maybe<User>;
+  donorEmail: Maybe<Scalars['String']['output']>;
+  donorId: Maybe<Scalars['String']['output']>;
+  donorName: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  isAnonymous: Scalars['Boolean']['output'];
+  message: Maybe<Scalars['String']['output']>;
+  paymentProvider: Maybe<Scalars['String']['output']>;
+  paymentRef: Maybe<Scalars['String']['output']>;
+  status: ContributionStatus;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type ContributionOption = {
+  __typename: 'ContributionOption';
+  amount: Scalars['Float']['output'];
+  currency: Scalars['String']['output'];
+  description: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  label: Scalars['String']['output'];
+};
+
+export enum ContributionStatus {
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Successful = 'SUCCESSFUL'
+}
+
 export type CreateContactInput = {
   email?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CreateDonationInput = {
+export type CreateContributionInput = {
   amount: Scalars['Float']['input'];
   currency?: Scalars['String']['input'];
   donorEmail?: InputMaybe<Scalars['String']['input']>;
@@ -151,39 +184,6 @@ export type CreateTransactionInput = {
   witnessInvites?: InputMaybe<Array<WitnessInviteInput>>;
   witnessUserIds?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
-
-export type Donation = {
-  __typename: 'Donation';
-  amount: Scalars['Float']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  currency: Scalars['String']['output'];
-  donor: Maybe<User>;
-  donorEmail: Maybe<Scalars['String']['output']>;
-  donorId: Maybe<Scalars['String']['output']>;
-  donorName: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  isAnonymous: Scalars['Boolean']['output'];
-  message: Maybe<Scalars['String']['output']>;
-  paymentProvider: Maybe<Scalars['String']['output']>;
-  paymentRef: Maybe<Scalars['String']['output']>;
-  status: DonationStatus;
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-export type DonationOption = {
-  __typename: 'DonationOption';
-  amount: Scalars['Float']['output'];
-  currency: Scalars['String']['output'];
-  description: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  label: Scalars['String']['output'];
-};
-
-export enum DonationStatus {
-  Failed = 'FAILED',
-  Pending = 'PENDING',
-  Successful = 'SUCCESSFUL'
-}
 
 export type FilterTransactionInput = {
   contactId?: InputMaybe<Scalars['String']['input']>;
@@ -243,13 +243,14 @@ export type Mutation = {
   acceptInvitation: AuthPayload;
   acknowledgeWitness: Witness;
   addWitness: Transaction;
+  cancelSubscription: Scalars['Boolean']['output'];
   changePassword: Scalars['Boolean']['output'];
+  createCheckoutSession: CheckoutSession;
   createContact: Contact;
-  createDonation: Donation;
-  createDonationSession: CheckoutSession;
+  createContribution: Contribution;
+  createContributionSession: CheckoutSession;
   createProject: Project;
   createPromise: Promise;
-  createSubscriptionSession: CheckoutSession;
   createTransaction: Transaction;
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
@@ -302,19 +303,25 @@ export type MutationChangePasswordArgs = {
 };
 
 
+export type MutationCreateCheckoutSessionArgs = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+  tier: SubscriptionTier;
+};
+
+
 export type MutationCreateContactArgs = {
   createContactInput: CreateContactInput;
 };
 
 
-export type MutationCreateDonationArgs = {
-  createDonationInput: CreateDonationInput;
+export type MutationCreateContributionArgs = {
+  createContributionInput: CreateContributionInput;
 };
 
 
-export type MutationCreateDonationSessionArgs = {
-  amount: Scalars['Float']['input'];
-  currency: Scalars['String']['input'];
+export type MutationCreateContributionSessionArgs = {
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -325,11 +332,6 @@ export type MutationCreateProjectArgs = {
 
 export type MutationCreatePromiseArgs = {
   createPromiseInput: CreatePromiseInput;
-};
-
-
-export type MutationCreateSubscriptionSessionArgs = {
-  tier: SubscriptionTier;
 };
 
 
@@ -510,16 +512,16 @@ export type Query = {
   checkContactOnPlatform: ContactPlatformStatus;
   contact: Contact;
   contacts: Array<Contact>;
+  contribution: Contribution;
+  contributionOptions: Array<ContributionOption>;
+  contributions: Array<Contribution>;
   convertCurrency: Scalars['Float']['output'];
-  donation: Donation;
-  donationOptions: Array<DonationOption>;
-  donations: Array<Donation>;
   getGeoIPInfo: GeoIpInfo;
   getWitnessInvitation: Witness;
   me: User;
   myAccessGrants: Array<AccessGrant>;
   myContactTransactions: Array<Transaction>;
-  myDonations: Array<Donation>;
+  myContributions: Array<Contribution>;
   myProjects: Array<Project>;
   myPromises: Array<Promise>;
   mySubscription: SubscriptionInfo;
@@ -548,15 +550,20 @@ export type QueryContactArgs = {
 };
 
 
+export type QueryContributionArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryContributionOptionsArgs = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+};
+
+
 export type QueryConvertCurrencyArgs = {
   amount: Scalars['Float']['input'];
   from: Scalars['String']['input'];
   to: Scalars['String']['input'];
-};
-
-
-export type QueryDonationArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -810,7 +817,7 @@ export type User = {
   featureUsage: Maybe<Scalars['JSON']['output']>;
   firstName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  isDonated: Scalars['Boolean']['output'];
+  isContributor: Scalars['Boolean']['output'];
   isEmailVerified: Scalars['Boolean']['output'];
   lastName: Scalars['String']['output'];
   name: Scalars['String']['output'];
@@ -978,6 +985,22 @@ export type GetGeoIpInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: string, countryCode: string, countryName: string, regionName: string, cityName: string, currencyCode: string | null, isVpn: boolean } };
 
+export type CreateCheckoutSessionMutationVariables = Exact<{
+  tier: SubscriptionTier;
+  currency: Scalars['String']['input'];
+}>;
+
+
+export type CreateCheckoutSessionMutation = { createCheckoutSession: { __typename: 'CheckoutSession', url: string } };
+
+export type CreateContributionSessionMutationVariables = Exact<{
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CreateContributionSessionMutation = { createContributionSession: { __typename: 'CheckoutSession', url: string } };
+
 export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string };
 
 export type ProjectTransactionFieldsFragment = { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string };
@@ -1083,26 +1106,6 @@ export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
-
-export type CreateSubscriptionSessionMutationVariables = Exact<{
-  tier: SubscriptionTier;
-}>;
-
-
-export type CreateSubscriptionSessionMutation = { createSubscriptionSession: { __typename: 'CheckoutSession', url: string, sessionId: string | null } };
-
-export type DonationOptionsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type DonationOptionsQuery = { donationOptions: Array<{ __typename: 'DonationOption', id: string, label: string, amount: number, currency: string, description: string | null }> };
-
-export type CreateDonationSessionMutationVariables = Exact<{
-  amount: Scalars['Float']['input'];
-  currency: Scalars['String']['input'];
-}>;
-
-
-export type CreateDonationSessionMutation = { createDonationSession: { __typename: 'CheckoutSession', url: string, sessionId: string | null } };
 
 export type TotalBalanceQueryVariables = Exact<{
   currency?: InputMaybe<Scalars['String']['input']>;

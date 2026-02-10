@@ -92,12 +92,12 @@ export class NotificationService {
 
     await this.sendEmailWithTemplate(
       email,
-      'Invitation to Wathȋqah',
+      'Invitation to Wathīqah',
       'invite-user',
       {
         name,
         inviteUrl,
-        subject: 'Invitation to Wathȋqah',
+        subject: 'Invitation to Wathīqah',
       },
     );
   }
@@ -199,7 +199,7 @@ export class NotificationService {
       }
 
       if (canSendSMS) {
-        const smsBody = `Hello ${name}, you have been requested to witness a transaction on Wathȋqah. View details: ${inviteUrl}`;
+        const smsBody = `Hello ${name}, you have been requested to witness a transaction on Wathīqah. View details: ${inviteUrl}`;
 
         await this.notificationsQueue.add(
           'send-sms',
@@ -258,7 +258,7 @@ export class NotificationService {
     this.validateParams({ email, name, inviterName, token });
 
     const inviteUrl = `${this.configService.get('app.url')}/signup?token=${token}&email=${encodeURIComponent(email)}`;
-    const subject = `${inviterName} has invited you to view documented transactions on Wathȋqah`;
+    const subject = `${inviterName} has invited you to view documented transactions on Wathīqah`;
 
     await this.sendEmailWithTemplate(
       email,

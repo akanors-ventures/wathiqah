@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 @InputType()
-export class CreateDonationInput {
+export class CreateContributionInput {
   @Field(() => Float)
   @IsNumber()
   @IsNotEmpty()

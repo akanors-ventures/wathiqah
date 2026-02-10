@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Wathȋqah** is a digital ledger application for personal and shared finances, allowing users to track funds (given, received, collected) and physical items. It features a **Witness System** for accountability.
+**Wathīqah** is a digital ledger application for personal and shared finances, allowing users to track funds (given, received, collected) and physical items. It features a **Witness System** for accountability. Developed by **Akanors Ventures Ltd** ([akanors.com](https://akanors.com)), the application is hosted at [wathiqah.akanors.com](https://wathiqah.akanors.com).
 
 ## Philosophy & Financial Logic
 

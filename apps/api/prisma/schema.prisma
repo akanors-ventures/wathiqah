@@ -23,7 +23,7 @@ model User {
   subscriptionStatus         String?
   subscriptionId             String?
   featureUsage               Json?                @default("{}")
-  isDonated                  Boolean              @default(false)
+  isContributor              Boolean              @default(false)
   accessGrants               AccessGrant[]
   contactInvitationsReceived ContactInvitation[]  @relation("InvitedUser")
   contactInvitationsSent     ContactInvitation[]  @relation("InviterUser")
@@ -34,10 +34,76 @@ model User {
   transactionHistory         TransactionHistory[] @relation("HistoryUser")
   transactions               Transaction[]        @relation("TransactionCreator")
   witnessRecords             Witness[]            @relation("WitnessUser")
-  donations                  Donation[]
+  contributions              Contribution[]
+  payments                   Payment[]
+  subscription               Subscription?
 
   @@index([phoneNumber])
   @@map("users")
+}
+
+model Subscription {
+  id                 String           @id @default(uuid())
+  userId             String           @unique
+  tier               SubscriptionTier @default(FREE)
+  status             String // active, trialing, past_due, canceled, unpaid
+  provider           String // stripe, flutterwave
+  externalId         String?          @unique // Stripe Subscription ID or Flutterwave ID
+  planId             String? // The ID of the plan/price
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean          @default(false)
+  canceledAt         DateTime?
+  endedAt            DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Payment {
+  id         String        @id @default(uuid())
+  userId     String
+  amount     Decimal       @db.Decimal(10, 2)
+  currency   String
+  status     PaymentStatus @default(PENDING)
+  provider   String // stripe, flutterwave
+  externalId String?       @unique // Stripe PaymentIntent ID or Flutterwave Ref
+  type       PaymentType // SUBSCRIPTION, CONTRIBUTION
+  metadata   Json?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("payments")
+}
+
+model WebhookLog {
+  id         String   @id @default(uuid())
+  provider   String // stripe, flutterwave
+  externalId String? // Event ID from provider
+  type       String // Event type (e.g., checkout.session.completed)
+  payload    Json
+  status     String // processed, failed, pending
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@map("webhook_logs")
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  CONTRIBUTION
 }
 
 model Contact {
@@ -280,27 +346,27 @@ enum SubscriptionTier {
   PRO
 }
 
-model Donation {
-  id              String         @id @default(uuid())
-  amount          Decimal        @db.Decimal(20, 2)
-  currency        String         @default("NGN")
-  status          DonationStatus @default(PENDING)
+model Contribution {
+  id              String             @id @default(uuid())
+  amount          Decimal            @db.Decimal(20, 2)
+  currency        String             @default("NGN")
+  status          ContributionStatus @default(PENDING)
   paymentProvider String? // e.g., "paystack", "stripe"
-  paymentRef      String?        @unique
+  paymentRef      String?            @unique
   donorId         String?
   donorName       String?
   donorEmail      String?
   message         String?
-  isAnonymous     Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  isAnonymous     Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
 
   donor User? @relation(fields: [donorId], references: [id])
 
-  @@map("donations")
+  @@map("contributions")
 }
 
-enum DonationStatus {
+enum ContributionStatus {
   PENDING
   SUCCESSFUL
   FAILED

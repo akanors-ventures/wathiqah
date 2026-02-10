@@ -66,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isPublicOnboarding = useMemo(() => {
     const publicPaths = [
+      "/",
       "/login",
       "/signup",
       "/signup-success",
@@ -73,15 +74,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       "/forgot-password",
       "/reset-password",
       "/features",
+      "/pricing",
+      "/shared-access",
       "/witnesses/invite",
     ];
-    return publicPaths.some((path) => location.pathname.startsWith(path));
+    return publicPaths.some(
+      (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+    );
   }, [location.pathname]);
 
   const { data, loading, error } = useQuery(ME_QUERY, {
     errorPolicy: "all",
     fetchPolicy: "network-only", // Ensure we validate the token on mount
-    skip: isPublicOnboarding,
+    skip: isPublicOnboarding && !isAuthenticated(),
   });
 
   const [loginMutation] = useMutation(LOGIN_MUTATION);

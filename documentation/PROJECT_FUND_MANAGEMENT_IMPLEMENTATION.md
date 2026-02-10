@@ -3,7 +3,7 @@
 ## Date: 2026-02-09
 
 ## Overview
-Successfully implemented a complete Project & Fund Management feature for the Wathȋqah application, enabling users to:
+Successfully implemented a complete Project & Fund Management feature for the Wathīqah application, enabling users to:
 - Create and manage projects with budgets
 - Track income and expenses against projects
 - View real-time project balances and progress

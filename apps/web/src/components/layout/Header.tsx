@@ -33,7 +33,7 @@ export default function Header() {
           <Link
             to="/"
             className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02]"
-            aria-label="Wathȋqah Home"
+            aria-label="Wathīqah Home"
           >
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-sm group-hover:shadow-md">
               <AppLogo className="h-5 w-5" />
@@ -41,7 +41,7 @@ export default function Header() {
             </div>
             <div className="hidden lg:grid grid-cols-1 grid-rows-1 h-9 items-center overflow-hidden text-left pr-1 w-max">
               <span className="col-start-1 row-start-1 font-bold text-xl leading-none tracking-tight text-primary transition-all duration-300 group-hover:-translate-y-2 group-hover:text-primary whitespace-nowrap">
-                Wathȋqah
+                Wathīqah
               </span>
               <span className="col-start-1 row-start-1 self-end text-[0.6rem] font-medium tracking-normal text-muted-foreground uppercase opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out text-nowrap">
                 Ledger of Trust
@@ -201,7 +201,7 @@ export default function Header() {
               asChild
               size="sm"
               variant="outline"
-              className="hidden lg:flex rounded-full border-primary/20 text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-[10px] h-9 px-4 gap-2 animate-in fade-in slide-in-from-right duration-500"
+              className="hidden lg:flex rounded-md border-primary/20 text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-[10px] h-9 px-4 gap-2 animate-in fade-in slide-in-from-right duration-500"
             >
               <Link to="/pricing">
                 <Zap className="w-3 h-3 fill-primary" />

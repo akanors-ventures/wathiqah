@@ -9,6 +9,9 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/User'
+export type * from './models/Subscription'
+export type * from './models/Payment'
+export type * from './models/WebhookLog'
 export type * from './models/Contact'
 export type * from './models/Transaction'
 export type * from './models/TransactionHistory'
@@ -20,5 +23,5 @@ export type * from './models/AccessGrant'
 export type * from './models/ExchangeRate'
 export type * from './models/ExchangeRateHistory'
 export type * from './models/ContactInvitation'
-export type * from './models/Donation'
+export type * from './models/Contribution'
 export type * from './commonInputTypes'
