@@ -98,8 +98,7 @@ import { GraphQLError } from 'graphql';
         const redisHost = configService.getOrThrow<string>('redis.host');
         const redisPort = configService.getOrThrow<number>('redis.port');
         const redisUsername = configService.get<string>('redis.username');
-        const redisPassword =
-          configService.getOrThrow<string>('redis.password');
+        const redisPassword = configService.get<string>('redis.password');
         const redisDb = configService.get<number>('redis.db') ?? 0;
 
         const credentials =
