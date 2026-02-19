@@ -19,6 +19,12 @@ export const authGuard = (opts?: { location?: { pathname?: string; searchStr?: s
   }
 };
 
+export const redirectToLogin = (currentPath?: string) => {
+  if (typeof window === "undefined") return;
+  const path = currentPath || window.location.pathname + window.location.search;
+  window.location.href = `/login?redirectTo=${encodeURIComponent(path)}`;
+};
+
 /**
  * Parses a redirect URL string into a TanStack Router friendly format
  * @param url The URL string to parse (e.g. "/transactions?tab=funds")
