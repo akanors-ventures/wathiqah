@@ -12,12 +12,15 @@ import {
 } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useContribution } from "@/hooks/useContribution";
+import { useAuth } from "@/hooks/use-auth";
+import { redirectToLogin } from "@/utils/auth";
 import { useGeoIP } from "@/hooks/useGeoIP";
 import { cn } from "@/lib/utils";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useMutation } from "@apollo/client/react";
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
 import { toast } from "sonner";
 import { SubscriptionTier } from "@/types/__generated__/graphql";
@@ -33,6 +36,7 @@ const CURRENCIES = [
 ];
 
 function PricingPage() {
+  const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
   const { contribute, loading: contributing } = useContribution();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
@@ -47,12 +51,25 @@ function PricingPage() {
         }
       },
       onError: (error) => {
+        if (
+          error.message === "Unauthorized" ||
+          (CombinedGraphQLErrors.is(error) &&
+            error.errors.some((e) => e.extensions?.code === "UNAUTHENTICATED"))
+        ) {
+          redirectToLogin();
+          return;
+        }
         toast.error(error.message || "Failed to initiate checkout");
       },
     },
   );
 
   const handleUpgrade = async () => {
+    if (!user) {
+      redirectToLogin();
+      return;
+    }
+
     try {
       await createCheckoutSession({
         variables: {
