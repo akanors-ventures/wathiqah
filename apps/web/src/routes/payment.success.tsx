@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { CheckCircle2, PartyPopper, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, CheckCircle2, PartyPopper } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/payment/success")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -13,9 +14,13 @@ export const Route = createFileRoute("/payment/success")({
 
 function PaymentSuccessPage() {
   const { type } = Route.useSearch();
+  const { refetch } = useAuth();
   const isContribution = type === "contribution";
 
   useEffect(() => {
+    // Refetch user data to update contributor status or pro status
+    refetch().catch(console.error);
+
     if (isContribution) {
       toast.success("Thank you for your contribution!", {
         description: "Your support helps us keep Wathīqah running.",
@@ -25,7 +30,7 @@ function PaymentSuccessPage() {
         description: "Your subscription has been successfully activated.",
       });
     }
-  }, [isContribution]);
+  }, [isContribution, refetch]);
 
   return (
     <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center min-h-[70vh] text-center">

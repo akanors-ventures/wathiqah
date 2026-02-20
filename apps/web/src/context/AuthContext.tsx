@@ -1,3 +1,4 @@
+import type { ApolloClient } from "@apollo/client";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client/react";
 import { useLocation, useNavigate } from "@tanstack/react-router";
@@ -30,6 +31,7 @@ import type {
   ForgotPasswordInput,
   LoginInput,
   LoginMutation,
+  MeQuery,
   ResetPasswordInput,
   SignupInput,
   SignupMutation,
@@ -54,6 +56,7 @@ interface AuthContextType {
   changePassword: (input: ChangePasswordInput) => Promise<boolean | undefined | null>;
   verifyEmail: (token: string) => Promise<VerifyEmailMutation["verifyEmail"] | undefined>;
   resendVerificationEmail: (email: string) => Promise<boolean | undefined | null>;
+  refetch: () => Promise<ApolloClient.QueryResult<MeQuery>>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -83,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
   }, [location.pathname]);
 
-  const { data, loading, error } = useQuery(ME_QUERY, {
+  const { data, loading, error, refetch } = useQuery(ME_QUERY, {
     errorPolicy: "all",
     fetchPolicy: "network-only", // Ensure we validate the token on mount
     skip: isPublicOnboarding && !isAuthenticated(),
@@ -317,6 +320,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     changePassword,
     verifyEmail,
     resendVerificationEmail,
+    refetch,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

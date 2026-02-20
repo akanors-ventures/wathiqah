@@ -30,6 +30,7 @@ export const ME_QUERY: TypedDocumentNode<MeQuery, MeQueryVariables> = gql`
       lastName
       phoneNumber
       preferredCurrency
+      isContributor
     }
   }
 `;
@@ -43,6 +44,7 @@ export const LOGIN_MUTATION: TypedDocumentNode<LoginMutation, LoginMutationVaria
         id
         email
         name
+        isContributor
       }
     }
   }
@@ -63,6 +65,7 @@ export const SIGNUP_MUTATION: TypedDocumentNode<SignupMutation, SignupMutationVa
         id
         email
         name
+        isContributor
       }
     }
   }
@@ -80,6 +83,7 @@ export const ACCEPT_INVITATION_MUTATION: TypedDocumentNode<
         id
         email
         name
+        isContributor
       }
     }
   }
@@ -124,6 +128,7 @@ export const VERIFY_EMAIL_MUTATION: TypedDocumentNode<
         id
         email
         name
+        isContributor
       }
     }
   }
