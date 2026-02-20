@@ -88,7 +88,7 @@ export class FlutterwaveService {
         type: 'contribution',
       },
       customizations: {
-        title: 'Wathīqah Contribution',
+        title: encodeURIComponent('Wathīqah Contribution'),
         description: 'Support the development of Wathīqah',
         logo: 'https://wathiqah.akanors.com/appLogo.png',
       },
@@ -156,11 +156,34 @@ export class FlutterwaveService {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handlePaymentSuccessful(data: any) {
-    const userId = data.meta?.userId || data.customer?.meta?.userId;
-    const type = data.meta?.type || 'subscription';
+    let userId = data.meta?.userId || data.customer?.meta?.userId;
+    let type = data.meta?.type;
+
+    // Fallback: Parse tx_ref if meta is missing
+    // Format: type_userId_timestamp (e.g., contrib_123_456 or sub_123_456)
+    if (!userId && data.tx_ref) {
+      this.logger.warn(
+        `Meta missing for payment ${data.id}, attempting to parse tx_ref: ${data.tx_ref}`,
+      );
+      const parts = data.tx_ref.split('_');
+      if (parts.length >= 3) {
+        const prefix = parts[0];
+        if (prefix === 'contrib') {
+          type = 'contribution';
+        } else if (prefix === 'sub') {
+          type = 'subscription';
+        }
+        userId = parts[1];
+      }
+    }
+
+    // Default type if still unknown (legacy behavior assumed subscription)
+    if (!type) {
+      type = 'subscription';
+    }
 
     if (type === 'contribution') {
-      await this.handleContributionSuccessful(data);
+      await this.handleContributionSuccessful(data, userId);
       return;
     }
 
@@ -180,12 +203,22 @@ export class FlutterwaveService {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async handleContributionSuccessful(data: any) {
-    const userId = data.meta?.userId;
+  private async handleContributionSuccessful(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any,
+    fallbackUserId?: string,
+  ) {
+    const userId = data.meta?.userId || fallbackUserId;
     const amount = data.amount;
     const currency = data.currency || 'NGN';
     const paymentRef = data.tx_ref;
+
+    if (!userId) {
+      this.logger.error(
+        `Cannot handle contribution: No userId found for ref ${paymentRef}`,
+      );
+      return;
+    }
 
     this.logger.log(
       `Handling Flutterwave contribution for user ${userId}: ${amount} ${currency}`,

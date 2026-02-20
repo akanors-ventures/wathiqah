@@ -870,14 +870,14 @@ export type RefreshTokenMutation = { refreshToken: { __typename: 'AuthPayload', 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string } };
+export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isContributor: boolean } };
 
 export type LoginMutationVariables = Exact<{
   loginInput: LoginInput;
 }>;
 
 
-export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string } } };
+export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -889,14 +889,14 @@ export type SignupMutationVariables = Exact<{
 }>;
 
 
-export type SignupMutation = { signup: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string } } };
+export type SignupMutation = { signup: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
 
 export type AcceptInvitationMutationVariables = Exact<{
   acceptInvitationInput: AcceptInvitationInput;
 }>;
 
 
-export type AcceptInvitationMutation = { acceptInvitation: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string } } };
+export type AcceptInvitationMutation = { acceptInvitation: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
 
 export type ForgotPasswordMutationVariables = Exact<{
   forgotPasswordInput: ForgotPasswordInput;
@@ -924,7 +924,7 @@ export type VerifyEmailMutationVariables = Exact<{
 }>;
 
 
-export type VerifyEmailMutation = { verifyEmail: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string } } };
+export type VerifyEmailMutation = { verifyEmail: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
 
 export type ResendVerificationEmailMutationVariables = Exact<{
   email: Scalars['String']['input'];
