@@ -274,30 +274,6 @@ export class NotificationService {
   }
 
   /**
-   * Notifies a user that their transaction has been created.
-   *
-   * @param email - The user's email address.
-   * @param name - The user's name.
-   * @throws BadRequestException if any parameter is missing or empty.
-   */
-  async sendTransactionCreatedEmail(
-    email: string,
-    name: string,
-  ): Promise<void> {
-    this.validateParams({ email, name });
-
-    await this.sendEmailWithTemplate(
-      email,
-      'Transaction Created',
-      'transaction-created',
-      {
-        name,
-        subject: 'Transaction Created',
-      },
-    );
-  }
-
-  /**
    * Notifies a witness that a transaction they witnessed has been updated.
    *
    * @param email - The witness's email address.
