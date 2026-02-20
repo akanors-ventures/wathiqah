@@ -42,7 +42,7 @@ export class FlutterwaveService {
         tier,
       },
       customizations: {
-        title: 'Wathīqah Pro Subscription',
+        title: 'Wathiqah Pro Subscription',
         description: 'Upgrade to Wathīqah Pro',
         logo: 'https://wathiqah.akanors.com/appLogo.png',
       },
@@ -88,7 +88,7 @@ export class FlutterwaveService {
         type: 'contribution',
       },
       customizations: {
-        title: encodeURIComponent('Wathīqah Contribution'),
+        title: 'Wathiqah Contribution',
         description: 'Support the development of Wathīqah',
         logo: 'https://wathiqah.akanors.com/appLogo.png',
       },
