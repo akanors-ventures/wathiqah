@@ -81,7 +81,7 @@ export class PaymentService {
     ).toUpperCase();
 
     this.logger.log(
-      `Creating contribution session for user ${userId} with amount ${amount || 'flexible'} ${effectiveCurrency}`,
+      `Creating contribution session for user ${userId} with amount ${amount} ${effectiveCurrency}`,
     );
 
     if (effectiveCurrency === 'NGN') {
@@ -101,26 +101,34 @@ export class PaymentService {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleWebhook(provider: string, payload: any, signature?: string) {
+  async handleWebhook(
+    provider: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rawBody: Buffer<ArrayBufferLike> | any,
+    signature?: string,
+  ) {
     this.logger.log(`Handling ${provider} webhook`);
 
+    let payload = rawBody;
+    if (typeof rawBody !== 'object') {
+      payload = JSON.parse(rawBody);
+    }
     // Log the webhook first
     await this.prisma.webhookLog.create({
       data: {
         provider,
-        type: payload.type || payload.meta?.event_name || 'unknown',
+        type: payload.data?.type || payload.meta?.event_name || 'unknown',
         payload,
         status: 'pending',
       },
     });
 
     if (provider === 'stripe') {
-      return this.stripeService.handleWebhook(payload, signature);
+      return this.stripeService.handleWebhook(rawBody, signature);
     } else if (provider === 'flutterwave') {
       return this.flutterwaveService.handleWebhook(payload, signature);
     } else if (provider === 'lemonsqueezy') {
-      return this.lemonsqueezyService.handleWebhook(payload, signature!);
+      return this.lemonsqueezyService.handleWebhook(rawBody, signature!);
     }
   }
 

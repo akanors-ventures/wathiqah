@@ -23,6 +23,14 @@ export function useSubscription() {
 
   const witnessUsage = getWitnessUsage();
 
+  const rawMaxContacts = limits?.maxContacts ?? 0;
+  const rawMaxWitnessesPerMonth = limits?.maxWitnessesPerMonth ?? 0;
+
+  const maxContacts = rawMaxContacts === -1 ? Infinity : rawMaxContacts;
+  const maxWitnessesPerMonth = rawMaxWitnessesPerMonth === -1 ? Infinity : rawMaxWitnessesPerMonth;
+  const witnessRemaining =
+    maxWitnessesPerMonth === Infinity ? Infinity : Math.max(0, maxWitnessesPerMonth - witnessUsage);
+
   return {
     subscription,
     limits,
@@ -35,9 +43,9 @@ export function useSubscription() {
     allowSMS: limits?.allowSMS ?? false,
     allowAdvancedAnalytics: limits?.allowAdvancedAnalytics ?? false,
     allowProfessionalReports: limits?.allowProfessionalReports ?? false,
-    maxContacts: limits?.maxContacts ?? 0,
-    maxWitnessesPerMonth: limits?.maxWitnessesPerMonth ?? 0,
+    maxContacts,
+    maxWitnessesPerMonth,
     witnessUsage,
-    witnessRemaining: Math.max(0, (limits?.maxWitnessesPerMonth ?? 0) - witnessUsage),
+    witnessRemaining,
   };
 }

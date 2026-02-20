@@ -53,14 +53,14 @@ export class PaymentController {
 
   @Post('webhook/lemonsqueezy')
   async handleLemonSqueezyWebhook(
-    @Body() payload: Record<string, unknown>,
-    @Headers('x-signature') signature: string,
+    @Req() req: RawBodyRequest<Request>,
+    @Headers('X-Signature') signature: string,
     @Res() res: Response,
   ) {
     try {
       await this.paymentService.handleWebhook(
         'lemonsqueezy',
-        payload,
+        req.rawBody,
         signature,
       );
       return res.status(HttpStatus.OK).send();

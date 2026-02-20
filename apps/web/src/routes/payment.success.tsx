@@ -5,15 +5,27 @@ import { useEffect } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/payment/success")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    type: (search.type as string) || "subscription",
+  }),
   component: PaymentSuccessPage,
 });
 
 function PaymentSuccessPage() {
+  const { type } = Route.useSearch();
+  const isContribution = type === "contribution";
+
   useEffect(() => {
-    toast.success("Welcome to Pro!", {
-      description: "Your subscription has been successfully activated.",
-    });
-  }, []);
+    if (isContribution) {
+      toast.success("Thank you for your contribution!", {
+        description: "Your support helps us keep Wathīqah running.",
+      });
+    } else {
+      toast.success("Welcome to Pro!", {
+        description: "Your subscription has been successfully activated.",
+      });
+    }
+  }, [isContribution]);
 
   return (
     <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center min-h-[70vh] text-center">
@@ -31,8 +43,9 @@ function PaymentSuccessPage() {
         Payment <span className="text-primary">Successful!</span>
       </h1>
       <p className="text-xl text-muted-foreground max-w-xl mx-auto mb-12 font-medium">
-        Thank you for upgrading to Wathīqah Pro. Your account is now active with all professional
-        features unlocked.
+        {isContribution
+          ? "Thank you for your generous contribution. Your support helps us maintain and improve Wathīqah for everyone."
+          : "Thank you for upgrading to Wathīqah Pro. Your account is now active with all professional features unlocked."}
       </p>
 
       <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">

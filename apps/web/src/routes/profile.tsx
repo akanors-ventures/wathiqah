@@ -19,10 +19,10 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { TierBadge } from "@/components/ui/tier-badge";
+import { ContributorBadge } from "@/components/ui/contributor-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useContribution } from "@/hooks/useContribution";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/profile")({
@@ -34,7 +34,6 @@ function ProfilePage() {
   const { user, loading } = useAuth();
   const { updateUser, updating } = useProfile();
   const { tier, isPro, witnessUsage, maxWitnessesPerMonth, witnessRemaining } = useSubscription();
-  const { contribute, loading: contributing } = useContribution();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -109,6 +108,11 @@ function ProfilePage() {
                 <div className="absolute -bottom-1 -right-1">
                   <TierBadge tier={tier} className="shadow-lg" />
                 </div>
+                {user.isContributor && (
+                  <div className="absolute -top-1 -right-1">
+                    <ContributorBadge className="shadow-lg" />
+                  </div>
+                )}
               </div>
               <h2 className="text-xl font-black tracking-tight">
                 {user.firstName} {user.lastName}
@@ -150,15 +154,14 @@ function ProfilePage() {
                 )}
 
                 <Button
-                  onClick={() => contribute()}
+                  asChild
                   variant="secondary"
-                  disabled={contributing}
                   className="w-full h-11 rounded-md border-pink-500/20 hover:bg-pink-500/5 hover:text-pink-600 transition-all group"
                 >
-                  <Heart
-                    className={`w-4 h-4 mr-2 transition-all ${contributing ? "animate-pulse" : "group-hover:fill-pink-500 text-pink-500"}`}
-                  />
-                  {contributing ? "Processing..." : "Contribute"}
+                  <Link to="/contribute">
+                    <Heart className="w-4 h-4 mr-2 transition-all group-hover:fill-pink-500 text-pink-500" />
+                    Contribute
+                  </Link>
                 </Button>
               </div>
             </CardContent>

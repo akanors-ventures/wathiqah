@@ -98,8 +98,10 @@ export class LemonSqueezyService {
     return { url: data?.data.attributes.url };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleWebhook(payload: any, signature: string): Promise<void> {
+  async handleWebhook(
+    rawBody: Buffer<ArrayBufferLike>,
+    signature: string,
+  ): Promise<void> {
     const secret = this.configService.get<string>(
       'payment.lemonsqueezy.webhookSecret',
     );
@@ -110,24 +112,24 @@ export class LemonSqueezyService {
     }
 
     const hmac = crypto.createHmac('sha256', secret);
-    const digest = hmac.update(JSON.stringify(payload)).digest('hex');
+    const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
 
-    if (signature !== digest) {
+    if (!crypto.timingSafeEqual(digest, Buffer.from(signature))) {
       this.logger.warn('Invalid Lemon Squeezy webhook signature');
-      throw new Error('Invalid signature');
+      throw new Error('Invalid signature.');
     }
 
+    const payload = JSON.parse(rawBody.toString());
     const eventName = payload.meta.event_name;
-    const data = payload.data;
 
     switch (eventName) {
       case 'subscription_created':
       case 'subscription_updated':
-        await this.handleSubscriptionEvent(data);
+        await this.handleSubscriptionEvent(payload);
         break;
       case 'subscription_cancelled':
       case 'subscription_expired':
-        await this.handleSubscriptionCancelled(data);
+        await this.handleSubscriptionCancelled(payload.data);
         break;
       case 'order_created':
         if (payload.meta.custom_data?.type === 'contribution') {
@@ -138,15 +140,27 @@ export class LemonSqueezyService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async handleSubscriptionEvent(data: any) {
+  private async handleSubscriptionEvent(payload: any) {
+    const data = payload.data;
     const attributes = data.attributes;
-    const customData = data.meta?.custom_data || attributes.custom_data;
-    const userId = customData?.userId;
+    const customData = payload.meta?.custom_data;
+    const userId = customData?.userId || customData?.user_id;
 
     if (!userId) {
       this.logger.warn('No userId found in Lemon Squeezy subscription event');
       return;
     }
+
+    // In Lemon Squeezy, 'renews_at' is the start of the next billing period (or end of current)
+    // There isn't a direct 'current_period_start', so we approximate it based on 'created_at' or 'updated_at'
+    // For 'currentPeriodEnd', we use 'renews_at' if active, or 'ends_at' if cancelled/expiring.
+    const currentPeriodEnd = new Date(
+      attributes.renews_at ||
+        attributes.ends_at ||
+        Date.now() + 30 * 24 * 60 * 60 * 1000,
+    );
+
+    const currentPeriodStart = new Date(attributes.created_at);
 
     await this.subscriptionService.activateSubscription({
       userId,
@@ -154,10 +168,8 @@ export class LemonSqueezyService {
       status: attributes.status,
       provider: 'lemonsqueezy',
       tier: customData?.tier || SubscriptionTier.PRO,
-      currentPeriodStart: new Date(attributes.renews_at || Date.now()),
-      currentPeriodEnd: new Date(
-        attributes.ends_at || Date.now() + 30 * 24 * 60 * 60 * 1000,
-      ),
+      currentPeriodStart,
+      currentPeriodEnd,
     });
   }
 
@@ -171,7 +183,7 @@ export class LemonSqueezyService {
     const data = payload.data;
     const attributes = data.attributes;
     const customData = payload.meta.custom_data;
-    const userId = customData?.userId;
+    const userId = customData?.userId || customData?.user_id;
 
     const amount = attributes.total / 100;
     const currency = attributes.currency;

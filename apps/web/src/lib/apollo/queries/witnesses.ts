@@ -89,7 +89,7 @@ export const GET_WITNESS_INVITATION: TypedDocumentNode<
   GetWitnessInvitationQueryVariables
 > = gql`
   query GetWitnessInvitation($token: String!) {
-    witnessInvitation(token: $token) @public {
+    witnessInvitation(token: $token) {
       id
       status
       transaction {
