@@ -19,8 +19,8 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
     allowProfessionalReports: false,
   },
   [SubscriptionTier.PRO]: {
-    maxContacts: Infinity,
-    maxWitnessesPerMonth: Infinity,
+    maxContacts: -1,
+    maxWitnessesPerMonth: -1,
     allowSMS: true,
     allowAdvancedAnalytics: true,
     allowProfessionalReports: true,

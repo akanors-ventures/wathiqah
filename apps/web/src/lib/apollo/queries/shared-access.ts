@@ -90,7 +90,7 @@ export const ACCEPT_ACCESS_MUTATION: TypedDocumentNode<
 
 export const SHARED_DATA_QUERY: TypedDocumentNode<SharedDataQuery, SharedDataQueryVariables> = gql`
   query SharedData($grantId: String!) {
-    sharedData(grantId: $grantId) @public {
+    sharedData(grantId: $grantId) {
       user {
         id
         firstName

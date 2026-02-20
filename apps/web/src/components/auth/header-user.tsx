@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TierBadge } from "@/components/ui/tier-badge";
+import { ContributorBadge } from "@/components/ui/contributor-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -108,9 +109,14 @@ export default function HeaderUser() {
         <DropdownMenuContent className="w-64" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold leading-none">{user.name || "User"}</p>
-                <TierBadge tier={tier} />
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold leading-none truncate max-w-[120px]">
+                  {user.name || "User"}
+                </p>
+                <div className="flex items-center gap-1">
+                  {user.isContributor && <ContributorBadge showIcon={false} className="px-1.5" />}
+                  <TierBadge tier={tier} />
+                </div>
               </div>
               <p className="text-xs leading-none text-muted-foreground truncate">{user.email}</p>
             </div>

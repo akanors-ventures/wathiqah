@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useContribution } from "@/hooks/useContribution";
 import { useAuth } from "@/hooks/use-auth";
 import { redirectToLogin } from "@/utils/auth";
 import { useGeoIP } from "@/hooks/useGeoIP";
@@ -38,7 +37,6 @@ const CURRENCIES = [
 function PricingPage() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
-  const { contribute, loading: contributing } = useContribution();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
 
@@ -327,11 +325,10 @@ function PricingPage() {
                 <p className="text-3xl sm:text-4xl font-black text-pink-600">Pay what you want</p>
               </div>
               <Button
-                onClick={() => contribute(undefined, selectedCurrency.code)}
-                disabled={contributing || loading}
+                asChild
                 className="w-full md:w-64 h-14 sm:h-16 rounded-md bg-pink-600 hover:bg-pink-700 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-pink-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                {contributing ? "Processing..." : "Contribute Now"}
+                <Link to="/contribute">Contribute Now</Link>
               </Button>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium max-w-[200px] text-center">
                 Secure payment via {isNigeria ? "Flutterwave" : "Lemon Squeezy"}

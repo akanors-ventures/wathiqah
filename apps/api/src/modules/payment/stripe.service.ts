@@ -100,7 +100,7 @@ export class StripeService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleWebhook(payload: any, signature?: string) {
+  async handleWebhook(rawBody: Buffer<ArrayBufferLike>, signature?: string) {
     const webhookSecret = this.configService.get<string>(
       'payment.stripe.webhookSecret',
     );
@@ -109,12 +109,12 @@ export class StripeService {
     try {
       if (signature && webhookSecret) {
         event = this.stripe.webhooks.constructEvent(
-          payload,
+          rawBody,
           signature,
           webhookSecret,
         );
       } else {
-        event = payload;
+        event = JSON.parse(rawBody.toString());
       }
     } catch (err) {
       this.logger.error(

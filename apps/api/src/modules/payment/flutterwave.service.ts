@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import {
   SubscriptionTier,
   ContributionStatus,
@@ -7,40 +8,29 @@ import {
 import { User } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const Flutterwave = require('flutterwave-node-v3');
 
 @Injectable()
 export class FlutterwaveService {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private flw: any;
   private readonly logger = new Logger(FlutterwaveService.name);
 
   constructor(
     private configService: ConfigService,
     private subscriptionService: SubscriptionService,
     private prisma: PrismaService,
-  ) {
-    const publicKey =
-      this.configService.get<string>('payment.flutterwave.publicKey') ||
-      'flwp_test_placeholder';
-    const secretKey =
-      this.configService.get<string>('payment.flutterwave.secretKey') ||
-      'flws_test_placeholder';
-    this.flw = new Flutterwave(publicKey, secretKey);
-  }
+  ) {}
 
   async createSubscriptionSession(user: User, tier: SubscriptionTier) {
     const proPlanId = this.configService.get<string>(
       'payment.flutterwave.proPlanId',
     );
     const successUrl = this.configService.get<string>('payment.successUrl');
+    const separator = successUrl.includes('?') ? '&' : '?';
 
     const payload: Record<string, unknown> = {
       tx_ref: `sub_${user.id}_${Date.now()}`,
       amount: tier === SubscriptionTier.PRO ? '5000' : '0', // Fallback amount if no plan
       currency: 'NGN',
-      redirect_url: successUrl,
+      redirect_url: `${successUrl}${separator}type=subscription`,
       payment_options: 'card,banktransfer,ussd',
       customer: {
         email: user.email,
@@ -64,8 +54,8 @@ export class FlutterwaveService {
     }
 
     try {
-      const response = await this.flw.Payment.checkout(payload);
-      return { url: response.data.link };
+      const url = await this.initiatePayment(payload);
+      return { url };
     } catch (error) {
       this.logger.error(
         `Flutterwave session creation failed: ${error.message}`,
@@ -74,30 +64,19 @@ export class FlutterwaveService {
     }
   }
 
-  async createContributionSession(user: User, amount?: number) {
-    const donationLink = this.configService.get<string>(
-      'payment.flutterwave.donationLink',
-    );
-
-    if (donationLink) {
-      // Append user info if possible to the donation link
-      const url = new URL(donationLink);
-      url.searchParams.append('email', user.email);
-      url.searchParams.append('name', `${user.firstName} ${user.lastName}`);
-      // Flutterwave donation links often accept 'amount' as a query param too
-      if (amount) {
-        url.searchParams.append('amount', amount.toString());
-      }
-      return { url: url.toString() };
-    }
-
+  async createContributionSession(
+    user: User,
+    amount?: number,
+    currency: string = 'NGN',
+  ) {
     const successUrl = this.configService.get<string>('payment.successUrl');
+    const separator = successUrl.includes('?') ? '&' : '?';
 
     const payload: Record<string, unknown> = {
       tx_ref: `contrib_${user.id}_${Date.now()}`,
       amount: amount?.toString() || '0',
-      currency: 'NGN',
-      redirect_url: successUrl,
+      currency,
+      redirect_url: `${successUrl}${separator}type=contribution`,
       payment_options: 'card,banktransfer,ussd',
       customer: {
         email: user.email,
@@ -116,13 +95,40 @@ export class FlutterwaveService {
     };
 
     try {
-      const response = await this.flw.Payment.checkout(payload);
-      return { url: response.data.link };
+      const url = await this.initiatePayment(payload);
+      return { url };
     } catch (error) {
       this.logger.error(
         `Flutterwave contribution session failed: ${error.message}`,
       );
       throw new Error('Could not initiate contribution with Flutterwave');
+    }
+  }
+
+  private async initiatePayment(
+    payload: Record<string, unknown>,
+  ): Promise<string> {
+    try {
+      const response = await axios.post(
+        'https://api.flutterwave.com/v3/payments',
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${this.configService.get<string>(
+              'payment.flutterwave.secretKey',
+            )}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+      return response.data.data.link;
+    } catch (error) {
+      this.logger.error(
+        `Flutterwave payment request failed: ${error.message} - ${JSON.stringify(
+          error.response?.data,
+        )}`,
+      );
+      throw error;
     }
   }
 
@@ -208,7 +214,18 @@ export class FlutterwaveService {
 
   async cancelSubscription(subscriptionId: string) {
     try {
-      await this.flw.Subscription.cancel({ id: subscriptionId });
+      await axios.put(
+        `https://api.flutterwave.com/v3/subscriptions/${subscriptionId}/cancel`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${this.configService.get<string>(
+              'payment.flutterwave.secretKey',
+            )}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
       this.logger.log(`Flutterwave subscription ${subscriptionId} cancelled`);
     } catch (error) {
       this.logger.error(
