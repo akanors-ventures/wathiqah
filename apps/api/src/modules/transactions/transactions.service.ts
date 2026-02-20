@@ -411,15 +411,6 @@ export class TransactionsService {
       });
     }
 
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (user) {
-      this.notificationService
-        .sendTransactionCreatedEmail(user.email, user.firstName)
-        .catch((err) => {
-          console.error('Failed to send created transaction email:', err);
-        });
-    }
-
     return transaction;
   }
 
