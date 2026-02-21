@@ -258,7 +258,7 @@ function VerifyEmailPage() {
                     </a>
                     <span className="w-1 h-1 bg-muted-foreground/30 rounded-full" />
                     <a
-                      href="https://wa.me/2349035541604"
+                      href="https://wa.me/2348086578680"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary hover:underline font-medium flex items-center gap-1.5 transition-colors"
