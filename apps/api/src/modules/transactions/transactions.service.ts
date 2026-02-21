@@ -478,12 +478,41 @@ export class TransactionsService {
         previousState: unknown;
         newState: unknown;
       }[];
+      createdBy?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        isSupporter: boolean;
+      } | null;
+      contact?: unknown;
     },
   >(transaction: T, userId: string): T {
     if (transaction.createdById === userId) return transaction;
 
     // Flip perspective for the contact
     const transformed = { ...transaction };
+
+    // If we have creator info, use it as the contact for the viewer
+    if (transaction.createdBy) {
+      // Create a virtual contact from the creator
+      const creator = transaction.createdBy;
+      const virtualContact = {
+        id: creator.id, // Using creator's user ID as contact ID
+        firstName: creator.firstName,
+        lastName: creator.lastName,
+        name: `${creator.firstName} ${creator.lastName}`,
+        email: creator.email,
+        isSupporter: creator.isSupporter,
+        linkedUserId: creator.id,
+        userId: userId, // The viewer "owns" this virtual contact view
+        isOnPlatform: true,
+      };
+
+      // We need to cast this because we're modifying the structure potentially
+      transformed.contact = virtualContact;
+    }
+
     if (transaction.type === TransactionType.GIVEN) {
       transformed.type = TransactionType.RECEIVED;
     } else if (transaction.type === TransactionType.RECEIVED) {
@@ -974,6 +1003,7 @@ export class TransactionsService {
       where: { id },
       include: {
         contact: true,
+        createdBy: true,
         conversions: {
           orderBy: {
             date: 'desc',
@@ -1332,7 +1362,7 @@ export class TransactionsService {
   }
 
   async findMyContactTransactions(userId: string) {
-    return this.prisma.transaction.findMany({
+    const items = await this.prisma.transaction.findMany({
       where: {
         contact: {
           linkedUserId: userId,
@@ -1351,5 +1381,7 @@ export class TransactionsService {
         date: 'desc',
       },
     });
+
+    return items.map((item) => this.applyPerspective(item, userId));
   }
 }
