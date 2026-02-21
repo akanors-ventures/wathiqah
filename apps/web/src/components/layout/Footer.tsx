@@ -70,7 +70,7 @@ export function Footer() {
               <ul className="space-y-4">
                 <li>
                   <a
-                    href="https://wathiqah.akanors.com/legal/privacy"
+                    href="/legal/privacy.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
@@ -80,7 +80,7 @@ export function Footer() {
                 </li>
                 <li>
                   <a
-                    href="https://wathiqah.akanors.com/legal/terms"
+                    href="/legal/terms.html"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors cursor-pointer"
