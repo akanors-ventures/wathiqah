@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import {
-  SubscriptionTier,
-  ContributionStatus,
-} from '../../generated/prisma/enums';
+import { SubscriptionTier, SupportStatus } from '../../generated/prisma/enums';
 import { User } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -64,7 +61,7 @@ export class FlutterwaveService {
     }
   }
 
-  async createContributionSession(
+  async createSupportSession(
     user: User,
     amount?: number,
     currency: string = 'NGN',
@@ -73,10 +70,10 @@ export class FlutterwaveService {
     const separator = successUrl.includes('?') ? '&' : '?';
 
     const payload: Record<string, unknown> = {
-      tx_ref: `contrib_${user.id}_${Date.now()}`,
+      tx_ref: `support_${user.id}_${Date.now()}`,
       amount: amount?.toString() || '0',
       currency,
-      redirect_url: `${successUrl}${separator}type=contribution`,
+      redirect_url: `${successUrl}${separator}type=support`,
       payment_options: 'card,banktransfer,ussd',
       customer: {
         email: user.email,
@@ -85,10 +82,10 @@ export class FlutterwaveService {
       },
       meta: {
         userId: user.id,
-        type: 'contribution',
+        type: 'support',
       },
       customizations: {
-        title: 'Wathiqah Contribution',
+        title: 'Wathiqah Support',
         description: 'Support the development of Wathīqah',
         logo: 'https://wathiqah.akanors.com/appLogo.png',
       },
@@ -99,9 +96,9 @@ export class FlutterwaveService {
       return { url };
     } catch (error) {
       this.logger.error(
-        `Flutterwave contribution session failed: ${error.message}`,
+        `Flutterwave session creation failed: ${error.message}`,
       );
-      throw new Error('Could not initiate contribution with Flutterwave');
+      throw new Error('Could not initiate payment with Flutterwave');
     }
   }
 
@@ -160,7 +157,7 @@ export class FlutterwaveService {
     let type = data.meta?.type;
 
     // Fallback: Parse tx_ref if meta is missing
-    // Format: type_userId_timestamp (e.g., contrib_123_456 or sub_123_456)
+    // Format: type_userId_timestamp (e.g., support_123_456 or sub_123_456)
     if (!userId && data.tx_ref) {
       this.logger.warn(
         `Meta missing for payment ${data.id}, attempting to parse tx_ref: ${data.tx_ref}`,
@@ -168,8 +165,8 @@ export class FlutterwaveService {
       const parts = data.tx_ref.split('_');
       if (parts.length >= 3) {
         const prefix = parts[0];
-        if (prefix === 'contrib') {
-          type = 'contribution';
+        if (prefix === 'support') {
+          type = 'support';
         } else if (prefix === 'sub') {
           type = 'subscription';
         }
@@ -182,8 +179,8 @@ export class FlutterwaveService {
       type = 'subscription';
     }
 
-    if (type === 'contribution') {
-      await this.handleContributionSuccessful(data, userId);
+    if (type === 'support') {
+      await this.handleSupportSuccessful(data, userId);
       return;
     }
 
@@ -192,18 +189,15 @@ export class FlutterwaveService {
       return;
     }
 
-    await this.subscriptionService.activateSubscription({
+    await this.subscriptionService.handleSubscriptionSuccess(
       userId,
-      externalId: data.id.toString(),
-      status: 'active',
-      provider: 'flutterwave',
-      tier: data.meta?.tier || SubscriptionTier.PRO,
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    });
+      data.id.toString(),
+      'flutterwave',
+      data.meta?.tier as SubscriptionTier,
+    );
   }
 
-  private async handleContributionSuccessful(
+  private async handleSupportSuccessful(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any,
     fallbackUserId?: string,
@@ -215,32 +209,32 @@ export class FlutterwaveService {
 
     if (!userId) {
       this.logger.error(
-        `Cannot handle contribution: No userId found for ref ${paymentRef}`,
+        `Cannot handle support: No userId found for ref ${paymentRef}`,
       );
       return;
     }
 
     this.logger.log(
-      `Handling Flutterwave contribution for user ${userId}: ${amount} ${currency}`,
+      `Handling Flutterwave support for user ${userId}: ${amount} ${currency}`,
     );
 
-    await this.prisma.contribution.create({
+    await this.prisma.support.create({
       data: {
         amount,
         currency,
-        status: ContributionStatus.SUCCESSFUL,
+        status: SupportStatus.SUCCESSFUL,
         paymentProvider: 'flutterwave',
         paymentRef,
-        donorId: userId,
-        donorEmail: data.customer?.email,
-        donorName: data.customer?.name,
+        supporterId: userId,
+        supporterEmail: data.customer?.email,
+        supporterName: data.customer?.name,
       },
     });
 
     if (userId) {
       await this.prisma.user.update({
         where: { id: userId },
-        data: { isContributor: true },
+        data: { isSupporter: true },
       });
     }
   }

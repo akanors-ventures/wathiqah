@@ -299,8 +299,8 @@ function PricingPage() {
               </h2>
               <p className="text-base sm:text-lg text-muted-foreground font-medium leading-relaxed">
                 Wathīqah is built by Akanors Ventures to bring trust and accountability to financial
-                relationships. If you find value in what we're building, consider a one-time
-                contribution to help us keep the service running and free for everyone.
+                relationships. If you find value in what we're building, consider a one-time support
+                to help us keep the service running and free for everyone.
               </p>
               <div className="flex flex-wrap gap-3 sm:gap-4 justify-center md:justify-start">
                 <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-muted-foreground">
@@ -309,7 +309,7 @@ function PricingPage() {
                 </div>
                 <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-muted-foreground">
                   <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
-                  One-time Contribution
+                  One-time Support
                 </div>
                 <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-muted-foreground">
                   <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-500" />
@@ -328,7 +328,7 @@ function PricingPage() {
                 asChild
                 className="w-full md:w-64 h-14 sm:h-16 rounded-md bg-pink-600 hover:bg-pink-700 text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-pink-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                <Link to="/contribute">Contribute Now</Link>
+                <Link to="/support">Support Now</Link>
               </Button>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium max-w-[200px] text-center">
                 Secure payment via {isNigeria ? "Flutterwave" : "Lemon Squeezy"}

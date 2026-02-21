@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Info, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { PageLoader } from "@/components/ui/page-loader";
 import {
   Table,
@@ -117,8 +118,11 @@ function MyContactTransactionsPage() {
                         </TableCell>
                         <TableCell className="py-4">
                           <div className="space-y-0.5">
-                            <div className="font-bold text-sm text-foreground">
+                            <div className="font-bold text-sm text-foreground flex items-center gap-1.5">
                               {tx.createdBy?.name}
+                              {tx.createdBy?.isSupporter && (
+                                <SupporterBadge className="h-4 px-1 text-[9px]" />
+                              )}
                             </div>
                             <div className="text-[10px] text-muted-foreground font-medium truncate max-w-[150px]">
                               {tx.createdBy?.email}

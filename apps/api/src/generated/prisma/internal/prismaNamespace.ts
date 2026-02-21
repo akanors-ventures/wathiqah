@@ -399,7 +399,7 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
-  Contribution: 'Contribution'
+  Support: 'Support'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "contribution"
+    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1529,77 +1529,77 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    Contribution: {
-      payload: Prisma.$ContributionPayload<ExtArgs>
-      fields: Prisma.ContributionFieldRefs
+    Support: {
+      payload: Prisma.$SupportPayload<ExtArgs>
+      fields: Prisma.SupportFieldRefs
       operations: {
         findUnique: {
-          args: Prisma.ContributionFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload> | null
+          args: Prisma.SupportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload> | null
         }
         findUniqueOrThrow: {
-          args: Prisma.ContributionFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>
+          args: Prisma.SupportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>
         }
         findFirst: {
-          args: Prisma.ContributionFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload> | null
+          args: Prisma.SupportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload> | null
         }
         findFirstOrThrow: {
-          args: Prisma.ContributionFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>
+          args: Prisma.SupportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>
         }
         findMany: {
-          args: Prisma.ContributionFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>[]
+          args: Prisma.SupportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>[]
         }
         create: {
-          args: Prisma.ContributionCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>
+          args: Prisma.SupportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>
         }
         createMany: {
-          args: Prisma.ContributionCreateManyArgs<ExtArgs>
+          args: Prisma.SupportCreateManyArgs<ExtArgs>
           result: BatchPayload
         }
         createManyAndReturn: {
-          args: Prisma.ContributionCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>[]
+          args: Prisma.SupportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>[]
         }
         delete: {
-          args: Prisma.ContributionDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>
+          args: Prisma.SupportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>
         }
         update: {
-          args: Prisma.ContributionUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>
+          args: Prisma.SupportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>
         }
         deleteMany: {
-          args: Prisma.ContributionDeleteManyArgs<ExtArgs>
+          args: Prisma.SupportDeleteManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateMany: {
-          args: Prisma.ContributionUpdateManyArgs<ExtArgs>
+          args: Prisma.SupportUpdateManyArgs<ExtArgs>
           result: BatchPayload
         }
         updateManyAndReturn: {
-          args: Prisma.ContributionUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>[]
+          args: Prisma.SupportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>[]
         }
         upsert: {
-          args: Prisma.ContributionUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$ContributionPayload>
+          args: Prisma.SupportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SupportPayload>
         }
         aggregate: {
-          args: Prisma.ContributionAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateContribution>
+          args: Prisma.SupportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSupport>
         }
         groupBy: {
-          args: Prisma.ContributionGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ContributionGroupByOutputType>[]
+          args: Prisma.SupportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SupportGroupByOutputType>[]
         }
         count: {
-          args: Prisma.ContributionCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.ContributionCountAggregateOutputType> | number
+          args: Prisma.SupportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SupportCountAggregateOutputType> | number
         }
       }
     }
@@ -1657,7 +1657,7 @@ export const UserScalarFieldEnum = {
   subscriptionStatus: 'subscriptionStatus',
   subscriptionId: 'subscriptionId',
   featureUsage: 'featureUsage',
-  isContributor: 'isContributor'
+  isSupporter: 'isSupporter'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1873,23 +1873,23 @@ export const ContactInvitationScalarFieldEnum = {
 export type ContactInvitationScalarFieldEnum = (typeof ContactInvitationScalarFieldEnum)[keyof typeof ContactInvitationScalarFieldEnum]
 
 
-export const ContributionScalarFieldEnum = {
+export const SupportScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
   currency: 'currency',
   status: 'status',
   paymentProvider: 'paymentProvider',
   paymentRef: 'paymentRef',
-  donorId: 'donorId',
-  donorName: 'donorName',
-  donorEmail: 'donorEmail',
+  supporterId: 'supporterId',
+  supporterName: 'supporterName',
+  supporterEmail: 'supporterEmail',
   message: 'message',
   isAnonymous: 'isAnonymous',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type ContributionScalarFieldEnum = (typeof ContributionScalarFieldEnum)[keyof typeof ContributionScalarFieldEnum]
+export type SupportScalarFieldEnum = (typeof SupportScalarFieldEnum)[keyof typeof SupportScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2206,16 +2206,16 @@ export type ListEnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
- * Reference to a field of type 'ContributionStatus'
+ * Reference to a field of type 'SupportStatus'
  */
-export type EnumContributionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ContributionStatus'>
+export type EnumSupportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SupportStatus'>
     
 
 
 /**
- * Reference to a field of type 'ContributionStatus[]'
+ * Reference to a field of type 'SupportStatus[]'
  */
-export type ListEnumContributionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ContributionStatus[]'>
+export type ListEnumSupportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SupportStatus[]'>
     
 
 
@@ -2342,7 +2342,7 @@ export type GlobalOmitConfig = {
   exchangeRate?: Prisma.ExchangeRateOmit
   exchangeRateHistory?: Prisma.ExchangeRateHistoryOmit
   contactInvitation?: Prisma.ContactInvitationOmit
-  contribution?: Prisma.ContributionOmit
+  support?: Prisma.SupportOmit
 }
 
 /* Types for Logging */

@@ -23,7 +23,7 @@ model User {
   subscriptionStatus         String?
   subscriptionId             String?
   featureUsage               Json?                @default("{}")
-  isContributor              Boolean              @default(false)
+  isSupporter                Boolean              @default(false)
   accessGrants               AccessGrant[]
   contactInvitationsReceived ContactInvitation[]  @relation("InvitedUser")
   contactInvitationsSent     ContactInvitation[]  @relation("InviterUser")
@@ -34,7 +34,7 @@ model User {
   transactionHistory         TransactionHistory[] @relation("HistoryUser")
   transactions               Transaction[]        @relation("TransactionCreator")
   witnessRecords             Witness[]            @relation("WitnessUser")
-  contributions              Contribution[]
+  supports                   Support[]
   payments                   Payment[]
   subscription               Subscription?
 
@@ -47,7 +47,7 @@ model Subscription {
   userId             String           @unique
   tier               SubscriptionTier @default(FREE)
   status             String // active, trialing, past_due, canceled, unpaid
-  provider           String // stripe, flutterwave
+  provider           String // stripe, flutterwave, lemonsqueezy
   externalId         String?          @unique // Stripe Subscription ID or Flutterwave ID
   planId             String? // The ID of the plan/price
   currentPeriodStart DateTime?
@@ -103,7 +103,7 @@ enum PaymentStatus {
 
 enum PaymentType {
   SUBSCRIPTION
-  CONTRIBUTION
+  SUPPORT
 }
 
 model Contact {
@@ -346,27 +346,27 @@ enum SubscriptionTier {
   PRO
 }
 
-model Contribution {
+model Support {
   id              String             @id @default(uuid())
   amount          Decimal            @db.Decimal(20, 2)
   currency        String             @default("NGN")
-  status          ContributionStatus @default(PENDING)
+  status          SupportStatus      @default(PENDING)
   paymentProvider String? // e.g., "paystack", "stripe"
   paymentRef      String?            @unique
-  donorId         String?
-  donorName       String?
-  donorEmail      String?
+  supporterId     String?
+  supporterName   String?
+  supporterEmail  String?
   message         String?
   isAnonymous     Boolean            @default(false)
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
 
-  donor User? @relation(fields: [donorId], references: [id])
+  supporter User? @relation(fields: [supporterId], references: [id])
 
-  @@map("contributions")
+  @@map("supports")
 }
 
-enum ContributionStatus {
+enum SupportStatus {
   PENDING
   SUCCESSFUL
   FAILED

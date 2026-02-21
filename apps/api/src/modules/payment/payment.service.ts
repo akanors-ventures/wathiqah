@@ -59,7 +59,7 @@ export class PaymentService {
     }
   }
 
-  async createContributionSession(
+  async createSupportSession(
     userId: string,
     amount?: number,
     currency?: string,
@@ -81,19 +81,19 @@ export class PaymentService {
     ).toUpperCase();
 
     this.logger.log(
-      `Creating contribution session for user ${userId} with amount ${amount} ${effectiveCurrency}`,
+      `Creating support session for user ${userId} with amount ${amount} ${effectiveCurrency}`,
     );
 
     if (effectiveCurrency === 'NGN') {
-      return this.flutterwaveService.createContributionSession(user, amount);
+      return this.flutterwaveService.createSupportSession(user, amount);
     } else {
       const globalProvider = this.configService.get<string>(
         'payment.globalProvider',
       );
       if (globalProvider === 'lemonsqueezy') {
-        return this.lemonsqueezyService.createContributionSession(user);
+        return this.lemonsqueezyService.createSupportSession(user);
       }
-      return this.stripeService.createContributionSession(
+      return this.stripeService.createSupportSession(
         user,
         amount,
         effectiveCurrency,
@@ -104,14 +104,14 @@ export class PaymentService {
   async handleWebhook(
     provider: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    rawBody: Buffer<ArrayBufferLike> | any,
+    body: Buffer | any,
     signature?: string,
   ) {
     this.logger.log(`Handling ${provider} webhook`);
 
-    let payload = rawBody;
-    if (typeof rawBody !== 'object') {
-      payload = JSON.parse(rawBody);
+    let payload = body;
+    if (typeof body !== 'object') {
+      payload = JSON.parse(body);
     }
     // Log the webhook first
     await this.prisma.webhookLog.create({
@@ -124,11 +124,11 @@ export class PaymentService {
     });
 
     if (provider === 'stripe') {
-      return this.stripeService.handleWebhook(rawBody, signature);
+      return this.stripeService.handleWebhook(body, signature);
     } else if (provider === 'flutterwave') {
       return this.flutterwaveService.handleWebhook(payload, signature);
     } else if (provider === 'lemonsqueezy') {
-      return this.lemonsqueezyService.handleWebhook(rawBody, signature!);
+      return this.lemonsqueezyService.handleWebhook(body, signature!);
     }
   }
 

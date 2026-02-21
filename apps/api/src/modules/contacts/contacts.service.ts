@@ -12,6 +12,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { v4 as uuidv4 } from 'uuid';
 import {
   AssetCategory,
+  Contact,
   InvitationStatus,
   Prisma,
 } from '../../generated/prisma/client';
@@ -78,7 +79,8 @@ export class ContactsService {
       throw new NotFoundException(`Contact with ID ${id} not found`);
     }
 
-    if (contact.userId !== userId) {
+    // Allow access if the user is the owner OR the linked user (shared ledger)
+    if (contact.userId !== userId && contact.linkedUserId !== userId) {
       throw new ForbiddenException(
         'You do not have permission to access this contact',
       );
@@ -212,8 +214,12 @@ export class ContactsService {
     return balance;
   }
 
-  async checkContactOnPlatform(id: string, userId: string) {
-    const contact = await this.findOne(id, userId);
+  async checkContactOnPlatform(
+    id: string,
+    userId: string,
+    contactData?: Contact,
+  ) {
+    const contact = contactData || (await this.findOne(id, userId));
 
     if (!contact.email) {
       return {

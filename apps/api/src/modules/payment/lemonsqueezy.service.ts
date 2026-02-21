@@ -5,11 +5,8 @@ import {
   createCheckout,
   cancelSubscription,
 } from '@lemonsqueezy/lemonsqueezy.js';
-import {
-  SubscriptionTier,
-  ContributionStatus,
-} from '../../generated/prisma/enums';
-import { User } from '../../generated/prisma/client';
+import { SubscriptionTier, SupportStatus } from '../../generated/prisma/enums';
+import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import * as crypto from 'crypto';
@@ -64,17 +61,17 @@ export class LemonSqueezyService {
     return { url: data?.data.attributes.url };
   }
 
-  async createContributionSession(user: User) {
+  async createSupportSession(user: User) {
     const storeId = this.configService.get<string>(
       'payment.lemonsqueezy.storeId',
     );
-    // For contributions, we use a "Pay what you want" product or a default variant
+    // For support, we use a "Pay what you want" product or a default variant
     const variantId = this.configService.get<string>(
-      'payment.lemonsqueezy.contributionVariantId',
+      'payment.lemonsqueezy.supportVariantId',
     );
 
     if (!storeId || !variantId) {
-      throw new Error('Lemon Squeezy Contribution Variant ID not configured');
+      throw new Error('Lemon Squeezy Support Variant ID not configured');
     }
 
     const { data, error } = await createCheckout(storeId, variantId, {
@@ -82,7 +79,7 @@ export class LemonSqueezyService {
         email: user.email,
         custom: {
           userId: user.id,
-          type: 'contribution',
+          type: 'support',
         },
       },
       productOptions: {
@@ -98,10 +95,7 @@ export class LemonSqueezyService {
     return { url: data?.data.attributes.url };
   }
 
-  async handleWebhook(
-    rawBody: Buffer<ArrayBufferLike>,
-    signature: string,
-  ): Promise<void> {
+  async handleWebhook(body: Buffer, signature: string) {
     const secret = this.configService.get<string>(
       'payment.lemonsqueezy.webhookSecret',
     );
@@ -112,14 +106,14 @@ export class LemonSqueezyService {
     }
 
     const hmac = crypto.createHmac('sha256', secret);
-    const digest = Buffer.from(hmac.update(rawBody).digest('hex'), 'utf8');
+    const digest = Buffer.from(hmac.update(body).digest('hex'), 'utf8');
+    const signatureBuffer = Buffer.from(signature, 'utf8');
 
-    if (!crypto.timingSafeEqual(digest, Buffer.from(signature))) {
-      this.logger.warn('Invalid Lemon Squeezy webhook signature');
-      throw new Error('Invalid signature.');
+    if (!crypto.timingSafeEqual(digest, signatureBuffer)) {
+      throw new Error('Invalid signature');
     }
 
-    const payload = JSON.parse(rawBody.toString());
+    const payload = JSON.parse(body.toString());
     const eventName = payload.meta.event_name;
 
     switch (eventName) {
@@ -132,45 +126,32 @@ export class LemonSqueezyService {
         await this.handleSubscriptionCancelled(payload.data);
         break;
       case 'order_created':
-        if (payload.meta.custom_data?.type === 'contribution') {
-          await this.handleContributionEvent(payload);
+        const custom = payload.meta.custom_data;
+        if (custom?.type === 'support') {
+          await this.handleSupportEvent(payload);
         }
         break;
     }
+
+    return { received: true };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleSubscriptionEvent(payload: any) {
-    const data = payload.data;
-    const attributes = data.attributes;
-    const customData = payload.meta?.custom_data;
-    const userId = customData?.userId || customData?.user_id;
+    const custom = payload.meta?.custom_data;
+    const userId = custom?.userId || custom?.user_id;
 
     if (!userId) {
       this.logger.warn('No userId found in Lemon Squeezy subscription event');
       return;
     }
 
-    // In Lemon Squeezy, 'renews_at' is the start of the next billing period (or end of current)
-    // There isn't a direct 'current_period_start', so we approximate it based on 'created_at' or 'updated_at'
-    // For 'currentPeriodEnd', we use 'renews_at' if active, or 'ends_at' if cancelled/expiring.
-    const currentPeriodEnd = new Date(
-      attributes.renews_at ||
-        attributes.ends_at ||
-        Date.now() + 30 * 24 * 60 * 60 * 1000,
+    await this.subscriptionService.handleSubscriptionSuccess(
+      custom.userId,
+      payload.data.id, // subscription ID
+      'lemonsqueezy',
+      custom.tier as SubscriptionTier,
     );
-
-    const currentPeriodStart = new Date(attributes.created_at);
-
-    await this.subscriptionService.activateSubscription({
-      userId,
-      externalId: data.id,
-      status: attributes.status,
-      provider: 'lemonsqueezy',
-      tier: customData?.tier || SubscriptionTier.PRO,
-      currentPeriodStart,
-      currentPeriodEnd,
-    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -179,37 +160,28 @@ export class LemonSqueezyService {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private async handleContributionEvent(payload: any) {
-    const data = payload.data;
-    const attributes = data.attributes;
-    const customData = payload.meta.custom_data;
-    const userId = customData?.userId || customData?.user_id;
-
-    const amount = attributes.total / 100;
-    const currency = attributes.currency;
-    const paymentRef = data.id;
-
-    this.logger.log(
-      `Handling Lemon Squeezy contribution for user ${userId}: ${amount} ${currency}`,
-    );
-
-    await this.prisma.contribution.create({
+  private async handleSupportEvent(payload: any) {
+    const attributes = payload.data.attributes;
+    const custom = payload.meta.custom_data;
+    const userId = custom?.userId || custom?.user_id;
+    // Handle support payment
+    await this.prisma.support.create({
       data: {
-        amount,
-        currency,
-        status: ContributionStatus.SUCCESSFUL,
+        amount: new Prisma.Decimal(attributes.total / 100),
+        currency: attributes.currency.toUpperCase(),
+        status: SupportStatus.SUCCESSFUL,
         paymentProvider: 'lemonsqueezy',
-        paymentRef,
-        donorId: userId,
-        donorEmail: attributes.user_email,
-        donorName: attributes.user_name,
+        paymentRef: payload.data.id,
+        supporterId: custom.userId,
+        supporterEmail: attributes.user_email,
+        supporterName: attributes.user_name,
       },
     });
 
     if (userId) {
       await this.prisma.user.update({
         where: { id: userId },
-        data: { isContributor: true },
+        data: { isSupporter: true },
       });
     }
   }

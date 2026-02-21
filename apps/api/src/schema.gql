@@ -64,7 +64,9 @@ type Contact {
   hasPendingInvitation: Boolean!
   id: ID!
   isOnPlatform: Boolean!
+  isSupporter: Boolean!
   lastName: String!
+  linkedUserId: String
   name: String!
   phoneNumber: String
   transactions: [Transaction!]
@@ -82,51 +84,10 @@ type ContactPlatformStatus {
   linkedUserId: String
 }
 
-type Contribution {
-  amount: Float!
-  createdAt: DateTime!
-  currency: String!
-  donor: User
-  donorEmail: String
-  donorId: String
-  donorName: String
-  id: ID!
-  isAnonymous: Boolean!
-  message: String
-  paymentProvider: String
-  paymentRef: String
-  status: ContributionStatus!
-  updatedAt: DateTime!
-}
-
-type ContributionOption {
-  amount: Float!
-  currency: String!
-  description: String
-  id: ID!
-  label: String!
-}
-
-enum ContributionStatus {
-  FAILED
-  PENDING
-  SUCCESSFUL
-}
-
 input CreateContactInput {
   email: String
   name: String!
   phoneNumber: String
-}
-
-input CreateContributionInput {
-  amount: Float!
-  currency: String! = "NGN"
-  donorEmail: String
-  donorName: String
-  isAnonymous: Boolean! = false
-  message: String
-  paymentProvider: String
 }
 
 input CreateProjectInput {
@@ -143,6 +104,16 @@ input CreatePromiseInput {
   notes: String
   priority: Priority
   promiseTo: String!
+}
+
+input CreateSupportInput {
+  amount: Float!
+  currency: String! = "NGN"
+  isAnonymous: Boolean! = false
+  message: String
+  paymentProvider: String
+  supporterEmail: String
+  supporterName: String
 }
 
 input CreateTransactionInput {
@@ -230,10 +201,10 @@ type Mutation {
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createCheckoutSession(currency: String, tier: SubscriptionTier!): CheckoutSession!
   createContact(createContactInput: CreateContactInput!): Contact!
-  createContribution(createContributionInput: CreateContributionInput!): Contribution!
-  createContributionSession(amount: Float, currency: String): CheckoutSession!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
+  createSupport(createSupportInput: CreateSupportInput!): Support!
+  createSupportSession(amount: Float, currency: String): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
@@ -319,25 +290,25 @@ type Query {
   checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
   contacts: [Contact!]!
-  contribution(id: ID!): Contribution!
-  contributionOptions(currency: String): [ContributionOption!]!
-  contributions: [Contribution!]!
   convertCurrency(amount: Float!, from: String!, to: String!): Float!
   getGeoIPInfo: GeoIPInfo!
   getWitnessInvitation(token: String!): Witness!
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions: [Transaction!]!
-  myContributions: [Contribution!]!
   myProjects: [Project!]!
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
+  mySupports: [Support!]!
   myWitnessRequests(status: WitnessStatus): [Witness!]!
   project(id: ID!): Project!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
   searchWitness(input: SearchWitnessInput!): WitnessCandidate
   sharedData(grantId: String!): SharedDataEntity!
+  support(id: ID!): Support!
+  supportOptions(currency: String): [SupportOption!]!
+  supports: [Support!]!
   totalBalance(currency: String): TransactionsSummary!
   transaction(id: ID!): Transaction!
   transactions(filter: FilterTransactionInput): TransactionsResponse!
@@ -394,6 +365,37 @@ type SubscriptionInfo {
 enum SubscriptionTier {
   FREE
   PRO
+}
+
+type Support {
+  amount: Float!
+  createdAt: DateTime!
+  currency: String!
+  id: ID!
+  isAnonymous: Boolean!
+  message: String
+  paymentProvider: String
+  paymentRef: String
+  status: SupportStatus!
+  supporter: User
+  supporterEmail: String
+  supporterId: String
+  supporterName: String
+  updatedAt: DateTime!
+}
+
+type SupportOption {
+  amount: Float!
+  currency: String!
+  description: String
+  id: ID!
+  label: String!
+}
+
+enum SupportStatus {
+  FAILED
+  PENDING
+  SUCCESSFUL
 }
 
 type TierLimitsEntity {
@@ -529,8 +531,8 @@ type User {
   featureUsage: JSON
   firstName: String!
   id: ID!
-  isContributor: Boolean!
   isEmailVerified: Boolean!
+  isSupporter: Boolean!
   lastName: String!
   name: String!
   passwordHash: String

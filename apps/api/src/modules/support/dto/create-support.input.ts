@@ -9,7 +9,7 @@ import {
 } from 'class-validator';
 
 @InputType()
-export class CreateContributionInput {
+export class CreateSupportInput {
   @Field(() => Float)
   @IsNumber()
   @IsNotEmpty()
@@ -28,12 +28,12 @@ export class CreateContributionInput {
   @Field({ nullable: true })
   @IsString()
   @IsOptional()
-  donorName?: string;
+  supporterName?: string;
 
   @Field({ nullable: true })
   @IsEmail()
   @IsOptional()
-  donorEmail?: string;
+  supporterEmail?: string;
 
   @Field({ nullable: true })
   @IsString()

@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useTransaction } from "@/hooks/useTransaction";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -160,7 +161,12 @@ function TransactionDetailPage() {
                         : currentTransaction.type === TransactionType.Expense
                           ? "Expense to"
                           : "Collected from"}{" "}
-              {currentTransaction.contact?.name || "Personal"}
+              <span className="inline-flex items-center gap-2">
+                {currentTransaction.contact?.name || "Personal"}
+                {currentTransaction.contact?.isSupporter && (
+                  <SupporterBadge className="h-5 px-1.5" />
+                )}
+              </span>
             </h1>
             <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2">
               <Calendar size={14} />

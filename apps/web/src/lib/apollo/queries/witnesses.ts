@@ -35,12 +35,14 @@ export const MY_WITNESS_REQUESTS: TypedDocumentNode<
         createdBy {
           name
           email
+          isSupporter
         }
         contact {
           id
           firstName
           lastName
           name
+          isSupporter
         }
       }
     }
@@ -104,12 +106,14 @@ export const GET_WITNESS_INVITATION: TypedDocumentNode<
         returnDirection
         createdBy {
           name
+          isSupporter
         }
         contact {
           id
           firstName
           lastName
           name
+          isSupporter
         }
       }
       user {
@@ -117,6 +121,7 @@ export const GET_WITNESS_INVITATION: TypedDocumentNode<
         email
         name
         passwordHash
+        isSupporter
       }
     }
   }

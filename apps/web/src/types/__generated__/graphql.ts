@@ -84,7 +84,9 @@ export type Contact = {
   hasPendingInvitation: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   isOnPlatform: Scalars['Boolean']['output'];
+  isSupporter: Scalars['Boolean']['output'];
   lastName: Scalars['String']['output'];
+  linkedUserId: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   phoneNumber: Maybe<Scalars['String']['output']>;
   transactions: Maybe<Array<Transaction>>;
@@ -104,53 +106,10 @@ export type ContactPlatformStatus = {
   linkedUserId: Maybe<Scalars['String']['output']>;
 };
 
-export type Contribution = {
-  __typename: 'Contribution';
-  amount: Scalars['Float']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  currency: Scalars['String']['output'];
-  donor: Maybe<User>;
-  donorEmail: Maybe<Scalars['String']['output']>;
-  donorId: Maybe<Scalars['String']['output']>;
-  donorName: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  isAnonymous: Scalars['Boolean']['output'];
-  message: Maybe<Scalars['String']['output']>;
-  paymentProvider: Maybe<Scalars['String']['output']>;
-  paymentRef: Maybe<Scalars['String']['output']>;
-  status: ContributionStatus;
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-export type ContributionOption = {
-  __typename: 'ContributionOption';
-  amount: Scalars['Float']['output'];
-  currency: Scalars['String']['output'];
-  description: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  label: Scalars['String']['output'];
-};
-
-export enum ContributionStatus {
-  Failed = 'FAILED',
-  Pending = 'PENDING',
-  Successful = 'SUCCESSFUL'
-}
-
 export type CreateContactInput = {
   email?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type CreateContributionInput = {
-  amount: Scalars['Float']['input'];
-  currency?: Scalars['String']['input'];
-  donorEmail?: InputMaybe<Scalars['String']['input']>;
-  donorName?: InputMaybe<Scalars['String']['input']>;
-  isAnonymous?: Scalars['Boolean']['input'];
-  message?: InputMaybe<Scalars['String']['input']>;
-  paymentProvider?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateProjectInput = {
@@ -167,6 +126,16 @@ export type CreatePromiseInput = {
   notes?: InputMaybe<Scalars['String']['input']>;
   priority?: InputMaybe<Priority>;
   promiseTo: Scalars['String']['input'];
+};
+
+export type CreateSupportInput = {
+  amount: Scalars['Float']['input'];
+  currency?: Scalars['String']['input'];
+  isAnonymous?: Scalars['Boolean']['input'];
+  message?: InputMaybe<Scalars['String']['input']>;
+  paymentProvider?: InputMaybe<Scalars['String']['input']>;
+  supporterEmail?: InputMaybe<Scalars['String']['input']>;
+  supporterName?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreateTransactionInput = {
@@ -247,10 +216,10 @@ export type Mutation = {
   changePassword: Scalars['Boolean']['output'];
   createCheckoutSession: CheckoutSession;
   createContact: Contact;
-  createContribution: Contribution;
-  createContributionSession: CheckoutSession;
   createProject: Project;
   createPromise: Promise;
+  createSupport: Support;
+  createSupportSession: CheckoutSession;
   createTransaction: Transaction;
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
@@ -314,17 +283,6 @@ export type MutationCreateContactArgs = {
 };
 
 
-export type MutationCreateContributionArgs = {
-  createContributionInput: CreateContributionInput;
-};
-
-
-export type MutationCreateContributionSessionArgs = {
-  amount?: InputMaybe<Scalars['Float']['input']>;
-  currency?: InputMaybe<Scalars['String']['input']>;
-};
-
-
 export type MutationCreateProjectArgs = {
   input: CreateProjectInput;
 };
@@ -332,6 +290,17 @@ export type MutationCreateProjectArgs = {
 
 export type MutationCreatePromiseArgs = {
   createPromiseInput: CreatePromiseInput;
+};
+
+
+export type MutationCreateSupportArgs = {
+  createSupportInput: CreateSupportInput;
+};
+
+
+export type MutationCreateSupportSessionArgs = {
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -512,25 +481,25 @@ export type Query = {
   checkContactOnPlatform: ContactPlatformStatus;
   contact: Contact;
   contacts: Array<Contact>;
-  contribution: Contribution;
-  contributionOptions: Array<ContributionOption>;
-  contributions: Array<Contribution>;
   convertCurrency: Scalars['Float']['output'];
   getGeoIPInfo: GeoIpInfo;
   getWitnessInvitation: Witness;
   me: User;
   myAccessGrants: Array<AccessGrant>;
   myContactTransactions: Array<Transaction>;
-  myContributions: Array<Contribution>;
   myProjects: Array<Project>;
   myPromises: Array<Promise>;
   mySubscription: SubscriptionInfo;
+  mySupports: Array<Support>;
   myWitnessRequests: Array<Witness>;
   project: Project;
   promise: Promise;
   receivedAccessGrants: Array<AccessGrant>;
   searchWitness: Maybe<WitnessCandidate>;
   sharedData: SharedDataEntity;
+  support: Support;
+  supportOptions: Array<SupportOption>;
+  supports: Array<Support>;
   totalBalance: TransactionsSummary;
   transaction: Transaction;
   transactions: TransactionsResponse;
@@ -547,16 +516,6 @@ export type QueryCheckContactOnPlatformArgs = {
 
 export type QueryContactArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type QueryContributionArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type QueryContributionOptionsArgs = {
-  currency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -594,6 +553,16 @@ export type QuerySearchWitnessArgs = {
 
 export type QuerySharedDataArgs = {
   grantId: Scalars['String']['input'];
+};
+
+
+export type QuerySupportArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QuerySupportOptionsArgs = {
+  currency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -676,6 +645,39 @@ export type SubscriptionInfo = {
 export enum SubscriptionTier {
   Free = 'FREE',
   Pro = 'PRO'
+}
+
+export type Support = {
+  __typename: 'Support';
+  amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  currency: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  isAnonymous: Scalars['Boolean']['output'];
+  message: Maybe<Scalars['String']['output']>;
+  paymentProvider: Maybe<Scalars['String']['output']>;
+  paymentRef: Maybe<Scalars['String']['output']>;
+  status: SupportStatus;
+  supporter: Maybe<User>;
+  supporterEmail: Maybe<Scalars['String']['output']>;
+  supporterId: Maybe<Scalars['String']['output']>;
+  supporterName: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+export type SupportOption = {
+  __typename: 'SupportOption';
+  amount: Scalars['Float']['output'];
+  currency: Scalars['String']['output'];
+  description: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  label: Scalars['String']['output'];
+};
+
+export enum SupportStatus {
+  Failed = 'FAILED',
+  Pending = 'PENDING',
+  Successful = 'SUCCESSFUL'
 }
 
 export type TierLimitsEntity = {
@@ -817,8 +819,8 @@ export type User = {
   featureUsage: Maybe<Scalars['JSON']['output']>;
   firstName: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  isContributor: Scalars['Boolean']['output'];
   isEmailVerified: Scalars['Boolean']['output'];
+  isSupporter: Scalars['Boolean']['output'];
   lastName: Scalars['String']['output'];
   name: Scalars['String']['output'];
   passwordHash: Maybe<Scalars['String']['output']>;
@@ -870,14 +872,14 @@ export type RefreshTokenMutation = { refreshToken: { __typename: 'AuthPayload', 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isContributor: boolean } };
+export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean } };
 
 export type LoginMutationVariables = Exact<{
   loginInput: LoginInput;
 }>;
 
 
-export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
+export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -889,14 +891,14 @@ export type SignupMutationVariables = Exact<{
 }>;
 
 
-export type SignupMutation = { signup: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
+export type SignupMutation = { signup: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
 
 export type AcceptInvitationMutationVariables = Exact<{
   acceptInvitationInput: AcceptInvitationInput;
 }>;
 
 
-export type AcceptInvitationMutation = { acceptInvitation: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
+export type AcceptInvitationMutation = { acceptInvitation: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
 
 export type ForgotPasswordMutationVariables = Exact<{
   forgotPasswordInput: ForgotPasswordInput;
@@ -924,7 +926,7 @@ export type VerifyEmailMutationVariables = Exact<{
 }>;
 
 
-export type VerifyEmailMutation = { verifyEmail: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isContributor: boolean } } };
+export type VerifyEmailMutation = { verifyEmail: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
 
 export type ResendVerificationEmailMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -936,14 +938,14 @@ export type ResendVerificationEmailMutation = { resendVerificationEmail: boolean
 export type GetContactsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetContactsQuery = { contacts: Array<{ __typename: 'Contact', id: string, name: string, email: string | null, phoneNumber: string | null, balance: number, isOnPlatform: boolean, hasPendingInvitation: boolean, createdAt: string }> };
+export type GetContactsQuery = { contacts: Array<{ __typename: 'Contact', id: string, name: string, email: string | null, phoneNumber: string | null, balance: number, isOnPlatform: boolean, isSupporter: boolean, hasPendingInvitation: boolean, createdAt: string }> };
 
 export type GetContactQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetContactQuery = { contact: { __typename: 'Contact', id: string, name: string, email: string | null, phoneNumber: string | null, balance: number, isOnPlatform: boolean, hasPendingInvitation: boolean, createdAt: string } };
+export type GetContactQuery = { contact: { __typename: 'Contact', id: string, name: string, email: string | null, phoneNumber: string | null, balance: number, isOnPlatform: boolean, isSupporter: boolean, hasPendingInvitation: boolean, createdAt: string } };
 
 export type InviteContactMutationVariables = Exact<{
   contactId: Scalars['ID']['input'];
@@ -993,13 +995,13 @@ export type CreateCheckoutSessionMutationVariables = Exact<{
 
 export type CreateCheckoutSessionMutation = { createCheckoutSession: { __typename: 'CheckoutSession', url: string } };
 
-export type CreateContributionSessionMutationVariables = Exact<{
+export type CreateSupportSessionMutationVariables = Exact<{
   amount?: InputMaybe<Scalars['Float']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type CreateContributionSessionMutation = { createContributionSession: { __typename: 'CheckoutSession', url: string } };
+export type CreateSupportSessionMutation = { createSupportSession: { __typename: 'CheckoutSession', url: string } };
 
 export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string };
 
@@ -1119,7 +1121,7 @@ export type TransactionQueryVariables = Exact<{
 }>;
 
 
-export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null } };
+export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean, linkedUserId: string | null } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
 
 export type RemoveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1133,19 +1135,19 @@ export type TransactionsQueryVariables = Exact<{
 }>;
 
 
-export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string } | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } } };
+export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } } };
 
 export type MyContactTransactionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyContactTransactionsQuery = { myContactTransactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string } | null, contact: { __typename: 'Contact', id: string, name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null }> };
+export type MyContactTransactionsQuery = { myContactTransactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null }> };
 
 export type TransactionsGroupedByContactQueryVariables = Exact<{
   filter?: InputMaybe<FilterTransactionInput>;
 }>;
 
 
-export type TransactionsGroupedByContactQuery = { transactionsGroupedByContact: Array<{ __typename: 'ContactGroupedSummary', contact: { __typename: 'Contact', id: string, name: string } | null, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } }> };
+export type TransactionsGroupedByContactQuery = { transactionsGroupedByContact: Array<{ __typename: 'ContactGroupedSummary', contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } }> };
 
 export type CreateTransactionMutationVariables = Exact<{
   input: CreateTransactionInput;
@@ -1159,14 +1161,14 @@ export type AddWitnessMutationVariables = Exact<{
 }>;
 
 
-export type AddWitnessMutation = { addWitness: { __typename: 'Transaction', id: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, user: { __typename: 'User', id: string, name: string, email: string } | null }> | null } };
+export type AddWitnessMutation = { addWitness: { __typename: 'Transaction', id: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
 
 export type UpdateTransactionMutationVariables = Exact<{
   input: UpdateTransactionInput;
 }>;
 
 
-export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', id: string, name: string } | null } };
+export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
@@ -1187,7 +1189,7 @@ export type MyWitnessRequestsQueryVariables = Exact<{
 }>;
 
 
-export type MyWitnessRequestsQuery = { myWitnessRequests: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, returnDirection: ReturnDirection | null, createdBy: { __typename: 'User', name: string, email: string } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string } | null } | null }> };
+export type MyWitnessRequestsQuery = { myWitnessRequests: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, returnDirection: ReturnDirection | null, createdBy: { __typename: 'User', name: string, email: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null }> };
 
 export type ResendWitnessInvitationMutationVariables = Exact<{
   witnessId: Scalars['ID']['input'];
@@ -1215,4 +1217,4 @@ export type GetWitnessInvitationQueryVariables = Exact<{
 }>;
 
 
-export type GetWitnessInvitationQuery = { witnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, returnDirection: ReturnDirection | null, createdBy: { __typename: 'User', name: string } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null } | null } };
+export type GetWitnessInvitationQuery = { witnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, returnDirection: ReturnDirection | null, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };

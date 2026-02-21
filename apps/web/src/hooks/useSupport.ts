@@ -1,17 +1,17 @@
 import { useMutation } from "@apollo/client/react";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
-import { CREATE_CONTRIBUTION_SESSION } from "@/lib/apollo/queries/payment";
+import { CREATE_SUPPORT_SESSION } from "@/lib/apollo/queries/payment";
 import { toast } from "sonner";
-import type { CreateContributionSessionMutationVariables } from "@/types/__generated__/graphql";
+import type { CreateSupportSessionMutationVariables } from "@/types/__generated__/graphql";
 import { useAuth } from "./use-auth";
 import { redirectToLogin } from "@/utils/auth";
 
-export function useContribution() {
+export function useSupport() {
   const { user } = useAuth();
-  const [createContributionSession, { loading }] = useMutation(CREATE_CONTRIBUTION_SESSION, {
+  const [createSupportSession, { loading }] = useMutation(CREATE_SUPPORT_SESSION, {
     onCompleted: (data) => {
-      if (data.createContributionSession?.url) {
-        window.location.href = data.createContributionSession.url;
+      if (data.createSupportSession?.url) {
+        window.location.href = data.createSupportSession.url;
       }
     },
     onError: (error) => {
@@ -23,30 +23,30 @@ export function useContribution() {
         redirectToLogin();
         return;
       }
-      toast.error(error.message || "Failed to initiate contribution");
+      toast.error(error.message || "Failed to initiate support");
     },
   });
 
-  const contribute = async (amount?: number, currency?: string) => {
+  const support = async (amount?: number, currency?: string) => {
     if (!user) {
       redirectToLogin();
       return;
     }
 
     try {
-      await createContributionSession({
+      await createSupportSession({
         variables: {
           amount: amount ?? null,
           currency: currency ?? null,
-        } as CreateContributionSessionMutationVariables,
+        } as CreateSupportSessionMutationVariables,
       });
     } catch (error) {
-      console.error("Contribution error:", error);
+      console.error("Support error:", error);
     }
   };
 
   return {
-    contribute,
+    support,
     loading,
   };
 }

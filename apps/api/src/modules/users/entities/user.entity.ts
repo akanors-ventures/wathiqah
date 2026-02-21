@@ -46,7 +46,7 @@ export class User {
   featureUsage?: Record<string, unknown> | null;
 
   @Field()
-  isContributor: boolean;
+  isSupporter: boolean;
 
   @Field()
   createdAt: Date;

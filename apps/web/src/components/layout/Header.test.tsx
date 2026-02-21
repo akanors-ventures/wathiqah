@@ -3,6 +3,7 @@ import * as React from "react";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuthContext } from "@/context/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import Header from "./Header";
 
 // Mock router
@@ -32,6 +33,11 @@ vi.mock("sonner", () => ({
 // Mock AuthContext
 vi.mock("@/context/AuthContext", () => ({
   useAuthContext: vi.fn(),
+}));
+
+// Mock useSubscription
+vi.mock("@/hooks/useSubscription", () => ({
+  useSubscription: vi.fn(() => ({ isPro: false, loading: false })),
 }));
 
 // Mock ThemeProvider
@@ -140,6 +146,10 @@ describe("Header UI", () => {
       loading: true,
       logout: vi.fn(),
       isAuthenticated: () => false,
+    });
+    (useSubscription as Mock).mockReturnValue({
+      isPro: false,
+      loading: false,
     });
 
     render(

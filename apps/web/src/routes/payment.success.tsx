@@ -15,14 +15,14 @@ export const Route = createFileRoute("/payment/success")({
 function PaymentSuccessPage() {
   const { type } = Route.useSearch();
   const { refetch } = useAuth();
-  const isContribution = type === "contribution";
+  const isSupport = type === "support";
 
   useEffect(() => {
-    // Refetch user data to update contributor status or pro status
+    // Refetch user data to update supporter status or pro status
     refetch().catch(console.error);
 
-    if (isContribution) {
-      toast.success("Thank you for your contribution!", {
+    if (isSupport) {
+      toast.success("Thank you for your support!", {
         description: "Your support helps us keep Wathīqah running.",
       });
     } else {
@@ -30,7 +30,7 @@ function PaymentSuccessPage() {
         description: "Your subscription has been successfully activated.",
       });
     }
-  }, [isContribution, refetch]);
+  }, [isSupport, refetch]);
 
   return (
     <div className="container mx-auto py-24 px-4 flex flex-col items-center justify-center min-h-[70vh] text-center">
@@ -48,8 +48,8 @@ function PaymentSuccessPage() {
         Payment <span className="text-primary">Successful!</span>
       </h1>
       <p className="text-xl text-muted-foreground max-w-xl mx-auto mb-12 font-medium">
-        {isContribution
-          ? "Thank you for your generous contribution. Your support helps us maintain and improve Wathīqah for everyone."
+        {isSupport
+          ? "Thank you for your generous support. Your support helps us maintain and improve Wathīqah for everyone."
           : "Thank you for upgrading to Wathīqah Pro. Your account is now active with all professional features unlocked."}
       </p>
 

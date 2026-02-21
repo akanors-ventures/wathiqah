@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VerifyEmailRouteImport } from './routes/verify-email'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SignupSuccessRouteImport } from './routes/signup-success'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -19,7 +20,6 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
-import { Route as ContributeRouteImport } from './routes/contribute'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WitnessesIndexRouteImport } from './routes/witnesses/index'
@@ -45,6 +45,11 @@ import { Route as SharedAccessViewGrantIdRouteImport } from './routes/shared-acc
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
   path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignupSuccessRoute = SignupSuccessRouteImport.update({
@@ -90,11 +95,6 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContributeRoute = ContributeRouteImport.update({
-  id: '/contribute',
-  path: '/contribute',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
@@ -207,7 +207,6 @@ const SharedAccessViewGrantIdRoute = SharedAccessViewGrantIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/change-password': typeof ChangePasswordRoute
-  '/contribute': typeof ContributeRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -217,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/signup-success': typeof SignupSuccessRoute
+  '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
@@ -241,7 +241,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/change-password': typeof ChangePasswordRoute
-  '/contribute': typeof ContributeRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -251,6 +250,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/signup-success': typeof SignupSuccessRoute
+  '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
@@ -276,7 +276,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/change-password': typeof ChangePasswordRoute
-  '/contribute': typeof ContributeRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -286,6 +285,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/signup-success': typeof SignupSuccessRoute
+  '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
@@ -312,7 +312,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/change-password'
-    | '/contribute'
     | '/features'
     | '/forgot-password'
     | '/login'
@@ -322,6 +321,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/signup-success'
+    | '/support'
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
@@ -346,7 +346,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/change-password'
-    | '/contribute'
     | '/features'
     | '/forgot-password'
     | '/login'
@@ -356,6 +355,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/signup-success'
+    | '/support'
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
@@ -380,7 +380,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/change-password'
-    | '/contribute'
     | '/features'
     | '/forgot-password'
     | '/login'
@@ -390,6 +389,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/signup-success'
+    | '/support'
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
@@ -415,7 +415,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
-  ContributeRoute: typeof ContributeRoute
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -425,6 +424,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   SignupSuccessRoute: typeof SignupSuccessRoute
+  SupportRoute: typeof SupportRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   ContactsContactIdRoute: typeof ContactsContactIdRoute
   ItemsNewRoute: typeof ItemsNewRoute
@@ -454,6 +454,13 @@ declare module '@tanstack/react-router' {
       path: '/verify-email'
       fullPath: '/verify-email'
       preLoaderRoute: typeof VerifyEmailRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signup-success': {
@@ -517,13 +524,6 @@ declare module '@tanstack/react-router' {
       path: '/features'
       fullPath: '/features'
       preLoaderRoute: typeof FeaturesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contribute': {
-      id: '/contribute'
-      path: '/contribute'
-      fullPath: '/contribute'
-      preLoaderRoute: typeof ContributeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/change-password': {
@@ -679,7 +679,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChangePasswordRoute: ChangePasswordRoute,
-  ContributeRoute: ContributeRoute,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
@@ -689,6 +688,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   SignupSuccessRoute: SignupSuccessRoute,
+  SupportRoute: SupportRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   ContactsContactIdRoute: ContactsContactIdRoute,
   ItemsNewRoute: ItemsNewRoute,

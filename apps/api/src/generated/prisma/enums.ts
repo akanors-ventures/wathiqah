@@ -21,7 +21,7 @@ export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
 
 export const PaymentType = {
   SUBSCRIPTION: 'SUBSCRIPTION',
-  CONTRIBUTION: 'CONTRIBUTION'
+  SUPPORT: 'SUPPORT'
 } as const
 
 export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
@@ -127,10 +127,10 @@ export const SubscriptionTier = {
 export type SubscriptionTier = (typeof SubscriptionTier)[keyof typeof SubscriptionTier]
 
 
-export const ContributionStatus = {
+export const SupportStatus = {
   PENDING: 'PENDING',
   SUCCESSFUL: 'SUCCESSFUL',
   FAILED: 'FAILED'
 } as const
 
-export type ContributionStatus = (typeof ContributionStatus)[keyof typeof ContributionStatus]
+export type SupportStatus = (typeof SupportStatus)[keyof typeof SupportStatus]

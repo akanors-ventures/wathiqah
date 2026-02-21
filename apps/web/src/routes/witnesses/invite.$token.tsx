@@ -16,6 +16,7 @@ import {
   WitnessStatus,
 } from "@/types/__generated__/graphql";
 import { formatDate, formatCurrency } from "@/lib/utils/formatters";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 
 export const Route = createFileRoute("/witnesses/invite/$token")({
   component: InviteComponent,
@@ -150,10 +151,22 @@ function InviteComponent() {
           <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
             Witness Invitation
           </h2>
-          <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-            <strong>{transaction.createdBy?.name}</strong> has invited you to witness a transaction
-            between them and <strong>{transaction.contact?.name || "N/A"}</strong>.
-          </p>
+          <div className="mt-2 text-neutral-600 dark:text-neutral-400 flex flex-wrap items-center justify-center gap-x-1">
+            <div className="flex items-center gap-1">
+              <strong>{transaction.createdBy?.name}</strong>
+              {transaction.createdBy?.isSupporter && (
+                <SupporterBadge className="h-4 px-1 text-[9px]" />
+              )}
+            </div>
+            <span>has invited you to witness a transaction between them and</span>
+            <div className="flex items-center gap-1">
+              <strong>{transaction.contact?.name || "N/A"}</strong>
+              {transaction.contact?.isSupporter && (
+                <SupporterBadge className="h-4 px-1 text-[9px]" />
+              )}
+            </div>
+            <span>.</span>
+          </div>
         </div>
 
         {/* Transaction Details Card */}

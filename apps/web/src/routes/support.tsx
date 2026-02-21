@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, useId } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useGeoIP } from "@/hooks/useGeoIP";
-import { useContribution } from "@/hooks/useContribution";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,17 +20,18 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { redirectToLogin } from "@/utils/auth";
 import { z } from "zod";
+import { useSupport } from "@/hooks/useSupport";
 
-const createContributionSchema = (min: number, max: number, currencyCode: string) => {
+const createSupportSchema = (min: number, max: number, currencyCode: string) => {
   return z
     .number("Please enter a valid amount")
     .refine((val) => !Number.isNaN(val), "Please enter a valid amount")
-    .refine((val) => val >= min, `Minimum contribution is ${formatCurrency(min, currencyCode)}`)
-    .refine((val) => val <= max, `Maximum contribution is ${formatCurrency(max, currencyCode)}`);
+    .refine((val) => val >= min, `Minimum support is ${formatCurrency(min, currencyCode)}`)
+    .refine((val) => val <= max, `Maximum support is ${formatCurrency(max, currencyCode)}`);
 };
 
-export const Route = createFileRoute("/contribute")({
-  component: ContributePage,
+export const Route = createFileRoute("/support")({
+  component: SupportPage,
 });
 
 const CURRENCIES = [
@@ -64,10 +64,10 @@ const CURRENCIES = [
   },
 ];
 
-function ContributePage() {
+function SupportPage() {
   const { user } = useAuth();
   const customAmountId = useId();
-  const { contribute, loading: contributing } = useContribution();
+  const { support, loading: supporting } = useSupport();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
 
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[1]); // Default to USD (Global)
@@ -114,7 +114,7 @@ function ContributePage() {
   };
 
   const validateAmount = (amount: number) => {
-    const schema = createContributionSchema(
+    const schema = createSupportSchema(
       selectedCurrency.min,
       selectedCurrency.max,
       selectedCurrency.code,
@@ -135,18 +135,18 @@ function ContributePage() {
       return;
     }
 
-    const amountToContribute = selectedAmount || parseFloat(customAmount);
+    const amountToSupport = selectedAmount || parseFloat(customAmount);
 
-    const validationError = validateAmount(amountToContribute);
+    const validationError = validateAmount(amountToSupport);
     if (validationError) {
       setError(validationError);
       return;
     }
 
     try {
-      await contribute(amountToContribute, selectedCurrency.code);
+      await support(amountToSupport, selectedCurrency.code);
     } catch (_err) {
-      toast.error("Failed to process contribution. Please try again.");
+      toast.error("Failed to process support. Please try again.");
     }
   };
 
@@ -162,13 +162,13 @@ function ContributePage() {
           Support <span className="text-pink-600">Wathīqah</span>
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
-          Your contribution helps us build a trust-based financial ecosystem and keep the platform
+          Your support helps us build a trust-based financial ecosystem and keep the platform
           accessible to everyone.
         </p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-[1fr_350px]">
-        {/* Main Contribution Card */}
+        {/* Main Support Card */}
         <Card className="border-2 border-border/50 shadow-lg overflow-hidden rounded-[32px]">
           <CardHeader className="bg-muted/30 pb-8 pt-8 border-b">
             <CardTitle className="flex items-center justify-between">
@@ -180,7 +180,7 @@ function ContributePage() {
                 </div>
               )}
             </CardTitle>
-            <CardDescription>Choose a contribution level or enter your own amount.</CardDescription>
+            <CardDescription>Choose a support level or enter your own amount.</CardDescription>
           </CardHeader>
 
           <CardContent className="p-6 md:p-8 space-y-8">
@@ -254,17 +254,17 @@ function ContributePage() {
             <Button
               size="lg"
               className="w-full h-16 text-lg font-black uppercase tracking-widest bg-pink-600 hover:bg-pink-700 shadow-xl shadow-pink-600/20"
-              disabled={contributing || (!selectedAmount && !customAmount) || !!error}
+              disabled={supporting || (!selectedAmount && !customAmount) || !!error}
               onClick={handleSubmit}
             >
-              {contributing ? (
+              {supporting ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   Processing...
                 </>
               ) : (
                 <>
-                  Contribute{" "}
+                  Support{" "}
                   {currentAmount > 0 && formatCurrency(currentAmount, selectedCurrency.code)}
                 </>
               )}
@@ -273,7 +273,7 @@ function ContributePage() {
               Secure payment processing via{" "}
               {selectedCurrency.code === "NGN" ? "Flutterwave" : "Stripe/LemonSqueezy"}.
               <br />
-              By contributing, you agree to our Terms of Service.
+              By supporting, you agree to our Terms of Service.
             </p>
           </CardFooter>
         </Card>
@@ -284,7 +284,7 @@ function ContributePage() {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Zap className="w-5 h-5 text-pink-600" />
-                Why Contribute?
+                Why Support?
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">

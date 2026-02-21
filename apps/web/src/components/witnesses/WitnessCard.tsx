@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { ArrowDownLeft, ArrowUpRight, Calendar, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
@@ -52,13 +53,21 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors tracking-tight">
+                <h3 className="text-lg font-bold text-foreground truncate group-hover:text-primary transition-colors tracking-tight flex items-center gap-1.5">
                   {transaction.createdBy.name}
+                  {transaction.createdBy.isSupporter && (
+                    <SupporterBadge className="h-4 px-1 text-[9px]" />
+                  )}
                 </h3>
               </div>
-              <p className="text-[11px] text-muted-foreground font-medium opacity-70 leading-tight">
+              <p className="text-[11px] text-muted-foreground font-medium opacity-70 leading-tight flex flex-wrap items-center gap-1">
                 Invited you to witness a transaction with{" "}
-                <strong>{transaction.contact?.name || "N/A"}</strong>
+                <span className="inline-flex items-center gap-1">
+                  <strong>{transaction.contact?.name || "N/A"}</strong>
+                  {transaction.contact?.isSupporter && (
+                    <SupporterBadge className="h-3 px-1 text-[8px]" />
+                  )}
+                </span>
               </p>
             </div>
           </div>
