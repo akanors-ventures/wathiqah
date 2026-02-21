@@ -1,7 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import { SubscriptionTier, SupportStatus } from '../../generated/prisma/enums';
+import {
+  SubscriptionTier,
+  SupportStatus,
+  PaymentStatus,
+  PaymentType,
+} from '../../generated/prisma/enums';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -111,24 +116,32 @@ export class StripeService {
       throw new Error(`Webhook Error: ${err.message}`);
     }
 
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await this.handleCheckoutSessionCompleted(
-          event.data.object as Stripe.Checkout.Session,
-        );
-        break;
-      case 'customer.subscription.updated':
-        await this.handleSubscriptionUpdated(
-          event.data.object as Stripe.Subscription,
-        );
-        break;
-      case 'customer.subscription.deleted':
-        await this.handleSubscriptionDeleted(
-          event.data.object as Stripe.Subscription,
-        );
-        break;
-      default:
-        this.logger.log(`Unhandled Stripe event type: ${event.type}`);
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed':
+          await this.handleCheckoutSessionCompleted(
+            event.data.object as Stripe.Checkout.Session,
+          );
+          break;
+        case 'customer.subscription.updated':
+          await this.handleSubscriptionUpdated(
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+        case 'customer.subscription.deleted':
+          await this.handleSubscriptionDeleted(
+            event.data.object as Stripe.Subscription,
+          );
+          break;
+        default:
+          this.logger.log(`Unhandled Stripe event type: ${event.type}`);
+      }
+    } catch (err) {
+      this.logger.error(
+        `Error processing Stripe webhook event ${event.type}: ${err.message}`,
+        err.stack,
+      );
+      throw err; // Re-throw to trigger retry
     }
   }
 
@@ -141,22 +154,50 @@ export class StripeService {
       this.logger.warn('No userId found in Stripe session');
       return;
     }
-    if (session.mode === 'subscription') {
-      await this.subscriptionService.handleSubscriptionSuccess(
-        session.client_reference_id!,
-        session.subscription as string,
-        'stripe',
-        session.metadata?.tier as SubscriptionTier,
-      );
-    } else if (
-      session.mode === 'payment' &&
-      session.metadata?.type === 'support'
-    ) {
-      await this.handleSupportCompleted(session);
-    }
+
+    const amount = new Prisma.Decimal(session.amount_total! / 100);
+    const currency = session.currency?.toUpperCase() || 'USD';
+
+    await this.prisma.$transaction(async (tx) => {
+      // Create Payment Record
+      await tx.payment.create({
+        data: {
+          userId,
+          amount,
+          currency,
+          status: PaymentStatus.SUCCESSFUL,
+          provider: 'stripe',
+          externalId: (session.payment_intent as string) || session.id,
+          type:
+            session.mode === 'subscription'
+              ? PaymentType.SUBSCRIPTION
+              : PaymentType.SUPPORT,
+          metadata: session.metadata,
+        },
+      });
+
+      // Handle specific logic
+      if (session.mode === 'subscription') {
+        await this.subscriptionService.handleSubscriptionSuccess(
+          session.client_reference_id!,
+          session.subscription as string,
+          'stripe',
+          session.metadata?.tier as SubscriptionTier,
+          tx,
+        );
+      } else if (
+        session.mode === 'payment' &&
+        session.metadata?.type === 'support'
+      ) {
+        await this.handleSupportCompleted(session, tx);
+      }
+    });
   }
 
-  private async handleSupportCompleted(session: Stripe.Checkout.Session) {
+  private async handleSupportCompleted(
+    session: Stripe.Checkout.Session,
+    tx: Prisma.TransactionClient,
+  ) {
     const userId = session.client_reference_id;
     const amount = new Prisma.Decimal(session.amount_total! / 100);
     const currency = session.currency?.toUpperCase() || 'USD';
@@ -166,7 +207,7 @@ export class StripeService {
     );
 
     // Handle one-time support payment
-    await this.prisma.support.create({
+    await tx.support.create({
       data: {
         amount,
         currency,
@@ -180,7 +221,7 @@ export class StripeService {
     });
 
     if (userId) {
-      await this.prisma.user.update({
+      await tx.user.update({
         where: { id: userId },
         data: { isSupporter: true },
       });

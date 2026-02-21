@@ -78,6 +78,10 @@ model Payment {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+  @@index([provider])
+  @@index([status])
+  @@index([createdAt])
   @@map("payments")
 }
 

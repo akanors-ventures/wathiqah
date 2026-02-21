@@ -2,6 +2,7 @@ import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { SUBSCRIPTION_LIMITS, TierLimits } from './subscription.constants';
 import { SubscriptionTier } from '../../generated/prisma/enums';
+import { Prisma } from '../../generated/prisma/client';
 
 interface FeatureUsage {
   [key: string]: number;
@@ -16,31 +17,39 @@ export class SubscriptionService {
     subscriptionId: string,
     provider: 'stripe' | 'flutterwave' | 'lemonsqueezy',
     tier: SubscriptionTier,
+    tx?: Prisma.TransactionClient,
   ) {
     const now = new Date();
     const periodEnd = new Date(now);
     periodEnd.setMonth(periodEnd.getMonth() + 1); // Default to 1 month if not provided
 
-    return this.activateSubscription({
-      userId,
-      externalId: subscriptionId,
-      status: 'active',
-      provider,
-      tier: tier || SubscriptionTier.PRO,
-      currentPeriodStart: now,
-      currentPeriodEnd: periodEnd,
-    });
+    return this.activateSubscription(
+      {
+        userId,
+        externalId: subscriptionId,
+        status: 'active',
+        provider,
+        tier: tier || SubscriptionTier.PRO,
+        currentPeriodStart: now,
+        currentPeriodEnd: periodEnd,
+      },
+      tx,
+    );
   }
 
-  private async activateSubscription(data: {
-    userId: string;
-    externalId: string;
-    status: string;
-    provider: 'stripe' | 'flutterwave' | 'lemonsqueezy';
-    tier: SubscriptionTier;
-    currentPeriodStart: Date;
-    currentPeriodEnd: Date;
-  }) {
+  private async activateSubscription(
+    data: {
+      userId: string;
+      externalId: string;
+      status: string;
+      provider: 'stripe' | 'flutterwave' | 'lemonsqueezy';
+      tier: SubscriptionTier;
+      currentPeriodStart: Date;
+      currentPeriodEnd: Date;
+    },
+    tx?: Prisma.TransactionClient,
+  ) {
+    const prisma = tx || this.prisma;
     const {
       userId,
       externalId,
@@ -51,7 +60,7 @@ export class SubscriptionService {
       currentPeriodEnd,
     } = data;
 
-    await this.prisma.subscription.upsert({
+    await prisma.subscription.upsert({
       where: { userId },
       update: {
         externalId,
@@ -72,7 +81,7 @@ export class SubscriptionService {
       },
     });
 
-    return this.prisma.user.update({
+    return prisma.user.update({
       where: { id: userId },
       data: {
         tier,

@@ -70,7 +70,7 @@ export const errorLink = (uri: string) =>
           "AcceptInvitation",
           "SharedData",
           "GetGeoIPInfo",
-          "ContributionOptions",
+          "SupportOptions",
           "GetWitnessInvitation",
           "AcknowledgeWitnessRequest",
           "CreateCheckoutSession",

@@ -5,11 +5,16 @@ import {
   createCheckout,
   cancelSubscription,
 } from '@lemonsqueezy/lemonsqueezy.js';
-import { SubscriptionTier, SupportStatus } from '../../generated/prisma/enums';
+import {
+  SubscriptionTier,
+  SupportStatus,
+  PaymentStatus,
+  PaymentType,
+} from '../../generated/prisma/enums';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 
 @Injectable()
 export class LemonSqueezyService {
@@ -116,21 +121,29 @@ export class LemonSqueezyService {
     const payload = JSON.parse(body.toString());
     const eventName = payload.meta.event_name;
 
-    switch (eventName) {
-      case 'subscription_created':
-      case 'subscription_updated':
-        await this.handleSubscriptionEvent(payload);
-        break;
-      case 'subscription_cancelled':
-      case 'subscription_expired':
-        await this.handleSubscriptionCancelled(payload.data);
-        break;
-      case 'order_created':
-        const custom = payload.meta.custom_data;
-        if (custom?.type === 'support') {
-          await this.handleSupportEvent(payload);
-        }
-        break;
+    try {
+      switch (eventName) {
+        case 'subscription_created':
+        case 'subscription_updated':
+          await this.handleSubscriptionEvent(payload);
+          break;
+        case 'subscription_cancelled':
+        case 'subscription_expired':
+          await this.handleSubscriptionCancelled(payload.data);
+          break;
+        case 'order_created':
+          const custom = payload.meta.custom_data;
+          if (custom?.type === 'support') {
+            await this.handleSupportEvent(payload);
+          }
+          break;
+      }
+    } catch (err) {
+      this.logger.error(
+        `Error processing Lemon Squeezy webhook event ${eventName}: ${err.message}`,
+        err.stack,
+      );
+      throw err;
     }
 
     return { received: true };
@@ -146,12 +159,33 @@ export class LemonSqueezyService {
       return;
     }
 
-    await this.subscriptionService.handleSubscriptionSuccess(
-      custom.userId,
-      payload.data.id, // subscription ID
-      'lemonsqueezy',
-      custom.tier as SubscriptionTier,
-    );
+    const attributes = payload.data.attributes;
+    const amount = new Prisma.Decimal(attributes.total / 100);
+    const currency = attributes.currency.toUpperCase();
+
+    await this.prisma.$transaction(async (tx) => {
+      // Create Payment Record
+      await tx.payment.create({
+        data: {
+          userId,
+          amount,
+          currency,
+          status: PaymentStatus.SUCCESSFUL,
+          provider: 'lemonsqueezy',
+          externalId: payload.data.id,
+          type: PaymentType.SUBSCRIPTION,
+          metadata: payload,
+        },
+      });
+
+      await this.subscriptionService.handleSubscriptionSuccess(
+        userId,
+        payload.data.id, // subscription ID
+        'lemonsqueezy',
+        custom.tier as SubscriptionTier,
+        tx,
+      );
+    });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -164,26 +198,50 @@ export class LemonSqueezyService {
     const attributes = payload.data.attributes;
     const custom = payload.meta.custom_data;
     const userId = custom?.userId || custom?.user_id;
-    // Handle support payment
-    await this.prisma.support.create({
-      data: {
-        amount: new Prisma.Decimal(attributes.total / 100),
-        currency: attributes.currency.toUpperCase(),
-        status: SupportStatus.SUCCESSFUL,
-        paymentProvider: 'lemonsqueezy',
-        paymentRef: payload.data.id,
-        supporterId: custom.userId,
-        supporterEmail: attributes.user_email,
-        supporterName: attributes.user_name,
-      },
-    });
 
-    if (userId) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { isSupporter: true },
-      });
+    if (!userId) {
+      this.logger.warn('No userId found in Lemon Squeezy support event');
+      return;
     }
+
+    const amount = new Prisma.Decimal(attributes.total / 100);
+    const currency = attributes.currency.toUpperCase();
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.payment.create({
+        data: {
+          userId,
+          amount,
+          currency,
+          status: PaymentStatus.SUCCESSFUL,
+          provider: 'lemonsqueezy',
+          externalId: payload.data.id,
+          type: PaymentType.SUPPORT,
+          metadata: payload,
+        },
+      });
+
+      // Handle support payment
+      await tx.support.create({
+        data: {
+          amount,
+          currency,
+          status: SupportStatus.SUCCESSFUL,
+          paymentProvider: 'lemonsqueezy',
+          paymentRef: payload.data.id,
+          supporterId: userId,
+          supporterEmail: attributes.user_email,
+          supporterName: attributes.user_name,
+        },
+      });
+
+      if (userId) {
+        await tx.user.update({
+          where: { id: userId },
+          data: { isSupporter: true },
+        });
+      }
+    });
   }
 
   async cancelSubscription(subscriptionId: string) {

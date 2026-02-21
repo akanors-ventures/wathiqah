@@ -289,7 +289,7 @@ function PricingPage() {
           ))}
         </div>
 
-        {/* Contribution Section */}
+        {/* Support Section */}
         <div className="max-w-4xl mx-auto px-0 sm:px-4">
           <Card className="bg-pink-500/5 border-2 border-pink-500/20 rounded-[32px] sm:rounded-[40px] overflow-hidden">
             <CardContent className="p-6 sm:p-12 flex flex-col md:flex-row items-center gap-8 sm:gap-12">
