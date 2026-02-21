@@ -1,8 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
-import { SubscriptionTier, SupportStatus } from '../../generated/prisma/enums';
-import { User } from '../../generated/prisma/client';
+import {
+  SubscriptionTier,
+  SupportStatus,
+  PaymentStatus,
+  PaymentType,
+} from '../../generated/prisma/enums';
+import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -143,11 +148,19 @@ export class FlutterwaveService {
 
     const { event, data } = payload;
 
-    if (
-      (event === 'charge.completed' || event === 'subscription.activated') &&
-      data.status === 'successful'
-    ) {
-      await this.handlePaymentSuccessful(data);
+    try {
+      if (
+        (event === 'charge.completed' || event === 'subscription.activated') &&
+        data.status === 'successful'
+      ) {
+        await this.handlePaymentSuccessful(data);
+      }
+    } catch (err) {
+      this.logger.error(
+        `Error processing Flutterwave webhook event ${event}: ${err.message}`,
+        err.stack,
+      );
+      throw err;
     }
   }
 
@@ -179,29 +192,52 @@ export class FlutterwaveService {
       type = 'subscription';
     }
 
-    if (type === 'support') {
-      await this.handleSupportSuccessful(data, userId);
-      return;
-    }
-
     if (!userId) {
       this.logger.warn('No userId found in Flutterwave webhook metadata');
       return;
     }
 
-    await this.subscriptionService.handleSubscriptionSuccess(
-      userId,
-      data.id.toString(),
-      'flutterwave',
-      data.meta?.tier as SubscriptionTier,
-    );
+    await this.prisma.$transaction(async (tx) => {
+      // Create Payment Record
+      const amount = new Prisma.Decimal(data.amount);
+      const currency = data.currency || 'NGN';
+
+      await tx.payment.create({
+        data: {
+          userId,
+          amount,
+          currency,
+          status: PaymentStatus.SUCCESSFUL,
+          provider: 'flutterwave',
+          externalId: data.tx_ref || data.id.toString(),
+          type:
+            type === 'support' ? PaymentType.SUPPORT : PaymentType.SUBSCRIPTION,
+          metadata: data,
+        },
+      });
+
+      if (type === 'support') {
+        await this.handleSupportSuccessful(data, userId, tx);
+        return;
+      }
+
+      await this.subscriptionService.handleSubscriptionSuccess(
+        userId,
+        data.id.toString(),
+        'flutterwave',
+        data.meta?.tier as SubscriptionTier,
+        tx,
+      );
+    });
   }
 
   private async handleSupportSuccessful(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any,
     fallbackUserId?: string,
+    tx?: Prisma.TransactionClient,
   ) {
+    const prisma = tx || this.prisma;
     const userId = data.meta?.userId || fallbackUserId;
     const amount = data.amount;
     const currency = data.currency || 'NGN';
@@ -218,7 +254,7 @@ export class FlutterwaveService {
       `Handling Flutterwave support for user ${userId}: ${amount} ${currency}`,
     );
 
-    await this.prisma.support.create({
+    await prisma.support.create({
       data: {
         amount,
         currency,
@@ -232,7 +268,7 @@ export class FlutterwaveService {
     });
 
     if (userId) {
-      await this.prisma.user.update({
+      await prisma.user.update({
         where: { id: userId },
         data: { isSupporter: true },
       });

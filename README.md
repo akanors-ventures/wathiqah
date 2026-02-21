@@ -359,9 +359,9 @@ cd apps/web && pnpm build
 
 Users can grant "Shared Access" to their contacts, allowing them to view and interact with shared transactions in a collaborative way.
 
-## Contribution / Donation System
+## Support System
 
-The system allows users to contribute to the platform's development (Wathīqah Pro). This is managed through Stripe and Flutterwave.
+The system allows users to support the platform's development (Wathīqah Pro). This is managed through Stripe and Flutterwave.
 
 ---
 

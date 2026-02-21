@@ -83,7 +83,7 @@ To support global growth while maintaining strong local performance in Nigeria, 
 - **Tokenization**: Use provider-hosted fields or checkout pages to minimize PCI scope to SAQ-A (the simplest level).
 
 ### C. Legal & Tax Considerations
-- **Categorization**: Contributions for non-charity apps are usually treated as "Tips" or "Gifts" and are taxable income.
+- **Categorization**: Supports for non-charity apps are usually treated as "Tips" or "Gifts" and are taxable income.
 - **VAT/GST**: Digital services taxes may apply depending on the user's region. LemonSqueezy handles this automatically (Merchant of Record), making it highly recommended.
 
 ### D. Administrative Requirements
@@ -114,7 +114,7 @@ To support global growth while maintaining strong local performance in Nigeria, 
 ### Phase 2: Webhooks & Automation
 - **Focus**: Handling payment success/failure, auto-downgrading, notification emails.
 
-### Phase 3: Contribution System
+### Phase 3: Support System
 - **Focus**: Voluntary support flow, Supporter badges.
 
 ### Phase 4: Analytics & Insights
