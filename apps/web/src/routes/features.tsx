@@ -106,6 +106,12 @@ function FeaturesPage() {
               description="Your data is encrypted and secure. We use industry-standard authentication and data protection practices to keep your records safe."
             />
             <FeatureCard
+              icon={<Handshake className="w-8 h-8 text-pink-500" />}
+              title="Platform Support"
+              description="Show your appreciation for Wathīqah by becoming a supporter. Get a verified supporter badge on your profile and help keep the platform running."
+              to="/support"
+            />
+            <FeatureCard
               icon={<Zap className="w-8 h-8 text-yellow-500" />}
               title="Real-time Analytics"
               description="Visualize your financial trends with beautiful charts. Understand your cash position and asset allocation at a glance."

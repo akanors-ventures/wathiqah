@@ -1,13 +1,13 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
-import { ContributionStatus } from '../../../generated/prisma/client';
+import { SupportStatus } from '../../../generated/prisma/client';
 import { User } from '../../users/entities/user.entity';
 
-registerEnumType(ContributionStatus, {
-  name: 'ContributionStatus',
+registerEnumType(SupportStatus, {
+  name: 'SupportStatus',
 });
 
 @ObjectType()
-export class Contribution {
+export class Support {
   @Field(() => ID)
   id: string;
 
@@ -17,8 +17,8 @@ export class Contribution {
   @Field()
   currency: string;
 
-  @Field(() => ContributionStatus)
-  status: ContributionStatus;
+  @Field(() => SupportStatus)
+  status: SupportStatus;
 
   @Field({ nullable: true })
   paymentProvider?: string;
@@ -27,13 +27,13 @@ export class Contribution {
   paymentRef?: string;
 
   @Field({ nullable: true })
-  donorId?: string;
+  supporterId?: string;
 
   @Field({ nullable: true })
-  donorName?: string;
+  supporterName?: string;
 
   @Field({ nullable: true })
-  donorEmail?: string;
+  supporterEmail?: string;
 
   @Field({ nullable: true })
   message?: string;
@@ -48,11 +48,11 @@ export class Contribution {
   updatedAt: Date;
 
   @Field(() => User, { nullable: true })
-  donor?: User;
+  supporter?: User;
 }
 
 @ObjectType()
-export class ContributionOption {
+export class SupportOption {
   @Field(() => ID)
   id: string;
 

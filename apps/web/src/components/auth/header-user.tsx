@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TierBadge } from "@/components/ui/tier-badge";
-import { ContributorBadge } from "@/components/ui/contributor-badge";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -114,7 +114,7 @@ export default function HeaderUser() {
                   {user.name || "User"}
                 </p>
                 <div className="flex items-center gap-1">
-                  {user.isContributor && <ContributorBadge showIcon={false} className="px-1.5" />}
+                  {user.isSupporter && <SupporterBadge showIcon={false} className="px-1.5" />}
                   <TierBadge tier={tier} />
                 </div>
               </div>

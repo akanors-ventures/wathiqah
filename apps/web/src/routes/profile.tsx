@@ -19,7 +19,7 @@ import { PageLoader } from "@/components/ui/page-loader";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { TierBadge } from "@/components/ui/tier-badge";
-import { ContributorBadge } from "@/components/ui/contributor-badge";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -108,9 +108,9 @@ function ProfilePage() {
                 <div className="absolute -bottom-1 -right-1">
                   <TierBadge tier={tier} className="shadow-lg" />
                 </div>
-                {user.isContributor && (
+                {user.isSupporter && (
                   <div className="absolute -top-1 -right-1">
-                    <ContributorBadge className="shadow-lg" />
+                    <SupporterBadge className="shadow-lg" />
                   </div>
                 )}
               </div>
@@ -158,16 +158,16 @@ function ProfilePage() {
                   variant="secondary"
                   className="w-full h-11 rounded-md border-pink-500/20 hover:bg-pink-500/5 hover:text-pink-600 transition-all group"
                 >
-                  <Link to="/contribute">
+                  <Link to="/support">
                     <Heart className="w-4 h-4 mr-2 transition-all group-hover:fill-pink-500 text-pink-500" />
-                    Contribute
+                    Support
                   </Link>
                 </Button>
               </div>
             </CardContent>
             <CardFooter className="pt-0 pb-6 flex flex-col items-center px-6">
               <p className="text-[10px] text-muted-foreground text-center font-medium leading-relaxed">
-                Wathīqah is built with love by Akanors Ventures. Your contributions help us keep the
+                Wathīqah is built with love by Akanors Ventures. Your support helps us keep the
                 service running and free for everyone.
               </p>
             </CardFooter>

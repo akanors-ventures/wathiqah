@@ -1,8 +1,8 @@
 import type {
   CreateCheckoutSessionMutation,
   CreateCheckoutSessionMutationVariables,
-  CreateContributionSessionMutation,
-  CreateContributionSessionMutationVariables,
+  CreateSupportSessionMutation,
+  CreateSupportSessionMutationVariables,
 } from "@/types/__generated__/graphql";
 import { gql, type TypedDocumentNode } from "@apollo/client";
 
@@ -17,12 +17,12 @@ export const CREATE_CHECKOUT_SESSION: TypedDocumentNode<
   }
 `;
 
-export const CREATE_CONTRIBUTION_SESSION: TypedDocumentNode<
-  CreateContributionSessionMutation,
-  CreateContributionSessionMutationVariables
+export const CREATE_SUPPORT_SESSION: TypedDocumentNode<
+  CreateSupportSessionMutation,
+  CreateSupportSessionMutationVariables
 > = gql`
-  mutation CreateContributionSession($amount: Float, $currency: String) {
-    createContributionSession(amount: $amount, currency: $currency) {
+  mutation CreateSupportSession($amount: Float, $currency: String) {
+    createSupportSession(amount: $amount, currency: $currency) {
       url
     }
   }

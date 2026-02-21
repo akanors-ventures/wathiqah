@@ -1,11 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
-import {
-  SubscriptionTier,
-  ContributionStatus,
-} from '../../generated/prisma/enums';
-import { User } from '../../generated/prisma/client';
+import { SubscriptionTier, SupportStatus } from '../../generated/prisma/enums';
+import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -60,11 +57,7 @@ export class StripeService {
     return { url: session.url };
   }
 
-  async createContributionSession(
-    user: User,
-    amount?: number,
-    currency?: string,
-  ) {
+  async createSupportSession(user: User, amount?: number, currency?: string) {
     const successUrl = this.configService.get<string>('payment.successUrl');
     const cancelUrl = this.configService.get<string>('payment.cancelUrl');
     const effectiveAmount = amount || 10;
@@ -77,7 +70,7 @@ export class StripeService {
           price_data: {
             currency: effectiveCurrency,
             product_data: {
-              name: 'Wathīqah Contribution',
+              name: 'Wathīqah Support',
               description: 'Support the development of Wathīqah',
             },
             unit_amount: effectiveAmount * 100, // Stripe expects amount in cents
@@ -92,35 +85,30 @@ export class StripeService {
       cancel_url: cancelUrl,
       metadata: {
         userId: user.id,
-        type: 'contribution',
+        type: 'support',
       },
     });
 
     return { url: session.url };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async handleWebhook(rawBody: Buffer<ArrayBufferLike>, signature?: string) {
+  async handleWebhook(body: string | Buffer, signature: string) {
+    let event: Stripe.Event;
     const webhookSecret = this.configService.get<string>(
       'payment.stripe.webhookSecret',
     );
-    let event: Stripe.Event;
 
     try {
-      if (signature && webhookSecret) {
-        event = this.stripe.webhooks.constructEvent(
-          rawBody,
-          signature,
-          webhookSecret,
-        );
-      } else {
-        event = JSON.parse(rawBody.toString());
-      }
+      event = this.stripe.webhooks.constructEvent(
+        body,
+        signature,
+        webhookSecret!,
+      );
     } catch (err) {
       this.logger.error(
         `Webhook signature verification failed: ${err.message}`,
       );
-      throw new Error('Webhook signature verification failed');
+      throw new Error(`Webhook Error: ${err.message}`);
     }
 
     switch (event.type) {
@@ -148,56 +136,53 @@ export class StripeService {
     session: Stripe.Checkout.Session,
   ) {
     const userId = session.client_reference_id;
-    const metadata = session.metadata || {};
-
-    if (metadata.type === 'contribution') {
-      await this.handleContributionCompleted(session);
-      return;
-    }
 
     if (!userId) {
       this.logger.warn('No userId found in Stripe session');
       return;
     }
-
-    await this.subscriptionService.activateSubscription({
-      userId,
-      externalId: session.subscription as string,
-      status: 'active',
-      provider: 'stripe',
-      tier: (metadata.tier as SubscriptionTier) || SubscriptionTier.PRO,
-      currentPeriodStart: new Date(),
-      currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    });
+    if (session.mode === 'subscription') {
+      await this.subscriptionService.handleSubscriptionSuccess(
+        session.client_reference_id!,
+        session.subscription as string,
+        'stripe',
+        session.metadata?.tier as SubscriptionTier,
+      );
+    } else if (
+      session.mode === 'payment' &&
+      session.metadata?.type === 'support'
+    ) {
+      await this.handleSupportCompleted(session);
+    }
   }
 
-  private async handleContributionCompleted(session: Stripe.Checkout.Session) {
+  private async handleSupportCompleted(session: Stripe.Checkout.Session) {
     const userId = session.client_reference_id;
-    const amount = session.amount_total ? session.amount_total / 100 : 0;
-    const currency = session.currency ? session.currency.toUpperCase() : 'USD';
-    const paymentRef = session.id;
+    const amount = new Prisma.Decimal(session.amount_total! / 100);
+    const currency = session.currency?.toUpperCase() || 'USD';
 
     this.logger.log(
-      `Handling Stripe contribution for user ${userId}: ${amount} ${currency}`,
+      `Handling Stripe support for user ${userId}: ${amount} ${currency}`,
     );
 
-    await this.prisma.contribution.create({
+    // Handle one-time support payment
+    await this.prisma.support.create({
       data: {
         amount,
         currency,
-        status: ContributionStatus.SUCCESSFUL,
+        status: SupportStatus.SUCCESSFUL,
         paymentProvider: 'stripe',
-        paymentRef,
-        donorId: userId,
-        donorEmail: session.customer_details?.email,
-        donorName: session.customer_details?.name,
+        paymentRef: session.payment_intent as string,
+        supporterId: session.client_reference_id,
+        supporterEmail: session.customer_details?.email || undefined,
+        supporterName: session.customer_details?.name || undefined,
       },
     });
 
     if (userId) {
       await this.prisma.user.update({
         where: { id: userId },
-        data: { isContributor: true },
+        data: { isSupporter: true },
       });
     }
   }
@@ -224,10 +209,8 @@ export class StripeService {
 
   async cancelSubscription(subscriptionId: string) {
     try {
-      await this.stripe.subscriptions.update(subscriptionId, {
-        cancel_at_period_end: true,
-      });
-      this.logger.log(`Stripe subscription ${subscriptionId} set to cancel`);
+      await this.stripe.subscriptions.cancel(subscriptionId);
+      this.logger.log(`Stripe subscription ${subscriptionId} cancelled`);
     } catch (error) {
       this.logger.error(
         `Failed to cancel Stripe subscription: ${error.message}`,

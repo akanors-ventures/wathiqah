@@ -66,7 +66,7 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
-  Contribution: 'Contribution'
+  Support: 'Support'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -100,7 +100,7 @@ export const UserScalarFieldEnum = {
   subscriptionStatus: 'subscriptionStatus',
   subscriptionId: 'subscriptionId',
   featureUsage: 'featureUsage',
-  isContributor: 'isContributor'
+  isSupporter: 'isSupporter'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -316,23 +316,23 @@ export const ContactInvitationScalarFieldEnum = {
 export type ContactInvitationScalarFieldEnum = (typeof ContactInvitationScalarFieldEnum)[keyof typeof ContactInvitationScalarFieldEnum]
 
 
-export const ContributionScalarFieldEnum = {
+export const SupportScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
   currency: 'currency',
   status: 'status',
   paymentProvider: 'paymentProvider',
   paymentRef: 'paymentRef',
-  donorId: 'donorId',
-  donorName: 'donorName',
-  donorEmail: 'donorEmail',
+  supporterId: 'supporterId',
+  supporterName: 'supporterName',
+  supporterEmail: 'supporterEmail',
   message: 'message',
   isAnonymous: 'isAnonymous',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type ContributionScalarFieldEnum = (typeof ContributionScalarFieldEnum)[keyof typeof ContributionScalarFieldEnum]
+export type SupportScalarFieldEnum = (typeof SupportScalarFieldEnum)[keyof typeof SupportScalarFieldEnum]
 
 
 export const SortOrder = {

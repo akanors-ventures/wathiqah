@@ -10,6 +10,7 @@ import {
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { ContactsService } from './contacts.service';
 import { Contact } from './entities/contact.entity';
+import { Contact as PrismaContact } from '../../generated/prisma/client';
 import { CreateContactInput } from './dto/create-contact.input';
 import { UpdateContactInput } from './dto/update-contact.input';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
@@ -68,8 +69,22 @@ export class ContactsResolver {
     const status = await this.contactsService.checkContactOnPlatform(
       contact.id,
       user.id,
+      contact as PrismaContact,
     );
     return status.isRegistered;
+  }
+
+  @ResolveField(() => Boolean)
+  async isSupporter(
+    @Parent() contact: Contact,
+    @CurrentUser() user: User,
+  ): Promise<boolean> {
+    const status = await this.contactsService.checkContactOnPlatform(
+      contact.id,
+      user.id,
+      contact as PrismaContact,
+    );
+    return status.registeredUser?.isSupporter ?? false;
   }
 
   @ResolveField(() => Boolean)
@@ -80,6 +95,7 @@ export class ContactsResolver {
     const status = await this.contactsService.checkContactOnPlatform(
       contact.id,
       user.id,
+      contact as PrismaContact,
     );
     return status.hasPendingInvitation;
   }

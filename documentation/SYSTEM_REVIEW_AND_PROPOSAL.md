@@ -82,7 +82,7 @@ Currently, Wathīqah excels at tracking **Interpersonal Trust** (funds given/rec
     *   Expense breakdown by category.
 
 ### 3.3 User Stories
-- **US-01:** As a community leader, I want to create a "Winter Relief Fund" project so I can track contributions vs. purchases of blankets.
+- **US-01:** As a community leader, I want to create a "Winter Relief Fund" project so I can track support vs. purchases of blankets.
 - **US-02:** As a homeowner, I want to log every hardware store purchase against my "Kitchen Reno" project to ensure I stay within my $10k budget.
 - **US-03:** As a user, I want to see exactly how much money is remaining in my "Vacation Fund".
 

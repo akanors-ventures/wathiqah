@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import {
@@ -352,7 +353,7 @@ function TransactionsPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col gap-1">
-                                <span className="font-medium text-foreground">
+                                <span className="font-medium text-foreground flex items-center gap-1.5">
                                   {isCreator
                                     ? tx.contact?.name || (
                                         <span className="text-muted-foreground italic">
@@ -360,6 +361,11 @@ function TransactionsPage() {
                                         </span>
                                       )
                                     : tx.createdBy?.name}
+                                  {(isCreator
+                                    ? tx.contact?.isSupporter
+                                    : tx.createdBy?.isSupporter) && (
+                                    <SupporterBadge className="h-4 px-1 text-[9px]" />
+                                  )}
                                 </span>
                                 {!isCreator && (
                                   <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { ArrowDownLeft, ArrowRight, ArrowUpRight, Package, UserCircle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
@@ -20,10 +21,12 @@ interface TransactionCardProps {
     returnDirection?: string | null;
     contact?: {
       name?: string | null;
+      isSupporter?: boolean;
     } | null;
     createdBy?: {
       id: string;
       name: string;
+      isSupporter?: boolean;
     } | null;
   };
   className?: string;
@@ -131,8 +134,11 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-1 sm:gap-1.5">
-            <h3 className="text-sm sm:text-lg lg:text-xl font-bold leading-tight truncate group-hover:text-primary transition-colors tracking-tight">
+            <h3 className="text-sm sm:text-lg lg:text-xl font-bold leading-tight truncate group-hover:text-primary transition-colors tracking-tight flex items-center gap-1.5">
               {isCreator ? tx.contact?.name || "Self" : tx.createdBy?.name}
+              {(isCreator ? tx.contact?.isSupporter : tx.createdBy?.isSupporter) && (
+                <SupporterBadge className="h-4 px-1 text-[9px]" />
+              )}
             </h3>
 
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">

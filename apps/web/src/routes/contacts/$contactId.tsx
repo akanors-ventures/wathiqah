@@ -19,6 +19,7 @@ import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHe
 import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
 import {
@@ -118,6 +119,7 @@ function ContactDetailsPage() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold tracking-tight">{contact.name}</h1>
+              {contact.isSupporter && <SupporterBadge />}
               {contact.isOnPlatform ? (
                 <Badge
                   variant="outline"

@@ -12,6 +12,7 @@ import {
 import { useMemo, useState } from "react";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { Button } from "@/components/ui/button";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -30,6 +31,7 @@ interface HistoryEntry {
     id: string;
     name: string;
     email: string;
+    isSupporter?: boolean;
   };
   previousState: Record<string, unknown> | null;
   newState: Record<string, unknown> | null;
@@ -256,8 +258,11 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
                       <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-primary/5 text-primary text-[10px] sm:text-xs font-bold border border-primary/10 shadow-sm group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-all duration-500 capitalize shrink-0">
                         {item.changeType.replace(/_/g, " ").toLowerCase()}
                       </div>
-                      <span className="text-sm sm:text-base font-bold text-foreground tracking-tight group-hover/item:text-primary transition-colors truncate">
+                      <span className="text-sm sm:text-base font-bold text-foreground tracking-tight group-hover/item:text-primary transition-colors truncate flex items-center gap-1.5">
                         by {item.user.name}
+                        {item.user.isSupporter && (
+                          <SupporterBadge className="h-4 px-1 text-[9px]" />
+                        )}
                       </span>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground font-medium opacity-60 group-hover/item:opacity-90 transition-opacity">

@@ -11,7 +11,28 @@ interface FeatureUsage {
 export class SubscriptionService {
   constructor(private prisma: PrismaService) {}
 
-  async activateSubscription(data: {
+  async handleSubscriptionSuccess(
+    userId: string,
+    subscriptionId: string,
+    provider: 'stripe' | 'flutterwave' | 'lemonsqueezy',
+    tier: SubscriptionTier,
+  ) {
+    const now = new Date();
+    const periodEnd = new Date(now);
+    periodEnd.setMonth(periodEnd.getMonth() + 1); // Default to 1 month if not provided
+
+    return this.activateSubscription({
+      userId,
+      externalId: subscriptionId,
+      status: 'active',
+      provider,
+      tier: tier || SubscriptionTier.PRO,
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+    });
+  }
+
+  private async activateSubscription(data: {
     userId: string;
     externalId: string;
     status: string;

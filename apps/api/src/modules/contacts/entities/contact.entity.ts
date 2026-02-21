@@ -22,6 +22,9 @@ export class Contact {
   @Field({ nullable: true })
   phoneNumber?: string;
 
+  @Field({ nullable: true })
+  linkedUserId?: string;
+
   @Field()
   createdAt: Date;
 
@@ -39,6 +42,9 @@ export class Contact {
 
   @Field(() => Boolean)
   isOnPlatform: boolean;
+
+  @Field(() => Boolean)
+  isSupporter: boolean;
 
   @Field(() => Boolean)
   hasPendingInvitation: boolean;

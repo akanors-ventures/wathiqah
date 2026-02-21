@@ -3,6 +3,7 @@ import { Calendar, Mail, RefreshCw, Trash2, User, Users } from "lucide-react";
 import { WitnessStatus, type Witness } from "@/types/__generated__/graphql";
 import { WitnessStatusBadge } from "../witnesses/WitnessStatusBadge";
 import { Button } from "../ui/button";
+import { SupporterBadge } from "../ui/supporter-badge";
 
 export function TransactionWitnessList({
   witnesses,
@@ -46,8 +47,9 @@ export function TransactionWitnessList({
                 <User size={20} className="sm:w-[22px] sm:h-[22px]" />
               </div>
               <div className="flex flex-col min-w-0">
-                <span className="font-extrabold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors tracking-tight truncate">
+                <span className="font-extrabold text-sm sm:text-base text-foreground group-hover:text-primary transition-colors tracking-tight truncate flex items-center gap-1.5">
                   {witness.user?.name}
+                  {witness.user?.isSupporter && <SupporterBadge className="h-4 px-1 text-[9px]" />}
                 </span>
                 <div className="flex flex-wrap items-center gap-y-1 gap-x-3 sm:gap-x-4 mt-0.5 sm:mt-1">
                   <span className="text-[9px] sm:text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 truncate max-w-[150px] sm:max-w-none">

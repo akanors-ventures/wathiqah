@@ -64,19 +64,19 @@ To support global growth while maintaining strong local performance in Nigeria, 
   - Unified Checkout UI using Stripe Elements and Flutterwave Inline.
   - Billing management portal.
 
-### Phase 4: Contribution System & Community Support
+### Phase 4: Support System & Community
 - **Milestone**: Voluntary funding enabled.
-- **Deliverables**: Contribution widget, Supporter badges, Transparency dashboard.
+- **Deliverables**: Support widget, Supporter badges, Transparency dashboard.
 
 ---
 
-## 4. Contribution System: Deep Dive
+## 4. Support System: Deep Dive
 
 ### A. Feasibility & Technical Requirements
 - **Providers**: 
     - **Global**: Stripe (Checkout), BuyMeACoffee API.
     - **Local (NGN)**: Paystack or Flutterwave.
-- **Integration**: Requires a `ContributionModule` to handle one-time payment intents and success callbacks.
+- **Integration**: Requires a `SupportModule` to handle one-time payment intents and success callbacks.
 
 ### B. Security & Compliance (PCI DSS)
 - **Zero-Storage Policy**: Wathīqah will **never** store credit card numbers. All sensitive data stays within the payment provider's (Stripe/Paystack) secure environment.
@@ -88,7 +88,7 @@ To support global growth while maintaining strong local performance in Nigeria, 
 
 ### D. Administrative Requirements
 - **Payouts**: Automatic or manual transfers from the provider to your bank account.
-- **Transparency**: A simple admin dashboard to track total contributions vs. server costs.
+- **Transparency**: A simple admin dashboard to track total support vs. server costs.
 
 ---
 
@@ -96,14 +96,14 @@ To support global growth while maintaining strong local performance in Nigeria, 
 
 ### `Subscription`
 - **Query** `me`: Returns current `User` with their `tier`, `limits`, and `featureUsage`.
-- **Mutation** `createSubscriptionSession`: Returns a checkout URL/session for upgrading.
+- **Mutation** `createSupportSession`: Returns a checkout URL/session for upgrading.
 - **Webhook (REST)** `/subscription/webhook`: *Note: Webhooks remain REST-based as they are called by external providers.*
 
-### `Contribution`
-- **Query** `contributionOptions`: Returns available contribution amounts and methods.
-- **Mutation** `createContributionSession`: Returns a checkout URL/session for a contribution.
-- **Webhook**: Handles asynchronous payment confirmation and updates user's `isContributor` status.
-- **Badge System**: Triggers "Supporter" badge on user profile upon first successful contribution.
+### `Support`
+- **Query** `supportOptions`: Returns available support amounts and methods.
+- **Mutation** `createSupportSession`: Returns a checkout URL/session for a support payment.
+- **Webhook**: Handles asynchronous payment confirmation and updates user's `isSupporter` status.
+- **Badge System**: Triggers "Supporter" badge on user profile upon first successful support payment.
 
 ## 5. Integration Roadmap
 
@@ -123,9 +123,9 @@ To support global growth while maintaining strong local performance in Nigeria, 
 ## 6. Technical Deliverables
 
 - **`SubscriptionModule`**: Backend logic for tier management.
-- **`ContributionModule`**: Backend logic for voluntary funding.
+- **`SupportModule`**: Backend logic for voluntary funding.
 - **`BillingDashboard`**: Frontend view for managing plans.
-- **`SupporterWidget`**: Frontend component for contributions.
+- **`SupportWidget`**: Frontend component for support payments.
 - **`featureUsage`**: Dynamic JSON field in User model for tracking limits.
 
 ---

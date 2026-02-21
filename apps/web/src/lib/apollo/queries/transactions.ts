@@ -63,6 +63,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
       contact {
         id
         name
+        isSupporter
       }
       witnesses {
         id
@@ -73,6 +74,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
           id
           name
           email
+          isSupporter
         }
       }
       history {
@@ -85,6 +87,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
           id
           name
           email
+          isSupporter
         }
       }
     }
@@ -121,10 +124,12 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
         createdBy {
           id
           name
+          isSupporter
         }
         contact {
           id
           name
+          isSupporter
         }
         witnesses {
           id
@@ -169,10 +174,12 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
         id
         name
         email
+        isSupporter
       }
       contact {
         id
         name
+        isSupporter
       }
       witnesses {
         id
@@ -183,6 +190,7 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
           id
           name
           email
+          isSupporter
         }
       }
     }
@@ -198,6 +206,7 @@ export const GET_TRANSACTIONS_GROUPED_BY_CONTACT: TypedDocumentNode<
       contact {
         id
         name
+        isSupporter
       }
       summary {
         totalGiven
@@ -245,6 +254,7 @@ export const ADD_WITNESS: TypedDocumentNode<AddWitnessMutation, AddWitnessMutati
           id
           name
           email
+          isSupporter
         }
       }
     }
@@ -270,6 +280,7 @@ export const UPDATE_TRANSACTION: TypedDocumentNode<
       contact {
         id
         name
+        isSupporter
       }
     }
   }

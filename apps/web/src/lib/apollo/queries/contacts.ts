@@ -25,6 +25,7 @@ export const GET_CONTACTS: TypedDocumentNode<GetContactsQuery, GetContactsQueryV
       phoneNumber
       balance
       isOnPlatform
+      isSupporter
       hasPendingInvitation
       createdAt
     }
@@ -40,6 +41,7 @@ export const GET_CONTACT: TypedDocumentNode<GetContactQuery, GetContactQueryVari
       phoneNumber
       balance
       isOnPlatform
+      isSupporter
       hasPendingInvitation
       createdAt
     }

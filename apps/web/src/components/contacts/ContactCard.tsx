@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, MoreVertical, Wallet } from "lucide-react";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ export interface ContactSummary {
   email?: string | null;
   phoneNumber?: string | null;
   isOnPlatform?: boolean;
+  isSupporter?: boolean;
   hasPendingInvitation?: boolean;
   lentCount?: number;
   borrowedCount?: number;
@@ -70,6 +72,7 @@ export function ContactCard<T extends ContactSummary>({
               >
                 <h3 className="font-bold text-lg text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-2 tracking-tight">
                   {contact.name ?? "Unnamed"}
+                  {contact.isSupporter && <SupporterBadge className="h-4 px-1 text-[9px]" />}
                   <ArrowRight className="w-4 h-4 opacity-0 -translate-x-3 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all duration-300 text-primary/60" />
                 </h3>
               </Link>

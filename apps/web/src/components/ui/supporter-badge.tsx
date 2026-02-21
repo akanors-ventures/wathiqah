@@ -2,12 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Heart } from "lucide-react";
 
-interface ContributorBadgeProps {
+interface SupporterBadgeProps {
   className?: string;
   showIcon?: boolean;
 }
 
-export function ContributorBadge({ className, showIcon = true }: ContributorBadgeProps) {
+export function SupporterBadge({ className, showIcon = true }: SupporterBadgeProps) {
   return (
     <Badge
       className={cn(

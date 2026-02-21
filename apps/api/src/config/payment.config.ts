@@ -12,14 +12,14 @@ export default registerAs('payment', () => ({
     encryptionKey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
     webhookHash: process.env.FLUTTERWAVE_WEBHOOK_HASH,
     proPlanId: process.env.FLUTTERWAVE_PRO_PLAN_ID,
-    donationLink: process.env.FLUTTERWAVE_DONATION_LINK,
+    supportLink: process.env.FLUTTERWAVE_SUPPORT_LINK,
   },
   lemonsqueezy: {
     apiKey: process.env.LEMON_SQUEEZY_API_KEY,
     webhookSecret: process.env.LEMON_SQUEEZY_WEBHOOK_SECRET,
     storeId: process.env.LEMON_SQUEEZY_STORE_ID,
     proVariantId: process.env.LEMON_SQUEEZY_PRO_VARIANT_ID,
-    contributionVariantId: process.env.LEMON_SQUEEZY_CONTRIBUTION_VARIANT_ID,
+    supportVariantId: process.env.LEMON_SQUEEZY_SUPPORT_VARIANT_ID,
   },
   globalProvider: process.env.GLOBAL_PAYMENT_PROVIDER || 'stripe', // 'stripe' or 'lemonsqueezy'
   successUrl:
