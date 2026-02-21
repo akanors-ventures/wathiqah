@@ -101,6 +101,7 @@ export default function Header() {
             </NavDropdown>
 
             <NavLink to="/features">Features</NavLink>
+            <NavLink to="/pricing">Pricing</NavLink>
           </nav>
 
           {/* Mobile Navigation (Dropdown) */}
@@ -177,6 +178,12 @@ export default function Header() {
                   <Link to="/features" className="cursor-pointer flex items-center gap-2">
                     <LayoutGrid className="h-4 w-4 text-primary" />
                     <span>Features</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/pricing" className="cursor-pointer flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-primary" />
+                    <span>Pricing</span>
                   </Link>
                 </DropdownMenuItem>
                 {!isPro && (

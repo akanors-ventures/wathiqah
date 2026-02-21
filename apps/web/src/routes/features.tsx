@@ -13,6 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/layout/Footer";
 
 export const Route = createFileRoute("/features")({
   component: FeaturesPage,
@@ -265,6 +266,8 @@ function FeaturesPage() {
           </div>
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }
