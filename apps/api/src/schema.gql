@@ -342,6 +342,7 @@ input SearchWitnessInput {
 }
 
 type SharedDataEntity {
+  projects: [Project!]
   promises: [Promise!]
   transactions: [Transaction!]
   user: User

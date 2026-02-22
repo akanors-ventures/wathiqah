@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Eye, History, Lock, Package, User } from "lucide-react";
+import { ArrowLeft, Eye, History, Lock, Package, User, Briefcase } from "lucide-react";
 import { PromiseCard } from "@/components/promises/PromiseCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,7 @@ function SharedAccessView() {
 
   if (!data) return <div className="p-8">No data found.</div>;
 
-  const { user, transactions, promises } = data;
+  const { user, transactions, promises, projects } = data;
 
   return (
     <div className="container mx-auto py-8 space-y-8 max-w-6xl px-4">
@@ -139,6 +139,15 @@ function SharedAccessView() {
                 Promises
                 <span className="ml-2.5 px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-black">
                   {promises?.length}
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="projects"
+                className="rounded-xl px-8 py-3 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-background data-[state=active]:shadow-lg transition-all"
+              >
+                Projects
+                <span className="ml-2.5 px-2 py-0.5 rounded-lg bg-primary/10 text-primary font-black">
+                  {projects?.length || 0}
                 </span>
               </TabsTrigger>
             </TabsList>
@@ -309,6 +318,61 @@ function SharedAccessView() {
                       </div>
                       <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">
                         No promises shared.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="projects" className="mt-0 focus-visible:outline-none">
+              <div className="grid gap-6 md:grid-cols-2">
+                {projects?.map((project) => (
+                  <Card
+                    key={project.id}
+                    className="group hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all duration-500 rounded-[24px] overflow-hidden border-border/50"
+                  >
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+                        {project.name}
+                      </CardTitle>
+                      <div className="p-2 rounded-xl bg-muted/20 text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500">
+                        <Briefcase className="w-4 h-4" />
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-black tracking-tight text-foreground">
+                        {formatCurrency(project.balance, project.currency)}
+                      </div>
+                      {project.budget && (
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 mt-1">
+                          Budget: {formatCurrency(project.budget, project.currency)}
+                        </p>
+                      )}
+                      {project.description && (
+                        <p className="text-xs text-muted-foreground mt-4 line-clamp-2">
+                          {project.description}
+                        </p>
+                      )}
+                      <div className="mt-6 h-1.5 bg-secondary/50 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-primary transition-all duration-1000 ease-out"
+                          style={{
+                            width: `${Math.min((project.budget ? project.balance / project.budget : 0) * 100, 100)}%`,
+                          }}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {projects?.length === 0 && (
+                  <div className="col-span-full text-center py-20 bg-muted/5 rounded-[32px] border-2 border-dashed border-border/50">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="p-4 rounded-full bg-muted/20">
+                        <Briefcase className="w-8 h-8 text-muted-foreground/40" />
+                      </div>
+                      <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">
+                        No projects shared.
                       </p>
                     </div>
                   </div>

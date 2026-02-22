@@ -621,6 +621,7 @@ export type SearchWitnessInput = {
 
 export type SharedDataEntity = {
   __typename: 'SharedDataEntity';
+  projects: Maybe<Array<Project>>;
   promises: Maybe<Array<Promise>>;
   transactions: Maybe<Array<Transaction>>;
   user: Maybe<User>;
@@ -1109,7 +1110,7 @@ export type SharedDataQueryVariables = Exact<{
 }>;
 
 
-export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } | null, transactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, date: string, description: string | null, category: AssetCategory, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, user: { __typename: 'User', name: string } | null }> | null }> | null, promises: Array<{ __typename: 'Promise', id: string, description: string, promiseTo: string, dueDate: string, priority: Priority, status: PromiseStatus, notes: string | null }> | null } };
+export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } | null, transactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, date: string, description: string | null, category: AssetCategory, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, user: { __typename: 'User', name: string } | null }> | null }> | null, promises: Array<{ __typename: 'Promise', id: string, description: string, promiseTo: string, dueDate: string, priority: Priority, status: PromiseStatus, notes: string | null }> | null, projects: Array<{ __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, createdAt: string, updatedAt: string }> | null } };
 
 export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 

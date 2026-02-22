@@ -142,7 +142,7 @@ export class SharedAccessService {
       throw new ForbiddenException('You must accept the invitation first');
     }
 
-    const [transactions, promises] = await Promise.all([
+    const [transactions, promises, projects] = await Promise.all([
       this.prisma.transaction.findMany({
         where: { createdById: grant.granterId },
         include: {
@@ -155,12 +155,17 @@ export class SharedAccessService {
         where: { userId: grant.granterId },
         orderBy: { createdAt: 'desc' },
       }),
+      this.prisma.project.findMany({
+        where: { userId: grant.granterId },
+        orderBy: { createdAt: 'desc' },
+      }),
     ]);
 
     return {
       user: grant.granter,
       transactions,
       promises,
+      projects,
     };
   }
 }
