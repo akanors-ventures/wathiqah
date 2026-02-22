@@ -7,6 +7,16 @@
 - **Company Website**: [akanors.com](https://akanors.com)
 - **Legal**: [Terms of Service](https://wathiqah.akanors.com/legal/terms) | [Privacy Policy](https://wathiqah.akanors.com/legal/privacy)
 
+## 📚 Documentation
+
+For full documentation, please visit the [**Documentation Hub**](./docs/README.md).
+
+- [**Project Overview**](./docs/overview.md): Purpose, philosophy, and key concepts.
+- [**Features Guide**](./docs/features.md): Detailed usage instructions for transactions, witnesses, and more.
+- [**Installation & Setup**](./docs/installation.md): Step-by-step guide to running Wathīqah locally.
+- [**API Reference**](./docs/api-reference.md): GraphQL API overview and key operations.
+- [**Contributing**](./CONTRIBUTING.md): Guidelines for developers.
+
 
 
 ## Philosophy & Financial Logic
