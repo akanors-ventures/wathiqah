@@ -1,0 +1,29 @@
+name: Deploy Database Migrations
+on:
+  push:
+    branches: [main, staging, dev]
+    paths:
+      - 'apps/api/prisma/migrations/**'
+      - 'apps/api/prisma/schema.prisma'
+      - 'apps/api/atlas.hcl'
+  pull_request:
+    branches: [main, staging, dev]
+    paths:
+      - 'apps/api/prisma/migrations/**'
+      - 'apps/api/prisma/schema.prisma'
+      - 'apps/api/atlas.hcl'
+defaults:
+  run:
+    working-directory: apps/api
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ariga/setup-atlas@v0
+      - name: Deploy Atlas Migrations
+        uses: ariga/atlas-action/migrate/apply@v1
+        with:
+          url: ${{ secrets.DATABASE_URL }}
+          dir: apps/api/prisma/migrations
