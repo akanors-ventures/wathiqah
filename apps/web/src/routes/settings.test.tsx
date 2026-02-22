@@ -159,6 +159,14 @@ vi.mock("lucide-react", () => ({
   Globe: () => <svg data-testid="globe-icon" />,
   Moon: () => <svg data-testid="moon-icon" />,
   LogOut: () => <svg data-testid="logout-icon" />,
+  Key: () => <svg data-testid="key-icon" />,
+  Coins: () => <svg data-testid="coins-icon" />,
+  Eye: () => <svg data-testid="eye-icon" />,
+  UserPlus: () => <svg data-testid="user-plus-icon" />,
+  Plus: () => <svg data-testid="plus-icon" />,
+  Trash2: () => <svg data-testid="trash2-icon" />,
+  Calendar: () => <svg data-testid="calendar-icon" />,
+  ExternalLink: () => <svg data-testid="external-link-icon" />,
 }));
 
 // Mock router
@@ -333,7 +341,9 @@ describe("SettingsPage", () => {
       fireEvent.click(button);
 
       await waitFor(() => {
-        expect(mockGrantAccess).toHaveBeenCalledWith({ email: "newuser@example.com" });
+        expect(mockGrantAccess).toHaveBeenCalledWith({
+          email: "newuser@example.com",
+        });
       });
     });
   });
