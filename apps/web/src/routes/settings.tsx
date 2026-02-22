@@ -1,7 +1,9 @@
+import { useMutation } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Calendar,
   Coins,
+  CreditCard,
   ExternalLink,
   Eye,
   Key,
@@ -9,13 +11,27 @@ import {
   Trash2,
   User,
   UserPlus,
+  Zap,
 } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -26,6 +42,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSharedAccess } from "@/hooks/useSharedAccess";
+import { useSubscription } from "@/hooks/useSubscription";
+import { CANCEL_SUBSCRIPTION } from "@/lib/apollo/queries/payment";
 import { cn } from "@/lib/utils";
 import { authGuard } from "@/utils/auth";
 
@@ -44,7 +62,7 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
-function SettingsPage() {
+export function SettingsPage() {
   const { user, loading: authLoading } = useAuth();
 
   if (authLoading) return <PageLoader />;
@@ -55,6 +73,7 @@ function SettingsPage() {
       <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
 
       <div className="grid gap-8">
+        <BillingSection />
         <PreferencesSection />
         <SharedAccessSection />
 
@@ -73,7 +92,185 @@ function SettingsPage() {
   );
 }
 
-function PreferencesSection() {
+export function BillingSection() {
+  const {
+    tier,
+    subscription,
+    loading,
+    witnessUsage,
+    maxWitnessesPerMonth,
+    isPro,
+    refetch,
+    cancelAtPeriodEnd,
+    currentPeriodEnd,
+  } = useSubscription();
+
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+
+  const [cancelSubscription, { loading: cancelling }] = useMutation(CANCEL_SUBSCRIPTION, {
+    onCompleted: () => {
+      toast.success("Subscription cancelled successfully");
+      setShowCancelDialog(false);
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to cancel subscription");
+      setShowCancelDialog(false);
+    },
+  });
+
+  const handleCancel = async () => {
+    await cancelSubscription();
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-card border border-border rounded-lg p-6 shadow-sm h-40 flex items-center justify-center">
+        <BrandLoader size="md" />
+      </div>
+    );
+  }
+
+  const isUnlimited = maxWitnessesPerMonth === Infinity;
+  const usagePercent = isUnlimited ? 0 : Math.min(100, (witnessUsage / maxWitnessesPerMonth) * 100);
+  const status = subscription?.subscriptionStatus || "active";
+  const statusLabel = cancelAtPeriodEnd ? "Cancelling" : status;
+  const statusColor = cancelAtPeriodEnd
+    ? "text-amber-600 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20"
+    : status === "active"
+      ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20"
+      : "";
+
+  return (
+    <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
+      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <CreditCard className="w-5 h-5" />
+        Subscription & Billing
+      </h2>
+      <p className="text-muted-foreground mb-6">
+        Manage your subscription plan and view feature usage.
+      </p>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Plan Details */}
+        <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+                Current Plan
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-2xl font-black">{tier}</span>
+                {isPro && (
+                  <Badge
+                    variant="default"
+                    className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                  >
+                    PRO
+                  </Badge>
+                )}
+              </div>
+              {currentPeriodEnd && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {cancelAtPeriodEnd
+                    ? `Access until ${currentPeriodEnd.toLocaleDateString()}`
+                    : `Renews on ${currentPeriodEnd.toLocaleDateString()}`}
+                </p>
+              )}
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+                Status
+              </p>
+              <Badge
+                variant={status === "active" && !cancelAtPeriodEnd ? "default" : "secondary"}
+                className={cn("uppercase", statusColor)}
+              >
+                {statusLabel}
+              </Badge>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            {isPro && !cancelAtPeriodEnd ? (
+              <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full font-bold"
+                    disabled={cancelling}
+                  >
+                    {cancelling ? "Cancelling..." : "Cancel Subscription"}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Cancel Subscription?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to cancel your subscription? You will lose access to Pro
+                      features at the end of your billing period.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={cancelling}>Keep Subscription</AlertDialogCancel>
+                    <AlertDialogAction
+                      disabled={cancelling}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleCancel();
+                      }}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      {cancelling ? "Cancelling..." : "Yes, Cancel"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : isPro && cancelAtPeriodEnd ? (
+              <div className="text-sm text-center text-amber-600 font-medium bg-amber-50 p-2 rounded border border-amber-200">
+                Auto-renewal disabled
+              </div>
+            ) : (
+              <Button asChild size="sm" className="w-full font-bold">
+                <Link to="/pricing">Upgrade to Pro</Link>
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Usage Stats */}
+        <div className="space-y-4 p-4 rounded-xl bg-muted/30 border border-border/50">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span className="text-sm font-bold">Witness Requests</span>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground">
+              {isUnlimited ? "Unlimited" : `${witnessUsage} / ${maxWitnessesPerMonth}`}
+            </span>
+          </div>
+
+          {isUnlimited ? (
+            <div className="h-2 w-full bg-emerald-500/20 rounded-full overflow-hidden relative">
+              <div className="absolute inset-0 bg-emerald-500/40 animate-pulse" />
+            </div>
+          ) : (
+            <Progress value={usagePercent} className="h-2" />
+          )}
+
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            {isUnlimited
+              ? "You have unlimited witness requests on the Pro plan."
+              : `You have used ${witnessUsage} of your ${maxWitnessesPerMonth} monthly witness requests.`}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PreferencesSection() {
   const { user } = useAuth();
   const { updateUser, updating } = useProfile();
   const [preferredCurrency, setPreferredCurrency] = useState("NGN");
@@ -144,7 +341,7 @@ function PreferencesSection() {
   );
 }
 
-function SharedAccessSection() {
+export function SharedAccessSection() {
   const {
     accessGrants,
     receivedGrants,

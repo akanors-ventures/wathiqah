@@ -9,10 +9,14 @@ import {
   SubscriptionTier,
 } from './subscription.constants';
 import { UsersService } from '../users/users.service';
+import { SubscriptionService } from './subscription.service';
 
 @Resolver()
 export class SubscriptionResolver {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly subscriptionService: SubscriptionService,
+  ) {}
 
   @Query(() => SubscriptionInfo, { name: 'mySubscription' })
   @UseGuards(GqlAuthGuard)
@@ -20,12 +24,18 @@ export class SubscriptionResolver {
     @CurrentUser() user: User,
   ): Promise<SubscriptionInfo> {
     const fullUser = await this.usersService.findOne(user.id);
+    const subscription = await this.subscriptionService.getSubscription(
+      user.id,
+    );
+
     const tier = fullUser?.tier || SubscriptionTier.FREE;
     return {
       tier,
       limits: SUBSCRIPTION_LIMITS[tier],
       featureUsage: fullUser?.featureUsage as Record<string, unknown>,
       subscriptionStatus: fullUser?.subscriptionStatus,
+      cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd,
+      currentPeriodEnd: subscription?.currentPeriodEnd,
     };
   }
 }

@@ -1,4 +1,6 @@
 import type {
+  CancelSubscriptionMutation,
+  CancelSubscriptionMutationVariables,
   CreateCheckoutSessionMutation,
   CreateCheckoutSessionMutationVariables,
   CreateSupportSessionMutation,
@@ -25,5 +27,14 @@ export const CREATE_SUPPORT_SESSION: TypedDocumentNode<
     createSupportSession(amount: $amount, currency: $currency) {
       url
     }
+  }
+`;
+
+export const CANCEL_SUBSCRIPTION: TypedDocumentNode<
+  CancelSubscriptionMutation,
+  CancelSubscriptionMutationVariables
+> = gql`
+  mutation CancelSubscription {
+    cancelSubscription
   }
 `;

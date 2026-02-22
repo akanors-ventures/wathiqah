@@ -19,15 +19,15 @@ const config = defineConfig({
   },
   plugins: [
     devtools(),
-    nitro(),
+    !process.env.VITEST && nitro(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
       projects: ["./tsconfig.json"],
     }),
     tailwindcss(),
-    tanstackStart(),
+    !process.env.VITEST && tanstackStart(),
     viteReact(),
-  ],
+  ].filter(Boolean),
   test: {
     environment: "jsdom",
     globals: true,

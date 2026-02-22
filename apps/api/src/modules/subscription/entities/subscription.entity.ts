@@ -32,6 +32,12 @@ export class SubscriptionInfo {
 
   @Field(() => String, { nullable: true })
   subscriptionStatus?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  cancelAtPeriodEnd?: boolean;
+
+  @Field(() => Date, { nullable: true })
+  currentPeriodEnd?: Date;
 }
 
 @ObjectType()
