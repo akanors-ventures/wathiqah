@@ -250,8 +250,12 @@ export class StripeService {
 
   async cancelSubscription(subscriptionId: string) {
     try {
-      await this.stripe.subscriptions.cancel(subscriptionId);
-      this.logger.log(`Stripe subscription ${subscriptionId} cancelled`);
+      await this.stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: true,
+      });
+      this.logger.log(
+        `Stripe subscription ${subscriptionId} set to cancel at period end`,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to cancel Stripe subscription: ${error.message}`,

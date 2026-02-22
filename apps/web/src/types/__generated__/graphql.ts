@@ -635,6 +635,8 @@ export type SignupInput = {
 
 export type SubscriptionInfo = {
   __typename: 'SubscriptionInfo';
+  cancelAtPeriodEnd: Maybe<Scalars['Boolean']['output']>;
+  currentPeriodEnd: Maybe<Scalars['DateTime']['output']>;
   featureUsage: Maybe<Scalars['JSON']['output']>;
   limits: TierLimitsEntity;
   subscriptionStatus: Maybe<Scalars['String']['output']>;
@@ -1003,6 +1005,11 @@ export type CreateSupportSessionMutationVariables = Exact<{
 
 export type CreateSupportSessionMutation = { createSupportSession: { __typename: 'CheckoutSession', url: string } };
 
+export type CancelSubscriptionMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CancelSubscriptionMutation = { cancelSubscription: boolean };
+
 export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string };
 
 export type ProjectTransactionFieldsFragment = { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string };
@@ -1107,7 +1114,7 @@ export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', us
 export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
+export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
 
 export type TotalBalanceQueryVariables = Exact<{
   currency?: InputMaybe<Scalars['String']['input']>;

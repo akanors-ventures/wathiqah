@@ -355,6 +355,8 @@ input SignupInput {
 }
 
 type SubscriptionInfo {
+  cancelAtPeriodEnd: Boolean
+  currentPeriodEnd: DateTime
   featureUsage: JSON
   limits: TierLimitsEntity!
   subscriptionStatus: String

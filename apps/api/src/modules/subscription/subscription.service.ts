@@ -12,6 +12,12 @@ interface FeatureUsage {
 export class SubscriptionService {
   constructor(private prisma: PrismaService) {}
 
+  async getSubscription(userId: string) {
+    return this.prisma.subscription.findUnique({
+      where: { userId },
+    });
+  }
+
   async handleSubscriptionSuccess(
     userId: string,
     subscriptionId: string,
@@ -91,13 +97,17 @@ export class SubscriptionService {
     });
   }
 
-  async updateSubscriptionStatus(data: {
-    externalId: string;
-    status: string;
-    currentPeriodStart?: Date;
-    currentPeriodEnd?: Date;
-    cancelAtPeriodEnd?: boolean;
-  }) {
+  async updateSubscriptionStatus(
+    data: {
+      externalId: string;
+      status: string;
+      currentPeriodStart?: Date;
+      currentPeriodEnd?: Date;
+      cancelAtPeriodEnd?: boolean;
+    },
+    tx?: Prisma.TransactionClient,
+  ) {
+    const prisma = tx || this.prisma;
     const {
       externalId,
       status,
@@ -106,13 +116,13 @@ export class SubscriptionService {
       cancelAtPeriodEnd,
     } = data;
 
-    const subscription = await this.prisma.subscription.findFirst({
+    const subscription = await prisma.subscription.findFirst({
       where: { externalId },
     });
 
     if (!subscription) return;
 
-    await this.prisma.subscription.update({
+    await prisma.subscription.update({
       where: { id: subscription.id },
       data: {
         status,
@@ -122,7 +132,7 @@ export class SubscriptionService {
       },
     });
 
-    return this.prisma.user.update({
+    return prisma.user.update({
       where: { id: subscription.userId },
       data: {
         subscriptionStatus: status,

@@ -289,7 +289,17 @@ export class FlutterwaveService {
           },
         },
       );
-      this.logger.log(`Flutterwave subscription ${subscriptionId} cancelled`);
+
+      // Update local subscription to reflect auto-renewal cancellation
+      await this.subscriptionService.updateSubscriptionStatus({
+        externalId: subscriptionId,
+        status: 'active',
+        cancelAtPeriodEnd: true,
+      });
+
+      this.logger.log(
+        `Flutterwave subscription ${subscriptionId} set to cancel at period end`,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to cancel Flutterwave subscription: ${error.message}`,

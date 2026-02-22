@@ -162,6 +162,7 @@ export class LemonSqueezyService {
     const attributes = payload.data.attributes;
     const amount = new Prisma.Decimal(attributes.total / 100);
     const currency = attributes.currency.toUpperCase();
+    const eventName = payload.meta.event_name;
 
     await this.prisma.$transaction(async (tx) => {
       // Create Payment Record
@@ -178,19 +179,49 @@ export class LemonSqueezyService {
         },
       });
 
-      await this.subscriptionService.handleSubscriptionSuccess(
-        userId,
-        payload.data.id, // subscription ID
-        'lemonsqueezy',
-        custom.tier as SubscriptionTier,
-        tx,
-      );
+      if (eventName === 'subscription_created') {
+        await this.subscriptionService.handleSubscriptionSuccess(
+          userId,
+          payload.data.id, // subscription ID
+          'lemonsqueezy',
+          custom.tier as SubscriptionTier,
+          tx,
+        );
+      } else {
+        // subscription_updated
+        await this.subscriptionService.updateSubscriptionStatus(
+          {
+            externalId: payload.data.id,
+            status: attributes.status,
+            currentPeriodEnd: attributes.ends_at
+              ? new Date(attributes.ends_at)
+              : undefined,
+            cancelAtPeriodEnd: attributes.cancelled,
+          },
+          tx,
+        );
+      }
     });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleSubscriptionCancelled(data: any) {
-    await this.subscriptionService.deactivateSubscription(data.id);
+    const attributes = data.attributes;
+    const endsAt = attributes.ends_at ? new Date(attributes.ends_at) : null;
+    const isFuture = endsAt && endsAt > new Date();
+
+    if (isFuture) {
+      // Scheduled cancellation (cancel at period end)
+      await this.subscriptionService.updateSubscriptionStatus({
+        externalId: data.id,
+        status: attributes.status,
+        currentPeriodEnd: endsAt,
+        cancelAtPeriodEnd: true,
+      });
+    } else {
+      // Immediate cancellation or expiration
+      await this.subscriptionService.deactivateSubscription(data.id);
+    }
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
