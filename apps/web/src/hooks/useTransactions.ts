@@ -14,10 +14,12 @@ export function useTransactions(filter?: FilterTransactionInput) {
 
   const [createTransactionMutation, { loading: creating }] = useMutation(CREATE_TRANSACTION, {
     onCompleted: () => refetch(),
+    refetchQueries: ["TotalBalance"],
   });
 
   const [removeTransactionMutation, { loading: removing }] = useMutation(REMOVE_TRANSACTION, {
     onCompleted: () => refetch(),
+    refetchQueries: ["TotalBalance"],
   });
 
   const createTransaction = async (input: CreateTransactionInput) => {

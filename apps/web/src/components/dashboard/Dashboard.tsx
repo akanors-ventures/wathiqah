@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { format } from "date-fns";
-import { CalendarClock, CreditCard, FileCheck, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { endOfMonth, endOfYear, format, startOfMonth, startOfYear } from "date-fns";
+import { CalendarClock, CreditCard, FileCheck, Users, Calendar } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
@@ -24,9 +24,12 @@ import { useMyWitnessRequests } from "@/hooks/useWitnesses";
 import { LedgerPhilosophy } from "./LedgerPhilosophy";
 import { StatsCard } from "./StatsCard";
 
+type Period = "ALL" | "MONTH" | "YEAR";
+
 export function Dashboard() {
   const { user } = useAuth();
   const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>();
+  const [period, setPeriod] = useState<Period>("MONTH");
 
   useEffect(() => {
     if (user?.preferredCurrency) {
@@ -34,18 +37,63 @@ export function Dashboard() {
     }
   }, [user?.preferredCurrency]);
 
-  const { transactions, loading: loadingTx } = useTransactions();
+  const dateFilter = useMemo(() => {
+    const now = new Date();
+    if (period === "MONTH") {
+      return {
+        startDate: startOfMonth(now).toISOString(),
+        endDate: endOfMonth(now).toISOString(),
+      };
+    }
+    if (period === "YEAR") {
+      return {
+        startDate: startOfYear(now).toISOString(),
+        endDate: endOfYear(now).toISOString(),
+      };
+    }
+    return undefined;
+  }, [period]);
+
+  const { transactions, loading: loadingTx } = useTransactions({ limit: 6 });
   const { contacts, loading: loadingContacts } = useContacts();
-  const { balance, loading: loadingBalance } = useBalance(selectedCurrency);
+
+  // 1. Total Balance (Always All Time)
+  const { balance: totalBalanceData, loading: loadingTotalBalance } = useBalance(selectedCurrency);
+
+  // 2. Period Stats (Inflow/Outflow)
+  const { balance: periodBalanceData, loading: loadingPeriodBalance } = useBalance(
+    selectedCurrency,
+    dateFilter,
+  );
+
   const { requests: witnessRequests, loading: loadingWitnesses } = useMyWitnessRequests();
   const { promises, loading: loadingPromises } = usePromises();
 
   const loading =
-    loadingTx || loadingContacts || loadingWitnesses || loadingPromises || loadingBalance;
+    loadingTx ||
+    loadingContacts ||
+    loadingWitnesses ||
+    loadingPromises ||
+    loadingTotalBalance ||
+    loadingPeriodBalance;
 
   // Calculate Stats
-  const totalBalance = balance?.netBalance || 0;
-  const balanceCurrency = balance?.currency || "NGN";
+  const totalBalance = totalBalanceData?.netBalance || 0;
+
+  // Use period data for Inflow/Outflow
+  const periodIncome =
+    (periodBalanceData?.totalIncome || 0) +
+    (periodBalanceData?.totalReceived || 0) +
+    (periodBalanceData?.totalReturnedToMe || 0) +
+    (periodBalanceData?.totalGiftReceived || 0);
+
+  const periodExpense =
+    (periodBalanceData?.totalExpense || 0) +
+    (periodBalanceData?.totalGiven || 0) +
+    (periodBalanceData?.totalReturnedToOther || 0) +
+    (periodBalanceData?.totalGiftGiven || 0);
+
+  const balanceCurrency = totalBalanceData?.currency || "NGN";
   const isDebtByRule = totalBalance < 0;
   const activePromises = promises.filter((p) => p.status === PromiseStatus.Pending).length;
   const pendingWitnessRequests = witnessRequests.filter(
@@ -54,7 +102,13 @@ export function Dashboard() {
   const totalContacts = contacts.length;
   const currencies = ["NGN", "USD", "EUR", "GBP", "CAD", "AED", "SAR"];
 
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = transactions;
+
+  const getPeriodLabel = () => {
+    if (period === "MONTH") return "This Month";
+    if (period === "YEAR") return "This Year";
+    return "All Time";
+  };
 
   if (loading) {
     return (
@@ -76,7 +130,21 @@ export function Dashboard() {
             Personal ledger for loans, promises, and shared expenses
           </p>
         </div>
-        <div className="flex w-full sm:w-auto gap-3">
+        <div className="flex w-full sm:w-auto gap-3 items-center">
+          <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+            <SelectTrigger className="w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="MONTH">This Month</SelectItem>
+              <SelectItem value="YEAR">This Year</SelectItem>
+              <SelectItem value="ALL">All Time</SelectItem>
+            </SelectContent>
+          </Select>
+
           <Button
             asChild
             className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
@@ -118,7 +186,33 @@ export function Dashboard() {
             />
           }
           icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-          description="Your current cash position"
+          description="Your current cash position (All Time)"
+        />
+        <StatsCard
+          title={`Inflow (${getPeriodLabel()})`}
+          value={
+            <BalanceIndicator
+              amount={periodIncome}
+              currency={balanceCurrency}
+              overrideColor="green"
+              className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
+            />
+          }
+          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+          description="Earnings & received funds"
+        />
+        <StatsCard
+          title={`Outflow (${getPeriodLabel()})`}
+          value={
+            <BalanceIndicator
+              amount={periodExpense}
+              currency={balanceCurrency}
+              overrideColor="red"
+              className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
+            />
+          }
+          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+          description="Spending & given funds"
         />
         <StatsCard
           title="Active Promises"

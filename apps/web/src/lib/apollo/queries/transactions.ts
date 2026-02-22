@@ -21,8 +21,8 @@ import type {
 
 export const GET_TOTAL_BALANCE: TypedDocumentNode<TotalBalanceQuery, TotalBalanceQueryVariables> =
   gql`
-  query TotalBalance($currency: String) {
-    totalBalance(currency: $currency) {
+  query TotalBalance($currency: String, $filter: FilterTransactionInput) {
+    totalBalance(currency: $currency, filter: $filter) {
       totalGiven
       totalReceived
       totalReturned

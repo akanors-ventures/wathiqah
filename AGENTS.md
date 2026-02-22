@@ -8,7 +8,7 @@
 
 - **Core Principle**: It is better to give out (be a creditor) than to owe people (be a debtor).
 - **Categories**:
-  - **FUNDS**: For monetary transactions (Cash, Bank transfers). Quantity and Item Name are excluded from UI and audit logs for this category. Supports **multi-currency** (NGN, USD, EUR, GBP, CAD, AED, SAR) with NGN as default.
+  - **FUNDS**: For monetary transactions (Cash, Bank transfers). Includes **Project Transactions** (Income/Expenses) for business/project tracking. Quantity and Item Name are excluded from UI and audit logs for this category. Supports **multi-currency** (NGN, USD, EUR, GBP, CAD, AED, SAR) with NGN as default.
   - **PHYSICAL ITEMS**: For lending/borrowing physical objects (e.g., Tools, Books). Uses Quantity and Item Name.
 - **Currency Logic**:
   - All fund transactions store their own `currency` code.
@@ -37,7 +37,12 @@
     - `GIFT RECEIVED` → `GIFT GIVEN`.
   - **Identification**: These transactions are marked with a **SHARED** badge in the UI.
 - **Balance Logic**:
-  - **Cash Position (Dashboard)**: Uses Liquidity logic. `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`. A negative balance indicates a cash deficit (spending/lending more than received). Includes flipped shared transactions for accurate liquidity.
+  - **Cash Position (Dashboard)**: Uses Liquidity logic.
+    - **Net Balance** = (Total Inflow - Total Outflow) calculated over **All Time**.
+    - **Period Analysis**: Inflow and Outflow metrics can be filtered by **Month**, **Year**, or **All Time** to track current performance without affecting the global Net Balance.
+    - **Total Inflow** = Income (Personal + Project) + Received (Debt) + ReturnedToMe + GiftReceived.
+    - **Total Outflow** = Expense (Personal + Project) + Given (Credit) + ReturnedToContact + GiftGiven.
+    - A negative balance indicates a cash deficit (spending/lending more than received). Includes flipped shared transactions and project transactions for accurate liquidity.
   - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you. Includes flipped shared transactions for accurate standing.
 - **Analytics & Reporting**:
   - **Context**: Visualizes financial trends and contact activity.

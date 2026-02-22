@@ -26,8 +26,10 @@ export class TransactionsResolver {
   async getTotalBalance(
     @CurrentUser() user: User,
     @Args('currency', { nullable: true }) currency?: string,
+    @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
   ) {
     const summary = await this.transactionsService.findAll(user.id, {
+      ...filter,
       summaryCurrency: currency,
     });
     return summary.summary;

@@ -9,6 +9,7 @@ export function useTransaction(id: string) {
 
   const [updateTransactionMutation, { loading: updating }] = useMutation(UPDATE_TRANSACTION, {
     onCompleted: () => refetch(),
+    refetchQueries: ["TotalBalance"],
   });
 
   const updateTransaction = async (input: UpdateTransactionInput) => {

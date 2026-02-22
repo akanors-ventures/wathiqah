@@ -17,6 +17,7 @@ import {
   ReturnDirection,
   Prisma,
   Witness,
+  ProjectTransactionType,
 } from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
@@ -548,6 +549,7 @@ export class TransactionsService {
   async findAll(userId: string, filter?: FilterTransactionInput) {
     const where: Prisma.TransactionWhereInput = {
       OR: [{ createdById: userId }, { contact: { linkedUserId: userId } }],
+      status: { not: TransactionStatus.CANCELLED },
     };
 
     if (filter) {
@@ -647,11 +649,84 @@ export class TransactionsService {
       orderBy: {
         date: 'desc',
       },
+      take: filter?.limit,
     });
 
     const transformedItems = items.map((item) =>
       this.applyPerspective(item, userId),
     );
+
+    // Fetch and map project transactions
+    const projects = await this.prisma.project.findMany({
+      where: { userId },
+      select: { id: true },
+    });
+
+    const projectWhere: Prisma.ProjectTransactionWhereInput = {
+      projectId: { in: projects.map((p) => p.id) },
+    };
+
+    if (where.date) {
+      projectWhere.date = where.date as Prisma.DateTimeFilter;
+    }
+    if (where.amount) {
+      projectWhere.amount = where.amount as Prisma.DecimalFilter;
+    }
+    if (filter?.search) {
+      projectWhere.OR = [
+        { description: { contains: filter.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const projectTransactions = await this.prisma.projectTransaction.findMany({
+      where: projectWhere,
+      include: {
+        project: {
+          include: {
+            user: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'desc',
+      },
+      take: filter?.limit,
+    });
+
+    const mappedProjectTransactions = projectTransactions.map((pt) => ({
+      id: pt.id,
+      amount: Number(pt.amount),
+      type:
+        pt.type === ProjectTransactionType.INCOME
+          ? TransactionType.INCOME
+          : TransactionType.EXPENSE,
+      category: AssetCategory.FUNDS,
+      status: TransactionStatus.COMPLETED,
+      currency: pt.project.currency,
+      date: pt.date,
+      description: `Project: ${pt.project.name} - ${pt.description || ''}`,
+      createdAt: pt.createdAt,
+      createdById: pt.project.userId,
+      createdBy: pt.project.user,
+      contactId: pt.projectId,
+      contact: {
+        id: pt.projectId,
+        name: pt.project.name,
+        isSupporter: false,
+      },
+      witnesses: [],
+      returnDirection: null,
+      itemName: null,
+      quantity: null,
+      parentId: null,
+      parent: null,
+      conversions: [],
+    }));
+
+    // Combine and sort
+    const combinedItems = [...transformedItems, ...mappedProjectTransactions]
+      .sort((a, b) => b.date.getTime() - a.date.getTime())
+      .slice(0, filter?.limit || undefined);
 
     // Determine target currency for summary
     let targetCurrency = filter?.summaryCurrency || filter?.currency;
@@ -670,7 +745,8 @@ export class TransactionsService {
     );
 
     return {
-      items: transformedItems,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      items: combinedItems as any,
       summary,
     };
   }
@@ -697,6 +773,39 @@ export class TransactionsService {
         createdById: { not: userId },
         contact: { linkedUserId: userId },
       },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    // 3. Aggregations for project transactions
+    // First, get all projects for the user to determine their currency
+    const projects = await this.prisma.project.findMany({
+      where: { userId },
+      select: { id: true, currency: true },
+    });
+
+    const projectCurrencyMap = new Map<string, string>();
+    projects.forEach((p) => projectCurrencyMap.set(p.id, p.currency));
+
+    const projectWhere: Prisma.ProjectTransactionWhereInput = {
+      projectId: { in: projects.map((p) => p.id) },
+    };
+
+    // Map relevant filters from TransactionWhereInput to ProjectTransactionWhereInput
+    if (where.date) {
+      projectWhere.date = where.date as Prisma.DateTimeFilter;
+    }
+    // Amount filter is tricky because Transaction amount is Decimal/Float but ProjectTransaction is Decimal.
+    // Assuming structure is compatible or we need to cast.
+    // Prisma filters usually use standard structure { gte, lte, etc. }
+    if (where.amount) {
+      projectWhere.amount = where.amount as Prisma.DecimalFilter;
+    }
+
+    const projectAggregations = await this.prisma.projectTransaction.groupBy({
+      by: ['projectId', 'type'],
+      where: projectWhere,
       _sum: {
         amount: true,
       },
@@ -768,6 +877,26 @@ export class TransactionsService {
         flippedReturnDirection,
         convertedAmount,
       );
+    }
+
+    // Process project transactions
+    for (const agg of projectAggregations) {
+      const amount = Number(agg._sum.amount) || 0;
+      if (amount === 0) continue;
+
+      const currency = projectCurrencyMap.get(agg.projectId) || 'NGN';
+
+      const convertedAmount = await this.exchangeRateService.convert(
+        amount,
+        currency,
+        targetCurrency,
+      );
+
+      if (agg.type === ProjectTransactionType.INCOME) {
+        summary.totalIncome += convertedAmount;
+      } else if (agg.type === ProjectTransactionType.EXPENSE) {
+        summary.totalExpense += convertedAmount;
+      }
     }
 
     summary.netBalance =

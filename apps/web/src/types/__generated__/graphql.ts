@@ -158,6 +158,7 @@ export type FilterTransactionInput = {
   contactId?: InputMaybe<Scalars['String']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   endDate?: InputMaybe<Scalars['DateTime']['input']>;
+  limit?: InputMaybe<Scalars['Float']['input']>;
   maxAmount?: InputMaybe<Scalars['Float']['input']>;
   minAmount?: InputMaybe<Scalars['Float']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
@@ -568,6 +569,7 @@ export type QuerySupportOptionsArgs = {
 
 export type QueryTotalBalanceArgs = {
   currency?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<FilterTransactionInput>;
 };
 
 
@@ -1117,13 +1119,9 @@ export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
 
-export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
-
 export type TotalBalanceQueryVariables = Exact<{
   currency?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<FilterTransactionInput>;
 }>;
 
 

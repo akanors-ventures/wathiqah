@@ -141,6 +141,7 @@ input FilterTransactionInput {
   contactId: String
   currency: String
   endDate: DateTime
+  limit: Float
   maxAmount: Float
   minAmount: Float
   search: String
@@ -309,7 +310,7 @@ type Query {
   support(id: ID!): Support!
   supportOptions(currency: String): [SupportOption!]!
   supports: [Support!]!
-  totalBalance(currency: String): TransactionsSummary!
+  totalBalance(currency: String, filter: FilterTransactionInput): TransactionsSummary!
   transaction(id: ID!): Transaction!
   transactions(filter: FilterTransactionInput): TransactionsResponse!
   transactionsGroupedByContact(filter: FilterTransactionInput): [ContactGroupedSummary!]!

@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { AssetCategory } from 'src/generated/prisma/enums';
+import { AssetCategory } from '../../generated/prisma/enums';
 import { SubscriptionService } from '../subscription/subscription.service';
 import type { NotificationJobData } from './interfaces/job-data.interface';
 

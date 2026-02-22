@@ -30,10 +30,12 @@ export function StatsCard({
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2 relative z-10 p-4 sm:p-5">
         <div className="flex flex-col gap-1">
-          <CardTitle className="text-[10px] sm:text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors">
-            {title}
-          </CardTitle>
-          {extra}
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-[10px] sm:text-[11px] font-bold text-muted-foreground group-hover:text-primary transition-colors whitespace-nowrap">
+              {title}
+            </CardTitle>
+            {extra}
+          </div>
         </div>
         <div className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:shadow-primary/20 group-hover:-rotate-6">
           {icon}

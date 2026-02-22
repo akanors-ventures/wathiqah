@@ -35,4 +35,7 @@ export class FilterTransactionInput {
 
   @Field({ nullable: true })
   maxAmount?: number;
+
+  @Field({ nullable: true })
+  limit?: number;
 }
