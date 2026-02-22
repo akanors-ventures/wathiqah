@@ -39,10 +39,10 @@ function MyContactTransactionsPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Transactions Involving Me
+            Shared History
           </h1>
           <p className="text-sm text-muted-foreground font-medium opacity-70">
-            View all transactions where you are listed as the contact
+            View records where you are listed as the contact
           </p>
         </div>
       </div>
@@ -54,7 +54,7 @@ function MyContactTransactionsPage() {
           </div>
           <div className="space-y-1.5 sm:space-y-2">
             <p className="text-xs sm:text-sm font-bold text-blue-800 dark:text-blue-300 leading-relaxed">
-              These are transactions documented by others involving you.
+              These are records documented by others involving you.
             </p>
             <p className="text-[10px] sm:text-[11px] font-bold text-blue-600/70 dark:text-blue-400/70 italic uppercase tracking-wider">
               Note: Colors and signs (+/-) are shown from your perspective.

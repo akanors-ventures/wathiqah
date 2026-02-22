@@ -72,9 +72,9 @@ To implement these changes, the following technical updates are required:
 ## 4. Timeline & Milestones
 
 **Phase 1: Messaging & Quick Wins (Week 1)**
-*   [ ] Update Landing Page copy (Headlines, Value Props).
-*   [ ] Fix "Transactions Involving Me" naming.
-*   [ ] Implement "Empty State" checklist on Dashboard.
+*   [x] Update Landing Page copy (Headlines, Value Props).
+*   [x] Fix "Transactions Involving Me" naming.
+*   [x] Implement "Empty State" checklist on Dashboard.
 
 **Phase 2: Visuals & Trust (Week 2)**
 *   [ ] Design and integrate App Mockups into Hero section.

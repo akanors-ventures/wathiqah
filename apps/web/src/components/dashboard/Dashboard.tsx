@@ -22,6 +22,7 @@ import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
 import { LedgerPhilosophy } from "./LedgerPhilosophy";
+import { OnboardingChecklist } from "./OnboardingChecklist";
 import { StatsCard } from "./StatsCard";
 
 type Period = "ALL" | "MONTH" | "YEAR";
@@ -336,23 +337,12 @@ export function Dashboard() {
         <CardContent className="p-4 sm:p-6 pt-0">
           <div className="space-y-4 sm:space-y-6">
             {recentTransactions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CreditCard className="w-8 h-8 text-primary/40" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground mb-4 capitalize">
-                  No transactions yet. Start by recording a loan or expense.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="rounded-md font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
-                >
-                  <Link to="/transactions/new" search={{ contactId: undefined }}>
-                    Record transaction
-                  </Link>
-                </Button>
+              <div className="p-4 sm:p-6">
+                <OnboardingChecklist
+                  hasContacts={totalContacts > 0}
+                  hasTransactions={false}
+                  hasInvitedWitness={false}
+                />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">

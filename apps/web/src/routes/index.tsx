@@ -39,14 +39,16 @@ function LandingPage() {
               Verified Financial Documentation
             </div>
             <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-foreground mb-8 leading-[0.9]">
-              The Ledger <br />
+              Preserve <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-primary/80">
-                of Trust
+                Relationships
               </span>
+              <br />
+              <span className="text-4xl md:text-6xl text-foreground/80">Not Just Money</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed font-medium opacity-80">
-              Track funds, manage items, and verify records with a witness system built for
-              real-world relationships.
+              The only digital ledger with a built-in Witness System. Track loans, items, and
+              promises with verified trust.
             </p>
             {!user && !loading && (
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -55,7 +57,7 @@ function LandingPage() {
                   className="rounded-md px-8 h-12 text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                   asChild
                 >
-                  <Link to="/signup">Start Your Ledger</Link>
+                  <Link to="/signup">Start Your Free Ledger</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -63,9 +65,7 @@ function LandingPage() {
                   className="rounded-md px-8 h-12 text-sm font-bold hover:bg-muted/50 transition-all"
                   asChild
                 >
-                  <Link to="/login" search={{ redirectTo: undefined }}>
-                    Sign In
-                  </Link>
+                  <Link to="/features">See How it Works</Link>
                 </Button>
               </div>
             )}
