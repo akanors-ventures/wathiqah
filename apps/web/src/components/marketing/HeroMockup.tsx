@@ -79,7 +79,7 @@ export function HeroMockup() {
       </div>
 
       {/* Witness Email Card - Overlapping Left */}
-      <div className="absolute left-0 lg:-left-12 bottom-12 lg:bottom-24 z-30 w-[280px] sm:w-[320px] bg-card rounded-2xl border border-border/50 shadow-2xl p-0 overflow-hidden animate-in slide-in-from-left-12 fade-in duration-1000 delay-300 transform rotate-2 hover:rotate-0 transition-transform">
+      <div className="absolute left-0 lg:-left-4 bottom-12 lg:bottom-24 z-30 w-[280px] sm:w-[320px] bg-card rounded-2xl border border-border/50 shadow-2xl p-0 overflow-hidden animate-in slide-in-from-left-12 fade-in duration-1000 delay-300 transform rotate-2 hover:rotate-0 transition-transform">
         <div className="bg-primary/5 p-3 border-b border-primary/10 flex items-center gap-2">
           <Mail className="w-4 h-4 text-primary" />
           <span className="text-xs font-bold text-primary">New Witness Request</span>
