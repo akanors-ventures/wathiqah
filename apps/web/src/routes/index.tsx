@@ -10,10 +10,13 @@ import {
   Wallet,
 } from "lucide-react";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import { Footer } from "@/components/layout/Footer";
+import { HeroMockup } from "@/components/marketing/HeroMockup";
+import { SecurityFeatures } from "@/components/marketing/SecurityFeatures";
+import { TrustSignals } from "@/components/marketing/TrustSignals";
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useAuth } from "@/hooks/use-auth";
-import { Footer } from "@/components/layout/Footer";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
@@ -31,54 +34,65 @@ function LandingPage() {
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground overflow-x-hidden">
       {/* Hero Section */}
-      <section className="relative pt-32 pb-24 lg:pt-48 lg:pb-40 overflow-hidden">
+      <section className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-bold text-primary mb-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 shadow-sm">
-              <span className="flex h-2 w-2 rounded-full bg-primary mr-3 animate-pulse"></span>
-              Verified Financial Documentation
-            </div>
-            <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-foreground mb-8 leading-[0.9]">
-              Preserve <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-primary/80">
-                Relationships
-              </span>
-              <br />
-              <span className="text-4xl md:text-6xl text-foreground/80">Not Just Money</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed font-medium opacity-80">
-              The only digital ledger with a built-in Witness System. Track loans, items, and
-              promises with verified trust.
-            </p>
-            {!user && !loading && (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Button
-                  size="lg"
-                  className="rounded-md px-8 h-12 text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                  asChild
-                >
-                  <Link to="/signup">Start Your Free Ledger</Link>
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="rounded-md px-8 h-12 text-sm font-bold hover:bg-muted/50 transition-all"
-                  asChild
-                >
-                  <Link to="/features">See How it Works</Link>
-                </Button>
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+            <div className="lg:w-1/2 text-center lg:text-left space-y-8">
+              <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-4 py-2 text-xs font-bold text-primary animate-in fade-in slide-in-from-bottom-4 duration-1000 shadow-sm mx-auto lg:mx-0">
+                <span className="flex h-2 w-2 rounded-full bg-primary mr-3 animate-pulse"></span>
+                Verified Financial Documentation
               </div>
-            )}
+              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter text-foreground leading-[0.9]">
+                Preserve <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-emerald-500 to-primary/80">
+                  Relationships
+                </span>
+                <br />
+                <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-foreground/80">
+                  Not Just Money
+                </span>
+              </h1>
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium opacity-80">
+                The only digital ledger with a built-in Witness System. Track loans, items, and
+                promises with verified trust.
+              </p>
+              {!user && !loading && (
+                <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                  <Button
+                    size="lg"
+                    className="rounded-md px-8 h-12 text-sm font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all w-full sm:w-auto"
+                    asChild
+                  >
+                    <Link to="/signup">Start Your Free Ledger</Link>
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="rounded-md px-8 h-12 text-sm font-bold hover:bg-muted/50 transition-all w-full sm:w-auto"
+                    asChild
+                  >
+                    <Link to="/features">See How it Works</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            <div className="lg:w-1/2 w-full max-w-md lg:max-w-none mx-auto perspective-1000">
+              <HeroMockup />
+            </div>
           </div>
         </div>
 
         {/* Hero Background Elements */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 pointer-events-none overflow-hidden">
           <div className="absolute top-[-20%] left-[-10%] w-[800px] h-[800px] bg-primary/10 rounded-full blur-[120px] animate-pulse duration-[10s]"></div>
           <div className="absolute bottom-[-20%] right-[-10%] w-[900px] h-[900px] bg-emerald-500/10 rounded-full blur-[140px] animate-pulse duration-[12s]"></div>
           <div className="absolute top-[20%] right-[10%] w-96 h-96 bg-blue-500/5 rounded-full blur-[100px]"></div>
         </div>
       </section>
+
+      {/* Security Features Bar */}
+      <SecurityFeatures />
 
       {/* Core Value Propositions */}
       <section className="py-24 relative">
@@ -105,6 +119,9 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Social Proof / Trust Signals */}
+      <TrustSignals />
 
       {/* Trust Philosophy Section - Simplified */}
       <section className="py-32 bg-muted/20 relative overflow-hidden">
