@@ -1,13 +1,13 @@
 name: Deploy Database Migrations
 on:
   push:
-    branches: [main, staging, dev]
+    branches: [main, staging]
     paths:
       - 'apps/api/prisma/migrations/**'
       - 'apps/api/prisma/schema.prisma'
       - 'apps/api/atlas.hcl'
   pull_request:
-    branches: [main, staging, dev]
+    branches: [main, staging]
     paths:
       - 'apps/api/prisma/migrations/**'
       - 'apps/api/prisma/schema.prisma'
@@ -26,4 +26,4 @@ jobs:
         uses: ariga/atlas-action/migrate/apply@v1
         with:
           url: ${{ secrets.DATABASE_URL }}
-          dir: apps/api/prisma/migrations
+          dir: file://apps/api/prisma/migrations
