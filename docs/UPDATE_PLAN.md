@@ -77,9 +77,9 @@ To implement these changes, the following technical updates are required:
 *   [x] Implement "Empty State" checklist on Dashboard.
 
 **Phase 2: Visuals & Trust (Week 2)**
-*   [ ] Design and integrate App Mockups into Hero section.
-*   [ ] Add "Security Features" row.
-*   [ ] Implement "Social Proof" section (even if placeholder testimonials for now, or use "Built by Akanors" trust).
+*   [x] Design and integrate App Mockups into Hero section.
+*   [x] Add "Security Features" row.
+*   [x] Implement "Social Proof" section (Implemented as "Trust Signals" - focusing on integrity/philosophy rather than fake testimonials).
 
 **Phase 3: Deep Feature Integration (Week 3)**
 *   [ ] Build "How it Works" interactive demo for Witness System.
