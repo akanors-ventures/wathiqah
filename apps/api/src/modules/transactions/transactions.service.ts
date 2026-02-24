@@ -103,6 +103,15 @@ export class TransactionsService {
       amount: transaction.amount?.toString(),
       itemName: transaction.itemName,
       currency: transaction.currency,
+      description: transaction.description || undefined,
+      date: transaction.date
+        ? new Intl.DateTimeFormat('en-NG', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          }).format(new Date(transaction.date))
+        : undefined,
+      quantity: transaction.quantity ? String(transaction.quantity) : undefined,
       category: transaction.category,
       type: transaction.type,
     };
