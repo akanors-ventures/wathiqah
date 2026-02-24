@@ -23,6 +23,94 @@ Implement a system to create "Projects" that act as scoped ledgers for specific 
 
 ---
 
+## Project Transaction Multi‑Currency (Pro)
+
+**Status:** Proposed  
+**Priority:** High (Pro feature, reporting accuracy)
+
+### Rationale
+
+Some projects involve expenses and income in multiple currencies (e.g., USD donations, NGN purchases). Today, project currency is fixed at the project level. Allowing per‑transaction currency improves accuracy and reduces friction when logging real‑world entries.
+
+### Scope
+
+- Enable logging a ProjectTransaction in a currency different from the project’s base currency (stored on Project).
+- Automatically convert to project currency using our Exchange Rate module for balance math and reporting.
+- Gate feature to Pro users.
+
+### Data Model (Proposed)
+
+- ProjectTransaction
+  - currency: string (ISO 4217) — defaults to project.currency
+  - amountOriginal: decimal — original amount in transaction.currency (optional; can reuse current amount as “amountConverted” and store original separately)
+  - amountConverted: decimal — amount converted into project.currency for balance aggregation
+  - conversionRate: decimal — snapshot of rate used (project.currency per transaction.currency) at time of logging
+  - conversionProvider: string — optional (e.g., “exchangerate.host”, “fixer”, internal provider)
+  - conversionAt: DateTime — timestamp when rate was fetched
+
+Backward‑compatibility migration:
+- Set currency = project.currency, amountOriginal = amount, amountConverted = amount, conversionRate = 1 for existing rows.
+
+### Business Logic
+
+1. Validation
+   - If currency === project.currency: amountConverted = amount, conversionRate = 1.
+   - Else:
+     - Fetch latest rate via Exchange Rate service.
+     - Compute amountConverted = amountOriginal × conversionRate (precision‑safe).
+     - Persist snapshot fields for auditability.
+2. Balance Updates
+   - Project.balance updates use amountConverted in project.currency.
+3. History & Audit
+   - Store rate and amounts in TransactionHistory snapshots. Preserve original currency for accurate audit.
+4. Notifications
+   - Emails/SMS should show the original amount with its currency; optionally include “≈ converted” in project currency for context.
+
+### API & GraphQL
+
+- Input (LogProjectTransactionInput)
+  - Add optional currency; default to project.currency.
+- Output (ProjectTransaction)
+  - Expose currency, amountOriginal, amountConverted, conversionRate, conversionAt.
+
+### Frontend (TanStack Start)
+
+- ProjectTransactionForm
+  - When Pro:
+    - Show a Currency select (defaults to project currency).
+    - Show live “≈ Converted” preview using client‑side rate if available; final values come from server.
+  - When Free:
+    - No currency select; always uses project currency.
+- Formatting
+  - Use transaction.currency for displaying original amount; use project.currency for summaries and balances.
+
+### Subscription & Gating
+
+- Gate currency override behind Pro using SubscriptionService feature checks.
+- UI: Show “Multi‑currency is a Pro feature” tooltip/CTA for free users.
+
+### Exchange Rates & Consistency
+
+- Use existing Exchange Rate module.
+- Cache provider responses; fall back to last known rate when provider unavailable (mark as “stale” in metadata).
+- Record provider + timestamp in the transaction for traceability.
+
+### Migration Plan
+
+1. Prisma schema changes for new fields.
+2. Migration script to backfill existing transactions as described above.
+3. Update services, resolvers, DTOs, and frontend forms.
+4. Update email/SMS templates to display original amount; optionally include converted amount.
+5. QA plan with mixed‑currency scenarios and reporting checks.
+
+### Risks & Mitigations
+
+- Rate Volatility: Snapshot rate at creation time to ensure deterministic history and balances.
+- Reporting Confusion: Always label amounts with currency; use consistent formatting utilities.
+- Provider Downtime: Implement provider fallback and retries; surface a non‑blocking warning in UI.
+
+---
+
 ## Transaction Update & Witness Re-acknowledgement Workflow
 
 **Status:** Completed ✅

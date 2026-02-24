@@ -1,6 +1,13 @@
 import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowRight, ArrowUpRight, Package, UserCircle } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowRight,
+  ArrowUpRight,
+  CalendarDays,
+  Package,
+  UserCircle,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
@@ -160,7 +167,7 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
               </span>
 
               <div className="flex items-center gap-1.5 sm:gap-2 text-[9px] sm:text-[11px] lg:text-xs text-muted-foreground font-medium opacity-70 ml-0.5">
-                <span className="w-1 h-1 rounded-full bg-border shrink-0 hidden sm:block" />
+                <CalendarDays className="w-3 h-3 sm:w-3.5 sm:h-3.5 opacity-60" />
                 <span className="shrink-0">{format(new Date(tx.date as string), "MMM d")}</span>
               </div>
             </div>

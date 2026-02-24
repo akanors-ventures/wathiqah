@@ -1,11 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, Loader2 } from "lucide-react";
-import { Resolver, useForm } from "react-hook-form";
+import { Loader2, Plus } from "lucide-react";
+import { type Resolver, useForm } from "react-hook-form";
+import { useMemo, useState, useId } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -16,11 +16,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,13 +23,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
+import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useProjects } from "@/hooks/useProjects";
 import { useMutation } from "@apollo/client/react";
-import { LOG_PROJECT_TRANSACTION, GET_PROJECT, GET_MY_PROJECTS } from "@/lib/apollo/queries/projects";
-import { ProjectTransactionType } from "@/types/__generated__/graphql";
+import {
+  LOG_PROJECT_TRANSACTION,
+  GET_PROJECT,
+  GET_MY_PROJECTS,
+} from "@/lib/apollo/queries/projects";
+import { ProjectTransactionType, type GetMyProjectsQuery } from "@/types/__generated__/graphql";
 import { cn } from "@/lib/utils";
 import { BrandLoader } from "@/components/ui/page-loader";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { formatCurrency } from "@/lib/utils/formatters";
 
 const formSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
@@ -61,8 +70,19 @@ export function ProjectTransactionForm({
   onCancel,
   className,
 }: ProjectTransactionFormProps) {
-  const { projects, loading: loadingProjects } = useProjects();
-  
+  const { projects, loading: loadingProjects, createProject, creating } = useProjects();
+  const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [newProjectBudget, setNewProjectBudget] = useState("");
+  const [newProjectCurrency, setNewProjectCurrency] = useState("NGN");
+  const [amountDisplay, setAmountDisplay] = useState<string>("");
+
+  const projectNameId = useId();
+  const projectDescriptionId = useId();
+  const projectBudgetId = useId();
+  const projectCurrencyId = useId();
+
   const [logTransaction, { loading: logging }] = useMutation(LOG_PROJECT_TRANSACTION, {
     refetchQueries: [
       { query: GET_MY_PROJECTS },
@@ -83,7 +103,7 @@ export function ProjectTransactionForm({
     },
   });
 
-  // Watch projectId to potentially refetch specific project if needed, 
+  // Watch projectId to potentially refetch specific project if needed,
   // but GET_MY_PROJECTS should be enough for the list.
   // If user selects a project, we might want to refetch that project's details too if we were displaying them,
   // but here we just log a transaction.
@@ -91,10 +111,8 @@ export function ProjectTransactionForm({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const witnesses = values.witnesses || [];
-      const witnessUserIds = witnesses
-        .filter((w) => w.userId)
-        .map((w) => w.userId as string);
-        
+      const witnessUserIds = witnesses.filter((w) => w.userId).map((w) => w.userId as string);
+
       const witnessInvites = witnesses
         .map((w) => w.invite)
         .filter((invite): invite is NonNullable<typeof invite> => !!invite)
@@ -120,12 +138,69 @@ export function ProjectTransactionForm({
 
       toast.success("Transaction logged successfully");
       form.reset();
+      setAmountDisplay("");
       onSuccess?.();
     } catch (error) {
       console.error(error);
       toast.error("Failed to log transaction");
     }
   }
+
+  const selectedProject = useMemo(
+    () =>
+      (projects as GetMyProjectsQuery["myProjects"]).find((p) => p.id === form.watch("projectId")),
+    [projects, form.watch],
+  );
+  const currencyCode = selectedProject?.currency || "NGN";
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    // allow empty input
+    if (raw.trim() === "") {
+      setAmountDisplay("");
+      form.setValue("amount", 0, { shouldValidate: false, shouldDirty: true });
+      return;
+    }
+    const sanitized = raw.replace(/[^\d.]/g, "");
+    const num = Number.parseFloat(sanitized);
+    if (!Number.isNaN(num)) {
+      form.setValue("amount", num, { shouldValidate: false, shouldDirty: true });
+      setAmountDisplay(formatCurrency(num, currencyCode, 0));
+    } else {
+      setAmountDisplay(raw);
+    }
+  };
+
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProjectName.trim()) {
+      toast.error("Please enter a project name");
+      return;
+    }
+    try {
+      const result = await createProject({
+        name: newProjectName.trim(),
+        description: newProjectDescription.trim() || undefined,
+        budget: newProjectBudget ? Number.parseFloat(newProjectBudget) : undefined,
+        currency: newProjectCurrency,
+      });
+      const created = result.data?.createProject;
+      if (created?.id) {
+        toast.success("Project created");
+        form.setValue("projectId", created.id, { shouldDirty: true, shouldValidate: true });
+        setIsProjectDialogOpen(false);
+        setNewProjectName("");
+        setNewProjectDescription("");
+        setNewProjectBudget("");
+        setNewProjectCurrency("NGN");
+      } else {
+        throw new Error("No project returned");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to create project");
+    }
+  };
 
   return (
     <Form {...form}>
@@ -136,7 +211,19 @@ export function ProjectTransactionForm({
             name="projectId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Project</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Project</FormLabel>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => setIsProjectDialogOpen(true)}
+                  >
+                    <Plus className="h-3 w-3 mr-1" />
+                    New Project
+                  </Button>
+                </div>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
@@ -153,7 +240,7 @@ export function ProjectTransactionForm({
                         No projects found
                       </div>
                     ) : (
-                      projects.map((project: any) => (
+                      (projects as GetMyProjectsQuery["myProjects"]).map((project) => (
                         <SelectItem key={project.id} value={project.id}>
                           {project.name}
                         </SelectItem>
@@ -193,40 +280,21 @@ export function ProjectTransactionForm({
           <FormField
             control={form.control}
             name="date"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
                 <FormLabel>Date</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-full pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={form.watch("date") ? format(form.watch("date"), "yyyy-MM-dd") : ""}
+                    onChange={(e) => {
+                      const date = e.target.value ? new Date(e.target.value) : new Date();
+                      form.setValue("date", date, { shouldValidate: true, shouldDirty: true });
+                    }}
+                    max={format(new Date(), "yyyy-MM-dd")}
+                    className="h-10 text-sm"
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -236,11 +304,25 @@ export function ProjectTransactionForm({
         <FormField
           control={form.control}
           name="amount"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder={formatCurrency(0, currencyCode, 0)}
+                  value={amountDisplay}
+                  onChange={handleAmountChange}
+                  onBlur={() => {
+                    const num = form.getValues("amount");
+                    if (num && !Number.isNaN(num)) {
+                      setAmountDisplay(formatCurrency(num, currencyCode, 0));
+                    } else {
+                      setAmountDisplay("");
+                    }
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -299,6 +381,74 @@ export function ProjectTransactionForm({
           </Button>
         </div>
       </form>
+      <Dialog open={isProjectDialogOpen} onOpenChange={setIsProjectDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>New Project</DialogTitle>
+            <DialogDescription>Create a project to log this transaction under.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateProject} className="grid gap-4 py-2">
+            <div className="grid gap-2">
+              <Label htmlFor={projectNameId}>Project Name</Label>
+              <Input
+                id={projectNameId}
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                required
+                placeholder="e.g., Kitchen Renovation"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor={projectDescriptionId}>Description (Optional)</Label>
+              <Textarea
+                id={projectDescriptionId}
+                value={newProjectDescription}
+                onChange={(e) => setNewProjectDescription(e.target.value)}
+                rows={3}
+                placeholder="What is this project about?"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor={projectBudgetId}>Budget (Optional)</Label>
+                <Input
+                  id={projectBudgetId}
+                  type="number"
+                  step="0.01"
+                  value={newProjectBudget}
+                  onChange={(e) => setNewProjectBudget(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor={projectCurrencyId}>Currency</Label>
+                <Select value={newProjectCurrency} onValueChange={setNewProjectCurrency}>
+                  <SelectTrigger id={projectCurrencyId}>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AED">AED (د.إ)</SelectItem>
+                    <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsProjectDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" isLoading={creating}>
+                Create Project
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Form>
   );
 }

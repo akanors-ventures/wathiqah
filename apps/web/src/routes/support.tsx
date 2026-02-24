@@ -136,7 +136,7 @@ function SupportPage() {
       return;
     }
 
-    const amountToSupport = selectedAmount || parseFloat(customAmount);
+    const amountToSupport = selectedAmount || Number.parseFloat(customAmount);
 
     const validationError = validateAmount(amountToSupport);
     if (validationError) {

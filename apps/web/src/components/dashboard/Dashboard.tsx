@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { endOfMonth, endOfYear, format, startOfMonth, startOfYear } from "date-fns";
-import { CalendarClock, CreditCard, FileCheck, Users, Calendar } from "lucide-react";
+import { CalendarClock, CreditCard, FileCheck, Users, CalendarDays } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
@@ -135,7 +135,7 @@ export function Dashboard() {
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <SelectTrigger className="w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
                 <SelectValue />
               </div>
             </SelectTrigger>
@@ -167,7 +167,7 @@ export function Dashboard() {
               value={selectedCurrency || balanceCurrency}
               onValueChange={(v) => setSelectedCurrency(v)}
             >
-              <SelectTrigger className="h-7 w-[80px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0">
+              <SelectTrigger className="h-7 w-[70px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0">
                 <SelectValue placeholder="NGN" />
               </SelectTrigger>
               <SelectContent>

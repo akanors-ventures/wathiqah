@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowUpRight, Calendar, Mail, Wallet } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CalendarDays, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
@@ -91,8 +91,8 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
         {/* Transaction Quote Block */}
         <div className="p-3 bg-muted/30 rounded-lg border border-border/20 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider opacity-70 flex items-center gap-1.5">
-              <Wallet className="w-3 h-3" /> Amount
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70 flex items-center gap-1.5">
+              <CalendarDays className="w-3 h-3" /> Date
             </span>
             <div
               className={cn(
@@ -115,7 +115,7 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
 
           <div className="flex items-center justify-between border-t border-border/10 pt-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-              <Calendar className="w-3 h-3 opacity-50" />
+              <CalendarDays className="w-3 h-3 opacity-50" />
               {format(new Date(invitedAt as string), "MMM d, yyyy")}
             </div>
             {transaction.description && (

@@ -18,12 +18,7 @@ import { authGuard } from "@/utils/auth";
 import { format } from "date-fns";
 import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -72,9 +67,7 @@ function ProjectDetailsPage() {
             {project.description && <p className="text-muted-foreground">{project.description}</p>}
           </div>
         </div>
-        <ProjectTransactionDialog
-          projectId={projectId}
-        />
+        <ProjectTransactionDialog projectId={projectId} />
       </div>
 
       {/* Summary Cards */}

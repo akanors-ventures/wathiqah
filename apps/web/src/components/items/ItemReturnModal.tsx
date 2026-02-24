@@ -84,7 +84,7 @@ export function ItemReturnModal({ item, open, onOpenChange, onSuccess }: ItemRet
               id={quantityId}
               type="number"
               value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+              onChange={(e) => setQuantity(Number.parseInt(e.target.value, 10))}
               max={item.quantity}
               min={1}
               className="col-span-3"
