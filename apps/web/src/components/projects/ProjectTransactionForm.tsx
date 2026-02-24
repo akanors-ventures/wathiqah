@@ -44,6 +44,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 
 const formSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
@@ -76,7 +77,10 @@ export function ProjectTransactionForm({
   const [newProjectDescription, setNewProjectDescription] = useState("");
   const [newProjectBudget, setNewProjectBudget] = useState("");
   const [newProjectCurrency, setNewProjectCurrency] = useState("NGN");
-  const [amountDisplay, setAmountDisplay] = useState<string>("");
+  const [newlyCreatedProject, setNewlyCreatedProject] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const projectNameId = useId();
   const projectDescriptionId = useId();
@@ -108,6 +112,24 @@ export function ProjectTransactionForm({
   // If user selects a project, we might want to refetch that project's details too if we were displaying them,
   // but here we just log a transaction.
 
+  const selectedProject = useMemo(
+    () =>
+      (projects as GetMyProjectsQuery["myProjects"]).find((p) => p.id === form.watch("projectId")),
+    [projects, form.watch],
+  );
+  const currencyCode = selectedProject?.currency || "NGN";
+
+  const {
+    amountDisplay,
+    handleAmountChange,
+    handleBlur,
+    reset: resetAmount,
+  } = useAmountInput({
+    currencyCode,
+    onChange: (value) =>
+      form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const witnesses = values.witnesses || [];
@@ -138,38 +160,13 @@ export function ProjectTransactionForm({
 
       toast.success("Transaction logged successfully");
       form.reset();
-      setAmountDisplay("");
+      resetAmount();
       onSuccess?.();
     } catch (error) {
       console.error(error);
       toast.error("Failed to log transaction");
     }
   }
-
-  const selectedProject = useMemo(
-    () =>
-      (projects as GetMyProjectsQuery["myProjects"]).find((p) => p.id === form.watch("projectId")),
-    [projects, form.watch],
-  );
-  const currencyCode = selectedProject?.currency || "NGN";
-
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    // allow empty input
-    if (raw.trim() === "") {
-      setAmountDisplay("");
-      form.setValue("amount", 0, { shouldValidate: false, shouldDirty: true });
-      return;
-    }
-    const sanitized = raw.replace(/[^\d.]/g, "");
-    const num = Number.parseFloat(sanitized);
-    if (!Number.isNaN(num)) {
-      form.setValue("amount", num, { shouldValidate: false, shouldDirty: true });
-      setAmountDisplay(formatCurrency(num, currencyCode, 0));
-    } else {
-      setAmountDisplay(raw);
-    }
-  };
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,7 +184,10 @@ export function ProjectTransactionForm({
       const created = result.data?.createProject;
       if (created?.id) {
         toast.success("Project created");
-        form.setValue("projectId", created.id, { shouldDirty: true, shouldValidate: true });
+        setNewlyCreatedProject(created);
+        setTimeout(() => {
+          form.setValue("projectId", created.id, { shouldDirty: true, shouldValidate: true });
+        }, 0);
         setIsProjectDialogOpen(false);
         setNewProjectName("");
         setNewProjectDescription("");
@@ -231,20 +231,31 @@ export function ProjectTransactionForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {loadingProjects ? (
+                    {loadingProjects && !newlyCreatedProject ? (
                       <div className="flex items-center justify-center p-2">
                         <BrandLoader size="sm" />
                       </div>
-                    ) : projects.length === 0 ? (
+                    ) : (projects as GetMyProjectsQuery["myProjects"]).length === 0 &&
+                      !newlyCreatedProject ? (
                       <div className="p-2 text-sm text-muted-foreground text-center">
                         No projects found
                       </div>
                     ) : (
-                      (projects as GetMyProjectsQuery["myProjects"]).map((project) => (
-                        <SelectItem key={project.id} value={project.id}>
-                          {project.name}
-                        </SelectItem>
-                      ))
+                      <>
+                        {newlyCreatedProject &&
+                          !(projects as GetMyProjectsQuery["myProjects"]).find(
+                            (p) => p.id === newlyCreatedProject.id,
+                          ) && (
+                            <SelectItem key={newlyCreatedProject.id} value={newlyCreatedProject.id}>
+                              {newlyCreatedProject.name}
+                            </SelectItem>
+                          )}
+                        {(projects as GetMyProjectsQuery["myProjects"]).map((project) => (
+                          <SelectItem key={project.id} value={project.id}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </>
                     )}
                   </SelectContent>
                 </Select>
@@ -314,14 +325,7 @@ export function ProjectTransactionForm({
                   placeholder={formatCurrency(0, currencyCode, 0)}
                   value={amountDisplay}
                   onChange={handleAmountChange}
-                  onBlur={() => {
-                    const num = form.getValues("amount");
-                    if (num && !Number.isNaN(num)) {
-                      setAmountDisplay(formatCurrency(num, currencyCode, 0));
-                    } else {
-                      setAmountDisplay("");
-                    }
-                  }}
+                  onBlur={() => handleBlur(form.getValues("amount"))}
                 />
               </FormControl>
               <FormMessage />
