@@ -21,7 +21,7 @@ import { useContacts } from "@/hooks/useContacts";
 import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
-import { LedgerPhilosophy } from "./LedgerPhilosophy";
+import { ProjectsWidget } from "./ProjectsWidget";
 import { OnboardingChecklist } from "./OnboardingChecklist";
 import { StatsCard } from "./StatsCard";
 
@@ -241,7 +241,7 @@ export function Dashboard() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <div className="lg:col-span-4">
-          <LedgerPhilosophy />
+          <ProjectsWidget />
         </div>
 
         {/* Quick Actions / Recent Promises */}

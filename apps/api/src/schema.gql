@@ -186,6 +186,8 @@ input LogProjectTransactionInput {
   description: String
   projectId: String!
   type: ProjectTransactionType!
+  witnessInvites: [WitnessInviteInput!]
+  witnessUserIds: [ID!]
 }
 
 input LoginInput {
@@ -261,6 +263,7 @@ type ProjectTransaction {
   projectId: String!
   type: ProjectTransactionType!
   updatedAt: DateTime!
+  witnesses: [Witness!]
 }
 
 enum ProjectTransactionType {

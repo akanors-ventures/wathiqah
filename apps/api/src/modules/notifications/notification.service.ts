@@ -5,6 +5,7 @@ import { Queue } from 'bullmq';
 import { AssetCategory } from '../../generated/prisma/enums';
 import { SubscriptionService } from '../subscription/subscription.service';
 import type { NotificationJobData } from './interfaces/job-data.interface';
+import { getLocaleForCurrency } from '../../common/utils/currency.utils';
 
 @Injectable()
 export class NotificationService {
@@ -102,6 +103,98 @@ export class NotificationService {
     );
   }
 
+  async sendProjectTransactionWitnessInvite(
+    email: string,
+    name: string,
+    token: string,
+    transactionDetails: {
+      creatorName: string;
+      projectName: string;
+      amount: string;
+      currency: string;
+      category?: string;
+      type: string;
+      description?: string;
+    },
+    senderId: string,
+    phoneNumber?: string,
+  ): Promise<void> {
+    this.validateParams({ email, name, token });
+
+    const inviteUrl = `${this.configService.get('app.url')}/witnesses/invite/${token}`;
+    const subject = `Witness Request: ${transactionDetails.creatorName} requested you to witness a transaction in ${transactionDetails.projectName}`;
+
+    const appUrl = this.configService.get('app.url')?.replace(/\/$/, '');
+
+    // Format amount
+    const amount = parseFloat(transactionDetails.amount);
+    const locale = getLocaleForCurrency(transactionDetails.currency);
+    const formattedAmount = new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: transactionDetails.currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+
+    const templateData = {
+      name,
+      inviteUrl,
+      subject,
+      appUrl,
+      logoUrl: `${appUrl}/appLogo.png`,
+      year: new Date().getFullYear(),
+      ...transactionDetails,
+      amount: formattedAmount,
+    };
+
+    // Queue Email
+    await this.notificationsQueue.add(
+      'send-email',
+      {
+        to: email,
+        subject,
+        templateName: 'project-transaction-witness-invite', // I might need to create this template or reuse generic one
+        templateData,
+      },
+      {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+        removeOnComplete: true,
+      },
+    );
+
+    // Queue SMS if phone number provided and user has permission
+    if (phoneNumber && senderId) {
+      // SMS logic similar to above
+      let canSendSMS = false;
+      try {
+        await this.subscriptionService.checkFeatureLimit(senderId, 'allowSMS');
+        canSendSMS = true;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_error) {
+        // Limit reached or feature not available
+        canSendSMS = false;
+      }
+
+      if (canSendSMS) {
+        await this.notificationsQueue.add(
+          'send-sms',
+          {
+            to: phoneNumber,
+            body: `Hello ${name}, ${transactionDetails.creatorName} added you as a witness for a transaction of ${formattedAmount} in project ${transactionDetails.projectName}. Click here to review: ${inviteUrl}`,
+          },
+          {
+            attempts: 3,
+            removeOnComplete: true,
+          },
+        );
+      }
+    }
+  }
+
   /**
    * Sends an invitation to a witness to verify a transaction.
    *
@@ -123,6 +216,9 @@ export class NotificationService {
       amount?: string;
       itemName?: string;
       currency?: string;
+      description?: string;
+      date?: string;
+      quantity?: string;
       category: AssetCategory;
       type: string;
     },
@@ -142,7 +238,8 @@ export class NotificationService {
     ) {
       const amount = parseFloat(transactionDetails.amount);
       const currency = transactionDetails.currency || 'NGN';
-      formattedAmount = new Intl.NumberFormat('en-NG', {
+      const locale = getLocaleForCurrency(currency);
+      formattedAmount = new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 0,

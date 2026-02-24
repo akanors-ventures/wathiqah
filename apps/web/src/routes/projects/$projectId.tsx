@@ -11,32 +11,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowLeft, TrendingDown, TrendingUp } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { authGuard } from "@/utils/auth";
 import { format } from "date-fns";
-import { useState, useId } from "react";
+import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { ProjectTransactionType } from "@/types/__generated__/graphql";
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -46,45 +33,7 @@ export const Route = createFileRoute("/projects/$projectId")({
 function ProjectDetailsPage() {
   const { projectId } = Route.useParams();
   const navigate = useNavigate();
-  const { project, loading, logTransaction, logging } = useProject(projectId);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [transactionType, setTransactionType] = useState<ProjectTransactionType>(
-    ProjectTransactionType.Expense,
-  );
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("");
-  const [description, setDescription] = useState("");
-
-  const typeId = useId();
-  const amountId = useId();
-  const categoryId = useId();
-  const descriptionId = useId();
-
-  const handleLogTransaction = async () => {
-    try {
-      if (!amount || parseFloat(amount) <= 0) {
-        toast.error("Please enter a valid amount");
-        return;
-      }
-
-      await logTransaction({
-        projectId,
-        amount: parseFloat(amount),
-        type: transactionType,
-        category: category || undefined,
-        description: description || undefined,
-      });
-
-      toast.success("Transaction logged successfully");
-      setIsDialogOpen(false);
-      setAmount("");
-      setCategory("");
-      setDescription("");
-    } catch (error) {
-      toast.error("Failed to log transaction");
-      console.error(error);
-    }
-  };
+  const { project, loading } = useProject(projectId);
 
   if (loading) {
     return (
@@ -123,68 +72,9 @@ function ProjectDetailsPage() {
             {project.description && <p className="text-muted-foreground">{project.description}</p>}
           </div>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" /> Log Transaction
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Log Transaction</DialogTitle>
-              <DialogDescription>Add income or expense to this project.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor={typeId}>Type</Label>
-                <Select
-                  value={transactionType}
-                  onValueChange={(value: ProjectTransactionType) => setTransactionType(value)}
-                >
-                  <SelectTrigger id={typeId}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INCOME">Income</SelectItem>
-                    <SelectItem value="EXPENSE">Expense</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={amountId}>Amount</Label>
-                <Input
-                  id={amountId}
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={categoryId}>Category (Optional)</Label>
-                <Input
-                  id={categoryId}
-                  placeholder="e.g., Materials, Labor, Contribution"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor={descriptionId}>Description (Optional)</Label>
-                <Textarea
-                  id={descriptionId}
-                  placeholder="Add notes about this transaction"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-              <Button className="w-full" onClick={handleLogTransaction} disabled={logging}>
-                {logging ? "Logging..." : "Log Transaction"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ProjectTransactionDialog
+          projectId={projectId}
+        />
       </div>
 
       {/* Summary Cards */}
@@ -254,6 +144,7 @@ function ProjectDetailsPage() {
                   <TableHead>Type</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Witnesses</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
@@ -283,6 +174,36 @@ function ProjectDetailsPage() {
                     <TableCell>{tx.category || "-"}</TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       {tx.description || "-"}
+                    </TableCell>
+                    <TableCell>
+                      {tx.witnesses && tx.witnesses.length > 0 ? (
+                        <div className="flex -space-x-2 overflow-hidden">
+                          <TooltipProvider>
+                            {tx.witnesses.map((w) => (
+                              <Tooltip key={w.id}>
+                                <TooltipTrigger asChild>
+                                  <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-background cursor-help">
+                                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                                      {w.user?.firstName?.[0]}
+                                      {w.user?.lastName?.[0]}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="text-xs">
+                                    {w.user?.firstName} {w.user?.lastName}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground capitalize">
+                                    {w.status.toLowerCase()}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ))}
+                          </TooltipProvider>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">-</span>
+                      )}
                     </TableCell>
                     <TableCell
                       className={`text-right font-bold ${

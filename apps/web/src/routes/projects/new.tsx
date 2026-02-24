@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
 import { useState, useId } from "react";
@@ -116,20 +123,20 @@ function NewProjectPage() {
 
               <div className="space-y-2">
                 <Label htmlFor={currencyId}>Currency</Label>
-                <select
-                  id={currencyId}
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="NGN">NGN (₦)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="CAD">CAD ($)</option>
-                  <option value="AED">AED (د.إ)</option>
-                  <option value="SAR">SAR (ر.س)</option>
-                </select>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger id={currencyId}>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AED">AED (د.إ)</SelectItem>
+                    <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

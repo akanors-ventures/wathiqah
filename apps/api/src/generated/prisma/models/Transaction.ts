@@ -816,10 +816,12 @@ export type TransactionCreateNestedOneWithoutWitnessesInput = {
   connect?: Prisma.TransactionWhereUniqueInput
 }
 
-export type TransactionUpdateOneRequiredWithoutWitnessesNestedInput = {
+export type TransactionUpdateOneWithoutWitnessesNestedInput = {
   create?: Prisma.XOR<Prisma.TransactionCreateWithoutWitnessesInput, Prisma.TransactionUncheckedCreateWithoutWitnessesInput>
   connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutWitnessesInput
   upsert?: Prisma.TransactionUpsertWithoutWitnessesInput
+  disconnect?: Prisma.TransactionWhereInput | boolean
+  delete?: Prisma.TransactionWhereInput | boolean
   connect?: Prisma.TransactionWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.TransactionUpdateToOneWithWhereWithoutWitnessesInput, Prisma.TransactionUpdateWithoutWitnessesInput>, Prisma.TransactionUncheckedUpdateWithoutWitnessesInput>
 }
