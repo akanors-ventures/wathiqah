@@ -2,7 +2,7 @@
 
 ## Project & Fund Management
 
-**Status:** Pending Implementation
+**Status:** Implemented (V1)
 **Priority:** High (Strategic Fit)
 
 ### Description
@@ -12,20 +12,20 @@ Implement a system to create "Projects" that act as scoped ledgers for specific 
 ### Requirements
 
 1.  **Data Model**:
-    - **Project**: `name`, `budget`, `balance`, `currency`.
-    - **ProjectTransaction**: `amount`, `type` (INCOME/EXPENSE), `category`, `description`.
+    - **Project**: `name`, `budget`, `balance`, `currency`. (Implemented)
+    - **ProjectTransaction**: `amount`, `type` (INCOME/EXPENSE), `category`, `description`. (Implemented)
 2.  **Logic**:
-    - Atomic balance updates.
-    - Expenses deduct from balance; Income adds to balance.
+    - Atomic balance updates. (Implemented)
+    - Expenses deduct from balance; Income adds to balance. (Implemented)
 3.  **UI/UX**:
-    - Project Dashboard (Budget vs Actuals).
-    - Quick "Add Expense" form.
+    - Project Dashboard (Budget vs Actuals). (Implemented)
+    - Quick "Add Expense" form. (Implemented)
 
 ---
 
 ## Project Transaction Multi‑Currency (Pro)
 
-**Status:** Proposed  
+**Status:** In Progress / Partially Implemented
 **Priority:** High (Pro feature, reporting accuracy)
 
 ### Rationale

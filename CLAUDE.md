@@ -51,9 +51,10 @@ wathiqah/
 
 ### Key Principles
 
-1. **Strict TypeScript** - No `any` types allowed. Use Zod for schemas and DTOs for API data.
-2. **Module-based Architecture** - Each feature is a self-contained module in `src/modules/`
-3. **Separation of Concerns**:
+1. **Strict TypeScript** - No `any` types allowed. Use specific interfaces or generated types.
+2. **Standardized Monetary Inputs** - Always use the `useAmountInput` hook for amount/monetary fields in the frontend to ensure consistent real-time formatting and decimal support.
+3. **Module-based Architecture** - Each feature is a self-contained module in `src/modules/`
+4. **Separation of Concerns**:
    - Resolvers handle GraphQL queries/mutations
    - Services contain business logic
    - Entities define GraphQL schema
