@@ -16,10 +16,7 @@ interface ProjectTransactionDialogProps {
   trigger?: React.ReactNode;
 }
 
-export function ProjectTransactionDialog({
-  projectId,
-  trigger,
-}: ProjectTransactionDialogProps) {
+export function ProjectTransactionDialog({ projectId, trigger }: ProjectTransactionDialogProps) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -34,15 +31,10 @@ export function ProjectTransactionDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Log Transaction</DialogTitle>
-          <DialogDescription>
-            Add income or expense to this project.
-          </DialogDescription>
+          <DialogDescription>Add income or expense to this project.</DialogDescription>
         </DialogHeader>
         <div className="mt-4">
-          <ProjectTransactionForm
-            projectId={projectId}
-            onSuccess={() => setOpen(false)}
-          />
+          <ProjectTransactionForm projectId={projectId} onSuccess={() => setOpen(false)} />
         </div>
       </DialogContent>
     </Dialog>

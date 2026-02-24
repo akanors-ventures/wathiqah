@@ -47,7 +47,7 @@ function NewProjectPage() {
       const result = await createProject({
         name: name.trim(),
         description: description.trim() || undefined,
-        budget: budget ? parseFloat(budget) : undefined,
+        budget: budget ? Number.parseFloat(budget) : undefined,
         currency,
       });
 

@@ -4,7 +4,7 @@ import {
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
-  Calendar,
+  CalendarDays,
   CheckCircle2,
   Package,
 } from "lucide-react";
@@ -220,7 +220,7 @@ export function ItemsList({ items, isLoading, onRefresh }: ItemsListProps) {
                       <span className="text-sm font-black text-foreground">{item.quantity}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                      <Calendar className="w-3 h-3 opacity-60" />
+                      <CalendarDays className="w-3 h-3 opacity-60" />
                       {format(new Date(item.lastUpdated), "MMM d, yyyy")}
                     </div>
                   </div>

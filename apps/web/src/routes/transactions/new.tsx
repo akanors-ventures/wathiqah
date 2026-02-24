@@ -437,7 +437,9 @@ function NewTransactionPage() {
                               </FormControl>
                               <SelectContent>
                                 <SelectItem value={ReturnDirection.ToMe}>To Me</SelectItem>
-                                <SelectItem value={ReturnDirection.ToContact}>To Contact</SelectItem>
+                                <SelectItem value={ReturnDirection.ToContact}>
+                                  To Contact
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />

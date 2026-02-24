@@ -3,7 +3,7 @@ import { Mail, Phone, User, Zap, AlertCircle, ArrowUpCircle, Heart } from "lucid
 import { useEffect, useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -99,7 +99,6 @@ function ProfilePage() {
             <CardContent className="pt-8 flex flex-col items-center text-center">
               <div className="relative mb-4">
                 <Avatar className="h-24 w-24 border-4 border-background shadow-xl">
-                  <AvatarImage src={undefined} />
                   <AvatarFallback className="text-2xl bg-primary/10 text-primary font-black">
                     {user.firstName?.charAt(0)}
                     {user.lastName?.charAt(0)}

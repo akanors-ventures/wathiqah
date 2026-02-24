@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowLeft,
-  Calendar,
+  CalendarDays,
   Edit2,
   FileText,
   Gift,
@@ -169,7 +169,7 @@ function TransactionDetailPage() {
               </span>
             </h1>
             <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2">
-              <Calendar size={14} />
+              <CalendarDays size={14} />
               {format(new Date(currentTransaction.date as string), "MMMM d, yyyy")}
             </p>
           </div>

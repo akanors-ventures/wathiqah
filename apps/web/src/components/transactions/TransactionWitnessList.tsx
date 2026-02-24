@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { Calendar, Mail, RefreshCw, Trash2, User, Users } from "lucide-react";
+import { CalendarDays, Mail, RefreshCw, Trash2, User, Users } from "lucide-react";
 import { WitnessStatus, type Witness } from "@/types/__generated__/graphql";
 import { WitnessStatusBadge } from "../witnesses/WitnessStatusBadge";
 import { Button } from "../ui/button";
@@ -56,7 +56,7 @@ export function TransactionWitnessList({
                     <Mail size={11} className="sm:w-3 sm:h-3 opacity-60" /> {witness.user?.email}
                   </span>
                   <span className="text-[9px] sm:text-[10px] text-muted-foreground font-bold uppercase tracking-widest flex items-center gap-1.5 shrink-0">
-                    <Calendar size={11} className="sm:w-3 sm:h-3 opacity-60" /> Invited{" "}
+                    <CalendarDays size={11} className="sm:w-3 sm:h-3 opacity-60" /> Invited{" "}
                     {format(new Date(witness.invitedAt as string), "MMM d, yyyy")}
                   </span>
                 </div>
