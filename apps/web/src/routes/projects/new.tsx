@@ -16,6 +16,8 @@ import { ArrowLeft } from "lucide-react";
 import { useState, useId } from "react";
 import { toast } from "sonner";
 import { authGuard } from "@/utils/auth";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 
 export const Route = createFileRoute("/projects/new")({
   component: NewProjectPage,
@@ -29,6 +31,15 @@ function NewProjectPage() {
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("");
   const [currency, setCurrency] = useState("NGN");
+
+  const {
+    amountDisplay: budgetDisplay,
+    handleAmountChange: handleBudgetChange,
+    handleBlur,
+  } = useAmountInput({
+    currencyCode: currency,
+    onChange: (val) => setBudget(val.toString()),
+  });
 
   const nameId = useId();
   const descriptionId = useId();
@@ -113,11 +124,12 @@ function NewProjectPage() {
                 <Label htmlFor={budgetId}>Budget (Optional)</Label>
                 <Input
                   id={budgetId}
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder={formatCurrency(0, currency, 0)}
+                  value={budgetDisplay}
+                  onChange={handleBudgetChange}
+                  onBlur={() => handleBlur(Number.parseFloat(budget))}
                 />
               </div>
 

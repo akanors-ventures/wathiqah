@@ -33,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransactions } from "@/hooks/useTransactions";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/transactions/new")({
@@ -144,6 +146,10 @@ function NewTransactionPage() {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
   const [activeTab, setActiveTab] = useState("personal");
+  const [newlyCreatedContact, setNewlyCreatedContact] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema) as Resolver<z.infer<typeof formSchema>>,
@@ -163,6 +169,18 @@ function NewTransactionPage() {
   const contactId = form.watch("contactId");
   const type = form.watch("type");
   const category = form.watch("category");
+  const currencyCode = form.watch("currency");
+
+  const {
+    amountDisplay,
+    handleAmountChange,
+    handleBlur,
+    reset: resetAmount,
+  } = useAmountInput({
+    currencyCode,
+    onChange: (value) =>
+      form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -188,6 +206,7 @@ function NewTransactionPage() {
         witnessInvites,
       });
       toast.success("Transaction created successfully");
+      resetAmount();
       navigate({
         to: "/transactions",
         search: { tab: values.category === AssetCategory.Item ? "items" : "funds" },
@@ -272,18 +291,29 @@ function NewTransactionPage() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="none">Personal (No Contact)</SelectItem>
-                              {loadingContacts ? (
+                              {loadingContacts && !newlyCreatedContact ? (
                                 <SelectItem value="loading" disabled>
                                   <div className="flex items-center justify-center gap-2">
                                     <BrandLoader size="sm" />
                                   </div>
                                 </SelectItem>
                               ) : (
-                                contacts.map((contact) => (
-                                  <SelectItem key={contact.id} value={contact.id}>
-                                    {contact.name}
-                                  </SelectItem>
-                                ))
+                                <>
+                                  {newlyCreatedContact &&
+                                    !contacts.some((c) => c.id === newlyCreatedContact.id) && (
+                                      <SelectItem
+                                        key={newlyCreatedContact.id}
+                                        value={newlyCreatedContact.id}
+                                      >
+                                        {newlyCreatedContact.name}
+                                      </SelectItem>
+                                    )}
+                                  {contacts.map((contact) => (
+                                    <SelectItem key={contact.id} value={contact.id}>
+                                      {contact.name}
+                                    </SelectItem>
+                                  ))}
+                                </>
                               )}
                             </SelectContent>
                           </Select>
@@ -361,16 +391,18 @@ function NewTransactionPage() {
                         <FormField
                           control={form.control}
                           name="amount"
-                          render={({ field }) => (
+                          render={() => (
                             <FormItem className="flex-1 min-w-0">
                               <FormLabel>Amount</FormLabel>
                               <FormControl>
                                 <Input
-                                  type="number"
-                                  step="0.01"
-                                  placeholder="0.00"
-                                  {...field}
-                                  className="w-full h-10 px-3 text-sm"
+                                  type="text"
+                                  inputMode="decimal"
+                                  placeholder={formatCurrency(0, currencyCode, 0)}
+                                  value={amountDisplay}
+                                  onChange={handleAmountChange}
+                                  onBlur={() => handleBlur(form.getValues("amount") || 0)}
+                                  className="w-full h-10 px-3 text-sm font-medium"
                                 />
                               </FormControl>
                               <FormMessage />
@@ -514,6 +546,18 @@ function NewTransactionPage() {
       <ContactFormDialog
         isOpen={isContactDialogOpen}
         onClose={() => setIsContactDialogOpen(false)}
+        onSuccess={(newContact) => {
+          setNewlyCreatedContact(newContact);
+          // Small delay to ensure the Select component has rendered the new option
+          setTimeout(() => {
+            form.setValue("contactId", newContact.id, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+            // Auto-switch type based on contact selection
+            form.setValue("type", TransactionType.Given);
+          }, 0);
+        }}
       />
     </div>
   );

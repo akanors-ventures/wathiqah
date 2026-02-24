@@ -30,7 +30,9 @@ export function useProjects() {
   );
 
   const createProject = async (input: CreateProjectInput) => {
-    return createProjectMutation({ variables: { input } });
+    const result = await createProjectMutation({ variables: { input } });
+    await refetch();
+    return result;
   };
 
   return {

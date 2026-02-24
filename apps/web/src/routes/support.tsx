@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { redirectToLogin } from "@/utils/auth";
 import { z } from "zod";
 import { useSupport } from "@/hooks/useSupport";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { Footer } from "@/components/layout/Footer";
 
 const createSupportSchema = (min: number, max: number, currencyCode: string) => {
@@ -77,6 +78,20 @@ function SupportPage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
 
+  const {
+    amountDisplay: customAmountDisplay,
+    handleAmountChange: handleCustomAmountDisplayChange,
+    handleBlur,
+    reset: resetAmount,
+  } = useAmountInput({
+    currencyCode: selectedCurrency.code,
+    onChange: (val) => {
+      setCustomAmount(val.toString());
+      setSelectedAmount(null);
+      if (error) setError(null);
+    },
+  });
+
   // Initialize currency based on GeoIP
   useEffect(() => {
     if (geoIP) {
@@ -91,27 +106,17 @@ function SupportPage() {
         // Reset amounts when currency changes
         setSelectedAmount(null);
         setCustomAmount("");
+        resetAmount();
         setError(null);
       }
     }
-  }, [geoIP, isNigeria, isUK]);
+  }, [geoIP, isNigeria, isUK, resetAmount]);
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
+    resetAmount();
     setError(null);
-  };
-
-  const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    // Allow only numbers and decimals
-    if (value === "" || /^\d*\.?\d{0,2}$/.test(value)) {
-      setCustomAmount(value);
-      setSelectedAmount(null);
-
-      // Validate immediately or wait for submit? Let's clear error while typing
-      if (error) setError(null);
-    }
   };
 
   const validateAmount = (amount: number) => {
@@ -230,11 +235,14 @@ function SupportPage() {
                     type="text"
                     inputMode="decimal"
                     placeholder="0.00"
-                    value={customAmount}
-                    onChange={handleCustomAmountChange}
+                    value={customAmountDisplay}
+                    onChange={handleCustomAmountDisplayChange}
+                    onBlur={() => handleBlur(Number.parseFloat(customAmount))}
                     className={cn(
                       "pl-10 h-14 text-lg font-bold border-2 transition-all",
-                      customAmount && !error ? "border-pink-500 ring-2 ring-pink-500/20" : "",
+                      customAmountDisplay && !error
+                        ? "border-pink-500 ring-2 ring-pink-500/20"
+                        : "",
                       error ? "border-destructive focus-visible:ring-destructive" : "",
                     )}
                   />
