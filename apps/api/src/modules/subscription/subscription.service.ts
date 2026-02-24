@@ -191,6 +191,9 @@ export class SubscriptionService {
     if (typeof limitValue === 'number') {
       // Special handling for maxContacts which is a total count, not per month
       if (feature === 'maxContacts') {
+        // -1 means unlimited
+        if (limitValue === -1) return true;
+
         const contactCount = await this.prisma.contact.count({
           where: { userId },
         });
@@ -206,6 +209,9 @@ export class SubscriptionService {
       const now = new Date();
       const monthKey = `${feature}_${now.getFullYear()}_${now.getMonth() + 1}`;
       const usage = (user.featureUsage as FeatureUsage)?.[monthKey] || 0;
+
+      // -1 means unlimited
+      if (limitValue === -1) return true;
 
       if (usage + required > limitValue) {
         throw new ForbiddenException(

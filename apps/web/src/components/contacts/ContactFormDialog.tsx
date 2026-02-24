@@ -38,7 +38,8 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
   const phoneId = useId();
 
   const isEditing = !!contact;
-  const isAtLimit = !isEditing && contacts.length >= maxContacts && maxContacts > 0;
+  const isAtLimit =
+    !isEditing && maxContacts !== Infinity && contacts.length >= maxContacts && maxContacts > 0;
 
   useEffect(() => {
     if (isOpen) {
