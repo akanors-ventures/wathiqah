@@ -72,19 +72,31 @@ To implement these changes, the following technical updates are required:
 ## 4. Timeline & Milestones
 
 **Phase 1: Messaging & Quick Wins (Week 1)**
-*   [ ] Update Landing Page copy (Headlines, Value Props).
-*   [ ] Fix "Transactions Involving Me" naming.
-*   [ ] Implement "Empty State" checklist on Dashboard.
+*   [x] Update Landing Page copy (Headlines, Value Props).
+*   [x] Fix "Transactions Involving Me" naming.
+*   [x] Implement "Empty State" checklist on Dashboard.
 
 **Phase 2: Visuals & Trust (Week 2)**
-*   [ ] Design and integrate App Mockups into Hero section.
-*   [ ] Add "Security Features" row.
-*   [ ] Implement "Social Proof" section (even if placeholder testimonials for now, or use "Built by Akanors" trust).
+*   [x] Design and integrate App Mockups into Hero section.
+*   [x] Add "Security Features" row.
+*   [x] Implement "Social Proof" section (Implemented as "Trust Signals" - focusing on integrity/philosophy rather than fake testimonials).
 
-**Phase 3: Deep Feature Integration (Week 3)**
-*   [ ] Build "How it Works" interactive demo for Witness System.
-*   [ ] Refactor Marketing components.
-*   [ ] Comprehensive Mobile QA sweep.
+**Phase 3: Deep Feature Integration & Project Management (Week 3-4)**
+*   [x] **Project & Fund Management System UI:**
+    *   [x] **Dashboard Widget:** Create "Active Projects" card showing budget vs. actual spend progress bars.
+    *   [x] **Projects Page:** Build `/projects` route with Grid/List view of all active projects.
+    *   [x] **Project Detail View:** Build `/projects/$projectId` to show transaction history, income vs. expense breakdown, and edit settings.
+    *   [x] **Quick Actions:** Add "New Project Expense" to the global "Add Transaction" button/modal.
+*   [x] **Project Witness Integration:**
+    *   [x] **Milestone Verification:** Allow users to add a Witness to specific, high-value Project Transactions (e.g., "Contractor Payment", "Venue Deposit").
+    *   [ ] **Project Audit Mode:** Enable a "Project Viewer" role where a witness can view the entire read-only history of a specific project to verify funds were used correctly (perfect for charity drives or group trips).
+*   [ ] **Vital Recommendations & Enhancements:**
+    *   [ ] **Smart Budget Alerts:** Implement email/push notifications when project spending exceeds 50%, 80%, and 100% of the budget.
+    *   [ ] **Collaborative Projects (Shared Ledger):** Allow multiple users to be "Members" of a project, enabling them to log expenses against a shared budget (requires backend update to `Project` model for `members` relation).
+    *   [ ] **Exportable Project Reports:** Generate professional PDF reports for specific projects, including all receipts (attachments) and witness verifications.
+    *   [x] **Standardized Input Experience:** Introduced `useAmountInput` hook for consistent, reliable monetary entry across all features.
+    *   [ ] **"How it Works" Interactive Demo:** Build a step-by-step interactive tour for the Witness System on the landing page.
+    *   [ ] **Comprehensive Mobile QA:** Final sweep of all new Project and Witness screens on mobile viewports.
 
 ---
 
@@ -95,4 +107,5 @@ We will measure the impact of these updates using the following metrics:
 1.  **Conversion Rate:** Percentage of unique visitors to `/` who complete the `/signup` form. (Target: >5%)
 2.  **Activation Rate:** Percentage of new signups who record their first transaction within 24 hours. (Target: >40%)
 3.  **Witness Adoption:** Percentage of transactions that have a Witness attached. (Target: Increase by 15%)
-4.  **Bounce Rate:** Reduce bounce rate on Landing Page by 10% through better visuals and clearer value propositions.
+4.  **Project Engagement:** Percentage of users who create at least one Project within their first week. (Target: >20%)
+5.  **Bounce Rate:** Reduce bounce rate on Landing Page by 10% through better visuals and clearer value propositions.

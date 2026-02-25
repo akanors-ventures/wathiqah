@@ -1,4 +1,3 @@
-import { useMutation } from "@apollo/client/react";
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CREATE_CONTACT, GET_CONTACTS, UPDATE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useContacts } from "@/hooks/useContacts";
 import type { Contact } from "@/types/__generated__/graphql";
@@ -23,12 +21,13 @@ type ContactMinimal = Pick<Contact, "id" | "name" | "email" | "phoneNumber">;
 interface ContactFormDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: (contact: { id: string; name: string }) => void;
   contact?: ContactMinimal | null;
 }
 
-export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialogProps) {
+export function ContactFormDialog({ isOpen, onClose, onSuccess, contact }: ContactFormDialogProps) {
   const { maxContacts } = useSubscription();
-  const { contacts } = useContacts();
+  const { contacts, createContact, updateContact, creating, updating } = useContacts();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -38,7 +37,8 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
   const phoneId = useId();
 
   const isEditing = !!contact;
-  const isAtLimit = !isEditing && contacts.length >= maxContacts && maxContacts > 0;
+  const isAtLimit =
+    !isEditing && maxContacts !== Infinity && contacts.length >= maxContacts && maxContacts > 0;
 
   useEffect(() => {
     if (isOpen) {
@@ -54,18 +54,6 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
       setError("");
     }
   }, [contact, isOpen]);
-
-  const [createContact, { loading: creating }] = useMutation(CREATE_CONTACT, {
-    refetchQueries: [{ query: GET_CONTACTS }],
-    onCompleted: () => onClose(),
-    onError: (err) => setError(err.message),
-  });
-
-  const [updateContact, { loading: updating }] = useMutation(UPDATE_CONTACT, {
-    refetchQueries: [{ query: GET_CONTACTS }],
-    onCompleted: () => onClose(),
-    onError: (err) => setError(err.message),
-  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,29 +71,30 @@ export function ContactFormDialog({ isOpen, onClose, contact }: ContactFormDialo
 
     try {
       if (isEditing) {
-        await updateContact({
-          variables: {
-            updateContactInput: {
-              id: contact.id,
-              name,
-              email: email?.trim().toLowerCase() || null,
-              phoneNumber: phoneNumber || null,
-            },
-          },
+        const result = await updateContact({
+          id: contact.id,
+          name,
+          email: email?.trim().toLowerCase() || null,
+          phoneNumber: phoneNumber || null,
         });
+        if (result.data?.updateContact) {
+          onSuccess?.(result.data.updateContact);
+          onClose();
+        }
       } else {
-        await createContact({
-          variables: {
-            createContactInput: {
-              name,
-              email: email?.trim().toLowerCase() || null,
-              phoneNumber: phoneNumber || null,
-            },
-          },
+        const result = await createContact({
+          name,
+          email: email?.trim().toLowerCase() || null,
+          phoneNumber: phoneNumber || null,
         });
+        if (result.data?.createContact) {
+          onSuccess?.(result.data.createContact);
+          onClose();
+        }
       }
-    } catch (_err) {
-      // Error handled in onError
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
     }
   };
 

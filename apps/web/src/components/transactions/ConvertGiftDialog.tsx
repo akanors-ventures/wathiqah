@@ -22,6 +22,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useTransactions } from "@/hooks/useTransactions";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
 
 const formSchema = z.object({
@@ -57,6 +59,13 @@ export function ConvertGiftDialog({
       amount: transaction.amount || 0,
       description: `Gift conversion from transaction: ${transaction.id}`,
     },
+  });
+
+  const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
+    initialValue: transaction.amount || 0,
+    currencyCode: transaction.currency || "NGN",
+    onChange: (value) =>
+      form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -108,16 +117,17 @@ export function ConvertGiftDialog({
             <FormField
               control={form.control}
               name="amount"
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
-                  <FormLabel>Amount to Convert</FormLabel>
+                  <FormLabel>Gift Amount</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      max={transaction.amount || undefined}
-                      {...field}
+                      type="text"
+                      inputMode="decimal"
+                      placeholder={formatCurrency(0, transaction.currency, 0)}
+                      value={amountDisplay}
+                      onChange={handleAmountChange}
+                      onBlur={() => handleBlur(form.getValues("amount") || 0)}
                     />
                   </FormControl>
                   <FormMessage />

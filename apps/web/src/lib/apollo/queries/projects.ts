@@ -25,6 +25,17 @@ export const PROJECT_TRANSACTION_FRAGMENT = gql`
     projectId
     createdAt
     updatedAt
+    witnesses {
+      id
+      status
+      userId
+      user {
+        id
+        email
+        firstName
+        lastName
+      }
+    }
   }
 `;
 

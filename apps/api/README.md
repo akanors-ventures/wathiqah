@@ -46,7 +46,7 @@ pnpm install
 Run migrations to create the database schema:
 
 ```bash
-pnpm prisma migrate dev
+pnpm db:migrate
 ```
 
 (Optional) Seed the database with initial data:

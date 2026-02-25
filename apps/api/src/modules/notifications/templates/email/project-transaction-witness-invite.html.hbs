@@ -1,0 +1,24 @@
+{{#> layout }}
+    <h2>Hello {{name}},</h2>
+    <p><strong>{{creatorName}}</strong> has requested you to witness a transaction in project <strong>{{projectName}}</strong> on Wathīqah.</p>
+    
+    <div class="details-box" style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; color: #333333;">
+        <h3 class="details-text" style="margin-top: 0; color: #333333;">Transaction Details:</h3>
+        <ul class="details-text" style="list-style: none; padding-left: 0; color: #333333;">
+            <li><strong>Type:</strong> {{type}}</li>
+            <li><strong>Amount:</strong> {{amount}}</li>
+            {{#if category}}
+            <li><strong>Category:</strong> {{category}}</li>
+            {{/if}}
+            {{#if description}}
+            <li><strong>Description:</strong> {{description}}</li>
+            {{/if}}
+        </ul>
+    </div>
+
+    <p>Please click the link below to review and acknowledge the transaction:</p>
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{inviteUrl}}" style="background-color: #2196F3; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">View Transaction</a>
+    </div>
+    <p style="font-size: 0.9em; color: #666;">If the button doesn't work, copy and paste this link: {{inviteUrl}}</p>
+{{/layout}}

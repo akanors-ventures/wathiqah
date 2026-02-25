@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import {
   AlertCircle,
   ArrowUpDown,
-  Calendar,
+  CalendarDays,
   ChevronDown,
   ChevronUp,
   Filter,
@@ -267,7 +267,7 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
                     </div>
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-muted-foreground font-medium opacity-60 group-hover/item:opacity-90 transition-opacity">
                       <span className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                        <Calendar className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-primary/60" />
+                        <CalendarDays className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-primary/60" />
                         {format(new Date(item.createdAt), "MMM d, yyyy")}
                       </span>
                       <span className="hidden sm:block w-1 h-1 rounded-full bg-border/50" />

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { endOfMonth, endOfYear, format, startOfMonth, startOfYear } from "date-fns";
-import { CalendarClock, CreditCard, FileCheck, Users, Calendar } from "lucide-react";
+import { CalendarClock, CreditCard, FileCheck, Users, CalendarDays } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
@@ -21,7 +21,8 @@ import { useContacts } from "@/hooks/useContacts";
 import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
-import { LedgerPhilosophy } from "./LedgerPhilosophy";
+import { ProjectsWidget } from "./ProjectsWidget";
+import { OnboardingChecklist } from "./OnboardingChecklist";
 import { StatsCard } from "./StatsCard";
 
 type Period = "ALL" | "MONTH" | "YEAR";
@@ -130,11 +131,11 @@ export function Dashboard() {
             Personal ledger for loans, promises, and shared expenses
           </p>
         </div>
-        <div className="flex w-full sm:w-auto gap-3 items-center">
+        <div className="flex gap-3 w-full sm:w-auto items-center">
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-            <SelectTrigger className="w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
+            <SelectTrigger className="flex-1 sm:w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
                 <SelectValue />
               </div>
             </SelectTrigger>
@@ -147,7 +148,7 @@ export function Dashboard() {
 
           <Button
             asChild
-            className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="flex-1 sm:flex-none sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             <Link to="/transactions/new" search={{ contactId: undefined }}>
               New Transaction
@@ -160,12 +161,13 @@ export function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Balance"
+          variant="primary"
           extra={
             <Select
               value={selectedCurrency || balanceCurrency}
               onValueChange={(v) => setSelectedCurrency(v)}
             >
-              <SelectTrigger className="h-7 w-[80px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0">
+              <SelectTrigger className="h-7 w-[70px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0 flex-shrink-0">
                 <SelectValue placeholder="NGN" />
               </SelectTrigger>
               <SelectContent>
@@ -239,7 +241,7 @@ export function Dashboard() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <div className="lg:col-span-4">
-          <LedgerPhilosophy />
+          <ProjectsWidget />
         </div>
 
         {/* Quick Actions / Recent Promises */}
@@ -336,23 +338,12 @@ export function Dashboard() {
         <CardContent className="p-4 sm:p-6 pt-0">
           <div className="space-y-4 sm:space-y-6">
             {recentTransactions.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-primary/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CreditCard className="w-8 h-8 text-primary/40" />
-                </div>
-                <p className="text-xs font-bold text-muted-foreground mb-4 capitalize">
-                  No transactions yet. Start by recording a loan or expense.
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  asChild
-                  className="rounded-md font-bold capitalize tracking-tight text-[11px] h-9 px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
-                >
-                  <Link to="/transactions/new" search={{ contactId: undefined }}>
-                    Record transaction
-                  </Link>
-                </Button>
+              <div className="p-4 sm:p-6">
+                <OnboardingChecklist
+                  hasContacts={totalContacts > 0}
+                  hasTransactions={false}
+                  hasInvitedWitness={false}
+                />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">

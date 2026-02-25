@@ -1,3 +1,5 @@
+import { ProjectTransactionForm } from "@/components/projects/ProjectTransactionForm";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { format } from "date-fns";
@@ -31,6 +33,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransactions } from "@/hooks/useTransactions";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/transactions/new")({
@@ -141,6 +145,11 @@ function NewTransactionPage() {
   const { contacts, loading: loadingContacts } = useContacts();
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
+  const [activeTab, setActiveTab] = useState("personal");
+  const [newlyCreatedContact, setNewlyCreatedContact] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema) as Resolver<z.infer<typeof formSchema>>,
@@ -160,6 +169,18 @@ function NewTransactionPage() {
   const contactId = form.watch("contactId");
   const type = form.watch("type");
   const category = form.watch("category");
+  const currencyCode = form.watch("currency");
+
+  const {
+    amountDisplay,
+    handleAmountChange,
+    handleBlur,
+    reset: resetAmount,
+  } = useAmountInput({
+    currencyCode,
+    onChange: (value) =>
+      form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -185,6 +206,7 @@ function NewTransactionPage() {
         witnessInvites,
       });
       toast.success("Transaction created successfully");
+      resetAmount();
       navigate({
         to: "/transactions",
         search: { tab: values.category === AssetCategory.Item ? "items" : "funds" },
@@ -201,303 +223,341 @@ function NewTransactionPage() {
           <CardTitle className="text-xl sm:text-2xl font-bold">Create New Transaction</CardTitle>
         </CardHeader>
         <CardContent className="px-0 sm:px-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-10 text-sm">
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value={AssetCategory.Funds}>Funds (Money)</SelectItem>
-                          <SelectItem value={AssetCategory.Item}>Physical Item</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="contactId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>Contact</FormLabel>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                          onClick={() => setIsContactDialogOpen(true)}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          New Contact
-                        </Button>
-                      </div>
-                      <Select
-                        onValueChange={(value) => {
-                          field.onChange(value === "none" ? undefined : value);
-                          // Auto-switch type based on contact selection
-                          if (value === "none") {
-                            form.setValue("type", TransactionType.Expense);
-                          } else {
-                            form.setValue("type", TransactionType.Given);
-                          }
-                        }}
-                        value={field.value ?? "none"}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="h-10 text-sm">
-                            <SelectValue placeholder="Select a contact (Optional)" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Personal (No Contact)</SelectItem>
-                          {loadingContacts ? (
-                            <SelectItem value="loading" disabled>
-                              <div className="flex items-center justify-center gap-2">
-                                <BrandLoader size="sm" />
-                              </div>
-                            </SelectItem>
-                          ) : (
-                            contacts.map((contact) => (
-                              <SelectItem key={contact.id} value={contact.id}>
-                                {contact.name}
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center gap-2">
-                        Type
-                        <TransactionTypeHelp />
-                      </FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-10 text-sm">
-                            <SelectValue placeholder="Select type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {contactId ? (
-                            <>
-                              <SelectItem value={TransactionType.Given}>Given</SelectItem>
-                              <SelectItem value={TransactionType.Received}>Received</SelectItem>
-                              <SelectItem value={TransactionType.Returned}>Returned</SelectItem>
-                              <SelectItem value={TransactionType.Gift}>Gift</SelectItem>
-                            </>
-                          ) : (
-                            <>
-                              <SelectItem value={TransactionType.Expense}>Expense</SelectItem>
-                              <SelectItem value={TransactionType.Income}>Income</SelectItem>
-                            </>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {category === AssetCategory.Funds ? (
-                  <div className="flex items-start gap-4 sm:gap-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="personal">Personal / Contact</TabsTrigger>
+              <TabsTrigger value="project">Project</TabsTrigger>
+            </TabsList>
+            <TabsContent value="personal">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
                     <FormField
                       control={form.control}
-                      name="currency"
+                      name="category"
                       render={({ field }) => (
-                        <FormItem className="w-24 sm:w-32 shrink-0">
-                          <FormLabel>Currency</FormLabel>
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger className="w-full px-2 sm:px-3 h-11 sm:h-10">
-                                <SelectValue placeholder="NGN" />
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue placeholder="Select category" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="NGN">NGN (₦)</SelectItem>
-                              <SelectItem value="USD">USD ($)</SelectItem>
-                              <SelectItem value="EUR">EUR (€)</SelectItem>
-                              <SelectItem value="GBP">GBP (£)</SelectItem>
-                              <SelectItem value="CAD">CAD ($)</SelectItem>
-                              <SelectItem value="AED">AED (د.إ)</SelectItem>
-                              <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                              <SelectItem value={AssetCategory.Funds}>Funds (Money)</SelectItem>
+                              <SelectItem value={AssetCategory.Item}>Physical Item</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
                     <FormField
                       control={form.control}
-                      name="amount"
+                      name="contactId"
                       render={({ field }) => (
-                        <FormItem className="flex-1 min-w-0">
-                          <FormLabel>Amount</FormLabel>
+                        <FormItem>
+                          <div className="flex items-center justify-between">
+                            <FormLabel>Contact</FormLabel>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 px-2 text-xs text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                              onClick={() => setIsContactDialogOpen(true)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              New Contact
+                            </Button>
+                          </div>
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(value === "none" ? undefined : value);
+                              // Auto-switch type based on contact selection
+                              if (value === "none") {
+                                form.setValue("type", TransactionType.Expense);
+                              } else {
+                                form.setValue("type", TransactionType.Given);
+                              }
+                            }}
+                            value={field.value ?? "none"}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue placeholder="Select a contact (Optional)" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">Personal (No Contact)</SelectItem>
+                              {loadingContacts && !newlyCreatedContact ? (
+                                <SelectItem value="loading" disabled>
+                                  <div className="flex items-center justify-center gap-2">
+                                    <BrandLoader size="sm" />
+                                  </div>
+                                </SelectItem>
+                              ) : (
+                                <>
+                                  {newlyCreatedContact &&
+                                    !contacts.some((c) => c.id === newlyCreatedContact.id) && (
+                                      <SelectItem
+                                        key={newlyCreatedContact.id}
+                                        value={newlyCreatedContact.id}
+                                      >
+                                        {newlyCreatedContact.name}
+                                      </SelectItem>
+                                    )}
+                                  {contacts.map((contact) => (
+                                    <SelectItem key={contact.id} value={contact.id}>
+                                      {contact.name}
+                                    </SelectItem>
+                                  ))}
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
+                    <FormField
+                      control={form.control}
+                      name="type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="flex items-center gap-2">
+                            Type
+                            <TransactionTypeHelp />
+                          </FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-10 text-sm">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {contactId ? (
+                                <>
+                                  <SelectItem value={TransactionType.Given}>Given</SelectItem>
+                                  <SelectItem value={TransactionType.Received}>Received</SelectItem>
+                                  <SelectItem value={TransactionType.Returned}>Returned</SelectItem>
+                                  <SelectItem value={TransactionType.Gift}>Gift</SelectItem>
+                                </>
+                              ) : (
+                                <>
+                                  <SelectItem value={TransactionType.Expense}>Expense</SelectItem>
+                                  <SelectItem value={TransactionType.Income}>Income</SelectItem>
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {category === AssetCategory.Funds ? (
+                      <div className="flex items-start gap-4 sm:gap-6">
+                        <FormField
+                          control={form.control}
+                          name="currency"
+                          render={({ field }) => (
+                            <FormItem className="w-24 sm:w-32 shrink-0">
+                              <FormLabel>Currency</FormLabel>
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                  <SelectTrigger className="w-full px-2 sm:px-3 h-11 sm:h-10">
+                                    <SelectValue placeholder="NGN" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="NGN">NGN (₦)</SelectItem>
+                                  <SelectItem value="USD">USD ($)</SelectItem>
+                                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                                  <SelectItem value="CAD">CAD ($)</SelectItem>
+                                  <SelectItem value="AED">AED (د.إ)</SelectItem>
+                                  <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="amount"
+                          render={() => (
+                            <FormItem className="flex-1 min-w-0">
+                              <FormLabel>Amount</FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="text"
+                                  inputMode="decimal"
+                                  placeholder={formatCurrency(0, currencyCode, 0)}
+                                  value={amountDisplay}
+                                  onChange={handleAmountChange}
+                                  onBlur={() => handleBlur(form.getValues("amount") || 0)}
+                                  className="w-full h-10 px-3 text-sm font-medium"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    ) : (
+                      <FormField
+                        control={form.control}
+                        name="quantity"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Quantity</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="number"
+                                step="1"
+                                placeholder="1"
+                                {...field}
+                                className="h-10 text-sm"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+                  </div>
+
+                  {category === AssetCategory.Item && (
+                    <FormField
+                      control={form.control}
+                      name="itemName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Item Name</FormLabel>
                           <FormControl>
                             <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
+                              placeholder="e.g. Hammer, Laptop, Book"
                               {...field}
-                              className="w-full h-10 px-3 text-sm"
+                              className="h-10 text-sm"
                             />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
-                ) : (
+                  )}
+
+                  {(type === TransactionType.Returned || type === TransactionType.Gift) &&
+                    contactId && (
+                      <FormField
+                        control={form.control}
+                        name="returnDirection"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Direction</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-10 text-sm">
+                                  <SelectValue placeholder="Select direction" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value={ReturnDirection.ToMe}>To Me</SelectItem>
+                                <SelectItem value={ReturnDirection.ToContact}>
+                                  To Contact
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
                   <FormField
                     control={form.control}
-                    name="quantity"
+                    name="date"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Quantity</FormLabel>
+                        <FormLabel>Date</FormLabel>
                         <FormControl>
-                          <Input
-                            type="number"
-                            step="1"
-                            placeholder="1"
+                          <Input type="date" {...field} className="h-10 text-sm" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Add some details about this transaction..."
+                            className="resize-none min-h-[100px] sm:min-h-[120px] rounded-xl sm:rounded-lg border-muted-foreground/20 focus:border-primary/50 transition-colors"
                             {...field}
-                            className="h-10 text-sm"
                           />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                )}
-              </div>
 
-              {category === AssetCategory.Item && (
-                <FormField
-                  control={form.control}
-                  name="itemName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Item Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. Hammer, Laptop, Book"
-                          {...field}
-                          className="h-10 text-sm"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-base font-bold">Witnesses (Optional)</FormLabel>
+                    </div>
+                    <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
+                      Add people to witness this transaction. They will receive an invitation to
+                      acknowledge it.
+                    </p>
+                    <WitnessSelector
+                      selectedWitnesses={selectedWitnesses}
+                      onChange={setSelectedWitnesses}
+                      className="mt-2"
+                    />
+                  </div>
 
-              {(type === TransactionType.Returned || type === TransactionType.Gift) &&
-                contactId && (
-                  <FormField
-                    control={form.control}
-                    name="returnDirection"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Direction</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
-                          <FormControl>
-                            <SelectTrigger className="h-10 text-sm">
-                              <SelectValue placeholder="Select direction" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value={ReturnDirection.ToMe}>To Me</SelectItem>
-                            <SelectItem value={ReturnDirection.ToContact}>To Contact</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} className="h-10 text-sm" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Add some details about this transaction..."
-                        className="resize-none min-h-[100px] sm:min-h-[120px] rounded-xl sm:rounded-lg border-muted-foreground/20 focus:border-primary/50 transition-colors"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between">
-                  <FormLabel className="text-base font-bold">Witnesses (Optional)</FormLabel>
-                </div>
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                  Add people to witness this transaction. They will receive an invitation to
-                  acknowledge it.
-                </p>
-                <WitnessSelector
-                  selectedWitnesses={selectedWitnesses}
-                  onChange={setSelectedWitnesses}
-                  className="mt-2"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full h-12 sm:h-11 rounded-md text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
-                isLoading={creating}
-              >
-                Create Transaction
-              </Button>
-            </form>
-          </Form>
+                  <Button
+                    type="submit"
+                    className="w-full h-12 sm:h-11 rounded-md text-base font-bold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all active:scale-[0.98]"
+                    isLoading={creating}
+                  >
+                    Create Transaction
+                  </Button>
+                </form>
+              </Form>
+            </TabsContent>
+            <TabsContent value="project">
+              <ProjectTransactionForm onSuccess={() => navigate({ to: "/projects" })} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       <ContactFormDialog
         isOpen={isContactDialogOpen}
         onClose={() => setIsContactDialogOpen(false)}
+        onSuccess={(newContact) => {
+          setNewlyCreatedContact(newContact);
+          // Small delay to ensure the Select component has rendered the new option
+          setTimeout(() => {
+            form.setValue("contactId", newContact.id, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+            // Auto-switch type based on contact selection
+            form.setValue("type", TransactionType.Given);
+          }, 0);
+        }}
       />
     </div>
   );

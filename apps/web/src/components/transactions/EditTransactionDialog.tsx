@@ -35,6 +35,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransaction } from "@/hooks/useTransaction";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import {
   AssetCategory,
   ReturnDirection,
@@ -154,8 +156,12 @@ export function EditTransactionDialog({
   const { updateTransaction, updating } = useTransaction(transaction.id);
   const { contacts } = useContacts();
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const [newlyCreatedContact, setNewlyCreatedContact] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
-  const form = useForm<TransactionFormValues>({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema) as Resolver<TransactionFormValues>,
     defaultValues: {
       type: transaction.type,
@@ -175,6 +181,14 @@ export function EditTransactionDialog({
   const contactId = form.watch("contactId");
   const type = form.watch("type");
   const category = form.watch("category");
+  const currencyCode = form.watch("currency");
+
+  const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
+    initialValue: transaction.amount || 0,
+    currencyCode: transaction.currency || "NGN",
+    onChange: (value) =>
+      form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
+  });
 
   async function onSubmit(values: TransactionFormValues) {
     try {
@@ -269,6 +283,12 @@ export function EditTransactionDialog({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="none">Personal (No Contact)</SelectItem>
+                      {newlyCreatedContact &&
+                        !contacts.some((c) => c.id === newlyCreatedContact.id) && (
+                          <SelectItem key={newlyCreatedContact.id} value={newlyCreatedContact.id}>
+                            {newlyCreatedContact.name}
+                          </SelectItem>
+                        )}
                       {contacts.map((contact) => (
                         <SelectItem key={contact.id} value={contact.id}>
                           {contact.name}
@@ -313,11 +333,18 @@ export function EditTransactionDialog({
                   <FormField
                     control={form.control}
                     name="amount"
-                    render={({ field }) => (
+                    render={() => (
                       <FormItem className="col-span-2">
                         <FormLabel>Amount</FormLabel>
                         <FormControl>
-                          <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                          <Input
+                            type="text"
+                            inputMode="decimal"
+                            placeholder={formatCurrency(0, currencyCode, 0)}
+                            value={amountDisplay}
+                            onChange={handleAmountChange}
+                            onBlur={() => handleBlur(form.getValues("amount") || 0)}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -506,6 +533,25 @@ export function EditTransactionDialog({
       <ContactFormDialog
         isOpen={isContactDialogOpen}
         onClose={() => setIsContactDialogOpen(false)}
+        onSuccess={(newContact) => {
+          setNewlyCreatedContact(newContact);
+          setTimeout(() => {
+            form.setValue("contactId", newContact.id, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+            const currentType = form.getValues("type");
+            const contactTypes = [
+              TransactionType.Given,
+              TransactionType.Received,
+              TransactionType.Returned,
+              TransactionType.Gift,
+            ];
+            if (!contactTypes.includes(currentType)) {
+              form.setValue("type", TransactionType.Given);
+            }
+          }, 0);
+        }}
       />
     </Dialog>
   );

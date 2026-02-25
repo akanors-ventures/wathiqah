@@ -1768,6 +1768,7 @@ export const WitnessScalarFieldEnum = {
   invitedAt: 'invitedAt',
   acknowledgedAt: 'acknowledgedAt',
   transactionId: 'transactionId',
+  projectTransactionId: 'projectTransactionId',
   userId: 'userId'
 } as const
 

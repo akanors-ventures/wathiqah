@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/components/theme-provider";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -92,7 +92,6 @@ export default function HeaderUser() {
                 aria-label="User menu"
               >
                 <Avatar className="h-9 w-9 border border-border transition-transform group-hover:scale-105 group-active:scale-95">
-                  <AvatarImage src={undefined} alt={displayName || "User"} />
                   <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                     {displayName?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>

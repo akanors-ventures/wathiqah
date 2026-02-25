@@ -1,5 +1,6 @@
-import { InputType, Field, Float } from '@nestjs/graphql';
+import { InputType, Field, Float, ID } from '@nestjs/graphql';
 import { ProjectTransactionType } from '../../../generated/prisma/client';
+import { WitnessInviteInput } from '../../witnesses/dto/witness-invite.input';
 
 @InputType()
 export class LogProjectTransactionInput {
@@ -20,4 +21,10 @@ export class LogProjectTransactionInput {
 
   @Field({ nullable: true })
   date?: Date;
+
+  @Field(() => [ID], { nullable: true })
+  witnessUserIds?: string[];
+
+  @Field(() => [WitnessInviteInput], { nullable: true })
+  witnessInvites?: WitnessInviteInput[];
 }

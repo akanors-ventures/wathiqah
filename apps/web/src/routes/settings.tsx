@@ -1,7 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Calendar,
+  CalendarDays,
   Coins,
   CreditCard,
   ExternalLink,
@@ -588,7 +588,7 @@ export function SharedAccessSection() {
                             {grant.status}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider flex items-center gap-1.5">
-                            <Calendar size={12} className="opacity-60" />
+                            <CalendarDays size={12} className="opacity-60" />
                             {new Date(grant.createdAt as string).toLocaleDateString("en-US", {
                               month: "short",
                               day: "numeric",

@@ -6,11 +6,18 @@
         <h3 class="details-text" style="margin-top: 0; color: #333333;">Transaction Details:</h3>
         <ul class="details-text" style="list-style: none; padding-left: 0; color: #333333;">
             <li><strong>Type:</strong> {{type}}</li>
-            {{#if amount}}
-            <li><strong>Amount:</strong> {{amount}}</li>
-            {{/if}}
+            {{#if amount}}<li><strong>Amount:</strong> {{amount}}</li>{{/if}}
             {{#if itemName}}
             <li><strong>Item:</strong> {{itemName}}</li>
+            {{/if}}
+            {{#if quantity}}
+            <li><strong>Quantity:</strong> {{quantity}}</li>
+            {{/if}}
+            {{#if description}}
+            <li><strong>Description:</strong> {{description}}</li>
+            {{/if}}
+            {{#if date}}
+            <li><strong>Date:</strong> {{date}}</li>
             {{/if}}
         </ul>
     </div>

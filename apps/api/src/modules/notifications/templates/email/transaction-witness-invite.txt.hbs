@@ -5,8 +5,11 @@ Hello {{name}},
 
 Transaction Details:
 - Type: {{type}}
-{{#if amount}}- Amount: {{currency}} {{amount}}{{/if}}
+{{#if amount}}- Amount: {{amount}}{{/if}}
 {{#if itemName}}- Item: {{itemName}}{{/if}}
+{{#if quantity}}- Quantity: {{quantity}}{{/if}}
+{{#if description}}- Description: {{description}}{{/if}}
+{{#if date}}- Date: {{date}}{{/if}}
 
 Please review and acknowledge the transaction by clicking the link below:
 {{inviteUrl}}

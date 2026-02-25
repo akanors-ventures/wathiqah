@@ -4,11 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft } from "lucide-react";
 import { useState, useId } from "react";
 import { toast } from "sonner";
 import { authGuard } from "@/utils/auth";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { useAmountInput } from "@/hooks/useAmountInput";
 
 export const Route = createFileRoute("/projects/new")({
   component: NewProjectPage,
@@ -22,6 +31,15 @@ function NewProjectPage() {
   const [description, setDescription] = useState("");
   const [budget, setBudget] = useState("");
   const [currency, setCurrency] = useState("NGN");
+
+  const {
+    amountDisplay: budgetDisplay,
+    handleAmountChange: handleBudgetChange,
+    handleBlur,
+  } = useAmountInput({
+    currencyCode: currency,
+    onChange: (val) => setBudget(val.toString()),
+  });
 
   const nameId = useId();
   const descriptionId = useId();
@@ -40,7 +58,7 @@ function NewProjectPage() {
       const result = await createProject({
         name: name.trim(),
         description: description.trim() || undefined,
-        budget: budget ? parseFloat(budget) : undefined,
+        budget: budget ? Number.parseFloat(budget) : undefined,
         currency,
       });
 
@@ -106,30 +124,31 @@ function NewProjectPage() {
                 <Label htmlFor={budgetId}>Budget (Optional)</Label>
                 <Input
                   id={budgetId}
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
+                  type="text"
+                  inputMode="decimal"
+                  placeholder={formatCurrency(0, currency, 0)}
+                  value={budgetDisplay}
+                  onChange={handleBudgetChange}
+                  onBlur={() => handleBlur(Number.parseFloat(budget))}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor={currencyId}>Currency</Label>
-                <select
-                  id={currencyId}
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="NGN">NGN (₦)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                  <option value="CAD">CAD ($)</option>
-                  <option value="AED">AED (د.إ)</option>
-                  <option value="SAR">SAR (ر.س)</option>
-                </select>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger id={currencyId}>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AED">AED (د.إ)</SelectItem>
+                    <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
