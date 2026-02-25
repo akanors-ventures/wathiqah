@@ -36,17 +36,17 @@ export function StatsCard({
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2 relative z-10 p-4 sm:p-5">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0">
             <CardTitle
               className={cn(
-                "text-[10px] sm:text-[11px] font-bold transition-colors whitespace-nowrap uppercase tracking-wider",
+                "text-[10px] sm:text-[11px] font-bold transition-colors whitespace-nowrap uppercase tracking-wider truncate",
                 isPrimary ? "text-primary/60" : "text-muted-foreground group-hover:text-primary",
               )}
             >
               {title}
             </CardTitle>
-            {extra}
+            {extra && <div className="flex-shrink-0">{extra}</div>}
           </div>
         </div>
         <div
