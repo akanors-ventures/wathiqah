@@ -67,7 +67,7 @@ Initialize the database using Prisma.
 
 ```bash
 # From the root or apps/api directory
-pnpm prisma migrate dev --name init
+pnpm db:migrate
 ```
 
 (Optional) Seed the database with test data:

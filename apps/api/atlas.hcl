@@ -23,3 +23,14 @@ env "local" {
     exclude = ["_prisma_migrations"]
   }
 }
+
+env "prod" {
+  url = env("DB_URL")
+  schema {
+    src = data.external_schema.prisma.url
+  }
+  migration {
+    dir = "file://atlas/migrations"
+    exclude = ["_prisma_migrations"]
+  }
+}

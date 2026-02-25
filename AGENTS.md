@@ -99,7 +99,7 @@
 
 1.  **Structure**: Modular architecture (`src/modules/`). Each feature (Auth, Users, Transactions, Witnesses, Promises, SharedAccess) has its own module.
 2.  **GraphQL**: - **Code First**: Define schemas using TypeScript classes with `@ObjectType()`, `@InputType()`, and `@Args()`. - **Resolvers**: Handle GraphQL operations. - **Services**: Handle business logic and DB interactions. - **Entities**: Define the GraphQL object structure (in `entities/` folder).
-3.  **Database**: - Always use **Prisma** for DB operations. - Update `schema.prisma` and run `pnpm prisma migrate dev` for schema changes. - Never hardcode SQL queries unless absolutely necessary for performance (and document why).
+3.  **Database**: - Always use **Prisma** for DB operations. - Update `schema.prisma` and run `pnpm db:migrate` for schema changes. - Use **Atlas migrations** for version control and CI/CD. - Available migration commands: `pnpm db:migrate` (create), `pnpm db:migrate:named name` (named), `pnpm db:apply` (deploy), `pnpm db:lint` (validate). - Never hardcode SQL queries unless absolutely necessary for performance (and document why).
 4.  **Security**: - Use `ConfigService` for secrets. - Implement `GqlAuthGuard` for protected endpoints. - Validate all inputs using DTOs with `class-validator` decorators.
 5.  **Error Handling**: - Mask internal server errors (Prisma/DB) in GraphQL `formatError` to prevent leaking technical details to the UI. - Log full error details on the server for debugging.
 

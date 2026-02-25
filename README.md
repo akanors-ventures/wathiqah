@@ -194,8 +194,8 @@ cp .env.example .env.local
 ```bash
 cd apps/api
 
-# Run Prisma migrations
-pnpm prisma migrate dev
+# Run Atlas migrations
+pnpm db:migrate
 
 # (Optional) Seed database
 pnpm prisma db seed
