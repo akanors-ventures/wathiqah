@@ -143,25 +143,22 @@ function TransactionsPage() {
             Manage your transaction history.
           </p>
         </div>
-        <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto shrink-0 relative z-10">
-          <div className="flex gap-2 w-full lg:w-auto">
-            <Button
-              variant="outline"
-              onClick={handleExport}
-              className="flex-1 sm:flex-none h-12 sm:h-10"
+        <div className="flex gap-3 w-full lg:w-auto shrink-0 relative z-10">
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            className="flex-1 h-12 sm:h-10 lg:flex-none lg:w-auto"
+          >
+            <Download className="w-4 h-4 mr-2" /> Export
+          </Button>
+          <Button asChild className="flex-1 h-12 sm:h-10 lg:flex-none lg:w-auto">
+            <Link
+              to={activeTab === "funds" ? "/transactions/new" : "/items/new"}
+              search={{ contactId: undefined }}
             >
-              <Download className="w-4 h-4 mr-2" /> Export
-            </Button>
-            <Button asChild className="flex-1 sm:flex-none h-12 sm:h-10">
-              <Link
-                to={activeTab === "funds" ? "/transactions/new" : "/items/new"}
-                search={{ contactId: undefined }}
-              >
-                <Plus className="w-4 h-4 mr-2" /> New{" "}
-                {activeTab === "funds" ? "Transaction" : "Item"}
-              </Link>
-            </Button>
-          </div>
+              <Plus className="w-4 h-4 mr-2" /> New {activeTab === "funds" ? "Transaction" : "Item"}
+            </Link>
+          </Button>
         </div>
       </div>
 

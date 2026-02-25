@@ -131,9 +131,9 @@ export function Dashboard() {
             Personal ledger for loans, promises, and shared expenses
           </p>
         </div>
-        <div className="flex w-full sm:w-auto gap-3 items-center">
+        <div className="flex gap-3 w-full sm:w-auto items-center">
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-            <SelectTrigger className="w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
+            <SelectTrigger className="flex-1 sm:w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
               <div className="flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
                 <SelectValue />
@@ -148,7 +148,7 @@ export function Dashboard() {
 
           <Button
             asChild
-            className="w-full sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="flex-1 sm:flex-none sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             <Link to="/transactions/new" search={{ contactId: undefined }}>
               New Transaction
@@ -167,7 +167,7 @@ export function Dashboard() {
               value={selectedCurrency || balanceCurrency}
               onValueChange={(v) => setSelectedCurrency(v)}
             >
-              <SelectTrigger className="h-7 w-[70px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0">
+              <SelectTrigger className="h-7 w-[70px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0 flex-shrink-0">
                 <SelectValue placeholder="NGN" />
               </SelectTrigger>
               <SelectContent>
