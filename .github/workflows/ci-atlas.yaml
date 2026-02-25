@@ -5,10 +5,10 @@ on:
       - main
     paths:
       - .github/workflows/ci-atlas.yaml
-      - 'apps/api/*'
+      - 'apps/api/atlas/migrations/*'
   pull_request:
     paths:
-      - 'apps/api/*'
+      - 'apps/api/atlas/migrations/*'
 # Permissions to write comments on the pull request.
 permissions:
   contents: read
@@ -42,17 +42,17 @@ jobs:
           cloud-token: ${{ secrets.ATLAS_CLOUD_TOKEN_KRORA4 }}
       - uses: ariga/atlas-action/migrate/lint@v1
         with:
-          dir: 'file://apps/api'
+          dir: 'file://apps/api/atlas/migrations'
           dir-name: 'app'
           dev-url: 'postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable'
       - uses: ariga/atlas-action/migrate/push@v1
         if: github.ref == 'refs/heads/main'
         with:
-          dir: 'file://apps/api'
+          dir: 'file://apps/api/atlas/migrations'
           dir-name: 'app'
           dev-url: 'postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable'
       - uses: ariga/atlas-action/migrate/apply@v1
         if: github.ref == 'refs/heads/main'
         with:
-          dir: 'file://apps/api'
+          dir: 'file://apps/api/atlas/migrations'
           url: ${{ secrets.DB_URL }}
