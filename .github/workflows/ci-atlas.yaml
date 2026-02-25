@@ -5,14 +5,21 @@ on:
       - main
     paths:
       - .github/workflows/ci-atlas.yaml
+      - 'apps/api/prisma/schema.prisma'
       - 'apps/api/atlas/migrations/*'
+      - 'apps/api/atlas.hcl'
   pull_request:
     paths:
+      - 'apps/api/prisma/schema.prisma'
       - 'apps/api/atlas/migrations/*'
 # Permissions to write comments on the pull request.
 permissions:
   contents: read
   pull-requests: write
+defaults:
+  run:
+    working-directory: apps/api
+
 jobs:
   atlas:
     services:
