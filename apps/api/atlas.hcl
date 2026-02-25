@@ -7,7 +7,7 @@ data "external_schema" "prisma" {
       "migrate",
       "diff",
       "--from-empty",
-      "--to-schema-datamodel",
+      "--to-schema",
       "prisma/schema.prisma",
       "--script"
     ]
