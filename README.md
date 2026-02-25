@@ -191,6 +191,12 @@ cp .env.example .env.local
 
 ### Database Setup
 
+First, start PostgreSQL container (required for Atlas migrations):
+
+```bash
+docker run --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+```
+
 ```bash
 cd apps/api
 

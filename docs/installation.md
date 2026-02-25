@@ -63,7 +63,13 @@ You need to configure environment variables for both the API and the Web app.
 
 ### 4. Database Setup
 
-Initialize the database using Prisma.
+First, start PostgreSQL container (required for Atlas migrations):
+
+```bash
+docker run --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+```
+
+Initialize the database using Atlas migrations.
 
 ```bash
 # From the root or apps/api directory
