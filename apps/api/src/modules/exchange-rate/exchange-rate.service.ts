@@ -55,24 +55,29 @@ export class ExchangeRateService implements OnModuleInit {
       this.fetchFromExchangeRateApi.bind(this),
     ];
 
-    let success = false;
+    let fetchResult: {
+      rates: Record<string, number>;
+      provider: string;
+    } | null = null;
+
     for (const fetcher of providers) {
       try {
         const { rates, provider } = await fetcher();
         if (rates && Object.keys(rates).length > 0) {
-          await this.processRates(rates, provider);
-          success = true;
+          fetchResult = { rates, provider };
           break;
         }
       } catch (error) {
         this.logger.warn(`Provider failed: ${error.message}`);
-        continue;
       }
     }
 
-    if (!success) {
+    if (!fetchResult) {
       this.logger.error('All exchange rate providers failed');
+      return;
     }
+
+    await this.processRates(fetchResult.rates, fetchResult.provider);
   }
 
   private async fetchFromExchangeRateApi() {
