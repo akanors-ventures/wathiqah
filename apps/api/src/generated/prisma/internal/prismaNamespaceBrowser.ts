@@ -66,7 +66,8 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
-  Support: 'Support'
+  Support: 'Support',
+  SmsOptOut: 'SmsOptOut'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -334,6 +335,16 @@ export const SupportScalarFieldEnum = {
 } as const
 
 export type SupportScalarFieldEnum = (typeof SupportScalarFieldEnum)[keyof typeof SupportScalarFieldEnum]
+
+
+export const SmsOptOutScalarFieldEnum = {
+  id: 'id',
+  phoneNumber: 'phoneNumber',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type SmsOptOutScalarFieldEnum = (typeof SmsOptOutScalarFieldEnum)[keyof typeof SmsOptOutScalarFieldEnum]
 
 
 export const SortOrder = {

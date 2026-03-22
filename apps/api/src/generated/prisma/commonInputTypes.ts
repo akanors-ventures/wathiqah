@@ -569,6 +569,23 @@ export type EnumSupportStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumSupportStatusFilter<$PrismaModel>
 }
 
+export type EnumOptOutSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.OptOutSource | Prisma.EnumOptOutSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOptOutSourceFilter<$PrismaModel> | $Enums.OptOutSource
+}
+
+export type EnumOptOutSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OptOutSource | Prisma.EnumOptOutSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOptOutSourceWithAggregatesFilter<$PrismaModel> | $Enums.OptOutSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOptOutSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOptOutSourceFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -1081,6 +1098,23 @@ export type NestedEnumSupportStatusWithAggregatesFilter<$PrismaModel = never> = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumSupportStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumSupportStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumOptOutSourceFilter<$PrismaModel = never> = {
+  equals?: $Enums.OptOutSource | Prisma.EnumOptOutSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOptOutSourceFilter<$PrismaModel> | $Enums.OptOutSource
+}
+
+export type NestedEnumOptOutSourceWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.OptOutSource | Prisma.EnumOptOutSourceFieldRefInput<$PrismaModel>
+  in?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  notIn?: $Enums.OptOutSource[] | Prisma.ListEnumOptOutSourceFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumOptOutSourceWithAggregatesFilter<$PrismaModel> | $Enums.OptOutSource
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumOptOutSourceFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumOptOutSourceFilter<$PrismaModel>
 }
 
 

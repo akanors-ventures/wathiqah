@@ -134,3 +134,11 @@ export const SupportStatus = {
 } as const
 
 export type SupportStatus = (typeof SupportStatus)[keyof typeof SupportStatus]
+
+
+export const OptOutSource = {
+  REPLY_STOP: 'REPLY_STOP',
+  MANUAL: 'MANUAL'
+} as const
+
+export type OptOutSource = (typeof OptOutSource)[keyof typeof OptOutSource]

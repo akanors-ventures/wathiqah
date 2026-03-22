@@ -379,3 +379,17 @@ enum SupportStatus {
   SUCCESSFUL
   FAILED
 }
+
+enum OptOutSource {
+  REPLY_STOP
+  MANUAL
+}
+
+model SmsOptOut {
+  id          String       @id @default(cuid())
+  phoneNumber String       @unique
+  source      OptOutSource
+  createdAt   DateTime     @default(now())
+
+  @@map("sms_opt_outs")
+}
