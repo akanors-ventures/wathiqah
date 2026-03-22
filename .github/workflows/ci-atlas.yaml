@@ -58,9 +58,11 @@ jobs:
           dir: 'file://apps/api/atlas/migrations'
           dir-name: 'app'
           dev-url: 'postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable'
-      - uses: ariga/atlas-action/migrate/apply@v1
+      - name: Apply migrations
         if: github.ref == 'refs/heads/main'
-        with:
-          dir: 'file://apps/api/atlas/migrations'
-          url: ${{ secrets.DB_URL }}
-          allow-dirty: true
+        run: |
+          atlas migrate apply \
+            --dir "file://atlas/migrations" \
+            --url "${{ secrets.DB_URL }}" \
+            --allow-dirty \
+            --baseline "20260224181022"
