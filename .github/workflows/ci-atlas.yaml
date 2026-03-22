@@ -64,5 +64,4 @@ jobs:
           atlas migrate apply \
             --dir "file://atlas/migrations" \
             --url "${{ secrets.DB_URL }}" \
-            --allow-dirty \
             --baseline "20260224181022"
