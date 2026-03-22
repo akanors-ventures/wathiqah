@@ -17,6 +17,12 @@ export class Project {
   @Field(() => Float, { defaultValue: 0 })
   balance: number;
 
+  @Field(() => Float, { defaultValue: 0 })
+  totalIncome: number;
+
+  @Field(() => Float, { defaultValue: 0 })
+  totalExpenses: number;
+
   @Field({ defaultValue: 'NGN' })
   currency: string;
 

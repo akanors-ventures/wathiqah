@@ -197,6 +197,18 @@ export class FlutterwaveService {
       return;
     }
 
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      this.logger.warn(
+        `User ${userId} not found for Flutterwave payment ${data.id}`,
+      );
+      return;
+    }
+
     await this.prisma.$transaction(async (tx) => {
       // Create Payment Record
       const amount = new Prisma.Decimal(data.amount);

@@ -2,19 +2,17 @@ import {
   Injectable,
   Logger,
   Inject,
-  OnModuleInit,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import axios from 'axios';
 import { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
-export class ExchangeRateService implements OnModuleInit {
+export class ExchangeRateService {
   private readonly logger = new Logger(ExchangeRateService.name);
   private readonly baseCurrency = 'USD'; // Standard base for cross-rates
   private readonly supportedCurrencies = [
@@ -33,16 +31,6 @@ export class ExchangeRateService implements OnModuleInit {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async onModuleInit() {
-    await this.updateRates();
-  }
-
-  @Cron(CronExpression.EVERY_2ND_HOUR)
-  async handleCron() {
-    this.logger.log('Starting scheduled exchange rate update');
-    await this.updateRates();
-  }
-
   /**
    * Updates rates from configured providers with fallback logic.
    * Priority:
@@ -55,24 +43,29 @@ export class ExchangeRateService implements OnModuleInit {
       this.fetchFromExchangeRateApi.bind(this),
     ];
 
-    let success = false;
+    let fetchResult: {
+      rates: Record<string, number>;
+      provider: string;
+    } | null = null;
+
     for (const fetcher of providers) {
       try {
         const { rates, provider } = await fetcher();
         if (rates && Object.keys(rates).length > 0) {
-          await this.processRates(rates, provider);
-          success = true;
+          fetchResult = { rates, provider };
           break;
         }
       } catch (error) {
         this.logger.warn(`Provider failed: ${error.message}`);
-        continue;
       }
     }
 
-    if (!success) {
+    if (!fetchResult) {
       this.logger.error('All exchange rate providers failed');
+      return;
     }
+
+    await this.processRates(fetchResult.rates, fetchResult.provider);
   }
 
   private async fetchFromExchangeRateApi() {

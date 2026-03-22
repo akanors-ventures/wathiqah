@@ -63,14 +63,14 @@ function ProjectsPage() {
                 </div>
                 {project.budget && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Budget: {formatCurrency(project.budget, project.currency)}
+                    {formatCurrency(project.budget - (project.totalExpenses ?? 0), project.currency)} remaining of {formatCurrency(project.budget, project.currency)}
                   </p>
                 )}
                 <div className="mt-4 h-2 bg-secondary rounded-full overflow-hidden">
                   <div
                     className="h-full bg-primary"
                     style={{
-                      width: `${Math.min((project.budget ? project.balance / project.budget : 0) * 100, 100)}%`,
+                      width: `${Math.min((project.budget ? (project.totalExpenses ?? 0) / project.budget : 0) * 100, 100)}%`,
                     }}
                   />
                 </div>
