@@ -129,7 +129,8 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - Format currency amounts with `getLocaleForCurrency` + `Intl.NumberFormat` — never concatenate raw ISO codes (e.g. `"NGN"`)
 
 ### Database Migrations
-- Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate, `pnpm --filter api db:apply` to apply
+- Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate a migration
+- **Do not run `db:apply` manually** — migration linting, push, and application to production are handled automatically by `.github/workflows/ci-atlas.yaml` on merge to `main`
 - Atlas requires `atlas login` (browser-based); token expires periodically
 
 ### ESLint
