@@ -63,6 +63,7 @@ describe('MaintenanceProcessor', () => {
           where: { id: 'sub-1' },
           data: expect.objectContaining({
             tier: SubscriptionTier.FREE,
+            status: 'canceled',
             isProvisioned: false,
           }),
         }),
