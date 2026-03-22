@@ -89,6 +89,10 @@ All code should use the `AssetCategory` enum instead of hardcoded strings:
 
 **Note**: Use `AssetCategory.FUNDS` and `AssetCategory.ITEM` when referencing categories in code.
 
+**TransactionType enum actual values**: `GIVEN`, `RECEIVED`, `RETURNED`, `GIFT`, `EXPENSE`, `INCOME`
+- `RETURNED` covers both directions via the `ReturnDirection` field (`TO_ME` / `TO_CONTACT`) — there are no `RETURNED_TO_ME` or `RETURNED_TO_CONTACT` enum values
+- `Transaction.amount` is `Decimal?` — always use `.toNumber()` with a null guard (e.g. `?.toNumber() ?? 0`)
+
 ### Shared Ledger & Perspective Flipping
 
 When a transaction's contact is a registered user (`linkedUserId`):
@@ -107,10 +111,43 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - **Cash Position (Dashboard)**: `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`
 - **Relationship Standing (Contact View)**: `Standing = Assets (Given) - Liabilities (Received)`
 
+### GraphQL Schema Generation
+
+- `apps/api/src/schema.gql` is **auto-generated at runtime** when NestJS starts — do NOT edit it manually
+- When adding new `@Field()` decorators, run `pnpm --filter api dev` once to regenerate `schema.gql`, then `pnpm --filter web build` will succeed
+- Frontend codegen reads from `../api/src/schema.gql` — see `apps/web/codegen.ts`
+
+## Backend Conventions
+
+### HTTP Controllers & Auth
+- HTTP controllers are **unauthenticated by default** — auth is GraphQL-only via `GqlAuthGuard`; no `@Public()` decorator exists or is needed
+- NestJS global prefix is `/api` — all HTTP routes are under `/api/`, critical when constructing webhook URLs
+
+### Notifications
+- `SubscriptionModule` is `@Global()` — `SubscriptionService` is injectable anywhere without adding it to module imports
+- BullMQ queue name is `'notifications'`; see `NotificationsProcessor` for existing job patterns
+- Format currency amounts with `getLocaleForCurrency` + `Intl.NumberFormat` — never concatenate raw ISO codes (e.g. `"NGN"`)
+
+### Database Migrations
+- Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate a migration
+- **Do not run `db:apply` manually** — migration linting, push, and application to production are handled automatically by `.github/workflows/ci-atlas.yaml` on merge to `main`
+- Atlas requires `atlas login` (browser-based); token expires periodically
+- **After editing any migration SQL manually**, run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum` — CI will fail with checksum mismatch otherwise
+- **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted (blocking table scan risk)
+
+### Project Fund Balance Semantics
+- `project.balance` = `totalIncome − totalExpenses` (net cash position, not a budget figure)
+- **Budget remaining** = `budget − totalExpenses` — never `budget − balance`, which incorrectly factors in income
+- `totalIncome` and `totalExpenses` are `@ResolveField` on `Project`; always include them in fragments when budget analytics are needed
+
+### ESLint
+- `@typescript-eslint/no-explicit-any` is enforced — use `unknown` or double-cast (`as unknown as T`) in tests, never `as any`
+
 ## AI Development Workflow
 
 This project uses an AI-driven development process:
 
+- **PRs target `dev`**, not `main` — always use `gh pr create --base dev`
 - **Primary IDE**: Zed IDE with Google Gemini AI
 - **Claude models**: Primary driver for complex architectural decisions and logic
 - **Gemini AI**: Rapid exploration and large-scale context understanding

@@ -17,7 +17,8 @@ import { SubscriptionModule } from './modules/subscription/subscription.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { SupportModule } from './modules/support/support.module';
 import { ExchangeRateModule } from './modules/exchange-rate/exchange-rate.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { GeoIPModule } from './modules/geoip/geoip.module';
@@ -36,7 +37,6 @@ import { GraphQLError } from 'graphql';
       cache: true,
       isGlobal: true,
     }),
-    ScheduleModule.forRoot(),
     LoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -184,6 +184,8 @@ import { GraphQLError } from 'graphql';
     PaymentModule,
     SupportModule,
     ExchangeRateModule,
+    MaintenanceModule,
+    AdminModule,
     ProjectsModule,
     QueueModule,
     GeoIPModule,

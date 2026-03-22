@@ -43,7 +43,13 @@ pnpm install
 
 ### Database Setup
 
-Run migrations to create the database schema:
+First, start PostgreSQL container (required for Atlas migrations):
+
+```bash
+docker run --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+```
+
+Then run migrations to create the database schema:
 
 ```bash
 pnpm db:migrate

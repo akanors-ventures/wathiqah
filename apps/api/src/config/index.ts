@@ -9,6 +9,7 @@ import notificationConfig from './notification.config';
 import exchangeRateConfig from './exchange-rate.config';
 import geoipConfig from './geoip.config';
 import paymentConfig from './payment.config';
+import adminConfig from './admin.config';
 
 export default [
   databaseConfig,
@@ -22,4 +23,5 @@ export default [
   exchangeRateConfig,
   geoipConfig,
   paymentConfig,
+  adminConfig,
 ];

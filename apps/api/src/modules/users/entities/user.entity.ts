@@ -1,11 +1,14 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { SubscriptionTier } from '../../subscription/subscription.constants';
 import { GraphQLJSON } from 'graphql-type-json';
+import { UserRole } from '../../../generated/prisma/client';
 
 registerEnumType(SubscriptionTier, {
   name: 'SubscriptionTier',
   description: 'The subscription tier of the user',
 });
+
+registerEnumType(UserRole, { name: 'UserRole' });
 
 @ObjectType()
 export class User {
@@ -47,6 +50,9 @@ export class User {
 
   @Field()
   isSupporter: boolean;
+
+  @Field(() => UserRole)
+  role: UserRole;
 
   @Field()
   createdAt: Date;

@@ -1,14 +1,22 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { AssetCategory } from '../../generated/prisma/enums';
 import { SubscriptionService } from '../subscription/subscription.service';
-import type { NotificationJobData } from './interfaces/job-data.interface';
+import type {
+  NotificationJobData,
+  ContactNotificationSmsJobData,
+  ContactNotificationEmailJobData,
+  ProvisioningNotificationJobData,
+  RoleChangeNotificationJobData,
+} from './interfaces/job-data.interface';
 import { getLocaleForCurrency } from '../../common/utils/currency.utils';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     @InjectQueue('notifications')
     private readonly notificationsQueue: Queue<NotificationJobData>,
@@ -402,6 +410,136 @@ export class NotificationService {
         actionUrl,
         subject,
       },
+    );
+  }
+
+  async sendContactNotification(params: {
+    transactionId: string;
+    contactPhoneNumber?: string | null;
+    contactEmail?: string | null;
+    contactFirstName?: string | null;
+    creatorId: string;
+    creatorDisplayName: string;
+    amount: number;
+    currency: string;
+  }): Promise<{ smsSkipped: boolean }> {
+    const {
+      transactionId,
+      contactPhoneNumber,
+      contactEmail,
+      contactFirstName,
+      creatorId,
+      creatorDisplayName,
+      amount,
+      currency,
+    } = params;
+
+    let smsSkipped = false;
+
+    // SMS — gated by contactNotificationSms tier limit
+    if (contactPhoneNumber) {
+      const canSend = await this.subscriptionService.canUseFeature(
+        creatorId,
+        'contactNotificationSms',
+      );
+
+      if (!canSend) {
+        smsSkipped = true;
+      } else {
+        await this.notificationsQueue.add(
+          'contact-notification-sms',
+          {
+            type: 'contact-notification-sms',
+            transactionId,
+            contactPhoneNumber,
+            contactFirstName: contactFirstName ?? null,
+            creatorId,
+            creatorDisplayName,
+            amount,
+            currency,
+          } as ContactNotificationSmsJobData,
+          {
+            attempts: 3,
+            backoff: { type: 'fixed', delay: 5000 },
+            removeOnComplete: true,
+          },
+        );
+      }
+    }
+
+    // Email — unlimited for all tiers
+    if (contactEmail) {
+      await this.notificationsQueue.add(
+        'contact-notification-email',
+        {
+          type: 'contact-notification-email',
+          transactionId,
+          contactEmail,
+          contactFirstName: contactFirstName ?? null,
+          creatorDisplayName,
+          amount,
+          currency,
+        } as ContactNotificationEmailJobData,
+        {
+          attempts: 5,
+          backoff: { type: 'exponential', delay: 2000 },
+          removeOnComplete: true,
+        },
+      );
+    }
+
+    return { smsSkipped };
+  }
+
+  async sendProvisioningNotification(params: {
+    notificationType: 'granted' | 'expired' | 'revoked';
+    email: string;
+    name: string;
+    expiresAt?: Date;
+    expiredAt?: Date;
+  }): Promise<void> {
+    await this.notificationsQueue.add(
+      'provisioning-notification',
+      {
+        type: 'provisioning-notification',
+        notificationType: params.notificationType,
+        email: params.email,
+        name: params.name,
+        expiresAt: params.expiresAt?.toISOString(),
+        expiredAt: params.expiredAt?.toISOString(),
+      } as ProvisioningNotificationJobData,
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+      },
+    );
+
+    this.logger.log(
+      `Provisioning notification (${params.notificationType}) queued for ${params.email}`,
+    );
+  }
+
+  async sendRoleChangeNotification(params: {
+    notificationType: 'promoted' | 'demoted';
+    email: string;
+    name: string;
+  }): Promise<void> {
+    await this.notificationsQueue.add(
+      'role-change-notification',
+      {
+        type: 'role-change-notification',
+        ...params,
+      } as RoleChangeNotificationJobData,
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+      },
+    );
+
+    this.logger.log(
+      `Role change notification (${params.notificationType}) queued for ${params.email}`,
     );
   }
 

@@ -7,6 +7,8 @@ export const PROJECT_FRAGMENT = gql`
     description
     budget
     balance
+    totalIncome
+    totalExpenses
     currency
     userId
     createdAt

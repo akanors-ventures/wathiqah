@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useProject } from "@/hooks/useProjects";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -11,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowLeft, TrendingDown, TrendingUp, Wallet, Target, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { authGuard } from "@/utils/auth";
@@ -51,9 +52,12 @@ function ProjectDetailsPage() {
     );
   }
 
-  const budgetPercentage = project.budget
-    ? Math.min((project.balance / project.budget) * 100, 100)
+  const totalIncome = project.totalIncome ?? 0;
+  const totalExpenses = project.totalExpenses ?? 0;
+  const budgetUtilization = project.budget
+    ? Math.min((totalExpenses / project.budget) * 100, 100)
     : 0;
+  const budgetRemaining = project.budget ? project.budget - totalExpenses : null;
 
   return (
     <div className="container mx-auto py-8 space-y-8">
@@ -70,52 +74,76 @@ function ProjectDetailsPage() {
         <ProjectTransactionDialog projectId={projectId} />
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Analytics Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Current Balance</CardTitle>
-            <div className="h-4 w-4 text-muted-foreground">💰</div>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {formatCurrency(project.balance, project.currency)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Net funds available</p>
           </CardContent>
         </Card>
 
-        {project.budget && (
-          <>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Budget</CardTitle>
-                <div className="h-4 w-4 text-muted-foreground">🎯</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(project.budget, project.currency)}
-                </div>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Income</CardTitle>
+            <ArrowUpCircle className="h-4 w-4 text-emerald-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-emerald-600">
+              {formatCurrency(totalIncome, project.currency)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Funds received</p>
+          </CardContent>
+        </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Remaining</CardTitle>
-                <div className="h-4 w-4 text-muted-foreground">📊</div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(project.budget - project.balance, project.currency)}
-                </div>
-                <div className="mt-2 h-2 bg-secondary rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary transition-all"
-                    style={{ width: `${budgetPercentage}%` }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+            <ArrowDownCircle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(totalExpenses, project.currency)}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Funds spent</p>
+          </CardContent>
+        </Card>
+
+        {project.budget ? (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Budget Remaining</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${budgetRemaining != null && budgetRemaining < 0 ? "text-red-600" : ""}`}>
+                {formatCurrency(budgetRemaining ?? 0, project.currency)}
+              </div>
+              <div className="mt-2 space-y-1">
+                <Progress value={budgetUtilization} className="h-1.5" />
+                <p className="text-xs text-muted-foreground">
+                  {Math.round(budgetUtilization)}% of {formatCurrency(project.budget, project.currency)} budget used
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Budget</CardTitle>
+              <Target className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-muted-foreground">—</div>
+              <p className="text-xs text-muted-foreground mt-1">No budget set</p>
+            </CardContent>
+          </Card>
         )}
       </div>
 

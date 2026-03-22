@@ -28,6 +28,7 @@ describe('FlutterwaveService', () => {
       create: jest.fn(),
     },
     user: {
+      findUnique: jest.fn(),
       update: jest.fn(),
     },
   };
@@ -65,6 +66,12 @@ describe('FlutterwaveService', () => {
   });
 
   describe('handleWebhook', () => {
+    beforeEach(() => {
+      // User existence check added in d329ad6 — must resolve to a user for the
+      // transaction path to execute; resolves to null in the "user not found" test.
+      mockPrismaService.user.findUnique.mockResolvedValue({ id: 'user_123' });
+    });
+
     it('should create payment and subscription records on charge.completed for subscription', async () => {
       const payload = {
         event: 'charge.completed',
@@ -161,6 +168,27 @@ describe('FlutterwaveService', () => {
         where: { id: 'user_123' },
         data: { isSupporter: true },
       });
+    });
+
+    it('should do nothing when userId is not found in the database', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      const payload = {
+        event: 'charge.completed',
+        data: {
+          id: 99999,
+          tx_ref: 'sub_unknown_user_timestamp',
+          amount: 5000,
+          currency: 'NGN',
+          status: 'successful',
+          meta: { userId: 'unknown_user', tier: 'PRO' },
+          customer: { email: 'ghost@example.com' },
+        },
+      };
+
+      await service.handleWebhook(payload, 'secret_hash');
+
+      expect(prismaService.$transaction).not.toHaveBeenCalled();
     });
   });
 });
