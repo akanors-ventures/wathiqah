@@ -41,7 +41,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: ariga/setup-atlas@v0
@@ -62,5 +62,5 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           dir: 'file://apps/api/atlas/migrations'
-          dir-name: 'app'
           url: ${{ secrets.DB_URL }}
+          allow-dirty: true
