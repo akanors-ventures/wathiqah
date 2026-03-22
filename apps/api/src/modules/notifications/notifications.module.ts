@@ -3,7 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { NotificationService } from './notification.service';
 import { NotificationsProcessor } from './notifications.processor';
+import { NotificationsController } from './notifications.controller';
 import { TemplateService } from './template.service';
+import { SmsOptOutService } from './services/sms-optout.service';
 import { MailtrapEmailProvider } from './providers/mailtrap-email.provider';
 import { SendGridEmailProvider } from './providers/sendgrid-email.provider';
 import { TwilioSmsProvider } from './providers/twilio-sms.provider';
@@ -17,10 +19,12 @@ import { SmsProvider } from './providers/sms-provider.interface';
       name: 'notifications',
     }),
   ],
+  controllers: [NotificationsController],
   providers: [
     NotificationService,
     NotificationsProcessor,
     TemplateService,
+    SmsOptOutService,
     {
       provide: EmailProvider,
       useFactory: (configService: ConfigService) => {

@@ -399,7 +399,8 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
-  Support: 'Support'
+  Support: 'Support',
+  SmsOptOut: 'SmsOptOut'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support"
+    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support" | "smsOptOut"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1603,6 +1604,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SmsOptOut: {
+      payload: Prisma.$SmsOptOutPayload<ExtArgs>
+      fields: Prisma.SmsOptOutFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SmsOptOutFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SmsOptOutFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>
+        }
+        findFirst: {
+          args: Prisma.SmsOptOutFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SmsOptOutFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>
+        }
+        findMany: {
+          args: Prisma.SmsOptOutFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>[]
+        }
+        create: {
+          args: Prisma.SmsOptOutCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>
+        }
+        createMany: {
+          args: Prisma.SmsOptOutCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SmsOptOutCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>[]
+        }
+        delete: {
+          args: Prisma.SmsOptOutDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>
+        }
+        update: {
+          args: Prisma.SmsOptOutUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>
+        }
+        deleteMany: {
+          args: Prisma.SmsOptOutDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SmsOptOutUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SmsOptOutUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>[]
+        }
+        upsert: {
+          args: Prisma.SmsOptOutUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SmsOptOutPayload>
+        }
+        aggregate: {
+          args: Prisma.SmsOptOutAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSmsOptOut>
+        }
+        groupBy: {
+          args: Prisma.SmsOptOutGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SmsOptOutGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SmsOptOutCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SmsOptOutCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1891,6 +1966,16 @@ export const SupportScalarFieldEnum = {
 } as const
 
 export type SupportScalarFieldEnum = (typeof SupportScalarFieldEnum)[keyof typeof SupportScalarFieldEnum]
+
+
+export const SmsOptOutScalarFieldEnum = {
+  id: 'id',
+  phoneNumber: 'phoneNumber',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type SmsOptOutScalarFieldEnum = (typeof SmsOptOutScalarFieldEnum)[keyof typeof SmsOptOutScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2221,6 +2306,20 @@ export type ListEnumSupportStatusFieldRefInput<$PrismaModel> = FieldRefInputType
 
 
 /**
+ * Reference to a field of type 'OptOutSource'
+ */
+export type EnumOptOutSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OptOutSource'>
+    
+
+
+/**
+ * Reference to a field of type 'OptOutSource[]'
+ */
+export type ListEnumOptOutSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OptOutSource[]'>
+    
+
+
+/**
  * Reference to a field of type 'Float'
  */
 export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
@@ -2344,6 +2443,7 @@ export type GlobalOmitConfig = {
   exchangeRateHistory?: Prisma.ExchangeRateHistoryOmit
   contactInvitation?: Prisma.ContactInvitationOmit
   support?: Prisma.SupportOmit
+  smsOptOut?: Prisma.SmsOptOutOmit
 }
 
 /* Types for Logging */

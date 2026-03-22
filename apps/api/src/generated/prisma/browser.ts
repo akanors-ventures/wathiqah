@@ -97,3 +97,8 @@ export type ContactInvitation = Prisma.ContactInvitationModel
  * 
  */
 export type Support = Prisma.SupportModel
+/**
+ * Model SmsOptOut
+ * 
+ */
+export type SmsOptOut = Prisma.SmsOptOutModel
