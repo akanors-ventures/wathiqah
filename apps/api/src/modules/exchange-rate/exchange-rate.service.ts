@@ -2,19 +2,17 @@ import {
   Injectable,
   Logger,
   Inject,
-  OnModuleInit,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import axios from 'axios';
 import { Prisma } from '../../generated/prisma/client';
 
 @Injectable()
-export class ExchangeRateService implements OnModuleInit {
+export class ExchangeRateService {
   private readonly logger = new Logger(ExchangeRateService.name);
   private readonly baseCurrency = 'USD'; // Standard base for cross-rates
   private readonly supportedCurrencies = [
@@ -32,16 +30,6 @@ export class ExchangeRateService implements OnModuleInit {
     private configService: ConfigService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
-
-  async onModuleInit() {
-    await this.updateRates();
-  }
-
-  @Cron(CronExpression.EVERY_2ND_HOUR)
-  async handleCron() {
-    this.logger.log('Starting scheduled exchange rate update');
-    await this.updateRates();
-  }
 
   /**
    * Updates rates from configured providers with fallback logic.
