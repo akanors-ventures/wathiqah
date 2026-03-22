@@ -62,4 +62,5 @@ jobs:
         if: github.ref == 'refs/heads/main'
         with:
           dir: 'file://apps/api/atlas/migrations'
+          dir-name: 'app'
           url: ${{ secrets.DB_URL }}
