@@ -4,6 +4,7 @@ import {
   Mutation,
   Args,
   ID,
+  Float,
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
@@ -62,6 +63,22 @@ export class ProjectsResolver {
     @Args('input') input: LogProjectTransactionInput,
   ) {
     return this.projectTransactionsService.create(user.id, input);
+  }
+
+  @ResolveField(() => Float, { defaultValue: 0 })
+  async totalIncome(@Parent() project: Project): Promise<number> {
+    const { totalIncome } = await this.projectsService.getTransactionTotals(
+      project.id,
+    );
+    return totalIncome;
+  }
+
+  @ResolveField(() => Float, { defaultValue: 0 })
+  async totalExpenses(@Parent() project: Project): Promise<number> {
+    const { totalExpenses } = await this.projectsService.getTransactionTotals(
+      project.id,
+    );
+    return totalExpenses;
   }
 
   @ResolveField(() => [ProjectTransaction])

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ProjectTransactionType } from '../../generated/prisma/client';
 import { CreateProjectInput } from './dto/create-project.input';
 import { UpdateProjectInput } from './dto/update-project.input';
 
@@ -33,6 +34,27 @@ export class ProjectsService {
     }
 
     return project;
+  }
+
+  async getTransactionTotals(
+    projectId: string,
+  ): Promise<{ totalIncome: number; totalExpenses: number }> {
+    const results = await this.prisma.projectTransaction.groupBy({
+      by: ['type'],
+      where: { projectId },
+      _sum: { amount: true },
+    });
+
+    const income =
+      results
+        .find((r) => r.type === ProjectTransactionType.INCOME)
+        ?._sum.amount?.toNumber() ?? 0;
+    const expenses =
+      results
+        .find((r) => r.type === ProjectTransactionType.EXPENSE)
+        ?._sum.amount?.toNumber() ?? 0;
+
+    return { totalIncome: income, totalExpenses: expenses };
   }
 
   async update(userId: string, input: UpdateProjectInput) {

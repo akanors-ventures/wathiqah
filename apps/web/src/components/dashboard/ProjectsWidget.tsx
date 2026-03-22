@@ -72,7 +72,7 @@ export function ProjectsWidget() {
           <div className="space-y-5">
             {activeProjects.map((project) => {
               const percentage = project.budget
-                ? Math.min((project.balance / project.budget) * 100, 100)
+                ? Math.min(((project.totalExpenses ?? 0) / project.budget) * 100, 100)
                 : 0;
 
               return (
