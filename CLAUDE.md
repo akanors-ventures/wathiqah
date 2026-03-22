@@ -123,6 +123,12 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - HTTP controllers are **unauthenticated by default** — auth is GraphQL-only via `GqlAuthGuard`; no `@Public()` decorator exists or is needed
 - NestJS global prefix is `/api` — all HTTP routes are under `/api/`, critical when constructing webhook URLs
 
+### Role Hierarchy
+- `UserRole` enum: `USER` | `ADMIN` | `SUPER_ADMIN`
+- `SUPER_ADMIN` is bootstrap-only (env vars `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`, mapped under `admin.email/password/name` in `apps/api/src/config/admin.config.ts`) — cannot be assigned via `setUserRole` mutation
+- `RolesGuard` hierarchy: `SUPER_ADMIN` implicitly passes any `@Roles()` check; plain `ADMIN` is blocked from `@Roles(UserRole.SUPER_ADMIN)` routes
+- Bootstrap verifies `ADMIN_PASSWORD` against stored hash on every startup — wrong password prevents server start
+
 ### Notifications
 - `SubscriptionModule` is `@Global()` — `SubscriptionService` is injectable anywhere without adding it to module imports
 - BullMQ queue name is `'notifications'`; see `NotificationsProcessor` for existing job patterns
@@ -132,9 +138,13 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate a migration
 - **Do not run `db:apply` manually** — migration linting, push, and application to production are handled automatically by `.github/workflows/ci-atlas.yaml` on merge to `main`
 - Atlas requires `atlas login` (browser-based); token expires periodically
+- Atlas migrations live in `apps/api/atlas/migrations/` — excluded from Prettier via `.prettierignore`; never format them or `atlas.sum` will become invalid. If it drifts, run `atlas migrate hash --env local` from `apps/api/` to rehash.
 
 ### ESLint
 - `@typescript-eslint/no-explicit-any` is enforced — use `unknown` or double-cast (`as unknown as T`) in tests, never `as any`
+
+### Jest
+- Use `mockReturnValueOnce()` for per-test overrides — `mockReturnValue()` persists across tests even after `jest.clearAllMocks()` (which only clears call history, not implementations).
 
 ## AI Development Workflow
 
