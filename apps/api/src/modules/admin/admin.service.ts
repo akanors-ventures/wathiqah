@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -27,48 +32,76 @@ export class AdminService implements OnModuleInit {
     const name = this.configService.get<string>('admin.name');
 
     if (!email || !password || !name) {
-      this.logger.warn(
-        'ADMIN_EMAIL, ADMIN_PASSWORD, or ADMIN_NAME not set — skipping super admin bootstrap',
+      this.logger.debug(
+        'ADMIN_EMAIL/PASSWORD/NAME not set — skipping super admin bootstrap',
       );
       return;
     }
 
-    const existingAdmin = await this.prisma.user.findFirst({
-      where: { role: UserRole.ADMIN },
+    const normalizedEmail = normalizeEmail(email);
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
     });
 
-    if (existingAdmin) {
-      this.logger.debug('Admin user already exists — skipping bootstrap');
+    if (existingUser) {
+      // Always verify the provided password matches the stored hash
+      const passwordMatches = existingUser.passwordHash
+        ? await bcrypt.compare(password, existingUser.passwordHash)
+        : false;
+
+      if (!passwordMatches) {
+        throw new Error(
+          `[AdminService] Bootstrap failed: ADMIN_PASSWORD does not match the stored password for ${normalizedEmail}. Correct the env var or reset the password in the database.`,
+        );
+      }
+
+      if (existingUser.role === UserRole.SUPER_ADMIN) {
+        this.logger.debug(
+          `Super admin ${normalizedEmail} verified — skipping bootstrap`,
+        );
+        return;
+      }
+
+      // Promote existing user to SUPER_ADMIN
+      this.logger.warn(
+        `Promoting existing user ${normalizedEmail} to SUPER_ADMIN via bootstrap`,
+      );
+      await this.prisma.user.update({
+        where: { email: normalizedEmail },
+        data: { role: UserRole.SUPER_ADMIN },
+      });
+      this.logger.log(
+        `Super admin bootstrapped (promoted): ${normalizedEmail}`,
+      );
       return;
     }
 
+    // No user with ADMIN_EMAIL — ensure no other super admin exists first
+    const anyExistingSuperAdmin = await this.prisma.user.findFirst({
+      where: { role: UserRole.SUPER_ADMIN },
+    });
+
+    if (anyExistingSuperAdmin) {
+      throw new Error(
+        `[AdminService] Bootstrap failed: a super admin already exists (${anyExistingSuperAdmin.email}) but ADMIN_EMAIL is set to ${normalizedEmail}. Update ADMIN_EMAIL to match the existing super admin account.`,
+      );
+    }
+
+    // Fresh install — create super admin
     const [firstName, ...rest] = name.split(' ');
     const lastName = rest.join(' ') || '';
     const passwordHash = await bcrypt.hash(password, 10);
-    const normalizedEmail = normalizeEmail(email);
 
-    // Log if we're promoting an existing user (rather than creating fresh)
-    const existingUserWithEmail = await this.prisma.user.findUnique({
-      where: { email: normalizedEmail },
-    });
-    if (existingUserWithEmail) {
-      this.logger.warn(
-        `Promoting existing user ${normalizedEmail} to ADMIN via bootstrap upsert`,
-      );
-    }
-
-    await this.prisma.user.upsert({
-      where: { email: normalizedEmail },
-      create: {
+    await this.prisma.user.create({
+      data: {
         email: normalizedEmail,
         passwordHash,
         firstName,
         lastName,
-        role: UserRole.ADMIN,
+        role: UserRole.SUPER_ADMIN,
         isEmailVerified: true,
         preferredCurrency: 'NGN',
       },
-      update: { role: UserRole.ADMIN },
     });
 
     this.logger.log(`Super admin bootstrapped: ${normalizedEmail}`);
@@ -163,6 +196,12 @@ export class AdminService implements OnModuleInit {
   ): Promise<User> {
     // adminId retained for future audit logging
     void adminId;
+
+    if (role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException(
+        'SUPER_ADMIN role cannot be assigned via this mutation — it is reserved for the bootstrap account.',
+      );
+    }
 
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },

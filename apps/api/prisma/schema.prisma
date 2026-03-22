@@ -362,6 +362,7 @@ enum SubscriptionTier {
 enum UserRole {
   USER
   ADMIN
+  SUPER_ADMIN
 
   @@map("user_role")
 }

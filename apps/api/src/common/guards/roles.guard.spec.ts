@@ -46,4 +46,19 @@ describe('RolesGuard', () => {
     mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
     expect(guard.canActivate(makeContext(undefined))).toBe(false);
   });
+
+  it('allows SUPER_ADMIN to pass an ADMIN role check', () => {
+    mockReflector.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
+    expect(guard.canActivate(makeContext(UserRole.SUPER_ADMIN))).toBe(true);
+  });
+
+  it('allows SUPER_ADMIN to pass a SUPER_ADMIN role check', () => {
+    mockReflector.getAllAndOverride.mockReturnValue([UserRole.SUPER_ADMIN]);
+    expect(guard.canActivate(makeContext(UserRole.SUPER_ADMIN))).toBe(true);
+  });
+
+  it('denies plain ADMIN access to a SUPER_ADMIN-only route', () => {
+    mockReflector.getAllAndOverride.mockReturnValue([UserRole.SUPER_ADMIN]);
+    expect(guard.canActivate(makeContext(UserRole.ADMIN))).toBe(false);
+  });
 });
