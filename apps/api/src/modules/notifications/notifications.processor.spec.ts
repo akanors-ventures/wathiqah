@@ -9,7 +9,9 @@ import { ConfigService } from '@nestjs/config';
 import type {
   ContactNotificationSmsJobData,
   ContactNotificationEmailJobData,
+  NotificationJobData,
 } from './interfaces/job-data.interface';
+import type { Job } from 'bullmq';
 
 const mockSmsOptOutService = { isOptedOut: jest.fn() };
 const mockSubscriptionService = { incrementFeatureUsage: jest.fn() };
@@ -141,6 +143,66 @@ describe('NotificationsProcessor — contact notification handlers', () => {
 
       expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({ to: 'amina@example.com' }),
+      );
+    });
+  });
+
+  describe('provisioning-notification handler', () => {
+    it('sends provisioning-granted email with expiresAt formatted', async () => {
+      const job = {
+        name: 'provisioning-notification',
+        data: {
+          type: 'provisioning-notification',
+          notificationType: 'granted',
+          email: 'user@example.com',
+          name: 'Amina',
+          expiresAt: new Date('2027-01-01').toISOString(),
+        },
+      } as unknown as Job<NotificationJobData>;
+
+      await processor.process(job);
+
+      expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ to: 'user@example.com' }),
+      );
+    });
+
+    it('sends provisioning-expired email with expiredAt formatted', async () => {
+      const job = {
+        name: 'provisioning-notification',
+        data: {
+          type: 'provisioning-notification',
+          notificationType: 'expired',
+          email: 'user@example.com',
+          name: 'Amina',
+          expiredAt: new Date('2026-01-01').toISOString(),
+        },
+      } as unknown as Job<NotificationJobData>;
+
+      await processor.process(job);
+
+      expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ to: 'user@example.com' }),
+      );
+    });
+  });
+
+  describe('role-change-notification handler', () => {
+    it('sends admin-promotion email when notificationType is promoted', async () => {
+      const job = {
+        name: 'role-change-notification',
+        data: {
+          type: 'role-change-notification',
+          notificationType: 'promoted',
+          email: 'admin@example.com',
+          name: 'Fawaz',
+        },
+      } as unknown as Job<NotificationJobData>;
+
+      await processor.process(job);
+
+      expect(mockEmailProvider.sendEmail).toHaveBeenCalledWith(
+        expect.objectContaining({ to: 'admin@example.com' }),
       );
     });
   });

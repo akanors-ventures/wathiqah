@@ -14,6 +14,8 @@ import type {
   SmsJobData,
   ContactNotificationSmsJobData,
   ContactNotificationEmailJobData,
+  ProvisioningNotificationJobData,
+  RoleChangeNotificationJobData,
 } from './interfaces/job-data.interface';
 
 @Processor('notifications')
@@ -50,6 +52,16 @@ export class NotificationsProcessor extends WorkerHost {
         case 'contact-notification-email':
           await this.handleContactNotificationEmail(
             job.data as ContactNotificationEmailJobData,
+          );
+          break;
+        case 'provisioning-notification':
+          await this.handleProvisioningNotification(
+            job.data as ProvisioningNotificationJobData,
+          );
+          break;
+        case 'role-change-notification':
+          await this.handleRoleChangeNotification(
+            job.data as RoleChangeNotificationJobData,
           );
           break;
         default:
@@ -173,5 +185,75 @@ export class NotificationsProcessor extends WorkerHost {
     });
 
     this.logger.log(`Contact notification email sent to ${contactEmail}`);
+  }
+
+  private async handleProvisioningNotification(
+    data: ProvisioningNotificationJobData,
+  ): Promise<void> {
+    const { notificationType, email, name, expiresAt, expiredAt } = data;
+
+    let subject: string;
+    let templateName: string;
+    const templateData: Record<string, unknown> = { name };
+
+    if (notificationType === 'granted') {
+      subject = 'Your Wathīqah Pro access has been granted';
+      templateName = 'provisioning-granted';
+      if (expiresAt) {
+        templateData.expiresAt = new Date(expiresAt).toLocaleDateString(
+          'en-GB',
+          { day: 'numeric', month: 'long', year: 'numeric' },
+        );
+      }
+    } else if (notificationType === 'expired') {
+      subject = 'Your Wathīqah Pro access has expired';
+      templateName = 'provisioning-expired';
+      if (expiredAt) {
+        templateData.expiredAt = new Date(expiredAt).toLocaleDateString(
+          'en-GB',
+          { day: 'numeric', month: 'long', year: 'numeric' },
+        );
+      }
+    } else {
+      subject = 'Your Wathīqah Pro access has been revoked';
+      templateName = 'provisioning-revoked';
+    }
+
+    templateData.subject = subject;
+
+    await this.handleSendEmail({
+      to: email,
+      subject,
+      templateName,
+      templateData,
+    });
+    this.logger.log(
+      `Provisioning notification (${notificationType}) sent to ${email}`,
+    );
+  }
+
+  private async handleRoleChangeNotification(
+    data: RoleChangeNotificationJobData,
+  ): Promise<void> {
+    const { notificationType, email, name } = data;
+
+    const subject =
+      notificationType === 'promoted'
+        ? 'You have been promoted to Admin on Wathīqah'
+        : 'Your Admin role on Wathīqah has been removed';
+
+    const templateName =
+      notificationType === 'promoted' ? 'admin-promotion' : 'admin-demotion';
+
+    await this.handleSendEmail({
+      to: email,
+      subject,
+      templateName,
+      templateData: { name, subject },
+    });
+
+    this.logger.log(
+      `Role change notification (${notificationType}) sent to ${email}`,
+    );
   }
 }

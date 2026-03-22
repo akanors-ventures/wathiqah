@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -8,11 +8,15 @@ import type {
   NotificationJobData,
   ContactNotificationSmsJobData,
   ContactNotificationEmailJobData,
+  ProvisioningNotificationJobData,
+  RoleChangeNotificationJobData,
 } from './interfaces/job-data.interface';
 import { getLocaleForCurrency } from '../../common/utils/currency.utils';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     @InjectQueue('notifications')
     private readonly notificationsQueue: Queue<NotificationJobData>,
@@ -485,6 +489,58 @@ export class NotificationService {
     }
 
     return { smsSkipped };
+  }
+
+  async sendProvisioningNotification(params: {
+    notificationType: 'granted' | 'expired' | 'revoked';
+    email: string;
+    name: string;
+    expiresAt?: Date;
+    expiredAt?: Date;
+  }): Promise<void> {
+    await this.notificationsQueue.add(
+      'provisioning-notification',
+      {
+        type: 'provisioning-notification',
+        notificationType: params.notificationType,
+        email: params.email,
+        name: params.name,
+        expiresAt: params.expiresAt?.toISOString(),
+        expiredAt: params.expiredAt?.toISOString(),
+      } as ProvisioningNotificationJobData,
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+      },
+    );
+
+    this.logger.log(
+      `Provisioning notification (${params.notificationType}) queued for ${params.email}`,
+    );
+  }
+
+  async sendRoleChangeNotification(params: {
+    notificationType: 'promoted' | 'demoted';
+    email: string;
+    name: string;
+  }): Promise<void> {
+    await this.notificationsQueue.add(
+      'role-change-notification',
+      {
+        type: 'role-change-notification',
+        ...params,
+      } as RoleChangeNotificationJobData,
+      {
+        attempts: 5,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+      },
+    );
+
+    this.logger.log(
+      `Role change notification (${params.notificationType}) queued for ${params.email}`,
+    );
   }
 
   private validateParams(params: Record<string, string>): void {

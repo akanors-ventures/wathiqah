@@ -31,8 +31,26 @@ export interface ContactNotificationEmailJobData {
   currency: string;
 }
 
+export interface ProvisioningNotificationJobData {
+  type: 'provisioning-notification';
+  notificationType: 'granted' | 'expired' | 'revoked';
+  email: string;
+  name: string;
+  expiresAt?: string; // ISO string — present only for 'granted'
+  expiredAt?: string; // ISO string — present only for 'expired'
+}
+
+export interface RoleChangeNotificationJobData {
+  type: 'role-change-notification';
+  notificationType: 'promoted' | 'demoted';
+  email: string;
+  name: string;
+}
+
 export type NotificationJobData =
   | EmailJobData
   | SmsJobData
   | ContactNotificationSmsJobData
-  | ContactNotificationEmailJobData;
+  | ContactNotificationEmailJobData
+  | ProvisioningNotificationJobData
+  | RoleChangeNotificationJobData;
