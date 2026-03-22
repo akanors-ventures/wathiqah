@@ -18,6 +18,7 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { SupportModule } from './modules/support/support.module';
 import { ExchangeRateModule } from './modules/exchange-rate/exchange-rate.module';
 import { MaintenanceModule } from './modules/maintenance/maintenance.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { GeoIPModule } from './modules/geoip/geoip.module';
@@ -184,6 +185,7 @@ import { GraphQLError } from 'graphql';
     SupportModule,
     ExchangeRateModule,
     MaintenanceModule,
+    AdminModule,
     ProjectsModule,
     QueueModule,
     GeoIPModule,
