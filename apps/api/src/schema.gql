@@ -256,6 +256,8 @@ type Project {
   description: String
   id: ID!
   name: String!
+  totalExpenses: Float!
+  totalIncome: Float!
   transactions: [ProjectTransaction!]!
   updatedAt: DateTime!
   userId: String!
@@ -559,6 +561,7 @@ type User {
   passwordHash: String
   phoneNumber: String
   preferredCurrency: String!
+  role: UserRole!
   subscriptionStatus: String
   role: UserRole!
   tier: SubscriptionTier!
