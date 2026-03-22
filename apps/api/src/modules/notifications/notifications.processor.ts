@@ -43,10 +43,14 @@ export class NotificationsProcessor extends WorkerHost {
           await this.handleSendSms(job.data as SmsJobData);
           break;
         case 'contact-notification-sms':
-          await this.handleContactNotificationSms(job.data as ContactNotificationSmsJobData);
+          await this.handleContactNotificationSms(
+            job.data as ContactNotificationSmsJobData,
+          );
           break;
         case 'contact-notification-email':
-          await this.handleContactNotificationEmail(job.data as ContactNotificationEmailJobData);
+          await this.handleContactNotificationEmail(
+            job.data as ContactNotificationEmailJobData,
+          );
           break;
         default:
           this.logger.warn(`Unknown job name: ${job.name}`);
@@ -112,8 +116,17 @@ export class NotificationsProcessor extends WorkerHost {
     }).format(amount);
   }
 
-  private async handleContactNotificationSms(data: ContactNotificationSmsJobData): Promise<void> {
-    const { contactPhoneNumber, contactFirstName, creatorDisplayName, amount, currency, creatorId } = data;
+  private async handleContactNotificationSms(
+    data: ContactNotificationSmsJobData,
+  ): Promise<void> {
+    const {
+      contactPhoneNumber,
+      contactFirstName,
+      creatorDisplayName,
+      amount,
+      currency,
+      creatorId,
+    } = data;
 
     const optedOut = await this.smsOptOutService.isOptedOut(contactPhoneNumber);
     if (optedOut) {
@@ -123,16 +136,29 @@ export class NotificationsProcessor extends WorkerHost {
 
     const name = contactFirstName ?? 'Someone';
     const formattedAmount = this.formatAmount(amount, currency);
-    const appUrl = this.configService.get<string>('app.url')?.replace(/\/$/, '');
+    const appUrl = this.configService
+      .get<string>('app.url')
+      ?.replace(/\/$/, '');
     const body = `${name}, a transaction of ${formattedAmount} has been recorded in your name by ${creatorDisplayName} on Wathīqah. View your record at ${appUrl}. Reply STOP to opt out.`;
 
     await this.smsProvider.sendSms({ to: contactPhoneNumber, body });
-    await this.subscriptionService.incrementFeatureUsage(creatorId, 'contactNotificationSms');
+    await this.subscriptionService.incrementFeatureUsage(
+      creatorId,
+      'contactNotificationSms',
+    );
     this.logger.log(`Contact notification SMS sent to ${contactPhoneNumber}`);
   }
 
-  private async handleContactNotificationEmail(data: ContactNotificationEmailJobData): Promise<void> {
-    const { contactEmail, contactFirstName, creatorDisplayName, amount, currency } = data;
+  private async handleContactNotificationEmail(
+    data: ContactNotificationEmailJobData,
+  ): Promise<void> {
+    const {
+      contactEmail,
+      contactFirstName,
+      creatorDisplayName,
+      amount,
+      currency,
+    } = data;
 
     const name = contactFirstName ?? 'Someone';
     const formattedAmount = this.formatAmount(amount, currency);
