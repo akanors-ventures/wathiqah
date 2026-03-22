@@ -2066,6 +2066,16 @@ export const SmsOptOutScalarFieldEnum = {
 export type SmsOptOutScalarFieldEnum =
   (typeof SmsOptOutScalarFieldEnum)[keyof typeof SmsOptOutScalarFieldEnum];
 
+export const SmsOptOutScalarFieldEnum = {
+  id: 'id',
+  phoneNumber: 'phoneNumber',
+  source: 'source',
+  createdAt: 'createdAt'
+} as const
+
+export type SmsOptOutScalarFieldEnum = (typeof SmsOptOutScalarFieldEnum)[keyof typeof SmsOptOutScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc',
