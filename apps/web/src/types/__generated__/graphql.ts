@@ -224,12 +224,14 @@ export type Mutation = {
   createSupport: Support;
   createSupportSession: CheckoutSession;
   createTransaction: Transaction;
+  deprovisionPro: User;
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
   inviteContactToPlatform: InviteContactResponse;
   logProjectTransaction: ProjectTransaction;
   login: AuthPayload;
   logout: Scalars['Boolean']['output'];
+  provisionPro: User;
   refreshToken: AuthPayload;
   removeContact: Contact;
   removePromise: Promise;
@@ -240,6 +242,7 @@ export type Mutation = {
   resendWitnessInvitation: Witness;
   resetPassword: Scalars['Boolean']['output'];
   revokeAccess: AccessGrant;
+  setUserRole: User;
   signup: AuthPayload;
   updateContact: Contact;
   updateProject: Project;
@@ -312,6 +315,11 @@ export type MutationCreateTransactionArgs = {
 };
 
 
+export type MutationDeprovisionProArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
 export type MutationForgotPasswordArgs = {
   forgotPasswordInput: ForgotPasswordInput;
 };
@@ -334,6 +342,11 @@ export type MutationLogProjectTransactionArgs = {
 
 export type MutationLoginArgs = {
   loginInput: LoginInput;
+};
+
+
+export type MutationProvisionProArgs = {
+  input: ProvisionProInput;
 };
 
 
@@ -384,6 +397,11 @@ export type MutationResetPasswordArgs = {
 
 export type MutationRevokeAccessArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationSetUserRoleArgs = {
+  input: SetUserRoleInput;
 };
 
 
@@ -479,6 +497,11 @@ export enum PromiseStatus {
   Overdue = 'OVERDUE',
   Pending = 'PENDING'
 }
+
+export type ProvisionProInput = {
+  expiresAt: Scalars['DateTime']['input'];
+  userId: Scalars['ID']['input'];
+};
 
 export type Query = {
   __typename: 'Query';
@@ -622,6 +645,11 @@ export enum SearchType {
 export type SearchWitnessInput = {
   query: Scalars['String']['input'];
   type: SearchType;
+};
+
+export type SetUserRoleInput = {
+  role: UserRole;
+  userId: Scalars['ID']['input'];
 };
 
 export type SharedDataEntity = {
@@ -835,9 +863,15 @@ export type User = {
   passwordHash: Maybe<Scalars['String']['output']>;
   phoneNumber: Maybe<Scalars['String']['output']>;
   preferredCurrency: Scalars['String']['output'];
+  role: UserRole;
   subscriptionStatus: Maybe<Scalars['String']['output']>;
   tier: SubscriptionTier;
 };
+
+export enum UserRole {
+  Admin = 'ADMIN',
+  User = 'USER'
+}
 
 export type Witness = {
   __typename: 'Witness';
