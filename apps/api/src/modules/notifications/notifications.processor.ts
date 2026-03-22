@@ -7,6 +7,7 @@ import { SmsProvider } from './providers/sms-provider.interface';
 import { TemplateService } from './template.service';
 import { SmsOptOutService } from './services/sms-optout.service';
 import { SubscriptionService } from '../subscription/subscription.service';
+import { getLocaleForCurrency } from '../../common/utils/currency.utils';
 import type {
   EmailJobData,
   NotificationJobData,
@@ -101,6 +102,16 @@ export class NotificationsProcessor extends WorkerHost {
     this.logger.log(`SMS sent to ${data.to}`);
   }
 
+  private formatAmount(amount: number, currency: string): string {
+    const locale = getLocaleForCurrency(currency);
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
+
   private async handleContactNotificationSms(data: ContactNotificationSmsJobData): Promise<void> {
     const { contactPhoneNumber, contactFirstName, creatorDisplayName, amount, currency, creatorId } = data;
 
@@ -111,8 +122,9 @@ export class NotificationsProcessor extends WorkerHost {
     }
 
     const name = contactFirstName ?? 'Someone';
+    const formattedAmount = this.formatAmount(amount, currency);
     const appUrl = this.configService.get<string>('app.url')?.replace(/\/$/, '');
-    const body = `${name}, a transaction of ${amount} ${currency} has been recorded in your name by ${creatorDisplayName} on Wathīqah. View your record at ${appUrl}. Reply STOP to opt out.`;
+    const body = `${name}, a transaction of ${formattedAmount} has been recorded in your name by ${creatorDisplayName} on Wathīqah. View your record at ${appUrl}. Reply STOP to opt out.`;
 
     await this.smsProvider.sendSms({ to: contactPhoneNumber, body });
     await this.subscriptionService.incrementFeatureUsage(creatorId, 'contactNotificationSms');
@@ -123,6 +135,7 @@ export class NotificationsProcessor extends WorkerHost {
     const { contactEmail, contactFirstName, creatorDisplayName, amount, currency } = data;
 
     const name = contactFirstName ?? 'Someone';
+    const formattedAmount = this.formatAmount(amount, currency);
     const subject = 'A transaction has been recorded in your name on Wathīqah';
 
     // Note: map contactFirstName → name for the template variable
@@ -130,7 +143,7 @@ export class NotificationsProcessor extends WorkerHost {
       to: contactEmail,
       subject,
       templateName: 'contact-transaction-notification',
-      templateData: { name, creatorDisplayName, amount, currency, subject },
+      templateData: { name, creatorDisplayName, formattedAmount, subject },
     });
 
     this.logger.log(`Contact notification email sent to ${contactEmail}`);

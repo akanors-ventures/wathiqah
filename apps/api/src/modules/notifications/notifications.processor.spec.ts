@@ -76,7 +76,7 @@ describe('NotificationsProcessor — contact notification handlers', () => {
 
       expect(mockSmsProvider.sendSms).toHaveBeenCalledWith({
         to: '+2348012345678',
-        body: expect.stringContaining('5000 NGN'),
+        body: expect.stringContaining('₦5,000'),
       });
       expect(mockSubscriptionService.incrementFeatureUsage).toHaveBeenCalledWith(
         'user1',
