@@ -8,6 +8,7 @@ import { SubscriptionTier, UserRole } from '../../generated/prisma/client';
 const mockPrisma = {
   user: {
     findFirst: jest.fn(),
+    findUnique: jest.fn(),
     findUniqueOrThrow: jest.fn(),
     upsert: jest.fn(),
     update: jest.fn(),
@@ -54,6 +55,7 @@ describe('AdminService', () => {
   describe('bootstrapSuperAdmin', () => {
     it('creates a super admin when none exists', async () => {
       mockPrisma.user.findFirst.mockResolvedValue(null);
+      mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.upsert.mockResolvedValue({});
 
       await service.bootstrapSuperAdmin();
@@ -135,7 +137,7 @@ describe('AdminService', () => {
         undefined,
       );
 
-      await service.deprovisionPro('user-1');
+      await service.deprovisionPro('admin-1', 'user-1');
 
       expect(mockPrisma.subscription.update).toHaveBeenCalledWith(
         expect.objectContaining({

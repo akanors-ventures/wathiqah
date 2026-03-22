@@ -35,9 +35,10 @@ export class AdminResolver {
 
   @Mutation(() => User)
   async deprovisionPro(
+    @CurrentUser() admin: User,
     @Args('userId', { type: () => ID }) userId: string,
   ): Promise<User> {
-    const user = await this.adminService.deprovisionPro(userId);
+    const user = await this.adminService.deprovisionPro(admin.id, userId);
     return this.usersService.toEntity(user);
   }
 

@@ -47,6 +47,16 @@ export class AdminService implements OnModuleInit {
     const passwordHash = await bcrypt.hash(password, 10);
     const normalizedEmail = normalizeEmail(email);
 
+    // Log if we're promoting an existing user (rather than creating fresh)
+    const existingUserWithEmail = await this.prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+    if (existingUserWithEmail) {
+      this.logger.warn(
+        `Promoting existing user ${normalizedEmail} to ADMIN via bootstrap upsert`,
+      );
+    }
+
     await this.prisma.user.upsert({
       where: { email: normalizedEmail },
       create: {
@@ -112,7 +122,10 @@ export class AdminService implements OnModuleInit {
     return this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
   }
 
-  async deprovisionPro(userId: string): Promise<User> {
+  async deprovisionPro(adminId: string, userId: string): Promise<User> {
+    // adminId retained for future audit logging
+    void adminId;
+
     const subscription = await this.prisma.subscription.findFirstOrThrow({
       where: { userId, isProvisioned: true },
       include: { user: true },
