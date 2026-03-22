@@ -111,7 +111,8 @@ export class NotificationsProcessor extends WorkerHost {
     }
 
     const name = contactFirstName ?? 'Someone';
-    const body = `${name}, a transaction of ${amount} ${currency} has been recorded in your name by ${creatorDisplayName} on Wathīqah. View your record at wathiqah.akanors.com. Reply STOP to opt out.`;
+    const appUrl = this.configService.get<string>('app.url')?.replace(/\/$/, '');
+    const body = `${name}, a transaction of ${amount} ${currency} has been recorded in your name by ${creatorDisplayName} on Wathīqah. View your record at ${appUrl}. Reply STOP to opt out.`;
 
     await this.smsProvider.sendSms({ to: contactPhoneNumber, body });
     await this.subscriptionService.incrementFeatureUsage(creatorId, 'contactNotificationSms');

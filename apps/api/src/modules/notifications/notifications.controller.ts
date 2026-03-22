@@ -32,7 +32,7 @@ export class NotificationsController {
     const authToken = this.configService.get<string>('twilio.authToken');
     const signature = (req.headers['x-twilio-signature'] as string) ?? '';
     const appUrl = this.configService.get<string>('app.url')?.replace(/\/$/, '');
-    const webhookUrl = `${appUrl}/notifications/sms/optout`;
+    const webhookUrl = `${appUrl}/api/notifications/sms/optout`;
 
     const isValid = twilio.validateRequest(
       authToken,
