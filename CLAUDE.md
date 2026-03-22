@@ -89,6 +89,10 @@ All code should use the `AssetCategory` enum instead of hardcoded strings:
 
 **Note**: Use `AssetCategory.FUNDS` and `AssetCategory.ITEM` when referencing categories in code.
 
+**TransactionType enum actual values**: `GIVEN`, `RECEIVED`, `RETURNED`, `GIFT`, `EXPENSE`, `INCOME`
+- `RETURNED` covers both directions via the `ReturnDirection` field (`TO_ME` / `TO_CONTACT`) — there are no `RETURNED_TO_ME` or `RETURNED_TO_CONTACT` enum values
+- `Transaction.amount` is `Decimal?` — always use `.toNumber()` with a null guard (e.g. `?.toNumber() ?? 0`)
+
 ### Shared Ledger & Perspective Flipping
 
 When a transaction's contact is a registered user (`linkedUserId`):
@@ -106,6 +110,30 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 - **Cash Position (Dashboard)**: `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`
 - **Relationship Standing (Contact View)**: `Standing = Assets (Given) - Liabilities (Received)`
+
+### GraphQL Schema Generation
+
+- `apps/api/src/schema.gql` is **auto-generated at runtime** when NestJS starts — do NOT edit it manually
+- When adding new `@Field()` decorators, run `pnpm --filter api dev` once to regenerate `schema.gql`, then `pnpm --filter web build` will succeed
+- Frontend codegen reads from `../api/src/schema.gql` — see `apps/web/codegen.ts`
+
+## Backend Conventions
+
+### HTTP Controllers & Auth
+- HTTP controllers are **unauthenticated by default** — auth is GraphQL-only via `GqlAuthGuard`; no `@Public()` decorator exists or is needed
+- NestJS global prefix is `/api` — all HTTP routes are under `/api/`, critical when constructing webhook URLs
+
+### Notifications
+- `SubscriptionModule` is `@Global()` — `SubscriptionService` is injectable anywhere without adding it to module imports
+- BullMQ queue name is `'notifications'`; see `NotificationsProcessor` for existing job patterns
+- Format currency amounts with `getLocaleForCurrency` + `Intl.NumberFormat` — never concatenate raw ISO codes (e.g. `"NGN"`)
+
+### Database Migrations
+- Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate, `pnpm --filter api db:apply` to apply
+- Atlas requires `atlas login` (browser-based); token expires periodically
+
+### ESLint
+- `@typescript-eslint/no-explicit-any` is enforced — use `unknown` or double-cast (`as unknown as T`) in tests, never `as any`
 
 ## AI Development Workflow
 
