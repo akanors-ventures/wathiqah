@@ -8,10 +8,14 @@ describe('SUBSCRIPTION_LIMITS', () => {
   });
 
   it('sets FREE tier contactNotificationSms to 10', () => {
-    expect(SUBSCRIPTION_LIMITS[SubscriptionTier.FREE].contactNotificationSms).toBe(10);
+    expect(
+      SUBSCRIPTION_LIMITS[SubscriptionTier.FREE].contactNotificationSms,
+    ).toBe(10);
   });
 
   it('sets PRO tier contactNotificationSms to -1 (unlimited)', () => {
-    expect(SUBSCRIPTION_LIMITS[SubscriptionTier.PRO].contactNotificationSms).toBe(-1);
+    expect(
+      SUBSCRIPTION_LIMITS[SubscriptionTier.PRO].contactNotificationSms,
+    ).toBe(-1);
   });
 });

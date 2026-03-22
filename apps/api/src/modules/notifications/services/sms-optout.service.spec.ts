@@ -48,7 +48,10 @@ describe('SmsOptOutService', () => {
       await service.addOptOut('+2348000000000', OptOutSource.REPLY_STOP);
       expect(mockPrisma.smsOptOut.upsert).toHaveBeenCalledWith({
         where: { phoneNumber: '+2348000000000' },
-        create: { phoneNumber: '+2348000000000', source: OptOutSource.REPLY_STOP },
+        create: {
+          phoneNumber: '+2348000000000',
+          source: OptOutSource.REPLY_STOP,
+        },
         update: { source: OptOutSource.REPLY_STOP },
       });
     });

@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Post,
-  Req,
-  Res,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { Controller, Post, Req, Res, HttpStatus, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
 import * as twilio from 'twilio';
@@ -31,7 +24,9 @@ export class NotificationsController {
   async handleSmsOptOut(@Req() req: Request, @Res() res: Response) {
     const authToken = this.configService.get<string>('twilio.authToken');
     const signature = (req.headers['x-twilio-signature'] as string) ?? '';
-    const appUrl = this.configService.get<string>('app.url')?.replace(/\/$/, '');
+    const appUrl = this.configService
+      .get<string>('app.url')
+      ?.replace(/\/$/, '');
     const webhookUrl = `${appUrl}/api/notifications/sms/optout`;
 
     const isValid = twilio.validateRequest(
@@ -42,13 +37,18 @@ export class NotificationsController {
     );
 
     if (!isValid) {
-      this.logger.warn(`Invalid Twilio signature on opt-out webhook from ${req.ip}`);
+      this.logger.warn(
+        `Invalid Twilio signature on opt-out webhook from ${req.ip}`,
+      );
       return res.status(HttpStatus.FORBIDDEN).send('Invalid signature');
     }
 
     const phoneNumber = (req.body as Record<string, string>)?.From;
     if (phoneNumber) {
-      await this.smsOptOutService.addOptOut(phoneNumber, OptOutSource.REPLY_STOP);
+      await this.smsOptOutService.addOptOut(
+        phoneNumber,
+        OptOutSource.REPLY_STOP,
+      );
       this.logger.log(`SMS opt-out recorded for ${phoneNumber}`);
     }
 

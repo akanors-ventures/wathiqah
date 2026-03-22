@@ -430,9 +430,14 @@ export class TransactionsService {
 
     let smsSkipped = false;
 
-    if ((qualifyingTypes as TransactionType[]).includes(transaction.type) && transaction.contactId) {
+    if (
+      (qualifyingTypes as TransactionType[]).includes(transaction.type) &&
+      transaction.contactId
+    ) {
       const [contact, creator] = await Promise.all([
-        this.prisma.contact.findUnique({ where: { id: transaction.contactId } }),
+        this.prisma.contact.findUnique({
+          where: { id: transaction.contactId },
+        }),
         this.prisma.user.findUnique({ where: { id: userId } }),
       ]);
 

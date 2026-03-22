@@ -5,10 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NotificationService } from '../notifications/notification.service';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
-import {
-  TransactionType,
-  AssetCategory,
-} from '../../generated/prisma/client';
+import { TransactionType, AssetCategory } from '../../generated/prisma/client';
 
 const CREATOR_ID = 'creator-1';
 const CONTACT_ID = 'contact-1';
@@ -37,7 +34,9 @@ const mockTransaction = {
   contactId: CONTACT_ID,
   type: TransactionType.GIVEN,
   category: AssetCategory.FUNDS,
-  amount: { toNumber: () => 5000 } as any,
+  amount: {
+    toNumber: () => 5000,
+  } as unknown as import('../../generated/prisma/client').Transaction['amount'],
   currency: 'NGN',
   status: 'PENDING' as const,
   createdAt: new Date(),
@@ -79,7 +78,9 @@ const mockNotificationService = {
 
 const mockConfigService = { getOrThrow: jest.fn(), get: jest.fn() };
 const mockCacheManager = { get: jest.fn(), set: jest.fn(), del: jest.fn() };
-const mockExchangeRateService = { convert: jest.fn((v: number) => Promise.resolve(v)) };
+const mockExchangeRateService = {
+  convert: jest.fn((v: number) => Promise.resolve(v)),
+};
 
 describe('TransactionsService - create() contact notification', () => {
   let service: TransactionsService;
@@ -102,7 +103,9 @@ describe('TransactionsService - create() contact notification', () => {
     mockPrismaService.contact.findUnique.mockResolvedValue(mockContact);
     mockPrismaService.user.findUnique.mockResolvedValue(mockCreator);
     mockPrismaService.transaction.create.mockResolvedValue(mockTransaction);
-    mockNotificationService.sendContactNotification.mockResolvedValue({ smsSkipped: false });
+    mockNotificationService.sendContactNotification.mockResolvedValue({
+      smsSkipped: false,
+    });
   });
 
   const TX_DATE = new Date('2026-03-22');
@@ -120,7 +123,9 @@ describe('TransactionsService - create() contact notification', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).toHaveBeenCalledWith(
+    expect(
+      mockNotificationService.sendContactNotification,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         transactionId: mockTransaction.id,
         contactPhoneNumber: mockContact.phoneNumber,
@@ -196,7 +201,9 @@ describe('TransactionsService - create() contact notification', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).not.toHaveBeenCalled();
+    expect(
+      mockNotificationService.sendContactNotification,
+    ).not.toHaveBeenCalled();
   });
 
   it('does NOT send contact notification when no contactId is set', async () => {
@@ -216,11 +223,15 @@ describe('TransactionsService - create() contact notification', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).not.toHaveBeenCalled();
+    expect(
+      mockNotificationService.sendContactNotification,
+    ).not.toHaveBeenCalled();
   });
 
   it('returns smsSkipped: true when notification service reports limit hit', async () => {
-    mockNotificationService.sendContactNotification.mockResolvedValue({ smsSkipped: true });
+    mockNotificationService.sendContactNotification.mockResolvedValue({
+      smsSkipped: true,
+    });
 
     const result = await service.create(
       {
@@ -255,7 +266,9 @@ describe('TransactionsService - create() contact notification', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).toHaveBeenCalledWith(
+    expect(
+      mockNotificationService.sendContactNotification,
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         creatorDisplayName: mockCreator.email,
       }),

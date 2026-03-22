@@ -6,14 +6,21 @@ import { EmailProvider } from './providers/email-provider.interface';
 import { SmsProvider } from './providers/sms-provider.interface';
 import { TemplateService } from './template.service';
 import { ConfigService } from '@nestjs/config';
-import type { ContactNotificationSmsJobData, ContactNotificationEmailJobData } from './interfaces/job-data.interface';
+import type {
+  ContactNotificationSmsJobData,
+  ContactNotificationEmailJobData,
+} from './interfaces/job-data.interface';
 
 const mockSmsOptOutService = { isOptedOut: jest.fn() };
 const mockSubscriptionService = { incrementFeatureUsage: jest.fn() };
 const mockSmsProvider = { sendSms: jest.fn() };
 const mockEmailProvider = { sendEmail: jest.fn() };
-const mockTemplateService = { render: jest.fn().mockReturnValue('<html>test</html>') };
-const mockConfigService = { get: jest.fn().mockReturnValue('https://wathiqah.akanors.com') };
+const mockTemplateService = {
+  render: jest.fn().mockReturnValue('<html>test</html>'),
+};
+const mockConfigService = {
+  get: jest.fn().mockReturnValue('https://wathiqah.akanors.com'),
+};
 
 const makeSmsJob = (overrides: Partial<ContactNotificationSmsJobData> = {}) =>
   ({
@@ -29,9 +36,11 @@ const makeSmsJob = (overrides: Partial<ContactNotificationSmsJobData> = {}) =>
       currency: 'NGN',
       ...overrides,
     },
-  }) as any;
+  }) as unknown as import('bullmq').Job;
 
-const makeEmailJob = (overrides: Partial<ContactNotificationEmailJobData> = {}) =>
+const makeEmailJob = (
+  overrides: Partial<ContactNotificationEmailJobData> = {},
+) =>
   ({
     name: 'contact-notification-email',
     data: {
@@ -44,7 +53,7 @@ const makeEmailJob = (overrides: Partial<ContactNotificationEmailJobData> = {}) 
       currency: 'NGN',
       ...overrides,
     },
-  }) as any;
+  }) as unknown as import('bullmq').Job;
 
 describe('NotificationsProcessor — contact notification handlers', () => {
   let processor: NotificationsProcessor;
@@ -70,7 +79,9 @@ describe('NotificationsProcessor — contact notification handlers', () => {
     it('sends SMS and increments usage when contact is not opted out', async () => {
       mockSmsOptOutService.isOptedOut.mockResolvedValue(false);
       mockSmsProvider.sendSms.mockResolvedValue(undefined);
-      mockSubscriptionService.incrementFeatureUsage.mockResolvedValue(undefined);
+      mockSubscriptionService.incrementFeatureUsage.mockResolvedValue(
+        undefined,
+      );
 
       await processor.process(makeSmsJob());
 
@@ -78,10 +89,9 @@ describe('NotificationsProcessor — contact notification handlers', () => {
         to: '+2348012345678',
         body: expect.stringContaining('₦5,000'),
       });
-      expect(mockSubscriptionService.incrementFeatureUsage).toHaveBeenCalledWith(
-        'user1',
-        'contactNotificationSms',
-      );
+      expect(
+        mockSubscriptionService.incrementFeatureUsage,
+      ).toHaveBeenCalledWith('user1', 'contactNotificationSms');
     });
 
     it('skips SMS silently when contact is opted out', async () => {
@@ -90,13 +100,17 @@ describe('NotificationsProcessor — contact notification handlers', () => {
       await processor.process(makeSmsJob());
 
       expect(mockSmsProvider.sendSms).not.toHaveBeenCalled();
-      expect(mockSubscriptionService.incrementFeatureUsage).not.toHaveBeenCalled();
+      expect(
+        mockSubscriptionService.incrementFeatureUsage,
+      ).not.toHaveBeenCalled();
     });
 
     it('uses "Someone" when contactFirstName is null', async () => {
       mockSmsOptOutService.isOptedOut.mockResolvedValue(false);
       mockSmsProvider.sendSms.mockResolvedValue(undefined);
-      mockSubscriptionService.incrementFeatureUsage.mockResolvedValue(undefined);
+      mockSubscriptionService.incrementFeatureUsage.mockResolvedValue(
+        undefined,
+      );
 
       await processor.process(makeSmsJob({ contactFirstName: null }));
 
@@ -110,8 +124,12 @@ describe('NotificationsProcessor — contact notification handlers', () => {
       mockSmsOptOutService.isOptedOut.mockResolvedValue(false);
       mockSmsProvider.sendSms.mockRejectedValue(new Error('Twilio error'));
 
-      await expect(processor.process(makeSmsJob())).rejects.toThrow('Twilio error');
-      expect(mockSubscriptionService.incrementFeatureUsage).not.toHaveBeenCalled();
+      await expect(processor.process(makeSmsJob())).rejects.toThrow(
+        'Twilio error',
+      );
+      expect(
+        mockSubscriptionService.incrementFeatureUsage,
+      ).not.toHaveBeenCalled();
     });
   });
 
