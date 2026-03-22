@@ -209,12 +209,14 @@ type Mutation {
   createSupport(createSupportInput: CreateSupportInput!): Support!
   createSupportSession(amount: Float, currency: String): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
+  deprovisionPro(userId: ID!): User!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
   inviteContactToPlatform(contactId: ID!): InviteContactResponse!
   logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
+  provisionPro(input: ProvisionProInput!): User!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
   removePromise(id: String!): Promise!
@@ -225,6 +227,7 @@ type Mutation {
   resendWitnessInvitation(witnessId: ID!): Witness!
   resetPassword(resetPasswordInput: ResetPasswordInput!): Boolean!
   revokeAccess(id: String!): AccessGrant!
+  setUserRole(input: SetUserRoleInput!): User!
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
   updateProject(input: UpdateProjectInput!): Project!
@@ -238,6 +241,11 @@ enum Priority {
   HIGH
   LOW
   MEDIUM
+}
+
+input ProvisionProInput {
+  userId: ID!
+  expiresAt: DateTime!
 }
 
 type Project {
@@ -343,6 +351,11 @@ enum SearchType {
 input SearchWitnessInput {
   query: String!
   type: SearchType!
+}
+
+input SetUserRoleInput {
+  userId: ID!
+  role: UserRole!
 }
 
 type SharedDataEntity {
@@ -547,7 +560,13 @@ type User {
   phoneNumber: String
   preferredCurrency: String!
   subscriptionStatus: String
+  role: UserRole!
   tier: SubscriptionTier!
+}
+
+enum UserRole {
+  ADMIN
+  USER
 }
 
 type Witness {
