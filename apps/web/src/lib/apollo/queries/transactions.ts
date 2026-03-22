@@ -238,6 +238,7 @@ export const CREATE_TRANSACTION: TypedDocumentNode<
       description
       date
       parentId
+      smsSkipped
     }
   }
 `;

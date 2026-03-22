@@ -195,7 +195,7 @@ function NewTransactionPage() {
           email: invite.email.trim().toLowerCase(),
         }));
 
-      await createTransaction({
+      const result = await createTransaction({
         ...values,
         amount: values.category === AssetCategory.Funds ? values.amount : undefined,
         itemName: values.category === AssetCategory.Item ? values.itemName : undefined,
@@ -205,7 +205,13 @@ function NewTransactionPage() {
         witnessUserIds,
         witnessInvites,
       });
-      toast.success("Transaction created successfully");
+      if (result.data?.createTransaction.smsSkipped) {
+        toast.warning(
+          "Transaction saved. SMS not sent — you've reached your 10 free contact notifications this month. Upgrade to Pro for unlimited notifications.",
+        );
+      } else {
+        toast.success("Transaction created successfully");
+      }
       resetAmount();
       navigate({
         to: "/transactions",
