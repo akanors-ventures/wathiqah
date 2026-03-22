@@ -132,6 +132,13 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate a migration
 - **Do not run `db:apply` manually** — migration linting, push, and application to production are handled automatically by `.github/workflows/ci-atlas.yaml` on merge to `main`
 - Atlas requires `atlas login` (browser-based); token expires periodically
+- **After editing any migration SQL manually**, run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum` — CI will fail with checksum mismatch otherwise
+- **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted (blocking table scan risk)
+
+### Project Fund Balance Semantics
+- `project.balance` = `totalIncome − totalExpenses` (net cash position, not a budget figure)
+- **Budget remaining** = `budget − totalExpenses` — never `budget − balance`, which incorrectly factors in income
+- `totalIncome` and `totalExpenses` are `@ResolveField` on `Project`; always include them in fragments when budget analytics are needed
 
 ### ESLint
 - `@typescript-eslint/no-explicit-any` is enforced — use `unknown` or double-cast (`as unknown as T`) in tests, never `as any`
@@ -140,6 +147,7 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 This project uses an AI-driven development process:
 
+- **PRs target `dev`**, not `main` — always use `gh pr create --base dev`
 - **Primary IDE**: Zed IDE with Google Gemini AI
 - **Claude models**: Primary driver for complex architectural decisions and logic
 - **Gemini AI**: Rapid exploration and large-scale context understanding
