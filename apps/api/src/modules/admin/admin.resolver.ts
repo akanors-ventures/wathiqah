@@ -13,7 +13,7 @@ import { SetUserRoleInput } from './dto/set-user-role.input';
 
 @Resolver()
 @UseGuards(GqlAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
+@Roles(UserRole.SUPER_ADMIN)
 export class AdminResolver {
   constructor(
     private readonly adminService: AdminService,
