@@ -48,13 +48,14 @@ model Project {
 ```
 
 - Default `ACTIVE` ensures no existing projects are affected
-- Migration file generated via `pnpm --filter api db:generate`
+- Generate migration: `pnpm --filter api db:migrate` (creates the Atlas migration file)
+- Regenerate Prisma client: `pnpm --filter api db:generate`
 
 ### 2. Projects GraphQL Type
 
 - Add `status: ProjectStatus!` field to `Project` entity
 - Add optional `status?: ProjectStatus` to `CreateProjectInput` (defaults to `ACTIVE`)
-- Add optional `status?: ProjectStatus` to `UpdateProjectInput`
+- Add optional `status?: ProjectStatus` to `CreateProjectInput` only — `UpdateProjectInput` uses `PartialType(CreateProjectInput)` and will inherit it automatically
 - Expose `ProjectStatus` enum in GraphQL schema
 
 ---
@@ -88,6 +89,7 @@ usePagination<T>(items: T[], defaultPageSize?: number) => {
 - Items-per-page selector (10 / 25 / 50)
 - "Showing X–Y of Z results" label
 - Hides itself when total items ≤ page size
+- **Implementation note**: This is a fully custom component. Do NOT install Shadcn's `pagination` primitive via CLI (`shadcn add pagination`) — doing so would overwrite this file. If Shadcn pagination is ever needed elsewhere, import from a different path.
 
 ### `DateRangePicker` Component
 
@@ -106,7 +108,9 @@ usePagination<T>(items: T[], defaultPageSize?: number) => {
 
 **Path:** `apps/web/src/hooks/useTransactionFilters.ts`
 
-Manages: `search`, `type` (ALL | GIVEN | RECEIVED | RETURNED_TO_ME | RETURNED_TO_CONTACT | INCOME | EXPENSE | GIFT_GIVEN | GIFT_RECEIVED), `status` (ALL | COMPLETED | PENDING | CANCELLED), `currency` (ALL | NGN | USD | EUR | GBP | CAD | AED | SAR), `dateRange` ({ from, to })
+Manages: `search`, `type` (ALL | GIVEN | RECEIVED | RETURNED | GIFT | INCOME | EXPENSE), `status` (ALL | COMPLETED | PENDING | CANCELLED), `currency` (ALL | NGN | USD | EUR | GBP | CAD | AED | SAR), `dateRange` ({ from, to })
+
+The `type` values match the actual `TransactionType` enum (`GIVEN | RECEIVED | RETURNED | GIFT | EXPENSE | INCOME`). The UX labels "Returned to Me" / "Returned to Contact" and "Gift Given" / "Gift Received" are display-only — they are derived from `type` + `returnDirection` field at render time (already implemented in the existing transactions page). The filter selects all `RETURNED` transactions when "RETURNED" is chosen (both directions); sub-filtering by `returnDirection` is not required for v1.
 
 Returns filtered transaction array + all state setters.
 
@@ -132,7 +136,7 @@ Manages: `search` (project name), `status` (ALL | ACTIVE | COMPLETED | ARCHIVED)
 
 **Path:** `apps/web/src/hooks/useSharedHistoryFilters.ts`
 
-Manages: `search` (description or recorder name), `type`, `status`, `dateRange`
+Manages: `search` (description or recorder name), `type` (ALL | GIVEN | RECEIVED | RETURNED | GIFT | INCOME | EXPENSE — same `TransactionType` enum as `useTransactionFilters`), `status` (ALL | COMPLETED | PENDING | CANCELLED), `dateRange` ({ from, to })
 
 ### `useWitnessFilters`
 
@@ -264,12 +268,13 @@ Filter state resets pagination to page 1 on every filter change (handled inside 
 | `apps/api/prisma/schema.prisma` | Add `ProjectStatus` enum + `Project.status` field |
 | `apps/api/src/modules/projects/entities/project.entity.ts` | Add `status` GraphQL field |
 | `apps/api/src/modules/projects/dto/create-project.input.ts` | Add optional `status` |
-| `apps/api/src/modules/projects/dto/update-project.input.ts` | Add optional `status` |
+| `apps/api/src/modules/projects/dto/update-project.input.ts` | No change needed — inherits `status` via `PartialType(CreateProjectInput)` |
 | `apps/api/src/generated/prisma/enums.ts` | Auto-generated after migration |
 | `apps/web/src/types/__generated__/graphql.ts` | Auto-generated after schema update |
 | `apps/web/src/routes/transactions/index.tsx` | Filters + pagination |
 | `apps/web/src/routes/contacts/index.tsx` | Filters + pagination |
 | `apps/web/src/routes/contacts/$contactId.tsx` | Filters + pagination |
+| `apps/web/src/lib/apollo/queries/projects.ts` | Add `status` to `PROJECT_FRAGMENT` |
 | `apps/web/src/routes/projects/index.tsx` | Filters + pagination |
 | `apps/web/src/routes/projects/$projectId.tsx` | Filters + pagination |
 | `apps/web/src/routes/transactions/my-contact-transactions.tsx` | Filters + pagination |
