@@ -45,7 +45,7 @@ function ProjectDetailsPage() {
 
   if (!project) {
     return (
-      <div className="container mx-auto py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="text-center py-20">
           <h3 className="text-lg font-medium">Project not found</h3>
           <Button className="mt-4" onClick={() => navigate({ to: "/projects" })}>
