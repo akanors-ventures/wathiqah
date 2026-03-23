@@ -49,5 +49,8 @@ export class User {
   isSupporter: boolean;
 
   @Field()
+  hasSeenSharedHistory: boolean;
+
+  @Field()
   createdAt: Date;
 }

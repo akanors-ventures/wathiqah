@@ -1657,7 +1657,8 @@ export const UserScalarFieldEnum = {
   subscriptionStatus: 'subscriptionStatus',
   subscriptionId: 'subscriptionId',
   featureUsage: 'featureUsage',
-  isSupporter: 'isSupporter'
+  isSupporter: 'isSupporter',
+  hasSeenSharedHistory: 'hasSeenSharedHistory'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]

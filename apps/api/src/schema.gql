@@ -215,6 +215,7 @@ type Mutation {
   logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
+  markSharedHistorySeen: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
   removePromise(id: String!): Promise!
@@ -537,6 +538,7 @@ type User {
   email: String!
   featureUsage: JSON
   firstName: String!
+  hasSeenSharedHistory: Boolean!
   id: ID!
   isEmailVerified: Boolean!
   isSupporter: Boolean!

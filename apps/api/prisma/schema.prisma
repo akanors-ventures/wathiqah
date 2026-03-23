@@ -24,6 +24,7 @@ model User {
   subscriptionId             String?
   featureUsage               Json?                @default("{}")
   isSupporter                Boolean              @default(false)
+  hasSeenSharedHistory       Boolean              @default(false)
   accessGrants               AccessGrant[]
   contactInvitationsReceived ContactInvitation[]  @relation("InvitedUser")
   contactInvitationsSent     ContactInvitation[]  @relation("InviterUser")

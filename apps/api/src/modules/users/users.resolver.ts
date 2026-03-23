@@ -56,4 +56,10 @@ export class UsersResolver {
   ): Promise<WitnessCandidate | null> {
     return this.usersService.searchWitness(input.query, input.type);
   }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async markSharedHistorySeen(@CurrentUser() user: User): Promise<boolean> {
+    return this.usersService.markSharedHistorySeen(user.id);
+  }
 }

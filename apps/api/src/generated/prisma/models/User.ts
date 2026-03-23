@@ -39,6 +39,7 @@ export type UserMinAggregateOutputType = {
   subscriptionStatus: string | null
   subscriptionId: string | null
   isSupporter: boolean | null
+  hasSeenSharedHistory: boolean | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -56,6 +57,7 @@ export type UserMaxAggregateOutputType = {
   subscriptionStatus: string | null
   subscriptionId: string | null
   isSupporter: boolean | null
+  hasSeenSharedHistory: boolean | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -74,6 +76,7 @@ export type UserCountAggregateOutputType = {
   subscriptionId: number
   featureUsage: number
   isSupporter: number
+  hasSeenSharedHistory: number
   _all: number
 }
 
@@ -93,6 +96,7 @@ export type UserMinAggregateInputType = {
   subscriptionStatus?: true
   subscriptionId?: true
   isSupporter?: true
+  hasSeenSharedHistory?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -110,6 +114,7 @@ export type UserMaxAggregateInputType = {
   subscriptionStatus?: true
   subscriptionId?: true
   isSupporter?: true
+  hasSeenSharedHistory?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -128,6 +133,7 @@ export type UserCountAggregateInputType = {
   subscriptionId?: true
   featureUsage?: true
   isSupporter?: true
+  hasSeenSharedHistory?: true
   _all?: true
 }
 
@@ -219,6 +225,7 @@ export type UserGroupByOutputType = {
   subscriptionId: string | null
   featureUsage: runtime.JsonValue | null
   isSupporter: boolean
+  hasSeenSharedHistory: boolean
   _count: UserCountAggregateOutputType | null
   _min: UserMinAggregateOutputType | null
   _max: UserMaxAggregateOutputType | null
@@ -258,6 +265,7 @@ export type UserWhereInput = {
   subscriptionId?: Prisma.StringNullableFilter<"User"> | string | null
   featureUsage?: Prisma.JsonNullableFilter<"User">
   isSupporter?: Prisma.BoolFilter<"User"> | boolean
+  hasSeenSharedHistory?: Prisma.BoolFilter<"User"> | boolean
   accessGrants?: Prisma.AccessGrantListRelationFilter
   contactInvitationsReceived?: Prisma.ContactInvitationListRelationFilter
   contactInvitationsSent?: Prisma.ContactInvitationListRelationFilter
@@ -289,6 +297,7 @@ export type UserOrderByWithRelationInput = {
   subscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   featureUsage?: Prisma.SortOrderInput | Prisma.SortOrder
   isSupporter?: Prisma.SortOrder
+  hasSeenSharedHistory?: Prisma.SortOrder
   accessGrants?: Prisma.AccessGrantOrderByRelationAggregateInput
   contactInvitationsReceived?: Prisma.ContactInvitationOrderByRelationAggregateInput
   contactInvitationsSent?: Prisma.ContactInvitationOrderByRelationAggregateInput
@@ -323,6 +332,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   subscriptionId?: Prisma.StringNullableFilter<"User"> | string | null
   featureUsage?: Prisma.JsonNullableFilter<"User">
   isSupporter?: Prisma.BoolFilter<"User"> | boolean
+  hasSeenSharedHistory?: Prisma.BoolFilter<"User"> | boolean
   accessGrants?: Prisma.AccessGrantListRelationFilter
   contactInvitationsReceived?: Prisma.ContactInvitationListRelationFilter
   contactInvitationsSent?: Prisma.ContactInvitationListRelationFilter
@@ -354,6 +364,7 @@ export type UserOrderByWithAggregationInput = {
   subscriptionId?: Prisma.SortOrderInput | Prisma.SortOrder
   featureUsage?: Prisma.SortOrderInput | Prisma.SortOrder
   isSupporter?: Prisma.SortOrder
+  hasSeenSharedHistory?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
   _min?: Prisma.UserMinOrderByAggregateInput
@@ -378,6 +389,7 @@ export type UserScalarWhereWithAggregatesInput = {
   subscriptionId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   featureUsage?: Prisma.JsonNullableWithAggregatesFilter<"User">
   isSupporter?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  hasSeenSharedHistory?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
 }
 
 export type UserCreateInput = {
@@ -396,6 +408,7 @@ export type UserCreateInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -427,6 +440,7 @@ export type UserUncheckedCreateInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -458,6 +472,7 @@ export type UserUpdateInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -489,6 +504,7 @@ export type UserUncheckedUpdateInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -520,6 +536,7 @@ export type UserCreateManyInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
 }
 
 export type UserUpdateManyMutationInput = {
@@ -538,6 +555,7 @@ export type UserUpdateManyMutationInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -556,6 +574,7 @@ export type UserUncheckedUpdateManyInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -574,6 +593,7 @@ export type UserCountOrderByAggregateInput = {
   subscriptionId?: Prisma.SortOrder
   featureUsage?: Prisma.SortOrder
   isSupporter?: Prisma.SortOrder
+  hasSeenSharedHistory?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
@@ -591,6 +611,7 @@ export type UserMaxOrderByAggregateInput = {
   subscriptionStatus?: Prisma.SortOrder
   subscriptionId?: Prisma.SortOrder
   isSupporter?: Prisma.SortOrder
+  hasSeenSharedHistory?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -608,6 +629,7 @@ export type UserMinOrderByAggregateInput = {
   subscriptionStatus?: Prisma.SortOrder
   subscriptionId?: Prisma.SortOrder
   isSupporter?: Prisma.SortOrder
+  hasSeenSharedHistory?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
@@ -844,6 +866,7 @@ export type UserCreateWithoutSubscriptionInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -874,6 +897,7 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -920,6 +944,7 @@ export type UserUpdateWithoutSubscriptionInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -950,6 +975,7 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -980,6 +1006,7 @@ export type UserCreateWithoutPaymentsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1010,6 +1037,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1056,6 +1084,7 @@ export type UserUpdateWithoutPaymentsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1086,6 +1115,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1116,6 +1146,7 @@ export type UserCreateWithoutLinkedContactsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1146,6 +1177,7 @@ export type UserUncheckedCreateWithoutLinkedContactsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1181,6 +1213,7 @@ export type UserCreateWithoutContactsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1211,6 +1244,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1257,6 +1291,7 @@ export type UserUpdateWithoutLinkedContactsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1287,6 +1322,7 @@ export type UserUncheckedUpdateWithoutLinkedContactsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1328,6 +1364,7 @@ export type UserUpdateWithoutContactsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1358,6 +1395,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1388,6 +1426,7 @@ export type UserCreateWithoutTransactionsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1418,6 +1457,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1464,6 +1504,7 @@ export type UserUpdateWithoutTransactionsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1494,6 +1535,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1524,6 +1566,7 @@ export type UserCreateWithoutTransactionHistoryInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1554,6 +1597,7 @@ export type UserUncheckedCreateWithoutTransactionHistoryInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1600,6 +1644,7 @@ export type UserUpdateWithoutTransactionHistoryInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1630,6 +1675,7 @@ export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1660,6 +1706,7 @@ export type UserCreateWithoutWitnessRecordsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1690,6 +1737,7 @@ export type UserUncheckedCreateWithoutWitnessRecordsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1736,6 +1784,7 @@ export type UserUpdateWithoutWitnessRecordsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1766,6 +1815,7 @@ export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1796,6 +1846,7 @@ export type UserCreateWithoutProjectsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1826,6 +1877,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -1872,6 +1924,7 @@ export type UserUpdateWithoutProjectsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -1902,6 +1955,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -1932,6 +1986,7 @@ export type UserCreateWithoutPromisesInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -1962,6 +2017,7 @@ export type UserUncheckedCreateWithoutPromisesInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -2008,6 +2064,7 @@ export type UserUpdateWithoutPromisesInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -2038,6 +2095,7 @@ export type UserUncheckedUpdateWithoutPromisesInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -2068,6 +2126,7 @@ export type UserCreateWithoutAccessGrantsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
   linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
@@ -2098,6 +2157,7 @@ export type UserUncheckedCreateWithoutAccessGrantsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
   linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
@@ -2144,6 +2204,7 @@ export type UserUpdateWithoutAccessGrantsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
   linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
@@ -2174,6 +2235,7 @@ export type UserUncheckedUpdateWithoutAccessGrantsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
   linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
@@ -2204,6 +2266,7 @@ export type UserCreateWithoutContactInvitationsReceivedInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
   linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
@@ -2234,6 +2297,7 @@ export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
   linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
@@ -2269,6 +2333,7 @@ export type UserCreateWithoutContactInvitationsSentInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
@@ -2299,6 +2364,7 @@ export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
@@ -2345,6 +2411,7 @@ export type UserUpdateWithoutContactInvitationsReceivedInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
   linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
@@ -2375,6 +2442,7 @@ export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
   linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
@@ -2416,6 +2484,7 @@ export type UserUpdateWithoutContactInvitationsSentInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
@@ -2446,6 +2515,7 @@ export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
@@ -2476,6 +2546,7 @@ export type UserCreateWithoutSupportsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
@@ -2506,6 +2577,7 @@ export type UserUncheckedCreateWithoutSupportsInput = {
   subscriptionId?: string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
@@ -2552,6 +2624,7 @@ export type UserUpdateWithoutSupportsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
@@ -2582,6 +2655,7 @@ export type UserUncheckedUpdateWithoutSupportsInput = {
   subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
   accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
   contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
   contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
@@ -2742,6 +2816,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   subscriptionId?: boolean
   featureUsage?: boolean
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
   accessGrants?: boolean | Prisma.User$accessGrantsArgs<ExtArgs>
   contactInvitationsReceived?: boolean | Prisma.User$contactInvitationsReceivedArgs<ExtArgs>
   contactInvitationsSent?: boolean | Prisma.User$contactInvitationsSentArgs<ExtArgs>
@@ -2774,6 +2849,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   subscriptionId?: boolean
   featureUsage?: boolean
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -2792,6 +2868,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   subscriptionId?: boolean
   featureUsage?: boolean
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -2810,9 +2887,10 @@ export type UserSelectScalar = {
   subscriptionId?: boolean
   featureUsage?: boolean
   isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "createdAt" | "refreshTokenHash" | "isEmailVerified" | "firstName" | "lastName" | "phoneNumber" | "preferredCurrency" | "tier" | "subscriptionStatus" | "subscriptionId" | "featureUsage" | "isSupporter", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "passwordHash" | "createdAt" | "refreshTokenHash" | "isEmailVerified" | "firstName" | "lastName" | "phoneNumber" | "preferredCurrency" | "tier" | "subscriptionStatus" | "subscriptionId" | "featureUsage" | "isSupporter" | "hasSeenSharedHistory", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   accessGrants?: boolean | Prisma.User$accessGrantsArgs<ExtArgs>
   contactInvitationsReceived?: boolean | Prisma.User$contactInvitationsReceivedArgs<ExtArgs>
@@ -2865,6 +2943,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     subscriptionId: string | null
     featureUsage: runtime.JsonValue | null
     isSupporter: boolean
+    hasSeenSharedHistory: boolean
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -3316,6 +3395,7 @@ export interface UserFieldRefs {
   readonly subscriptionId: Prisma.FieldRef<"User", 'String'>
   readonly featureUsage: Prisma.FieldRef<"User", 'Json'>
   readonly isSupporter: Prisma.FieldRef<"User", 'Boolean'>
+  readonly hasSeenSharedHistory: Prisma.FieldRef<"User", 'Boolean'>
 }
     
 
