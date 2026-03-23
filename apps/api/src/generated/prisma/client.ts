@@ -88,6 +88,11 @@ export type Project = Prisma.ProjectModel
  */
 export type ProjectTransaction = Prisma.ProjectTransactionModel
 /**
+ * Model ProjectTransactionHistory
+ * 
+ */
+export type ProjectTransactionHistory = Prisma.ProjectTransactionHistoryModel
+/**
  * Model Promise
  * 
  */

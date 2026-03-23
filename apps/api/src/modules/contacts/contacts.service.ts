@@ -136,7 +136,13 @@ export class ContactsService {
     });
 
     const where: Prisma.TransactionWhereInput = {
-      OR: [{ contactId, category: AssetCategory.FUNDS }],
+      OR: [
+        {
+          contactId,
+          category: AssetCategory.FUNDS,
+          status: { not: 'CANCELLED' },
+        },
+      ],
     };
 
     if (contact?.linkedUserId) {
@@ -147,6 +153,7 @@ export class ContactsService {
           linkedUserId: userId,
         },
         category: AssetCategory.FUNDS,
+        status: { not: 'CANCELLED' },
       });
     }
 

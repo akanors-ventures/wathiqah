@@ -7,6 +7,7 @@ import {
 } from '@nestjs/graphql';
 import { ProjectTransactionType } from '../../../generated/prisma/client';
 import { Witness } from '../../witnesses/entities/witness.entity';
+import { ProjectTransactionHistory } from './project-transaction-history.entity';
 
 registerEnumType(ProjectTransactionType, {
   name: 'ProjectTransactionType',
@@ -43,4 +44,7 @@ export class ProjectTransaction {
 
   @Field(() => [Witness], { nullable: true })
   witnesses?: Witness[];
+
+  @Field(() => [ProjectTransactionHistory], { nullable: true })
+  history?: ProjectTransactionHistory[];
 }

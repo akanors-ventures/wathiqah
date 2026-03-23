@@ -19,9 +19,9 @@ import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHe
 import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
-import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import {
   Table,
   TableBody,
@@ -109,64 +109,66 @@ function ContactDetailsPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/contacts">
-              <ArrowLeft className="w-4 h-4" />
-            </Link>
-          </Button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold tracking-tight">{contact.name}</h1>
-              {contact.isSupporter && <SupporterBadge />}
-              {contact.isOnPlatform ? (
-                <Badge
-                  variant="outline"
-                  className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 flex items-center gap-1.5 py-1.5 px-4 shadow-sm animate-in fade-in zoom-in duration-300"
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span className="font-bold">Platform Member</span>
-                </Badge>
-              ) : contact.hasPendingInvitation ? (
-                <Badge
-                  variant="outline"
-                  className="bg-amber-500/10 text-amber-600 border-amber-500/20 flex items-center gap-1.5 py-1.5 px-4 shadow-sm animate-in fade-in zoom-in duration-300"
-                >
-                  <Clock className="w-4 h-4" />
-                  <span className="font-bold">Invitation Sent</span>
-                </Badge>
-              ) : contact.email ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={handleInvite}
-                  className="h-9 px-4 text-[11px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-95"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Invite to Platform
-                </Button>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="bg-muted/50 text-muted-foreground border-border/50 flex items-center gap-1.5 py-1.5 px-4 italic opacity-70"
-                >
-                  Add Email to Invite
-                </Badge>
-              )}
-            </div>
-            <div className="text-muted-foreground flex gap-4 text-sm mt-1">
-              {contact.email && <span>{contact.email}</span>}
-              {contact.phoneNumber && <span>{contact.phoneNumber}</span>}
-            </div>
-          </div>
-        </div>
-        <Button asChild>
-          <Link to="/transactions/new" search={{ contactId: contact.id }}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Transaction
+      <div className="flex items-start gap-3 min-w-0">
+        {/* Back button */}
+        <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" asChild>
+          <Link to="/contacts">
+            <ArrowLeft className="w-4 h-4" />
           </Link>
         </Button>
+
+        {/* Contact info + primary action — all left-aligned */}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{contact.name}</h1>
+            {contact.isSupporter && <SupporterBadge />}
+            {contact.isOnPlatform ? (
+              <Badge
+                variant="outline"
+                className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 flex items-center gap-1.5 py-1.5 px-3 shadow-sm animate-in fade-in zoom-in duration-300"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span className="font-bold text-xs">Platform Member</span>
+              </Badge>
+            ) : contact.hasPendingInvitation ? (
+              <Badge
+                variant="outline"
+                className="bg-amber-500/10 text-amber-600 border-amber-500/20 flex items-center gap-1.5 py-1.5 px-3 shadow-sm animate-in fade-in zoom-in duration-300"
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span className="font-bold text-xs">Invitation Sent</span>
+              </Badge>
+            ) : contact.email ? (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleInvite}
+                className="h-8 px-3 text-[11px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all active:scale-95"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                Invite
+              </Button>
+            ) : (
+              <Badge
+                variant="outline"
+                className="bg-muted/50 text-muted-foreground border-border/50 flex items-center gap-1.5 py-1.5 px-3 italic opacity-70 text-xs"
+              >
+                Add Email to Invite
+              </Badge>
+            )}
+          </div>
+          <div className="text-muted-foreground flex flex-wrap gap-3 text-sm mt-1">
+            {contact.email && <span className="truncate">{contact.email}</span>}
+            {contact.phoneNumber && <span>{contact.phoneNumber}</span>}
+          </div>
+          {/* Primary action — left-aligned, sits naturally below contact details */}
+          <Button asChild size="sm" className="mt-3">
+            <Link to="/transactions/new" search={{ contactId: contact.id }}>
+              <Plus className="w-4 h-4 mr-1.5" />
+              Add Transaction
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -179,7 +181,7 @@ function ContactDetailsPage() {
             </CardHeader>
             <CardContent>
               <BalanceIndicator
-                amount={summary.netBalance}
+                amount={contact.balance}
                 currency="NGN"
                 className="text-2xl px-3 py-1 h-auto"
               />
@@ -307,10 +309,10 @@ function ContactDetailsPage() {
                                       ? "text-red-600 border-red-200 bg-red-50"
                                       : tx.type === "RETURNED"
                                         ? tx.returnDirection === "TO_ME"
-                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
                                           : "text-blue-600 border-blue-200 bg-blue-50"
                                         : tx.type === "INCOME"
-                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
                                           : tx.type === "GIFT"
                                             ? tx.returnDirection === "TO_ME"
                                               ? "text-purple-600 border-purple-200 bg-purple-50"
@@ -359,10 +361,10 @@ function ContactDetailsPage() {
                                     ? "text-red-600"
                                     : tx.type === "RETURNED"
                                       ? tx.returnDirection === "TO_ME"
-                                        ? "text-green-600"
+                                        ? "text-emerald-600"
                                         : "text-blue-600"
                                       : tx.type === "INCOME"
-                                        ? "text-green-600"
+                                        ? "text-emerald-600"
                                         : tx.type === "GIFT"
                                           ? tx.returnDirection === "TO_ME"
                                             ? "text-purple-600"
@@ -426,10 +428,10 @@ function ContactDetailsPage() {
                                       ? "text-red-600 border-red-200 bg-red-50"
                                       : tx.type === "RETURNED"
                                         ? tx.returnDirection === "TO_ME"
-                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
                                           : "text-blue-600 border-blue-200 bg-blue-50"
                                         : tx.type === "INCOME"
-                                          ? "text-green-600 border-green-200 bg-green-50"
+                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
                                           : tx.type === "GIFT"
                                             ? tx.returnDirection === "TO_ME"
                                               ? "text-purple-600 border-purple-200 bg-purple-50"
@@ -470,10 +472,10 @@ function ContactDetailsPage() {
                                       ? "text-red-600"
                                       : tx.type === "RETURNED"
                                         ? tx.returnDirection === "TO_ME"
-                                          ? "text-green-600"
+                                          ? "text-emerald-600"
                                           : "text-blue-600"
                                         : tx.type === "INCOME"
-                                          ? "text-green-600"
+                                          ? "text-emerald-600"
                                           : tx.type === "GIFT"
                                             ? tx.returnDirection === "TO_ME"
                                               ? "text-purple-600"

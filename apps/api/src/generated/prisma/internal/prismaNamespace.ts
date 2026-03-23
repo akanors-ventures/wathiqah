@@ -394,6 +394,7 @@ export const ModelName = {
   Witness: 'Witness',
   Project: 'Project',
   ProjectTransaction: 'ProjectTransaction',
+  ProjectTransactionHistory: 'ProjectTransactionHistory',
   Promise: 'Promise',
   AccessGrant: 'AccessGrant',
   ExchangeRate: 'ExchangeRate',
@@ -415,7 +416,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support"
+    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "projectTransactionHistory" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1159,6 +1160,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProjectTransactionHistory: {
+      payload: Prisma.$ProjectTransactionHistoryPayload<ExtArgs>
+      fields: Prisma.ProjectTransactionHistoryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProjectTransactionHistoryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProjectTransactionHistoryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>
+        }
+        findFirst: {
+          args: Prisma.ProjectTransactionHistoryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProjectTransactionHistoryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>
+        }
+        findMany: {
+          args: Prisma.ProjectTransactionHistoryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>[]
+        }
+        create: {
+          args: Prisma.ProjectTransactionHistoryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>
+        }
+        createMany: {
+          args: Prisma.ProjectTransactionHistoryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProjectTransactionHistoryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>[]
+        }
+        delete: {
+          args: Prisma.ProjectTransactionHistoryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>
+        }
+        update: {
+          args: Prisma.ProjectTransactionHistoryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProjectTransactionHistoryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProjectTransactionHistoryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProjectTransactionHistoryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProjectTransactionHistoryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProjectTransactionHistoryPayload>
+        }
+        aggregate: {
+          args: Prisma.ProjectTransactionHistoryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProjectTransactionHistory>
+        }
+        groupBy: {
+          args: Prisma.ProjectTransactionHistoryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectTransactionHistoryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProjectTransactionHistoryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProjectTransactionHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
     Promise: {
       payload: Prisma.$PromisePayload<ExtArgs>
       fields: Prisma.PromiseFieldRefs
@@ -1806,6 +1881,19 @@ export const ProjectTransactionScalarFieldEnum = {
 export type ProjectTransactionScalarFieldEnum = (typeof ProjectTransactionScalarFieldEnum)[keyof typeof ProjectTransactionScalarFieldEnum]
 
 
+export const ProjectTransactionHistoryScalarFieldEnum = {
+  id: 'id',
+  projectTransactionId: 'projectTransactionId',
+  userId: 'userId',
+  previousState: 'previousState',
+  newState: 'newState',
+  changeType: 'changeType',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectTransactionHistoryScalarFieldEnum = (typeof ProjectTransactionHistoryScalarFieldEnum)[keyof typeof ProjectTransactionHistoryScalarFieldEnum]
+
+
 export const PromiseScalarFieldEnum = {
   id: 'id',
   description: 'description',
@@ -2339,6 +2427,7 @@ export type GlobalOmitConfig = {
   witness?: Prisma.WitnessOmit
   project?: Prisma.ProjectOmit
   projectTransaction?: Prisma.ProjectTransactionOmit
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryOmit
   promise?: Prisma.PromiseOmit
   accessGrant?: Prisma.AccessGrantOmit
   exchangeRate?: Prisma.ExchangeRateOmit

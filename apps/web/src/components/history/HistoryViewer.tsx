@@ -176,7 +176,7 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
   }
 
   return (
-    <div className="space-y-8 w-full max-w-full overflow-hidden sm:overflow-visible">
+    <div className="space-y-8 w-full max-w-full overflow-x-hidden">
       <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between px-1 sm:px-0">
         <div className="space-y-1.5 shrink-0">
           <h3 className="flex items-center gap-4 text-xl sm:text-2xl font-bold text-foreground tracking-tight">

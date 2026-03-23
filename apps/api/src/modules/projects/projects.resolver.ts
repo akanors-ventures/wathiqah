@@ -18,6 +18,7 @@ import { ProjectTransaction } from './entities/project-transaction.entity';
 import { CreateProjectInput } from './dto/create-project.input';
 import { UpdateProjectInput } from './dto/update-project.input';
 import { LogProjectTransactionInput } from './dto/log-project-transaction.input';
+import { UpdateProjectTransactionInput } from './dto/update-project-transaction.input';
 
 @Resolver(() => Project)
 @UseGuards(GqlAuthGuard)
@@ -62,6 +63,14 @@ export class ProjectsResolver {
     @Args('input') input: LogProjectTransactionInput,
   ) {
     return this.projectTransactionsService.create(user.id, input);
+  }
+
+  @Mutation(() => ProjectTransaction)
+  async updateProjectTransaction(
+    @CurrentUser() user: User,
+    @Args('input') input: UpdateProjectTransactionInput,
+  ) {
+    return this.projectTransactionsService.update(user.id, input);
   }
 
   @ResolveField(() => [ProjectTransaction])

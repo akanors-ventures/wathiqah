@@ -36,6 +36,13 @@ export const PROJECT_TRANSACTION_FRAGMENT = gql`
         lastName
       }
     }
+    history {
+      id
+      changeType
+      previousState
+      newState
+      createdAt
+    }
   }
 `;
 
@@ -83,6 +90,15 @@ export const LOG_PROJECT_TRANSACTION = gql`
   ${PROJECT_TRANSACTION_FRAGMENT}
   mutation LogProjectTransaction($input: LogProjectTransactionInput!) {
     logProjectTransaction(input: $input) {
+      ...ProjectTransactionFields
+    }
+  }
+`;
+
+export const UPDATE_PROJECT_TRANSACTION = gql`
+  ${PROJECT_TRANSACTION_FRAGMENT}
+  mutation UpdateProjectTransaction($input: UpdateProjectTransactionInput!) {
+    updateProjectTransaction(input: $input) {
       ...ProjectTransactionFields
     }
   }

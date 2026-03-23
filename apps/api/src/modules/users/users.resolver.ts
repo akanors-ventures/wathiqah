@@ -21,7 +21,7 @@ export class UsersResolver {
 
   @ResolveField(() => String)
   name(@Parent() user: User): string {
-    return `${user.firstName} ${user.lastName}`.trim();
+    return [user.firstName, user.lastName].filter(Boolean).join(' ');
   }
 
   @Query(() => User, { name: 'me' })
