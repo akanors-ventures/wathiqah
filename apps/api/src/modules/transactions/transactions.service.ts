@@ -665,11 +665,14 @@ export class TransactionsService {
       this.applyPerspective(item, userId),
     );
 
-    // Fetch and map project transactions
-    const projects = await this.prisma.project.findMany({
-      where: { userId },
-      select: { id: true },
-    });
+    // Fetch and map project transactions (skip when filtering by a specific
+    // contact — project transactions belong to projects, not contacts).
+    const projects = filter?.contactId
+      ? []
+      : await this.prisma.project.findMany({
+          where: { userId },
+          select: { id: true },
+        });
 
     const projectWhere: Prisma.ProjectTransactionWhereInput = {
       projectId: { in: projects.map((p) => p.id) },
