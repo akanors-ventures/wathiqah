@@ -15,11 +15,15 @@ import { User } from '../users/entities/user.entity';
 import { ProjectsService } from './projects.service';
 import { ProjectTransactionsService } from './project-transactions.service';
 import { Project } from './entities/project.entity';
-import { ProjectTransaction } from './entities/project-transaction.entity';
 import { CreateProjectInput } from './dto/create-project.input';
 import { UpdateProjectInput } from './dto/update-project.input';
 import { LogProjectTransactionInput } from './dto/log-project-transaction.input';
 import { UpdateProjectTransactionInput } from './dto/update-project-transaction.input';
+import { FilterProjectInput } from './dto/filter-project.input';
+import { FilterProjectTransactionInput } from './dto/filter-project-transaction.input';
+import { PaginatedProjectsResponse } from './entities/paginated-projects-response.entity';
+import { PaginatedProjectTransactionsResponse } from './entities/paginated-project-transactions-response.entity';
+import { ProjectTransaction } from './entities/project-transaction.entity';
 
 @Resolver(() => Project)
 @UseGuards(GqlAuthGuard)
@@ -29,9 +33,12 @@ export class ProjectsResolver {
     private readonly projectTransactionsService: ProjectTransactionsService,
   ) {}
 
-  @Query(() => [Project], { name: 'myProjects' })
-  async myProjects(@CurrentUser() user: User) {
-    return this.projectsService.findAll(user.id);
+  @Query(() => PaginatedProjectsResponse, { name: 'myProjects' })
+  async myProjects(
+    @CurrentUser() user: User,
+    @Args('filter', { nullable: true }) filter?: FilterProjectInput,
+  ) {
+    return this.projectsService.findAll(user.id, filter);
   }
 
   @Query(() => Project, { name: 'project' })
@@ -90,11 +97,11 @@ export class ProjectsResolver {
     return this.projectTransactionsService.update(user.id, input);
   }
 
-  @ResolveField(() => [ProjectTransaction])
-  async transactions(@Parent() project: Project, @CurrentUser() user: User) {
-    return this.projectTransactionsService.findAllByProject(
-      user.id,
-      project.id,
-    );
+  @ResolveField(() => PaginatedProjectTransactionsResponse)
+  async transactions(
+    @Parent() project: Project,
+    @Args('filter', { nullable: true }) filter?: FilterProjectTransactionInput,
+  ): Promise<PaginatedProjectTransactionsResponse> {
+    return this.projectTransactionsService.findByProject(project.id, filter);
   }
 }

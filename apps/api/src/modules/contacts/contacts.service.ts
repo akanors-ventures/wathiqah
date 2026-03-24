@@ -16,6 +16,10 @@ import {
   InvitationStatus,
   Prisma,
 } from '../../generated/prisma/client';
+import {
+  FilterContactInput,
+  ContactBalanceStanding,
+} from './dto/filter-contact.input';
 
 @Injectable()
 export class ContactsService {
@@ -56,14 +60,95 @@ export class ContactsService {
     });
   }
 
-  findAll(userId: string) {
-    return this.prisma.contact.findMany({
-      where: { userId },
-      include: {
-        transactions: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(userId: string, filter?: FilterContactInput) {
+    const page = filter?.page ?? 1;
+    const limit = filter?.limit ?? 25;
+    const search = filter?.search;
+
+    const where: Prisma.ContactWhereInput = {
+      userId,
+      ...(search && {
+        OR: [
+          { firstName: { contains: search, mode: 'insensitive' } },
+          { lastName: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { phoneNumber: { contains: search, mode: 'insensitive' } },
+        ],
+      }),
+    };
+
+    // Two-phase query: balance standing requires in-memory filtering
+    if (
+      filter?.balanceStanding &&
+      filter.balanceStanding !== ContactBalanceStanding.ALL
+    ) {
+      const allContacts = await this.prisma.contact.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          transactions: {
+            select: {
+              type: true,
+              amount: true,
+              status: true,
+              returnDirection: true,
+            },
+          },
+        },
+      });
+
+      const filtered = allContacts.filter((c) => {
+        const balance = this.computeContactBalance(c.transactions);
+        if (filter.balanceStanding === ContactBalanceStanding.OWED_TO_ME)
+          return balance > 0;
+        if (filter.balanceStanding === ContactBalanceStanding.I_OWE)
+          return balance < 0;
+        return true;
+      });
+
+      const total = filtered.length;
+      const items = filtered.slice((page - 1) * limit, page * limit);
+      return { items, total, page, limit };
+    }
+
+    const [total, items] = await Promise.all([
+      this.prisma.contact.count({ where }),
+      this.prisma.contact.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
+  private computeContactBalance(
+    transactions: Array<{
+      type: string;
+      amount: unknown;
+      status: string;
+      returnDirection: string | null;
+    }>,
+  ): number {
+    let balance = 0;
+    for (const tx of transactions) {
+      if (tx.status === 'CANCELLED') continue;
+      const amount =
+        typeof tx.amount === 'object' &&
+        tx.amount !== null &&
+        'toNumber' in tx.amount
+          ? (tx.amount as { toNumber: () => number }).toNumber()
+          : Number(tx.amount);
+      if (tx.type === 'GIVEN') balance += amount;
+      else if (tx.type === 'RECEIVED') balance -= amount;
+      else if (tx.type === 'RETURNED') {
+        if (tx.returnDirection === 'TO_ME') balance -= amount;
+        else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
+      }
+    }
+    return balance;
   }
 
   async findOne(id: string, userId: string) {
