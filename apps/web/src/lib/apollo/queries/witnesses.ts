@@ -16,35 +16,40 @@ export const MY_WITNESS_REQUESTS: TypedDocumentNode<
   MyWitnessRequestsQuery,
   MyWitnessRequestsQueryVariables
 > = gql`
-  query MyWitnessRequests($status: WitnessStatus) {
-    myWitnessRequests(status: $status) {
-      id
-      status
-      invitedAt
-      acknowledgedAt
-      transaction {
+  query MyWitnessRequests($filter: FilterWitnessInput) {
+    myWitnessRequests(filter: $filter) {
+      items {
         id
-        amount
-        currency
-        type
-        category
-        itemName
-        description
-        date
-        returnDirection
-        createdBy {
-          name
-          email
-          isSupporter
-        }
-        contact {
+        status
+        invitedAt
+        acknowledgedAt
+        transaction {
           id
-          firstName
-          lastName
-          name
-          isSupporter
+          amount
+          currency
+          type
+          category
+          itemName
+          description
+          date
+          returnDirection
+          createdBy {
+            name
+            email
+            isSupporter
+          }
+          contact {
+            id
+            firstName
+            lastName
+            name
+            isSupporter
+          }
         }
       }
+      total
+      page
+      limit
     }
   }
 `;
