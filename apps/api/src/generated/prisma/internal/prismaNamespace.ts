@@ -1935,6 +1935,7 @@ export const ProjectScalarFieldEnum = {
   description: 'description',
   budget: 'budget',
   balance: 'balance',
+  status: 'status',
   currency: 'currency',
   userId: 'userId',
   createdAt: 'createdAt',
@@ -2324,6 +2325,20 @@ export type EnumWitnessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'WitnessStatus[]'
  */
 export type ListEnumWitnessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WitnessStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectStatus'
+ */
+export type EnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ProjectStatus[]'
+ */
+export type ListEnumProjectStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ProjectStatus[]'>
     
 
 

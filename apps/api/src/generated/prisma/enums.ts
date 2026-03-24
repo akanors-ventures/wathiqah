@@ -82,6 +82,15 @@ export const ProjectTransactionType = {
 export type ProjectTransactionType = (typeof ProjectTransactionType)[keyof typeof ProjectTransactionType]
 
 
+export const ProjectStatus = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type ProjectStatus = (typeof ProjectStatus)[keyof typeof ProjectStatus]
+
+
 export const Priority = {
   HIGH: 'HIGH',
   MEDIUM: 'MEDIUM',
