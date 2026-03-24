@@ -21,7 +21,7 @@ export class UsersResolver {
 
   @ResolveField(() => String)
   name(@Parent() user: User): string {
-    return `${user.firstName} ${user.lastName}`.trim();
+    return [user.firstName, user.lastName].filter(Boolean).join(' ');
   }
 
   @Query(() => User, { name: 'me' })
@@ -55,5 +55,11 @@ export class UsersResolver {
     @Args('input') input: SearchWitnessInput,
   ): Promise<WitnessCandidate | null> {
     return this.usersService.searchWitness(input.query, input.type);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async markSharedHistorySeen(@CurrentUser() user: User): Promise<boolean> {
+    return this.usersService.markSharedHistorySeen(user.id);
   }
 }

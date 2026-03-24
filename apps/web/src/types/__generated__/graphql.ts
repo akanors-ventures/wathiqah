@@ -231,6 +231,7 @@ export type Mutation = {
   logProjectTransaction: ProjectTransaction;
   login: AuthPayload;
   logout: Scalars['Boolean']['output'];
+  markSharedHistorySeen: Scalars['Boolean']['output'];
   provisionPro: User;
   refreshToken: AuthPayload;
   removeContact: Contact;
@@ -855,6 +856,7 @@ export type User = {
   email: Scalars['String']['output'];
   featureUsage: Maybe<Scalars['JSON']['output']>;
   firstName: Scalars['String']['output'];
+  hasSeenSharedHistory: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   isEmailVerified: Scalars['Boolean']['output'];
   isSupporter: Scalars['Boolean']['output'];
@@ -915,7 +917,7 @@ export type RefreshTokenMutation = { refreshToken: { __typename: 'AuthPayload', 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean } };
+export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } };
 
 export type LoginMutationVariables = Exact<{
   loginInput: LoginInput;
@@ -1225,6 +1227,11 @@ export type UpdateUserMutationVariables = Exact<{
 
 
 export type UpdateUserMutation = { updateUser: { __typename: 'User', id: string, firstName: string, lastName: string, phoneNumber: string | null, email: string, preferredCurrency: string } };
+
+export type MarkSharedHistorySeenMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MarkSharedHistorySeenMutation = { markSharedHistorySeen: boolean };
 
 export type SearchWitnessQueryVariables = Exact<{
   input: SearchWitnessInput;

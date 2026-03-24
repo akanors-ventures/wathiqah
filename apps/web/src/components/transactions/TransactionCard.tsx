@@ -5,6 +5,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   CalendarDays,
+  FolderOpen,
   Package,
   UserCircle,
 } from "lucide-react";
@@ -27,6 +28,7 @@ interface TransactionCardProps {
     quantity?: number | null;
     returnDirection?: string | null;
     contact?: {
+      id?: string | null;
       name?: string | null;
       isSupporter?: boolean;
     } | null;
@@ -105,15 +107,21 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
 
   const theme = getTheme();
 
-  return (
-    <Link
-      to="/transactions/$id"
-      params={{ id: tx.id }}
-      className={cn(
-        "group relative flex items-center justify-between p-3.5 sm:p-5 lg:p-6 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30",
-        className,
-      )}
-    >
+  // INCOME/EXPENSE transactions that have a contact are project transactions —
+  // they live in the ProjectTransaction table, not Transaction, so navigating
+  // to /transactions/:id would return a 404.
+  const isProjectTransaction =
+    (tx.type === "INCOME" || tx.type === "EXPENSE") && !!tx.contact;
+
+  const cardClassName = cn(
+    "group relative flex items-center justify-between p-3.5 sm:p-5 lg:p-6 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500",
+    !isProjectTransaction &&
+      "hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30",
+    className,
+  );
+
+  const cardContent = (
+    <>
       <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 relative z-10">
         <div className="relative shrink-0">
           <div
@@ -142,14 +150,25 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
         <div className="min-w-0 flex-1">
           <div className="flex flex-col gap-1 sm:gap-1.5">
             <h3 className="text-sm sm:text-lg lg:text-xl font-bold leading-tight truncate group-hover:text-primary transition-colors tracking-tight flex items-center gap-1.5">
-              {isCreator ? tx.contact?.name || "Self" : tx.createdBy?.name}
-              {(isCreator ? tx.contact?.isSupporter : tx.createdBy?.isSupporter) && (
-                <SupporterBadge className="h-4 px-1 text-[9px]" />
-              )}
+              {isProjectTransaction
+                ? tx.contact?.name || "Project"
+                : isCreator
+                  ? tx.contact?.name || "Self"
+                  : tx.createdBy?.name}
+              {!isProjectTransaction &&
+                (isCreator ? tx.contact?.isSupporter : tx.createdBy?.isSupporter) && (
+                  <SupporterBadge className="h-4 px-1 text-[9px]" />
+                )}
             </h3>
 
             <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-              {!isCreator && (
+              {isProjectTransaction && (
+                <span className="flex items-center gap-1 text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-900/20 px-1.5 py-0.5 rounded border border-violet-100 dark:border-violet-900/30 shrink-0 shadow-sm">
+                  <FolderOpen className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  PROJECT
+                </span>
+              )}
+              {!isCreator && !isProjectTransaction && (
                 <span className="flex items-center gap-1 text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 shrink-0 shadow-sm">
                   <UserCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   SHARED
@@ -213,9 +232,11 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
             {tx.category.toLowerCase()}
           </div>
         </div>
-        <div className="hidden sm:flex w-7 h-7 lg:w-9 lg:h-9 rounded-full bg-muted/50 items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
-          <ArrowRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
-        </div>
+        {!isProjectTransaction && (
+          <div className="hidden sm:flex w-7 h-7 lg:w-9 lg:h-9 rounded-full bg-muted/50 items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
+            <ArrowRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
+          </div>
+        )}
       </div>
 
       {/* Background Glow */}
@@ -225,6 +246,27 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
           theme.bg,
         )}
       ></div>
+    </>
+  );
+
+  if (isProjectTransaction) {
+    return (
+      <Link
+        to="/projects/$projectId"
+        params={{ projectId: tx.contact?.id ?? "" }}
+        className={cn(
+          cardClassName,
+          "hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30",
+        )}
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return (
+    <Link to="/transactions/$id" params={{ id: tx.id }} className={cardClassName}>
+      {cardContent}
     </Link>
   );
 }

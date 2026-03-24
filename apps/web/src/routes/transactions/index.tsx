@@ -132,7 +132,7 @@ function TransactionsPage() {
     <Tabs
       value={activeTab}
       onValueChange={setActiveTab}
-      className="container mx-auto py-8 space-y-8"
+      className="container mx-auto px-4 py-8 space-y-8 overflow-x-hidden"
     >
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
         <div className="flex-1 min-w-0 w-full">

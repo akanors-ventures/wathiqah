@@ -1,7 +1,7 @@
 # Atlas Configuration for Wathīqah
 
 data "external_schema" "prisma" {
-    program = [ 
+    program = [
       "npx",
       "prisma",
       "migrate",
@@ -14,18 +14,20 @@ data "external_schema" "prisma" {
 }
 
 env "local" {
+  url = "postgresql://fawazabdganiyu@localhost:5432/wathiqah-db?sslmode=disable"
   dev = "docker://postgres/16/dev?search_path=public"
   schema {
     src = data.external_schema.prisma.url
   }
   migration {
     dir = "file://atlas/migrations"
+    baseline = "20260224181022"
     exclude = ["_prisma_migrations"]
   }
 }
 
 env "prod" {
-  url = env("DB_URL")
+  url = getenv("DB_URL")
   schema {
     src = data.external_schema.prisma.url
   }
