@@ -5,7 +5,7 @@ import {
 } from '../../../generated/prisma/client';
 
 @InputType()
-export class FilterTransactionInput {
+export class FilterSharedHistoryInput {
   @Field({ nullable: true })
   search?: string;
 
@@ -15,26 +15,11 @@ export class FilterTransactionInput {
   @Field(() => TransactionStatus, { nullable: true })
   status?: TransactionStatus;
 
-  @Field({ nullable: true })
-  contactId?: string;
-
-  @Field({ nullable: true })
-  currency?: string;
-
-  @Field({ nullable: true })
-  summaryCurrency?: string;
-
   @Field(() => Date, { nullable: true })
   startDate?: Date;
 
   @Field(() => Date, { nullable: true })
   endDate?: Date;
-
-  @Field({ nullable: true })
-  minAmount?: number;
-
-  @Field({ nullable: true })
-  maxAmount?: number;
 
   @Field(() => Int, { nullable: true, defaultValue: 1 })
   page?: number;
