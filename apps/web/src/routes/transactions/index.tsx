@@ -13,6 +13,7 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
 import { ItemsList } from "@/components/items/ItemsList";
 import { TransactionCharts } from "@/components/transactions/TransactionCharts";
@@ -68,19 +69,27 @@ function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [currencyFilter, setCurrencyFilter] = useState<string>("ALL");
-  const { transactions, loading, summary } = useTransactions({
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [page, setPage] = useState(1);
+  const { transactions, loading, summary, total, limit } = useTransactions({
+    search: search || undefined,
     status: statusFilter === "ALL" ? undefined : (statusFilter as TransactionStatus),
     types: typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
     currency: currencyFilter === "ALL" ? undefined : currencyFilter,
+    startDate: startDate ? new Date(startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : undefined,
+    page,
+    limit: 25,
   });
   const { items, loading: loadingItems, refetch: refetchItems } = useItems();
 
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch =
-      (tx.description?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (tx.contact?.name?.toLowerCase() || "").includes(search.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredTransactions = transactions;
+
+  const handleFilterChange = (setter: (v: string) => void) => (v: string) => {
+    setter(v);
+    setPage(1);
+  };
 
   const handleExport = () => {
     // Simple CSV export implementation
@@ -238,63 +247,85 @@ function TransactionsPage() {
           )}
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center bg-card p-4 rounded-lg border">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by description or contact..."
-                className="pl-8 w-full"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+          <div className="flex flex-col gap-3 bg-card p-4 rounded-lg border">
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by description or contact..."
+                  className="pl-8 w-full"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                />
+              </div>
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+                <Select value={typeFilter} onValueChange={handleFilterChange(setTypeFilter)}>
+                  <SelectTrigger className="flex-1 sm:w-[150px]">
+                    <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Filter Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Types</SelectItem>
+                    <SelectItem value="GIVEN">Given (Lent)</SelectItem>
+                    <SelectItem value="RECEIVED">Received (Borrowed)</SelectItem>
+                    <SelectItem value="RETURNED">Returned</SelectItem>
+                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                    <SelectItem value="INCOME">Income</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={statusFilter} onValueChange={handleFilterChange(setStatusFilter)}>
+                  <SelectTrigger className="flex-1 sm:w-[150px]">
+                    <Package className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">Active</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={currencyFilter} onValueChange={handleFilterChange(setCurrencyFilter)}>
+                  <SelectTrigger className="flex-1 sm:w-[150px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground font-medium">$</span>
+                      <SelectValue placeholder="Currency" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Currencies</SelectItem>
+                    <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AED">AED (د.إ)</SelectItem>
+                    <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Filter Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Types</SelectItem>
-                  <SelectItem value="GIVEN">Given (Lent)</SelectItem>
-                  <SelectItem value="RECEIVED">Received (Borrowed)</SelectItem>
-                  <SelectItem value="RETURNED">Returned</SelectItem>
-                  <SelectItem value="EXPENSE">Expense</SelectItem>
-                  <SelectItem value="INCOME">Income</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <Package className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Active</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-                <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground font-medium">$</span>
-                    <SelectValue placeholder="Currency" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Currencies</SelectItem>
-                  <SelectItem value="NGN">NGN (₦)</SelectItem>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                  <SelectItem value="EUR">EUR (€)</SelectItem>
-                  <SelectItem value="GBP">GBP (£)</SelectItem>
-                  <SelectItem value="CAD">CAD ($)</SelectItem>
-                  <SelectItem value="AED">AED (د.إ)</SelectItem>
-                  <SelectItem value="SAR">SAR (ر.س)</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex items-center gap-2 flex-1">
+                <label className="text-xs text-muted-foreground whitespace-nowrap">From</label>
+                <Input
+                  type="date"
+                  className="flex-1 h-9"
+                  value={startDate}
+                  onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+                />
+              </div>
+              <div className="flex items-center gap-2 flex-1">
+                <label className="text-xs text-muted-foreground whitespace-nowrap">To</label>
+                <Input
+                  type="date"
+                  className="flex-1 h-9"
+                  value={endDate}
+                  onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+                />
+              </div>
             </div>
           </div>
 
@@ -490,6 +521,8 @@ function TransactionsPage() {
               </CardContent>
             </Card>
           </div>
+
+          <PaginationControls page={page} limit={limit} total={total} onPageChange={setPage} />
 
           {/* Mobile Transactions List */}
           <div className="md:hidden space-y-4">

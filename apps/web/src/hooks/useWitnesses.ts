@@ -6,16 +6,19 @@ import {
   REMOVE_WITNESS,
   RESEND_WITNESS_INVITATION,
 } from "@/lib/apollo/queries/witnesses";
-import type { WitnessStatus } from "@/types/__generated__/graphql";
+import type { FilterWitnessInput, WitnessStatus } from "@/types/__generated__/graphql";
 
-export function useMyWitnessRequests(status?: WitnessStatus) {
+export function useMyWitnessRequests(filter?: FilterWitnessInput) {
   const { data, loading, error, refetch } = useQuery(MY_WITNESS_REQUESTS, {
-    variables: { status },
+    variables: { filter },
     fetchPolicy: "network-only",
   });
 
   return {
-    requests: data?.myWitnessRequests || [],
+    requests: data?.myWitnessRequests.items || [],
+    total: data?.myWitnessRequests.total ?? 0,
+    page: data?.myWitnessRequests.page ?? 1,
+    limit: data?.myWitnessRequests.limit ?? 25,
     loading,
     error,
     refetch,

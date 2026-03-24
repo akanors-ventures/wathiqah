@@ -9,18 +9,29 @@ import {
   ChevronRight,
   Clock,
   Download,
+  Filter,
   Package,
   Plus,
   ShieldCheck,
   UserCircle,
   UserPlus,
 } from "lucide-react";
+import { useState } from "react";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import {
   Table,
@@ -35,7 +46,12 @@ import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { AssetCategory, type Transaction } from "@/types/__generated__/graphql";
+import {
+  AssetCategory,
+  type Transaction,
+  type TransactionStatus,
+  type TransactionType,
+} from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/contacts/$contactId")({
@@ -46,6 +62,11 @@ export const Route = createFileRoute("/contacts/$contactId")({
 function ContactDetailsPage() {
   const navigate = useNavigate();
   const { contactId } = Route.useParams();
+  const [typeFilter, setTypeFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [page, setPage] = useState(1);
 
   const {
     data: contactData,
@@ -56,7 +77,17 @@ function ContactDetailsPage() {
   });
 
   const { data: txData, loading: txLoading } = useQuery(GET_TRANSACTIONS, {
-    variables: { filter: { contactId } },
+    variables: {
+      filter: {
+        contactId,
+        types: typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
+        status: statusFilter === "ALL" ? undefined : (statusFilter as TransactionStatus),
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        page,
+        limit: 25,
+      },
+    },
   });
 
   const [inviteContact] = useMutation(INVITE_CONTACT, {
@@ -81,6 +112,8 @@ function ContactDetailsPage() {
   const contact = contactData.contact;
   const transactions = (txData?.transactions.items as Transaction[]) || [];
   const summary = txData?.transactions.summary;
+  const txTotal = txData?.transactions.total ?? 0;
+  const txLimit = txData?.transactions.limit ?? 25;
 
   const exportToCSV = (items: Transaction[], contactName: string) => {
     const headers = ["Date", "Type", "Description", "Amount", "Currency", "Category"];
@@ -225,7 +258,7 @@ function ContactDetailsPage() {
 
       {/* Transactions Table */}
       <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
-        <CardHeader className="p-6 border-b border-border/30">
+        <CardHeader className="p-6 border-b border-border/30 space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
               Transaction History
@@ -241,6 +274,44 @@ function ContactDetailsPage() {
                 CSV
               </Button>
             )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-[140px] h-8">
+                <Filter className="w-3 h-3 mr-1 text-muted-foreground" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Types</SelectItem>
+                <SelectItem value="GIVEN">Given</SelectItem>
+                <SelectItem value="RECEIVED">Received</SelectItem>
+                <SelectItem value="RETURNED">Returned</SelectItem>
+                <SelectItem value="GIFT">Gift</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+              <SelectTrigger className="w-[140px] h-8">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="date"
+              value={startDate}
+              onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
+              className="w-[140px] h-8"
+            />
+            <Input
+              type="date"
+              value={endDate}
+              onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
+              className="w-[140px] h-8"
+            />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -515,6 +586,7 @@ function ContactDetailsPage() {
               </div>
             </>
           )}
+          <PaginationControls page={page} limit={txLimit} total={txTotal} onPageChange={setPage} />
         </CardContent>
       </Card>
     </div>

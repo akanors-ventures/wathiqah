@@ -1,7 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search, User } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Filter, Plus, Search, User } from "lucide-react";
+import { useState } from "react";
 import { ContactCard } from "@/components/contacts/ContactCard";
 import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import {
@@ -17,10 +17,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
+import { PaginationControls } from "@/components/ui/pagination-controls";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useContacts } from "@/hooks/useContacts";
 import { useItems } from "@/hooks/useItems";
 import { GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
-import type { GetContactsQuery } from "@/types/__generated__/graphql";
+import type { ContactBalanceStanding, GetContactsQuery } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/contacts/")({
@@ -28,18 +36,26 @@ export const Route = createFileRoute("/contacts/")({
   beforeLoad: (ctx) => authGuard({ location: ctx.location }),
 });
 
+type ContactItem = GetContactsQuery["contacts"]["items"][number];
+
 function ContactsPage() {
-  const { contacts: allContacts, loading, error, deleteContact } = useContacts();
+  const [search, setSearch] = useState("");
+  const [balanceStanding, setBalanceStanding] = useState<string>("ALL");
+  const [page, setPage] = useState(1);
+
+  const { contacts, total, limit, loading, error, deleteContact } = useContacts({
+    search: search || undefined,
+    balanceStanding:
+      balanceStanding === "ALL" ? undefined : (balanceStanding as ContactBalanceStanding),
+    page,
+    limit: 25,
+  });
+
   const { items } = useItems();
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<GetContactsQuery["contacts"][number] | null>(
-    null,
-  );
-  const [deletingContact, setDeletingContact] = useState<
-    GetContactsQuery["contacts"][number] | null
-  >(null);
+  const [editingContact, setEditingContact] = useState<ContactItem | null>(null);
+  const [deletingContact, setDeletingContact] = useState<ContactItem | null>(null);
 
   const [inviteContact] = useMutation(INVITE_CONTACT, {
     refetchQueries: [{ query: GET_CONTACTS }],
@@ -53,18 +69,7 @@ function ContactsPage() {
     }
   };
 
-  const contacts = useMemo(() => {
-    if (!allContacts.length) return [];
-    const q = searchQuery.toLowerCase();
-    return allContacts.filter(
-      (contact) =>
-        (contact.name?.toLowerCase().includes(q) ?? false) ||
-        (contact.email?.toLowerCase().includes(q) ?? false) ||
-        (contact.phoneNumber?.includes(searchQuery) ?? false),
-    );
-  }, [allContacts, searchQuery]);
-
-  const handleEdit = (contact: GetContactsQuery["contacts"][number]) => {
+  const handleEdit = (contact: ContactItem) => {
     setEditingContact(contact);
     setIsFormOpen(true);
   };
@@ -82,6 +87,11 @@ function ContactsPage() {
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingContact(null);
+  };
+
+  const handleFilterChange = (setter: (v: string) => void) => (v: string) => {
+    setter(v);
+    setPage(1);
   };
 
   return (
@@ -102,14 +112,30 @@ function ContactsPage() {
         </Button>
       </div>
 
-      <div className="mb-6 relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Search by name (e.g. Ahmad Sulaiman), email, or phone..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 h-10 bg-background"
-        />
+      <div className="mb-6 flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, email, or phone..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="pl-10 h-10 bg-background"
+          />
+        </div>
+        <Select value={balanceStanding} onValueChange={handleFilterChange(setBalanceStanding)}>
+          <SelectTrigger className="sm:w-[200px]">
+            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Balance Standing" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All Contacts</SelectItem>
+            <SelectItem value="OWED_TO_ME">They Owe Me</SelectItem>
+            <SelectItem value="I_OWE">I Owe Them</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
@@ -125,38 +151,46 @@ function ContactsPage() {
           </div>
           <h3 className="text-lg font-medium text-foreground">No contacts found</h3>
           <p className="text-muted-foreground mt-1 mb-6">
-            {searchQuery
-              ? "Try adjusting your search terms."
+            {search || balanceStanding !== "ALL"
+              ? "Try adjusting your filters."
               : "Get started by adding your first contact."}
           </p>
-          {!searchQuery && (
+          {!search && balanceStanding === "ALL" && (
             <Button onClick={() => setIsFormOpen(true)} variant="outline">
               Create Contact
             </Button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {contacts.map((contact) => {
-            const contactItems = items.filter((item) => item.contactId === contact.id);
-            const lentCount = contactItems.filter((i) => i.status === "LENT").length;
-            const borrowedCount = contactItems.filter((i) => i.status === "BORROWED").length;
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {contacts.map((contact) => {
+              const contactItems = items.filter((item) => item.contactId === contact.id);
+              const lentCount = contactItems.filter((i) => i.status === "LENT").length;
+              const borrowedCount = contactItems.filter((i) => i.status === "BORROWED").length;
 
-            return (
-              <ContactCard
-                key={contact.id}
-                contact={{
-                  ...contact,
-                  lentCount,
-                  borrowedCount,
-                }}
-                onEdit={handleEdit}
-                onDelete={(c) => setDeletingContact(c as GetContactsQuery["contacts"][number])}
-                onInvite={handleInvite}
-              />
-            );
-          })}
-        </div>
+              return (
+                <ContactCard
+                  key={contact.id}
+                  contact={{
+                    ...contact,
+                    lentCount,
+                    borrowedCount,
+                  }}
+                  onEdit={handleEdit}
+                  onDelete={(c) => setDeletingContact(c as ContactItem)}
+                  onInvite={handleInvite}
+                />
+              );
+            })}
+          </div>
+          <PaginationControls
+            page={page}
+            limit={limit}
+            total={total}
+            onPageChange={setPage}
+          />
+        </>
       )}
 
       <ContactFormDialog isOpen={isFormOpen} onClose={handleCloseForm} contact={editingContact} />

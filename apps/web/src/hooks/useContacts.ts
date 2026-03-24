@@ -5,10 +5,17 @@ import {
   CREATE_CONTACT,
   UPDATE_CONTACT,
 } from "@/lib/apollo/queries/contacts";
-import type { CreateContactInput, UpdateContactInput } from "@/types/__generated__/graphql";
+import type {
+  CreateContactInput,
+  FilterContactInput,
+  UpdateContactInput,
+} from "@/types/__generated__/graphql";
 
-export function useContacts() {
-  const { data, loading, error, refetch } = useQuery(GET_CONTACTS);
+export function useContacts(filter?: FilterContactInput) {
+  const { data, loading, error, refetch } = useQuery(GET_CONTACTS, {
+    variables: { filter },
+    fetchPolicy: "cache-and-network",
+  });
 
   const [createContactMutation, { loading: creating }] = useMutation(CREATE_CONTACT);
   const [updateContactMutation, { loading: updating }] = useMutation(UPDATE_CONTACT);
@@ -38,7 +45,10 @@ export function useContacts() {
   };
 
   return {
-    contacts: data?.contacts ?? [],
+    contacts: data?.contacts.items ?? [],
+    total: data?.contacts.total ?? 0,
+    page: data?.contacts.page ?? 1,
+    limit: data?.contacts.limit ?? 25,
     loading,
     creating,
     updating,
