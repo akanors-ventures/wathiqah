@@ -110,8 +110,7 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
   // INCOME/EXPENSE transactions that have a contact are project transactions —
   // they live in the ProjectTransaction table, not Transaction, so navigating
   // to /transactions/:id would return a 404.
-  const isProjectTransaction =
-    (tx.type === "INCOME" || tx.type === "EXPENSE") && !!tx.contact;
+  const isProjectTransaction = (tx.type === "INCOME" || tx.type === "EXPENSE") && !!tx.contact;
 
   const cardClassName = cn(
     "group relative flex items-center justify-between p-3.5 sm:p-5 lg:p-6 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500",

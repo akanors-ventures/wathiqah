@@ -12,19 +12,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, TrendingDown, TrendingUp, Wallet, Target, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  Target,
+  ArrowDownCircle,
+  ArrowUpCircle,
+} from "lucide-react";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { authGuard } from "@/utils/auth";
 import { format } from "date-fns";
 import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -127,13 +131,16 @@ function ProjectDetailsPage() {
               <Target className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${budgetRemaining != null && budgetRemaining < 0 ? "text-red-600" : ""}`}>
+              <div
+                className={`text-2xl font-bold ${budgetRemaining != null && budgetRemaining < 0 ? "text-red-600" : ""}`}
+              >
                 {formatCurrency(budgetRemaining ?? 0, project.currency)}
               </div>
               <div className="mt-2 space-y-1">
                 <Progress value={budgetUtilization} className="h-1.5" />
                 <p className="text-xs text-muted-foreground">
-                  {Math.round(budgetUtilization)}% of {formatCurrency(project.budget, project.currency)} budget used
+                  {Math.round(budgetUtilization)}% of{" "}
+                  {formatCurrency(project.budget, project.currency)} budget used
                 </p>
               </div>
             </CardContent>
@@ -241,7 +248,10 @@ function ProjectDetailsPage() {
                               <TooltipContent className="max-w-[260px]">
                                 <p className="text-xs font-semibold mb-1">Edit History</p>
                                 {tx.history.slice(0, 5).map((h) => (
-                                  <div key={h.id} className="text-[10px] text-muted-foreground mb-0.5">
+                                  <div
+                                    key={h.id}
+                                    className="text-[10px] text-muted-foreground mb-0.5"
+                                  >
                                     <span className="text-foreground">{h.changeType}</span>
                                     {" · "}
                                     {format(new Date(h.createdAt), "MMM d, h:mm a")}

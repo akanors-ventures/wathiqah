@@ -107,17 +107,12 @@ export function ProjectTransactionForm({
     ],
   });
 
-  const [updateTransaction, { loading: updating }] = useMutation(
-    UPDATE_PROJECT_TRANSACTION,
-    {
-      refetchQueries: [
-        { query: GET_MY_PROJECTS },
-        ...(initialProjectId
-          ? [{ query: GET_PROJECT, variables: { id: initialProjectId } }]
-          : []),
-      ],
-    },
-  );
+  const [updateTransaction, { loading: updating }] = useMutation(UPDATE_PROJECT_TRANSACTION, {
+    refetchQueries: [
+      { query: GET_MY_PROJECTS },
+      ...(initialProjectId ? [{ query: GET_PROJECT, variables: { id: initialProjectId } }] : []),
+    ],
+  });
 
   const form = useForm<ProjectTransactionFormValues>({
     resolver: zodResolver(formSchema) as Resolver<ProjectTransactionFormValues>,

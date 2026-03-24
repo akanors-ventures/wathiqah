@@ -19,10 +19,7 @@ import { useAuth } from "@/hooks/use-auth";
 /** Maximum number of transaction previews shown on the interstitial. */
 const MAX_PREVIEW_TRANSACTIONS = 4;
 
-function getTypeLabel(
-  type: string,
-  returnDirection: string | null | undefined,
-): string {
+function getTypeLabel(type: string, returnDirection: string | null | undefined): string {
   if (type === "RETURNED") {
     return returnDirection === "TO_ME" ? "RETURNED TO ME" : "RETURNED TO CONTACT";
   }
@@ -38,10 +35,7 @@ function getTypeLabel(
  *   GIVEN → Blue | RECEIVED/EXPENSE → Red | INCOME/RETURNED TO ME → Emerald
  *   RETURNED TO CONTACT → Blue | GIFT RECEIVED → Purple | GIFT GIVEN → Pink
  */
-function getTypeBadgeClass(
-  type: string,
-  returnDirection: string | null | undefined,
-): string {
+function getTypeBadgeClass(type: string, returnDirection: string | null | undefined): string {
   if (type === "GIVEN") {
     return "text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-400";
   }
@@ -108,9 +102,7 @@ export function SharedHistoryInterstitial() {
    * navigates to the given destination. The cache is updated optimistically
    * before the network request so the parent unmounts this component instantly.
    */
-  const handleDismiss = async (
-    destination: "/" | "/transactions/my-contact-transactions",
-  ) => {
+  const handleDismiss = async (destination: "/" | "/transactions/my-contact-transactions") => {
     if (isDismissing) return;
     setIsDismissing(true);
 
@@ -181,18 +173,16 @@ export function SharedHistoryInterstitial() {
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-foreground leading-tight">
-            Welcome to Wathīqah,{" "}
-            <span className="text-primary">{user?.firstName}.</span>
+            Welcome to Wathīqah, <span className="text-primary">{user?.firstName}.</span>
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground max-w-lg mx-auto leading-relaxed font-medium">
             You have{" "}
             <span className="font-black text-foreground">
-              {transactions.length}{" "}
-              {transactions.length === 1 ? "transaction" : "transactions"}
+              {transactions.length} {transactions.length === 1 ? "transaction" : "transactions"}
             </span>{" "}
-            recorded in your name before you joined. These were documented by
-            others who listed you as a contact.
+            recorded in your name before you joined. These were documented by others who listed you
+            as a contact.
           </p>
         </div>
 
@@ -223,9 +213,7 @@ export function SharedHistoryInterstitial() {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-muted-foreground font-medium">
-                        Recorded by
-                      </span>
+                      <span className="text-xs text-muted-foreground font-medium">Recorded by</span>
                       <span className="text-xs font-bold text-foreground flex items-center gap-1">
                         {tx.createdBy?.name}
                         {tx.createdBy?.isSupporter && (
@@ -263,8 +251,8 @@ export function SharedHistoryInterstitial() {
 
           {remaining > 0 && (
             <p className="text-center text-xs font-bold text-muted-foreground opacity-60 pt-1">
-              + {remaining} more{" "}
-              {remaining === 1 ? "transaction" : "transactions"} in your full history
+              + {remaining} more {remaining === 1 ? "transaction" : "transactions"} in your full
+              history
             </p>
           )}
         </div>

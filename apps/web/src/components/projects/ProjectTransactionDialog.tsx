@@ -39,8 +39,8 @@ export function ProjectTransactionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || (
-          isEditMode ? (
+        {trigger ||
+          (isEditMode ? (
             <Button variant="ghost" size="icon" className="h-8 w-8">
               <Pencil className="w-3.5 h-3.5" />
             </Button>
@@ -48,8 +48,7 @@ export function ProjectTransactionDialog({
             <Button>
               <Plus className="w-4 h-4 mr-2" /> Log Transaction
             </Button>
-          )
-        )}
+          ))}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>

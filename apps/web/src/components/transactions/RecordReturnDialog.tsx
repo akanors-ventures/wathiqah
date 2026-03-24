@@ -32,11 +32,7 @@ import {
 import { useAmountInput } from "@/hooks/useAmountInput";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import {
-  AssetCategory,
-  ReturnDirection,
-  TransactionType,
-} from "@/types/__generated__/graphql";
+import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
 
 const formSchema = z.object({
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
@@ -78,9 +74,7 @@ export function RecordReturnDialog({
 
   // Auto-select direction: GIVEN → money coming back to me, RECEIVED → paying them back
   const defaultDirection =
-    transaction.type === TransactionType.Given
-      ? ReturnDirection.ToMe
-      : ReturnDirection.ToContact;
+    transaction.type === TransactionType.Given ? ReturnDirection.ToMe : ReturnDirection.ToContact;
 
   const currencyCode = transaction.currency ?? "NGN";
 
@@ -139,17 +133,13 @@ export function RecordReturnDialog({
         <DialogHeader>
           <DialogTitle>Record Return</DialogTitle>
           <DialogDescription>
-            Record a partial or full return against this transaction. The original
-            record is preserved.
+            Record a partial or full return against this transaction. The original record is
+            preserved.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            key={amountKey}
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4"
-          >
+          <form key={amountKey} onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Amount */}
             <FormField
               control={form.control}
@@ -168,9 +158,7 @@ export function RecordReturnDialog({
                         placeholder={formatCurrency(0, currencyCode, 0)}
                         value={amountDisplay}
                         onChange={handleAmountChange}
-                        onBlur={() =>
-                          handleBlur(form.getValues("amount") || 0)
-                        }
+                        onBlur={() => handleBlur(form.getValues("amount") || 0)}
                         className="flex-1"
                       />
                     </div>
@@ -194,17 +182,11 @@ export function RecordReturnDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value={ReturnDirection.ToMe}>
-                        Returned to Me
-                      </SelectItem>
-                      <SelectItem value={ReturnDirection.ToContact}>
-                        Returned to Contact
-                      </SelectItem>
+                      <SelectItem value={ReturnDirection.ToMe}>Returned to Me</SelectItem>
+                      <SelectItem value={ReturnDirection.ToContact}>Returned to Contact</SelectItem>
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {directionLabel}
-                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">{directionLabel}</p>
                   <FormMessage />
                 </FormItem>
               )}
