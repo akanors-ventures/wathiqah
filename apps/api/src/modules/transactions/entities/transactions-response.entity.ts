@@ -1,4 +1,4 @@
-import { ObjectType, Field, Float } from '@nestjs/graphql';
+import { ObjectType, Field, Float, Int } from '@nestjs/graphql';
 import { Transaction } from './transaction.entity';
 
 @ObjectType()
@@ -44,4 +44,13 @@ export class TransactionsResponse {
 
   @Field(() => TransactionsSummary)
   summary: TransactionsSummary;
+
+  @Field(() => Int)
+  total: number;
+
+  @Field(() => Int)
+  page: number;
+
+  @Field(() => Int)
+  limit: number;
 }
