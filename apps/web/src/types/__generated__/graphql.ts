@@ -120,7 +120,6 @@ export type CreateContactInput = {
 
 export type CreateProjectInput = {
   budget?: InputMaybe<Scalars['Float']['input']>;
-  category?: InputMaybe<Scalars['String']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -956,7 +955,6 @@ export type UpdateContactInput = {
 
 export type UpdateProjectInput = {
   budget?: InputMaybe<Scalars['Float']['input']>;
-  category?: InputMaybe<Scalars['String']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
   id: Scalars['String']['input'];
