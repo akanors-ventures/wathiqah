@@ -245,11 +245,6 @@ enum Priority {
   MEDIUM
 }
 
-input ProvisionProInput {
-  userId: ID!
-  expiresAt: DateTime!
-}
-
 type Project {
   balance: Float!
   budget: Float
@@ -313,6 +308,11 @@ enum PromiseStatus {
   PENDING
 }
 
+input ProvisionProInput {
+  expiresAt: DateTime!
+  userId: ID!
+}
+
 type Query {
   checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
@@ -369,8 +369,8 @@ input SearchWitnessInput {
 }
 
 input SetUserRoleInput {
-  userId: ID!
   role: UserRole!
+  userId: ID!
 }
 
 type SharedDataEntity {
@@ -591,6 +591,7 @@ type User {
 
 enum UserRole {
   ADMIN
+  SUPER_ADMIN
   USER
 }
 

@@ -247,6 +247,7 @@ export type Mutation = {
   signup: AuthPayload;
   updateContact: Contact;
   updateProject: Project;
+  updateProjectTransaction: ProjectTransaction;
   updatePromise: Promise;
   updateTransaction: Transaction;
   updateUser: User;
@@ -421,6 +422,11 @@ export type MutationUpdateProjectArgs = {
 };
 
 
+export type MutationUpdateProjectTransactionArgs = {
+  input: UpdateProjectTransactionInput;
+};
+
+
 export type MutationUpdatePromiseArgs = {
   updatePromiseInput: UpdatePromiseInput;
 };
@@ -455,6 +461,8 @@ export type Project = {
   description: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  totalExpenses: Scalars['Float']['output'];
+  totalIncome: Scalars['Float']['output'];
   transactions: Array<ProjectTransaction>;
   updatedAt: Scalars['DateTime']['output'];
   userId: Scalars['String']['output'];
@@ -467,11 +475,23 @@ export type ProjectTransaction = {
   createdAt: Scalars['DateTime']['output'];
   date: Scalars['DateTime']['output'];
   description: Maybe<Scalars['String']['output']>;
+  history: Maybe<Array<ProjectTransactionHistory>>;
   id: Scalars['ID']['output'];
   projectId: Scalars['String']['output'];
   type: ProjectTransactionType;
   updatedAt: Scalars['DateTime']['output'];
   witnesses: Maybe<Array<Witness>>;
+};
+
+export type ProjectTransactionHistory = {
+  __typename: 'ProjectTransactionHistory';
+  changeType: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  newState: Scalars['JSON']['output'];
+  previousState: Scalars['JSON']['output'];
+  projectTransactionId: Scalars['String']['output'];
+  userId: Scalars['String']['output'];
 };
 
 export enum ProjectTransactionType {
@@ -815,6 +835,15 @@ export type UpdateProjectInput = {
   name?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateProjectTransactionInput = {
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
+  date?: InputMaybe<Scalars['DateTime']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  type?: InputMaybe<ProjectTransactionType>;
+};
+
 export type UpdatePromiseInput = {
   category?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
@@ -872,6 +901,7 @@ export type User = {
 
 export enum UserRole {
   Admin = 'ADMIN',
+  SuperAdmin = 'SUPER_ADMIN',
   User = 'USER'
 }
 
@@ -1053,42 +1083,49 @@ export type CancelSubscriptionMutationVariables = Exact<{ [key: string]: never; 
 
 export type CancelSubscriptionMutation = { cancelSubscription: boolean };
 
-export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string };
+export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, userId: string, createdAt: string, updatedAt: string };
 
-export type ProjectTransactionFieldsFragment = { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null };
+export type ProjectTransactionFieldsFragment = { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null, history: Array<{ __typename: 'ProjectTransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string }> | null };
 
 export type GetMyProjectsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyProjectsQuery = { myProjects: Array<{ __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string }> };
+export type GetMyProjectsQuery = { myProjects: Array<{ __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, userId: string, createdAt: string, updatedAt: string }> };
 
 export type GetProjectQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetProjectQuery = { project: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string, transactions: Array<{ __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null }> } };
+export type GetProjectQuery = { project: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, userId: string, createdAt: string, updatedAt: string, transactions: Array<{ __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null, history: Array<{ __typename: 'ProjectTransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string }> | null }> } };
 
 export type CreateProjectMutationVariables = Exact<{
   input: CreateProjectInput;
 }>;
 
 
-export type CreateProjectMutation = { createProject: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string } };
+export type CreateProjectMutation = { createProject: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, userId: string, createdAt: string, updatedAt: string } };
 
 export type UpdateProjectMutationVariables = Exact<{
   input: UpdateProjectInput;
 }>;
 
 
-export type UpdateProjectMutation = { updateProject: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, userId: string, createdAt: string, updatedAt: string } };
+export type UpdateProjectMutation = { updateProject: { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, userId: string, createdAt: string, updatedAt: string } };
 
 export type LogProjectTransactionMutationVariables = Exact<{
   input: LogProjectTransactionInput;
 }>;
 
 
-export type LogProjectTransactionMutation = { logProjectTransaction: { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null } };
+export type LogProjectTransactionMutation = { logProjectTransaction: { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null, history: Array<{ __typename: 'ProjectTransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string }> | null } };
+
+export type UpdateProjectTransactionMutationVariables = Exact<{
+  input: UpdateProjectTransactionInput;
+}>;
+
+
+export type UpdateProjectTransactionMutation = { updateProjectTransaction: { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null, history: Array<{ __typename: 'ProjectTransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string }> | null } };
 
 export type MyPromisesQueryVariables = Exact<{ [key: string]: never; }>;
 
