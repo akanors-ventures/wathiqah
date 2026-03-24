@@ -98,7 +98,6 @@ input CreateContactInput {
 
 input CreateProjectInput {
   budget: Float
-  category: String
   currency: String
   description: String
   name: String!
@@ -622,7 +621,6 @@ input UpdateContactInput {
 
 input UpdateProjectInput {
   budget: Float
-  category: String
   currency: String
   description: String
   id: String!

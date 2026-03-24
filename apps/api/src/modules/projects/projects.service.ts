@@ -124,7 +124,6 @@ export class ProjectsService {
         budget: input.budget,
         currency: input.currency,
         status: input.status,
-        category: input.category,
       },
     });
   }

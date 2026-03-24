@@ -17,7 +17,4 @@ export class CreateProjectInput {
 
   @Field(() => ProjectStatus, { nullable: true, defaultValue: ProjectStatus.ACTIVE })
   status?: ProjectStatus;
-
-  @Field({ nullable: true })
-  category?: string;
 }
