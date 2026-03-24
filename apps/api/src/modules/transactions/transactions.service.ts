@@ -716,7 +716,7 @@ export class TransactionsService {
       status: TransactionStatus.COMPLETED,
       currency: pt.project.currency,
       date: pt.date,
-      description: `Project: ${pt.project.name} - ${pt.description || ''}`,
+      description: pt.description || '',
       createdAt: pt.createdAt,
       createdById: pt.project.userId,
       createdBy: {
