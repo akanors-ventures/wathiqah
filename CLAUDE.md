@@ -129,11 +129,29 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - Format currency amounts with `getLocaleForCurrency` + `Intl.NumberFormat` — never concatenate raw ISO codes (e.g. `"NGN"`)
 
 ### Database Migrations
-- Use Atlas, not `prisma migrate dev`: `pnpm --filter api db:migrate` to generate a migration
-- **Do not run `db:apply` manually** — migration linting, push, and application to production are handled automatically by `.github/workflows/ci-atlas.yaml` on merge to `main`
+
+**Atlas is the only migration tool.** Never use `prisma migrate dev`, `prisma migrate deploy`, or any Prisma migrate command — they are disabled. All schema changes go through Atlas.
+
+#### Workflow
+1. Edit `apps/api/prisma/schema.prisma`
+2. Run `pnpm --filter api db:generate` to regenerate the Prisma client
+3. Run `pnpm --filter api db:migrate` (from repo root) to generate an Atlas migration
+4. Run `pnpm --filter api db:apply` to apply it locally — **verify it succeeds with zero errors before committing**
+5. Commit the migration file and updated `atlas.sum` together
+
+#### Rules
+- **Never use `atlas migrate set`** to mark a migration as applied unless you have manually verified that every SQL statement in that migration has already been executed in the target database. Marking without running causes silent schema drift — columns referenced in code will be missing at runtime, crashing the app on startup.
+- **Do not run `db:apply` on production manually** — CI applies migrations automatically via `.github/workflows/ci-atlas.yaml` on merge to `main`
+- **After editing any migration SQL manually**, run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum` — CI will fail with a checksum mismatch otherwise
+- **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted
 - Atlas requires `atlas login` (browser-based); token expires periodically
-- **After editing any migration SQL manually**, run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum` — CI will fail with checksum mismatch otherwise
-- **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted (blocking table scan risk)
+
+#### Diagnosing schema drift
+If the app crashes with `column X does not exist` or `relation X does not exist` despite Atlas reporting all migrations applied:
+1. Run `atlas migrate status --env local` to confirm Atlas thinks everything is applied
+2. Query the DB directly (`psql ... -c "SELECT column_name FROM information_schema.columns WHERE table_name='...' AND column_name='...'"`) to check what's actually there
+3. For each missing object, find the migration that creates it and run that SQL directly via `psql`
+4. Do **not** re-run `atlas migrate set` — the revision table already has the entry; only the actual DB object is missing
 
 ### Project Fund Balance Semantics
 - `project.balance` = `totalIncome − totalExpenses` (net cash position, not a budget figure)
