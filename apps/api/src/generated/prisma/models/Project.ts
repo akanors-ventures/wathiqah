@@ -42,6 +42,7 @@ export type ProjectMinAggregateOutputType = {
   description: string | null
   budget: runtime.Decimal | null
   balance: runtime.Decimal | null
+  status: $Enums.ProjectStatus | null
   currency: string | null
   userId: string | null
   createdAt: Date | null
@@ -54,6 +55,7 @@ export type ProjectMaxAggregateOutputType = {
   description: string | null
   budget: runtime.Decimal | null
   balance: runtime.Decimal | null
+  status: $Enums.ProjectStatus | null
   currency: string | null
   userId: string | null
   createdAt: Date | null
@@ -66,6 +68,7 @@ export type ProjectCountAggregateOutputType = {
   description: number
   budget: number
   balance: number
+  status: number
   currency: number
   userId: number
   createdAt: number
@@ -90,6 +93,7 @@ export type ProjectMinAggregateInputType = {
   description?: true
   budget?: true
   balance?: true
+  status?: true
   currency?: true
   userId?: true
   createdAt?: true
@@ -102,6 +106,7 @@ export type ProjectMaxAggregateInputType = {
   description?: true
   budget?: true
   balance?: true
+  status?: true
   currency?: true
   userId?: true
   createdAt?: true
@@ -114,6 +119,7 @@ export type ProjectCountAggregateInputType = {
   description?: true
   budget?: true
   balance?: true
+  status?: true
   currency?: true
   userId?: true
   createdAt?: true
@@ -213,6 +219,7 @@ export type ProjectGroupByOutputType = {
   description: string | null
   budget: runtime.Decimal | null
   balance: runtime.Decimal
+  status: $Enums.ProjectStatus
   currency: string
   userId: string
   createdAt: Date
@@ -248,6 +255,7 @@ export type ProjectWhereInput = {
   description?: Prisma.StringNullableFilter<"Project"> | string | null
   budget?: Prisma.DecimalNullableFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFilter<"Project"> | $Enums.ProjectStatus
   currency?: Prisma.StringFilter<"Project"> | string
   userId?: Prisma.StringFilter<"Project"> | string
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -262,6 +270,7 @@ export type ProjectOrderByWithRelationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   budget?: Prisma.SortOrderInput | Prisma.SortOrder
   balance?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -279,6 +288,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"Project"> | string | null
   budget?: Prisma.DecimalNullableFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFilter<"Project"> | $Enums.ProjectStatus
   currency?: Prisma.StringFilter<"Project"> | string
   userId?: Prisma.StringFilter<"Project"> | string
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -293,6 +303,7 @@ export type ProjectOrderByWithAggregationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   budget?: Prisma.SortOrderInput | Prisma.SortOrder
   balance?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -313,6 +324,7 @@ export type ProjectScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   budget?: Prisma.DecimalNullableWithAggregatesFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalWithAggregatesFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusWithAggregatesFilter<"Project"> | $Enums.ProjectStatus
   currency?: Prisma.StringWithAggregatesFilter<"Project"> | string
   userId?: Prisma.StringWithAggregatesFilter<"Project"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Project"> | Date | string
@@ -325,6 +337,7 @@ export type ProjectCreateInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -338,6 +351,7 @@ export type ProjectUncheckedCreateInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   userId: string
   createdAt?: Date | string
@@ -351,6 +365,7 @@ export type ProjectUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -364,6 +379,7 @@ export type ProjectUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -377,6 +393,7 @@ export type ProjectCreateManyInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   userId: string
   createdAt?: Date | string
@@ -389,6 +406,7 @@ export type ProjectUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -400,6 +418,7 @@ export type ProjectUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -422,6 +441,7 @@ export type ProjectCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   budget?: Prisma.SortOrder
   balance?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -439,6 +459,7 @@ export type ProjectMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   budget?: Prisma.SortOrder
   balance?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -451,6 +472,7 @@ export type ProjectMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   budget?: Prisma.SortOrder
   balance?: Prisma.SortOrder
+  status?: Prisma.SortOrder
   currency?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -509,6 +531,10 @@ export type ProjectUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ProjectScalarWhereInput | Prisma.ProjectScalarWhereInput[]
 }
 
+export type EnumProjectStatusFieldUpdateOperationsInput = {
+  set?: $Enums.ProjectStatus
+}
+
 export type ProjectCreateNestedOneWithoutTransactionsInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutTransactionsInput, Prisma.ProjectUncheckedCreateWithoutTransactionsInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutTransactionsInput
@@ -529,6 +555,7 @@ export type ProjectCreateWithoutUserInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -541,6 +568,7 @@ export type ProjectUncheckedCreateWithoutUserInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -582,6 +610,7 @@ export type ProjectScalarWhereInput = {
   description?: Prisma.StringNullableFilter<"Project"> | string | null
   budget?: Prisma.DecimalNullableFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFilter<"Project"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFilter<"Project"> | $Enums.ProjectStatus
   currency?: Prisma.StringFilter<"Project"> | string
   userId?: Prisma.StringFilter<"Project"> | string
   createdAt?: Prisma.DateTimeFilter<"Project"> | Date | string
@@ -594,6 +623,7 @@ export type ProjectCreateWithoutTransactionsInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -606,6 +636,7 @@ export type ProjectUncheckedCreateWithoutTransactionsInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   userId: string
   createdAt?: Date | string
@@ -634,6 +665,7 @@ export type ProjectUpdateWithoutTransactionsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -646,6 +678,7 @@ export type ProjectUncheckedUpdateWithoutTransactionsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -658,6 +691,7 @@ export type ProjectCreateManyUserInput = {
   description?: string | null
   budget?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: $Enums.ProjectStatus
   currency?: string
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -669,6 +703,7 @@ export type ProjectUpdateWithoutUserInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -681,6 +716,7 @@ export type ProjectUncheckedUpdateWithoutUserInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -693,6 +729,7 @@ export type ProjectUncheckedUpdateManyWithoutUserInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   budget?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  status?: Prisma.EnumProjectStatusFieldUpdateOperationsInput | $Enums.ProjectStatus
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -735,6 +772,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   description?: boolean
   budget?: boolean
   balance?: boolean
+  status?: boolean
   currency?: boolean
   userId?: boolean
   createdAt?: boolean
@@ -750,6 +788,7 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   description?: boolean
   budget?: boolean
   balance?: boolean
+  status?: boolean
   currency?: boolean
   userId?: boolean
   createdAt?: boolean
@@ -763,6 +802,7 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   description?: boolean
   budget?: boolean
   balance?: boolean
+  status?: boolean
   currency?: boolean
   userId?: boolean
   createdAt?: boolean
@@ -776,13 +816,14 @@ export type ProjectSelectScalar = {
   description?: boolean
   budget?: boolean
   balance?: boolean
+  status?: boolean
   currency?: boolean
   userId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "budget" | "balance" | "currency" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "budget" | "balance" | "status" | "currency" | "userId" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   transactions?: boolean | Prisma.Project$transactionsArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -807,6 +848,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     description: string | null
     budget: runtime.Decimal | null
     balance: runtime.Decimal
+    status: $Enums.ProjectStatus
     currency: string
     userId: string
     createdAt: Date
@@ -1241,6 +1283,7 @@ export interface ProjectFieldRefs {
   readonly description: Prisma.FieldRef<"Project", 'String'>
   readonly budget: Prisma.FieldRef<"Project", 'Decimal'>
   readonly balance: Prisma.FieldRef<"Project", 'Decimal'>
+  readonly status: Prisma.FieldRef<"Project", 'ProjectStatus'>
   readonly currency: Prisma.FieldRef<"Project", 'String'>
   readonly userId: Prisma.FieldRef<"Project", 'String'>
   readonly createdAt: Prisma.FieldRef<"Project", 'DateTime'>

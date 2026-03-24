@@ -28,6 +28,7 @@ import { useProjects } from "@/hooks/useProjects";
 import { useMutation } from "@apollo/client/react";
 import {
   LOG_PROJECT_TRANSACTION,
+  UPDATE_PROJECT_TRANSACTION,
   GET_PROJECT,
   GET_MY_PROJECTS,
 } from "@/lib/apollo/queries/projects";
@@ -58,8 +59,18 @@ const formSchema = z.object({
 
 type ProjectTransactionFormValues = z.infer<typeof formSchema>;
 
+interface EditableTransaction {
+  id: string;
+  amount: number;
+  type: ProjectTransactionType;
+  category?: string | null;
+  description?: string | null;
+  date: string | Date;
+}
+
 interface ProjectTransactionFormProps {
   projectId?: string;
+  editTransaction?: EditableTransaction;
   onSuccess?: () => void;
   onCancel?: () => void;
   className?: string;
@@ -67,10 +78,12 @@ interface ProjectTransactionFormProps {
 
 export function ProjectTransactionForm({
   projectId: initialProjectId,
+  editTransaction,
   onSuccess,
   onCancel,
   className,
 }: ProjectTransactionFormProps) {
+  const isEditMode = !!editTransaction;
   const { projects, loading: loadingProjects, createProject, creating } = useProjects();
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -94,15 +107,22 @@ export function ProjectTransactionForm({
     ],
   });
 
+  const [updateTransaction, { loading: updating }] = useMutation(UPDATE_PROJECT_TRANSACTION, {
+    refetchQueries: [
+      { query: GET_MY_PROJECTS },
+      ...(initialProjectId ? [{ query: GET_PROJECT, variables: { id: initialProjectId } }] : []),
+    ],
+  });
+
   const form = useForm<ProjectTransactionFormValues>({
     resolver: zodResolver(formSchema) as Resolver<ProjectTransactionFormValues>,
     defaultValues: {
       projectId: initialProjectId || "",
-      type: ProjectTransactionType.Expense,
-      amount: 0,
-      category: "",
-      description: "",
-      date: new Date(),
+      type: editTransaction?.type ?? ProjectTransactionType.Expense,
+      amount: editTransaction?.amount ?? 0,
+      category: editTransaction?.category ?? "",
+      description: editTransaction?.description ?? "",
+      date: editTransaction?.date ? new Date(editTransaction.date) : new Date(),
       witnesses: [],
     },
   });
@@ -132,39 +152,54 @@ export function ProjectTransactionForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const witnesses = values.witnesses || [];
-      const witnessUserIds = witnesses.filter((w) => w.userId).map((w) => w.userId as string);
-
-      const witnessInvites = witnesses
-        .map((w) => w.invite)
-        .filter((invite): invite is NonNullable<typeof invite> => !!invite)
-        .map((invite) => ({
-          ...invite,
-          email: invite.email.trim().toLowerCase(),
-        }));
-
-      await logTransaction({
-        variables: {
-          input: {
-            projectId: values.projectId,
-            amount: values.amount,
-            type: values.type,
-            category: values.category || undefined,
-            description: values.description || undefined,
-            date: values.date.toISOString(),
-            witnessUserIds: witnessUserIds.length > 0 ? witnessUserIds : undefined,
-            witnessInvites: witnessInvites.length > 0 ? witnessInvites : undefined,
+      if (isEditMode && editTransaction) {
+        await updateTransaction({
+          variables: {
+            input: {
+              id: editTransaction.id,
+              amount: values.amount,
+              type: values.type,
+              category: values.category || undefined,
+              description: values.description || undefined,
+              date: values.date.toISOString(),
+            },
           },
-        },
-      });
+        });
+        toast.success("Transaction updated successfully");
+      } else {
+        const witnesses = values.witnesses || [];
+        const witnessUserIds = witnesses.filter((w) => w.userId).map((w) => w.userId as string);
+        const witnessInvites = witnesses
+          .map((w) => w.invite)
+          .filter((invite): invite is NonNullable<typeof invite> => !!invite)
+          .map((invite) => ({
+            ...invite,
+            email: invite.email.trim().toLowerCase(),
+          }));
 
-      toast.success("Transaction logged successfully");
+        await logTransaction({
+          variables: {
+            input: {
+              projectId: values.projectId,
+              amount: values.amount,
+              type: values.type,
+              category: values.category || undefined,
+              description: values.description || undefined,
+              date: values.date.toISOString(),
+              witnessUserIds: witnessUserIds.length > 0 ? witnessUserIds : undefined,
+              witnessInvites: witnessInvites.length > 0 ? witnessInvites : undefined,
+            },
+          },
+        });
+        toast.success("Transaction logged successfully");
+      }
+
       form.reset();
       resetAmount();
       onSuccess?.();
     } catch (error) {
       console.error(error);
-      toast.error("Failed to log transaction");
+      toast.error(isEditMode ? "Failed to update transaction" : "Failed to log transaction");
     }
   }
 
@@ -365,13 +400,15 @@ export function ProjectTransactionForm({
           )}
         />
 
-        <div className="space-y-2">
-          <FormLabel>Witnesses (Optional)</FormLabel>
-          <WitnessSelector
-            selectedWitnesses={form.watch("witnesses") || []}
-            onChange={(witnesses) => form.setValue("witnesses", witnesses)}
-          />
-        </div>
+        {!isEditMode && (
+          <div className="space-y-2">
+            <FormLabel>Witnesses (Optional)</FormLabel>
+            <WitnessSelector
+              selectedWitnesses={form.watch("witnesses") || []}
+              onChange={(witnesses) => form.setValue("witnesses", witnesses)}
+            />
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-4">
           {onCancel && (
@@ -379,9 +416,15 @@ export function ProjectTransactionForm({
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={logging}>
-            {logging && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {logging ? "Logging..." : "Log Transaction"}
+          <Button type="submit" disabled={logging || updating}>
+            {(logging || updating) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEditMode
+              ? updating
+                ? "Saving..."
+                : "Save Changes"
+              : logging
+                ? "Logging..."
+                : "Log Transaction"}
           </Button>
         </div>
       </form>

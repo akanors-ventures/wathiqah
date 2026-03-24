@@ -216,6 +216,7 @@ type Mutation {
   logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
+  markSharedHistorySeen: Boolean!
   provisionPro(input: ProvisionProInput!): User!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
@@ -231,6 +232,7 @@ type Mutation {
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
   updateProject(input: UpdateProjectInput!): Project!
+  updateProjectTransaction(input: UpdateProjectTransactionInput!): ProjectTransaction!
   updatePromise(updatePromiseInput: UpdatePromiseInput!): Promise!
   updateTransaction(input: UpdateTransactionInput!): Transaction!
   updateUser(updateUserInput: UpdateUserInput!): User!
@@ -241,11 +243,6 @@ enum Priority {
   HIGH
   LOW
   MEDIUM
-}
-
-input ProvisionProInput {
-  userId: ID!
-  expiresAt: DateTime!
 }
 
 type Project {
@@ -269,11 +266,22 @@ type ProjectTransaction {
   createdAt: DateTime!
   date: DateTime!
   description: String
+  history: [ProjectTransactionHistory!]
   id: ID!
   projectId: String!
   type: ProjectTransactionType!
   updatedAt: DateTime!
   witnesses: [Witness!]
+}
+
+type ProjectTransactionHistory {
+  changeType: String!
+  createdAt: DateTime!
+  id: ID!
+  newState: JSON!
+  previousState: JSON!
+  projectTransactionId: String!
+  userId: String!
 }
 
 enum ProjectTransactionType {
@@ -298,6 +306,11 @@ enum PromiseStatus {
   FULFILLED
   OVERDUE
   PENDING
+}
+
+input ProvisionProInput {
+  expiresAt: DateTime!
+  userId: ID!
 }
 
 type Query {
@@ -356,8 +369,8 @@ input SearchWitnessInput {
 }
 
 input SetUserRoleInput {
-  userId: ID!
   role: UserRole!
+  userId: ID!
 }
 
 type SharedDataEntity {
@@ -513,6 +526,15 @@ input UpdateProjectInput {
   name: String
 }
 
+input UpdateProjectTransactionInput {
+  amount: Float
+  category: String
+  date: DateTime
+  description: String
+  id: ID!
+  type: ProjectTransactionType
+}
+
 input UpdatePromiseInput {
   category: String
   description: String
@@ -553,6 +575,7 @@ type User {
   email: String!
   featureUsage: JSON
   firstName: String!
+  hasSeenSharedHistory: Boolean!
   id: ID!
   isEmailVerified: Boolean!
   isSupporter: Boolean!
@@ -563,12 +586,12 @@ type User {
   preferredCurrency: String!
   role: UserRole!
   subscriptionStatus: String
-  role: UserRole!
   tier: SubscriptionTier!
 }
 
 enum UserRole {
   ADMIN
+  SUPER_ADMIN
   USER
 }
 

@@ -18,7 +18,7 @@ function ProjectsPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
@@ -63,7 +63,11 @@ function ProjectsPage() {
                 </div>
                 {project.budget && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    {formatCurrency(project.budget - (project.totalExpenses ?? 0), project.currency)} remaining of {formatCurrency(project.budget, project.currency)}
+                    {formatCurrency(
+                      project.budget - (project.totalExpenses ?? 0),
+                      project.currency,
+                    )}{" "}
+                    remaining of {formatCurrency(project.budget, project.currency)}
                   </p>
                 )}
                 <div className="mt-4 h-2 bg-secondary rounded-full overflow-hidden">

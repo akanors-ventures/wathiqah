@@ -706,11 +706,14 @@ export class TransactionsService {
       this.applyPerspective(item, userId),
     );
 
-    // Fetch and map project transactions
-    const projects = await this.prisma.project.findMany({
-      where: { userId },
-      select: { id: true },
-    });
+    // Fetch and map project transactions (skip when filtering by a specific
+    // contact — project transactions belong to projects, not contacts).
+    const projects = filter?.contactId
+      ? []
+      : await this.prisma.project.findMany({
+          where: { userId },
+          select: { id: true },
+        });
 
     const projectWhere: Prisma.ProjectTransactionWhereInput = {
       projectId: { in: projects.map((p) => p.id) },
@@ -754,10 +757,15 @@ export class TransactionsService {
       status: TransactionStatus.COMPLETED,
       currency: pt.project.currency,
       date: pt.date,
-      description: `Project: ${pt.project.name} - ${pt.description || ''}`,
+      description: pt.description || '',
       createdAt: pt.createdAt,
       createdById: pt.project.userId,
-      createdBy: pt.project.user,
+      createdBy: {
+        ...pt.project.user,
+        // `name` is a @ResolveField on UsersResolver; compute it explicitly here
+        // so callers that read createdBy.name get the correct full name.
+        name: `${pt.project.user.firstName ?? ''} ${pt.project.user.lastName ?? ''}`.trim(),
+      },
       contactId: pt.projectId,
       contact: {
         id: pt.projectId,
@@ -1243,6 +1251,7 @@ export class TransactionsService {
       itemName: transaction.itemName,
       quantity: transaction.quantity,
       type: transaction.type,
+      returnDirection: transaction.returnDirection,
       date: transaction.date,
       description: transaction.description,
       contactId: transaction.contactId,
@@ -1322,6 +1331,15 @@ export class TransactionsService {
     if (rest.type && rest.type !== transaction.type) {
       changes.type = rest.type;
       changeDescriptions.push(`Type changed to ${rest.type}`);
+    }
+    if (
+      rest.returnDirection !== undefined &&
+      rest.returnDirection !== transaction.returnDirection
+    ) {
+      changes.returnDirection = rest.returnDirection ?? null;
+      changeDescriptions.push(
+        `Return direction changed to ${rest.returnDirection ?? 'none'}`,
+      );
     }
     if (rest.contactId && rest.contactId !== transaction.contactId) {
       changes.contactId = rest.contactId;
@@ -1412,6 +1430,35 @@ export class TransactionsService {
       }
     }
 
+    // Determine the effective type and returnDirection after this update
+    const effectiveType = rest.type ?? transaction.type;
+    const needsReturnDirection =
+      (effectiveType === TransactionType.RETURNED ||
+        effectiveType === TransactionType.GIFT) &&
+      !!transaction.contactId;
+
+    // Compute the resolved returnDirection to write:
+    // - If type no longer needs a direction, clear it.
+    // - If type requires a direction, use the provided value or fall back to the
+    //   existing DB value (so partial updates that only change amount etc. don't
+    //   accidentally wipe a valid direction).
+    const {
+      returnDirection: inputReturnDirection,
+      ...restWithoutReturnDirection
+    } = rest;
+    let resolvedReturnDirection: ReturnDirection | null;
+    if (!needsReturnDirection) {
+      resolvedReturnDirection = null;
+    } else {
+      resolvedReturnDirection =
+        inputReturnDirection ?? transaction.returnDirection ?? null;
+      if (!resolvedReturnDirection) {
+        throw new BadRequestException(
+          'returnDirection is required when type is RETURNED or GIFT',
+        );
+      }
+    }
+
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
         const updated = await prisma.transaction.update({
@@ -1436,7 +1483,8 @@ export class TransactionsService {
                 : category === AssetCategory.FUNDS
                   ? null
                   : quantity,
-            ...rest,
+            ...restWithoutReturnDirection,
+            returnDirection: resolvedReturnDirection,
           },
         });
 

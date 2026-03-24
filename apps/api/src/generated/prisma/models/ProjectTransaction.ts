@@ -250,6 +250,7 @@ export type ProjectTransactionWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   witnesses?: Prisma.WitnessListRelationFilter
+  history?: Prisma.ProjectTransactionHistoryListRelationFilter
 }
 
 export type ProjectTransactionOrderByWithRelationInput = {
@@ -264,6 +265,7 @@ export type ProjectTransactionOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
   witnesses?: Prisma.WitnessOrderByRelationAggregateInput
+  history?: Prisma.ProjectTransactionHistoryOrderByRelationAggregateInput
 }
 
 export type ProjectTransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -281,6 +283,7 @@ export type ProjectTransactionWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
   witnesses?: Prisma.WitnessListRelationFilter
+  history?: Prisma.ProjectTransactionHistoryListRelationFilter
 }, "id">
 
 export type ProjectTransactionOrderByWithAggregationInput = {
@@ -326,6 +329,7 @@ export type ProjectTransactionCreateInput = {
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
   witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
 }
 
 export type ProjectTransactionUncheckedCreateInput = {
@@ -339,6 +343,7 @@ export type ProjectTransactionUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
 
 export type ProjectTransactionUpdateInput = {
@@ -352,6 +357,7 @@ export type ProjectTransactionUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
   witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
 }
 
 export type ProjectTransactionUncheckedUpdateInput = {
@@ -365,6 +371,7 @@ export type ProjectTransactionUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
 }
 
 export type ProjectTransactionCreateManyInput = {
@@ -461,6 +468,11 @@ export type ProjectTransactionSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
 }
 
+export type ProjectTransactionScalarRelationFilter = {
+  is?: Prisma.ProjectTransactionWhereInput
+  isNot?: Prisma.ProjectTransactionWhereInput
+}
+
 export type ProjectTransactionCreateNestedOneWithoutWitnessesInput = {
   create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutWitnessesInput, Prisma.ProjectTransactionUncheckedCreateWithoutWitnessesInput>
   connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutWitnessesInput
@@ -523,6 +535,20 @@ export type EnumProjectTransactionTypeFieldUpdateOperationsInput = {
   set?: $Enums.ProjectTransactionType
 }
 
+export type ProjectTransactionCreateNestedOneWithoutHistoryInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedCreateWithoutHistoryInput>
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutHistoryInput
+  connect?: Prisma.ProjectTransactionWhereUniqueInput
+}
+
+export type ProjectTransactionUpdateOneRequiredWithoutHistoryNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedCreateWithoutHistoryInput>
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutHistoryInput
+  upsert?: Prisma.ProjectTransactionUpsertWithoutHistoryInput
+  connect?: Prisma.ProjectTransactionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectTransactionUpdateToOneWithWhereWithoutHistoryInput, Prisma.ProjectTransactionUpdateWithoutHistoryInput>, Prisma.ProjectTransactionUncheckedUpdateWithoutHistoryInput>
+}
+
 export type ProjectTransactionCreateWithoutWitnessesInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -533,6 +559,7 @@ export type ProjectTransactionCreateWithoutWitnessesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
 }
 
 export type ProjectTransactionUncheckedCreateWithoutWitnessesInput = {
@@ -545,6 +572,7 @@ export type ProjectTransactionUncheckedCreateWithoutWitnessesInput = {
   projectId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
 
 export type ProjectTransactionCreateOrConnectWithoutWitnessesInput = {
@@ -573,6 +601,7 @@ export type ProjectTransactionUpdateWithoutWitnessesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
 }
 
 export type ProjectTransactionUncheckedUpdateWithoutWitnessesInput = {
@@ -585,6 +614,7 @@ export type ProjectTransactionUncheckedUpdateWithoutWitnessesInput = {
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
 }
 
 export type ProjectTransactionCreateWithoutProjectInput = {
@@ -597,6 +627,7 @@ export type ProjectTransactionCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
 }
 
 export type ProjectTransactionUncheckedCreateWithoutProjectInput = {
@@ -609,6 +640,7 @@ export type ProjectTransactionUncheckedCreateWithoutProjectInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
 
 export type ProjectTransactionCreateOrConnectWithoutProjectInput = {
@@ -652,6 +684,74 @@ export type ProjectTransactionScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
 }
 
+export type ProjectTransactionCreateWithoutHistoryInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
+}
+
+export type ProjectTransactionUncheckedCreateWithoutHistoryInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  projectId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
+}
+
+export type ProjectTransactionCreateOrConnectWithoutHistoryInput = {
+  where: Prisma.ProjectTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedCreateWithoutHistoryInput>
+}
+
+export type ProjectTransactionUpsertWithoutHistoryInput = {
+  update: Prisma.XOR<Prisma.ProjectTransactionUpdateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedUpdateWithoutHistoryInput>
+  create: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedCreateWithoutHistoryInput>
+  where?: Prisma.ProjectTransactionWhereInput
+}
+
+export type ProjectTransactionUpdateToOneWithWhereWithoutHistoryInput = {
+  where?: Prisma.ProjectTransactionWhereInput
+  data: Prisma.XOR<Prisma.ProjectTransactionUpdateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedUpdateWithoutHistoryInput>
+}
+
+export type ProjectTransactionUpdateWithoutHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
+}
+
+export type ProjectTransactionUncheckedUpdateWithoutHistoryInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
+}
+
 export type ProjectTransactionCreateManyProjectInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -673,6 +773,7 @@ export type ProjectTransactionUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
 }
 
 export type ProjectTransactionUncheckedUpdateWithoutProjectInput = {
@@ -685,6 +786,7 @@ export type ProjectTransactionUncheckedUpdateWithoutProjectInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
 }
 
 export type ProjectTransactionUncheckedUpdateManyWithoutProjectInput = {
@@ -705,10 +807,12 @@ export type ProjectTransactionUncheckedUpdateManyWithoutProjectInput = {
 
 export type ProjectTransactionCountOutputType = {
   witnesses: number
+  history: number
 }
 
 export type ProjectTransactionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   witnesses?: boolean | ProjectTransactionCountOutputTypeCountWitnessesArgs
+  history?: boolean | ProjectTransactionCountOutputTypeCountHistoryArgs
 }
 
 /**
@@ -728,6 +832,13 @@ export type ProjectTransactionCountOutputTypeCountWitnessesArgs<ExtArgs extends 
   where?: Prisma.WitnessWhereInput
 }
 
+/**
+ * ProjectTransactionCountOutputType without action
+ */
+export type ProjectTransactionCountOutputTypeCountHistoryArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectTransactionHistoryWhereInput
+}
+
 
 export type ProjectTransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -741,6 +852,7 @@ export type ProjectTransactionSelect<ExtArgs extends runtime.Types.Extensions.In
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   witnesses?: boolean | Prisma.ProjectTransaction$witnessesArgs<ExtArgs>
+  history?: boolean | Prisma.ProjectTransaction$historyArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectTransactionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["projectTransaction"]>
 
@@ -786,6 +898,7 @@ export type ProjectTransactionOmit<ExtArgs extends runtime.Types.Extensions.Inte
 export type ProjectTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
   witnesses?: boolean | Prisma.ProjectTransaction$witnessesArgs<ExtArgs>
+  history?: boolean | Prisma.ProjectTransaction$historyArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectTransactionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectTransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -800,6 +913,7 @@ export type $ProjectTransactionPayload<ExtArgs extends runtime.Types.Extensions.
   objects: {
     project: Prisma.$ProjectPayload<ExtArgs>
     witnesses: Prisma.$WitnessPayload<ExtArgs>[]
+    history: Prisma.$ProjectTransactionHistoryPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1207,6 +1321,7 @@ export interface Prisma__ProjectTransactionClient<T, Null = never, ExtArgs exten
   readonly [Symbol.toStringTag]: "PrismaPromise"
   project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   witnesses<T extends Prisma.ProjectTransaction$witnessesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectTransaction$witnessesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  history<T extends Prisma.ProjectTransaction$historyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectTransaction$historyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTransactionHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1662,6 +1777,30 @@ export type ProjectTransaction$witnessesArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.WitnessScalarFieldEnum | Prisma.WitnessScalarFieldEnum[]
+}
+
+/**
+ * ProjectTransaction.history
+ */
+export type ProjectTransaction$historyArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectTransactionHistory
+   */
+  select?: Prisma.ProjectTransactionHistorySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectTransactionHistory
+   */
+  omit?: Prisma.ProjectTransactionHistoryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectTransactionHistoryInclude<ExtArgs> | null
+  where?: Prisma.ProjectTransactionHistoryWhereInput
+  orderBy?: Prisma.ProjectTransactionHistoryOrderByWithRelationInput | Prisma.ProjectTransactionHistoryOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectTransactionHistoryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectTransactionHistoryScalarFieldEnum | Prisma.ProjectTransactionHistoryScalarFieldEnum[]
 }
 
 /**

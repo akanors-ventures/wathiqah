@@ -2,9 +2,11 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LogProjectTransactionInput } from './dto/log-project-transaction.input';
+import { UpdateProjectTransactionInput } from './dto/update-project-transaction.input';
 import {
   ProjectTransactionType,
   WitnessStatus,
@@ -280,6 +282,127 @@ export class ProjectTransactionsService {
     return transaction;
   }
 
+  async update(userId: string, input: UpdateProjectTransactionInput) {
+    const { id, amount, type, ...rest } = input;
+
+    // Fetch the existing transaction with its project
+    const transaction = await this.prisma.projectTransaction.findUnique({
+      where: { id },
+      include: { project: true },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException(
+        `Project transaction with ID ${id} not found`,
+      );
+    }
+
+    // Only the project owner can update transactions
+    if (transaction.project.userId !== userId) {
+      throw new ForbiddenException(
+        'Only the project owner can update this transaction',
+      );
+    }
+
+    if (amount !== undefined && amount <= 0) {
+      throw new BadRequestException(
+        'Transaction amount must be greater than zero',
+      );
+    }
+
+    // Capture previous state for audit log
+    const previousState = {
+      amount: Number(transaction.amount),
+      type: transaction.type,
+      category: transaction.category,
+      description: transaction.description,
+      date: transaction.date,
+    };
+
+    // Determine what changed
+    const changes: Prisma.ProjectTransactionUncheckedUpdateInput = {};
+    const changeDescriptions: string[] = [];
+
+    if (amount !== undefined && Number(amount) !== Number(transaction.amount)) {
+      changes.amount = amount;
+      changeDescriptions.push(`Amount changed to ${amount}`);
+    }
+    if (type && type !== transaction.type) {
+      changes.type = type;
+      changeDescriptions.push(`Type changed to ${type}`);
+    }
+    if (rest.category !== undefined && rest.category !== transaction.category) {
+      changes.category = rest.category;
+      changeDescriptions.push(`Category changed to ${rest.category}`);
+    }
+    if (
+      rest.description !== undefined &&
+      rest.description !== transaction.description
+    ) {
+      changes.description = rest.description;
+      changeDescriptions.push('Description updated');
+    }
+    if (
+      rest.date &&
+      new Date(rest.date).getTime() !== new Date(transaction.date).getTime()
+    ) {
+      changes.date = rest.date;
+      changeDescriptions.push(
+        `Date changed to ${new Date(rest.date).toLocaleDateString()}`,
+      );
+    }
+
+    const hasChanges = Object.keys(changes).length > 0;
+
+    if (!hasChanges) {
+      return this.prisma.projectTransaction.findUnique({
+        where: { id },
+        include: { witnesses: { include: { user: true } }, history: true },
+      });
+    }
+
+    // Balance adjustment when amount or type changes
+    const oldAmount = Number(transaction.amount);
+    const newAmount = amount !== undefined ? amount : oldAmount;
+    const oldType = transaction.type;
+    const newType = type ?? oldType;
+
+    const oldBalanceEffect =
+      oldType === ProjectTransactionType.EXPENSE ? -oldAmount : oldAmount;
+    const newBalanceEffect =
+      newType === ProjectTransactionType.EXPENSE ? -newAmount : newAmount;
+    const balanceDelta = newBalanceEffect - oldBalanceEffect;
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.projectTransaction.update({
+        where: { id },
+        data: changes,
+        include: { witnesses: { include: { user: true } }, history: true },
+      });
+
+      // Update project balance if needed
+      if (balanceDelta !== 0) {
+        await tx.project.update({
+          where: { id: transaction.projectId },
+          data: { balance: { increment: balanceDelta } },
+        });
+      }
+
+      // Write audit history
+      await tx.projectTransactionHistory.create({
+        data: {
+          projectTransactionId: id,
+          userId,
+          previousState: previousState as Prisma.InputJsonValue,
+          newState: changes as Prisma.InputJsonValue,
+          changeType: changeDescriptions.join('; ') || 'UPDATED',
+        },
+      });
+
+      return updated;
+    });
+  }
+
   async findAllByProject(userId: string, projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
@@ -297,6 +420,9 @@ export class ProjectTransactionsService {
           include: {
             user: true,
           },
+        },
+        history: {
+          orderBy: { createdAt: 'desc' },
         },
       },
     });

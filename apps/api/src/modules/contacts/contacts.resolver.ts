@@ -53,7 +53,11 @@ export class ContactsResolver {
 
   @ResolveField(() => String)
   name(@Parent() contact: Contact): string {
-    return `${contact.firstName} ${contact.lastName}`.trim();
+    return (
+      [contact.firstName, contact.lastName].filter(Boolean).join(' ') ||
+      (contact as unknown as { name?: string }).name ||
+      ''
+    );
   }
 
   @ResolveField(() => Number)

@@ -10,6 +10,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { Dashboard } from "@/components/dashboard/Dashboard";
+import { SharedHistoryInterstitial } from "@/components/onboarding/SharedHistoryInterstitial";
 import { Footer } from "@/components/layout/Footer";
 import { HeroMockup } from "@/components/marketing/HeroMockup";
 import { SecurityFeatures } from "@/components/marketing/SecurityFeatures";
@@ -28,6 +29,12 @@ function LandingPage() {
   }
 
   if (user) {
+    // New users who have pre-existing transactions recorded against their contact
+    // entry see a dedicated interstitial before the dashboard. The flag is set
+    // to true once they dismiss it, ensuring it is shown only once.
+    if (!user.hasSeenSharedHistory) {
+      return <SharedHistoryInterstitial />;
+    }
     return <Dashboard />;
   }
 

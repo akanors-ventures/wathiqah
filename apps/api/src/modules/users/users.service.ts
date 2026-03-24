@@ -55,6 +55,14 @@ export class UsersService {
     });
   }
 
+  async markSharedHistorySeen(userId: string): Promise<boolean> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { hasSeenSharedHistory: true },
+    });
+    return true;
+  }
+
   async searchWitness(query: string, type: 'EMAIL' | 'PHONE') {
     // 1. Privacy: Enforce exact match logic (no 'contains' or partial search)
     // 2. Security: Only return necessary fields

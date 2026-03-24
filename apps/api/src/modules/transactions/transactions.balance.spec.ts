@@ -308,6 +308,12 @@ describe('TransactionsService - Balance & Audit', () => {
         currency: 'NGN',
         userId,
         name: 'Project A',
+        user: {
+          id: userId,
+          firstName: 'Test',
+          lastName: 'User',
+          email: 'test@example.com',
+        },
       };
       (prisma.project.findMany as jest.Mock).mockResolvedValue([projectA]);
 

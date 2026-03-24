@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowLeft,
+  ArrowRightLeft,
   CalendarDays,
   Edit2,
   FileText,
@@ -16,6 +17,7 @@ import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
+import { RecordReturnDialog } from "@/components/transactions/RecordReturnDialog";
 import { TransactionWitnessList } from "@/components/transactions/TransactionWitnessList";
 import {
   AlertDialog,
@@ -48,6 +50,7 @@ function TransactionDetailPage() {
   const [isAddWitnessOpen, setIsAddWitnessOpen] = useState(false);
   const [isConvertGiftOpen, setIsConvertGiftOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isRecordReturnOpen, setIsRecordReturnOpen] = useState(false);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [removingWitnessId, setRemovingWitnessId] = useState<string | null>(null);
@@ -124,6 +127,12 @@ function TransactionDetailPage() {
     (currentTransaction.type === TransactionType.Given ||
       currentTransaction.type === TransactionType.Received);
 
+  const canRecordReturn =
+    currentTransaction.category === AssetCategory.Funds &&
+    (currentTransaction.type === TransactionType.Given ||
+      currentTransaction.type === TransactionType.Received) &&
+    !!currentTransaction.contact;
+
   const totalConverted = conversions.reduce(
     (sum, conversion) => sum + (conversion?.amount || 0),
     0,
@@ -132,7 +141,7 @@ function TransactionDetailPage() {
   const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalConverted);
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 py-8">
+    <div className="container mx-auto max-w-3xl p-4 py-8 overflow-x-hidden">
       <div className="mb-6">
         <Link
           to="/"
@@ -141,119 +150,134 @@ function TransactionDetailPage() {
           <ArrowLeft className="mr-1 h-4 w-4" /> Back to Dashboard
         </Link>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
-              {currentTransaction.type === TransactionType.Given
-                ? "Given to"
-                : currentTransaction.type === TransactionType.Received
-                  ? "Received from"
-                  : currentTransaction.type === TransactionType.Returned
-                    ? currentTransaction.returnDirection === "TO_ME"
-                      ? "Returned to me by"
-                      : "Returned to"
-                    : currentTransaction.type === TransactionType.Gift
+        <div className="flex flex-col gap-3">
+          {/* Row 1: title (wraps) + amount (pinned right) */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white leading-tight">
+                {currentTransaction.type === TransactionType.Given
+                  ? "Given to"
+                  : currentTransaction.type === TransactionType.Received
+                    ? "Received from"
+                    : currentTransaction.type === TransactionType.Returned
                       ? currentTransaction.returnDirection === "TO_ME"
-                        ? "Gift received from"
-                        : "Gift given to"
-                      : currentTransaction.type === TransactionType.Income
-                        ? "Income from"
-                        : currentTransaction.type === TransactionType.Expense
-                          ? "Expense to"
-                          : "Collected from"}{" "}
-              <span className="inline-flex items-center gap-2">
-                {currentTransaction.contact?.name || "Personal"}
-                {currentTransaction.contact?.isSupporter && (
-                  <SupporterBadge className="h-5 px-1.5" />
-                )}
-              </span>
-            </h1>
-            <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2">
-              <CalendarDays size={14} />
-              {format(new Date(currentTransaction.date as string), "MMMM d, yyyy")}
-            </p>
-          </div>
-          <div className="text-right flex flex-col items-end gap-2">
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1"
-                onClick={() => setIsEditOpen(true)}
-              >
-                <Edit2 size={14} />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                onClick={() => setIsRemoveDialogOpen(true)}
-              >
-                <Trash2 size={14} />
-                Remove
-              </Button>
-            </div>
-            {currentTransaction.category === AssetCategory.Funds &&
-              currentTransaction.amount !== null && (
-                <div
-                  className={`text-2xl font-bold ${
-                    currentTransaction.type === "GIVEN"
-                      ? "text-blue-600 dark:text-blue-400"
-                      : currentTransaction.type === "RETURNED"
+                        ? "Returned to me by"
+                        : "Returned to"
+                      : currentTransaction.type === TransactionType.Gift
                         ? currentTransaction.returnDirection === "TO_ME"
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : "text-blue-600 dark:text-blue-400"
-                        : currentTransaction.type === "INCOME"
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : currentTransaction.type === "GIFT"
-                            ? currentTransaction.returnDirection === "TO_ME"
-                              ? "text-purple-600 dark:text-purple-400"
-                              : "text-pink-600 dark:text-pink-400"
-                            : "text-red-600 dark:text-red-400"
-                  }`}
-                >
-                  {currentTransaction.type === "GIVEN" ||
-                  (currentTransaction.type === "RETURNED" &&
-                    currentTransaction.returnDirection === "TO_ME") ||
-                  currentTransaction.type === "INCOME" ||
-                  (currentTransaction.type === "GIFT" &&
-                    currentTransaction.returnDirection === "TO_ME")
-                    ? "+"
-                    : "-"}
-                  {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
+                          ? "Gift received from"
+                          : "Gift given to"
+                        : currentTransaction.type === TransactionType.Income
+                          ? "Income from"
+                          : currentTransaction.type === TransactionType.Expense
+                            ? "Expense to"
+                            : "Collected from"}{" "}
+                <span className="inline-flex items-center gap-2 flex-wrap">
+                  {currentTransaction.contact?.name || "Personal"}
+                  {currentTransaction.contact?.isSupporter && (
+                    <SupporterBadge className="h-5 px-1.5" />
+                  )}
+                </span>
+              </h1>
+              <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2 text-sm">
+                <CalendarDays size={14} />
+                {format(new Date(currentTransaction.date as string), "MMMM d, yyyy")}
+              </p>
+            </div>
+
+            {/* Amount — flex-shrink-0 so it never compresses */}
+            <div className="text-right flex-shrink-0">
+              {currentTransaction.category === AssetCategory.Funds &&
+                currentTransaction.amount !== null && (
+                  <div
+                    className={`text-xl sm:text-2xl font-bold ${
+                      currentTransaction.type === "GIVEN"
+                        ? "text-blue-600 dark:text-blue-400"
+                        : currentTransaction.type === "RETURNED"
+                          ? currentTransaction.returnDirection === "TO_ME"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-blue-600 dark:text-blue-400"
+                          : currentTransaction.type === "INCOME"
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : currentTransaction.type === "GIFT"
+                              ? currentTransaction.returnDirection === "TO_ME"
+                                ? "text-purple-600 dark:text-purple-400"
+                                : "text-pink-600 dark:text-pink-400"
+                              : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {currentTransaction.type === "GIVEN" ||
+                    (currentTransaction.type === "RETURNED" &&
+                      currentTransaction.returnDirection === "TO_ME") ||
+                    currentTransaction.type === "INCOME" ||
+                    (currentTransaction.type === "GIFT" &&
+                      currentTransaction.returnDirection === "TO_ME")
+                      ? "+"
+                      : "-"}
+                    {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
+                  </div>
+                )}
+              {totalConverted > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 mt-0.5">
+                  Gift: {formatCurrency(totalConverted, currentTransaction.currency)}
                 </div>
               )}
-            {totalConverted > 0 && (
-              <div className="text-sm font-medium text-orange-600 dark:text-orange-400">
-                Converted to gift: {formatCurrency(totalConverted, currentTransaction.currency)}
-              </div>
+              {currentTransaction.category === AssetCategory.Item &&
+                currentTransaction.quantity && (
+                  <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                    {currentTransaction.quantity} x {currentTransaction.itemName || "Item"}
+                  </div>
+                )}
+            </div>
+          </div>
+
+          {/* Row 2: all actions in one wrapping row */}
+          <div className="flex flex-wrap gap-2">
+            {canRecordReturn && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
+                onClick={() => setIsRecordReturnOpen(true)}
+              >
+                <ArrowRightLeft size={14} />
+                Record Return
+              </Button>
             )}
-            {currentTransaction.category === AssetCategory.Item && currentTransaction.quantity && (
-              <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                {currentTransaction.quantity} x {currentTransaction.itemName || "Item"}
-              </div>
+            {canConvertToGift && remainingAmount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-orange-600 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950/30"
+                onClick={() => setIsConvertGiftOpen(true)}
+              >
+                <Gift size={14} />
+                Convert to Gift
+              </Button>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1"
+              onClick={() => setIsEditOpen(true)}
+            >
+              <Edit2 size={14} />
+              Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+              onClick={() => setIsRemoveDialogOpen(true)}
+            >
+              <Trash2 size={14} />
+              Remove
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="grid gap-6">
-        {/* Actions bar if applicable */}
-        {canConvertToGift && remainingAmount > 0 && (
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50"
-              onClick={() => setIsConvertGiftOpen(true)}
-            >
-              <Gift size={16} />
-              Convert to Gift
-            </Button>
-          </div>
-        )}
-
         {/* Transaction Details Card */}
         <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
@@ -357,6 +381,22 @@ function TransactionDetailPage() {
           open={isEditOpen}
           onOpenChange={setIsEditOpen}
         />
+
+        {canRecordReturn && currentTransaction.contact && (
+          <RecordReturnDialog
+            open={isRecordReturnOpen}
+            onOpenChange={setIsRecordReturnOpen}
+            transaction={{
+              id: currentTransaction.id,
+              type: currentTransaction.type,
+              amount: currentTransaction.amount,
+              currency: currentTransaction.currency,
+              contactId: currentTransaction.contact.id,
+              contactName: currentTransaction.contact.name,
+            }}
+            onSuccess={refetch}
+          />
+        )}
 
         <AddWitnessDialog
           isOpen={isAddWitnessOpen}

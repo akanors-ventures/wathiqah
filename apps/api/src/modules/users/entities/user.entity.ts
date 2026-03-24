@@ -55,5 +55,8 @@ export class User {
   role: UserRole;
 
   @Field()
+  hasSeenSharedHistory: boolean;
+
+  @Field()
   createdAt: Date;
 }
