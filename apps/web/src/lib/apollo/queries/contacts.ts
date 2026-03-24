@@ -17,17 +17,22 @@ import type {
 } from "@/types/__generated__/graphql";
 
 export const GET_CONTACTS: TypedDocumentNode<GetContactsQuery, GetContactsQueryVariables> = gql`
-  query GetContacts {
-    contacts {
-      id
-      name
-      email
-      phoneNumber
-      balance
-      isOnPlatform
-      isSupporter
-      hasPendingInvitation
-      createdAt
+  query GetContacts($filter: FilterContactInput) {
+    contacts(filter: $filter) {
+      items {
+        id
+        name
+        email
+        phoneNumber
+        balance
+        isOnPlatform
+        isSupporter
+        hasPendingInvitation
+        createdAt
+      }
+      total
+      page
+      limit
     }
   }
 `;

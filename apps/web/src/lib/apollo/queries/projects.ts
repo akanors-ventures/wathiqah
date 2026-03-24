@@ -10,6 +10,7 @@ export const PROJECT_FRAGMENT = gql`
     totalIncome
     totalExpenses
     currency
+    status
     userId
     createdAt
     updatedAt
@@ -50,9 +51,14 @@ export const PROJECT_TRANSACTION_FRAGMENT = gql`
 
 export const GET_MY_PROJECTS = gql`
   ${PROJECT_FRAGMENT}
-  query GetMyProjects {
-    myProjects {
-      ...ProjectFields
+  query GetMyProjects($filter: FilterProjectInput) {
+    myProjects(filter: $filter) {
+      items {
+        ...ProjectFields
+      }
+      total
+      page
+      limit
     }
   }
 `;
@@ -60,11 +66,16 @@ export const GET_MY_PROJECTS = gql`
 export const GET_PROJECT = gql`
   ${PROJECT_FRAGMENT}
   ${PROJECT_TRANSACTION_FRAGMENT}
-  query GetProject($id: ID!) {
+  query GetProject($id: ID!, $filter: FilterProjectTransactionInput) {
     project(id: $id) {
       ...ProjectFields
-      transactions {
-        ...ProjectTransactionFields
+      transactions(filter: $filter) {
+        items {
+          ...ProjectTransactionFields
+        }
+        total
+        page
+        limit
       }
     }
   }
