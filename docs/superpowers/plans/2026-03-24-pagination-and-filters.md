@@ -19,60 +19,19 @@ After all backend changes in a task are complete, if GraphQL types changed:
 
 ---
 
-## Task 1: Prisma Schema Migration — ProjectStatus
+## Task 1: Prisma Schema Migration — ProjectStatus + Project category
 
 **Files:**
 - Modify: `apps/api/prisma/schema.prisma`
 
-- [ ] **Step 1: Add `ProjectStatus` enum and `status` field to `Project` model**
+> **Status: COMPLETE** (commits `77e8880` and subsequent commit for `category`)
 
-Open `apps/api/prisma/schema.prisma`. Find the `Project` model and the enums section. Add:
+- [x] **Step 1: Add `ProjectStatus` enum and `status` field to `Project` model**
+- [x] **Step 2: Add `category String?` field to `Project` model** (placed after `status`)
+- [x] **Step 3: Generate + apply migrations** (Atlas migrations `20260324125528.sql` and `20260324141210.sql`)
+- [x] **Step 4: Regenerate Prisma client**
 
-```prisma
-enum ProjectStatus {
-  ACTIVE
-  COMPLETED
-  ARCHIVED
-}
-```
-
-In the `Project` model add:
-```prisma
-status  ProjectStatus  @default(ACTIVE)
-```
-
-Place the field after `balance`.
-
-- [ ] **Step 2: Generate the migration**
-
-```bash
-pnpm --filter api db:migrate
-```
-
-Expected: Atlas creates a new migration file in `apps/api/prisma/migrations/`.
-
-- [ ] **Step 3: Regenerate Prisma client**
-
-```bash
-pnpm --filter api db:generate
-```
-
-Expected: `apps/api/src/generated/prisma/` updated with `ProjectStatus` in `enums.ts`.
-
-- [ ] **Step 4: Verify build compiles**
-
-```bash
-pnpm --filter api build
-```
-
-Expected: No TypeScript errors.
-
-- [ ] **Step 5: Commit**
-
-```bash
-git add apps/api/prisma/ apps/api/src/generated/
-git commit -m "feat(db): add ProjectStatus enum to Project model"
-```
+`FilterProjectInput` also updated to include `category?: string` filter field.
 
 ---
 

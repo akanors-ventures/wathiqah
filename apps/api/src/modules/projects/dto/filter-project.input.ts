@@ -20,6 +20,9 @@ export class FilterProjectInput {
   @Field(() => ProjectBalanceStanding, { nullable: true })
   balanceStanding?: ProjectBalanceStanding;
 
+  @Field({ nullable: true })
+  category?: string;
+
   @Field(() => Int, { nullable: true, defaultValue: 1 })
   page?: number;
 
