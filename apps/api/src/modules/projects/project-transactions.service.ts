@@ -7,12 +7,14 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { LogProjectTransactionInput } from './dto/log-project-transaction.input';
 import { UpdateProjectTransactionInput } from './dto/update-project-transaction.input';
+import { FilterProjectTransactionInput } from './dto/filter-project-transaction.input';
 import {
   ProjectTransactionType,
   WitnessStatus,
   Witness,
   Prisma,
 } from '../../generated/prisma/client';
+import { PaginatedProjectTransactionsResponse } from './entities/paginated-project-transactions-response.entity';
 import { NotificationService } from '../notifications/notification.service';
 import { v4 as uuidv4 } from 'uuid';
 import { normalizeEmail } from '../../common/utils/string.utils';
@@ -426,5 +428,43 @@ export class ProjectTransactionsService {
         },
       },
     });
+  }
+
+  async findByProject(
+    projectId: string,
+    filter?: FilterProjectTransactionInput,
+  ): Promise<PaginatedProjectTransactionsResponse> {
+    const page = filter?.page ?? 1;
+    const limit = filter?.limit ?? 25;
+
+    const where: Prisma.ProjectTransactionWhereInput = {
+      projectId,
+      ...(filter?.type && { type: filter.type }),
+      ...(filter?.category && {
+        category: { contains: filter.category, mode: 'insensitive' },
+      }),
+      ...((filter?.startDate || filter?.endDate) && {
+        date: {
+          ...(filter.startDate && { gte: filter.startDate }),
+          ...(filter.endDate && { lte: filter.endDate }),
+        },
+      }),
+    };
+
+    const [total, items] = await Promise.all([
+      this.prisma.projectTransaction.count({ where }),
+      this.prisma.projectTransaction.findMany({
+        where,
+        orderBy: { date: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          witnesses: { include: { user: true } },
+          history: true,
+        },
+      }),
+    ]);
+
+    return { items: items as unknown as PaginatedProjectTransactionsResponse['items'], total, page, limit };
   }
 }

@@ -33,9 +33,6 @@ export class Project {
   @Field(() => ProjectStatus, { defaultValue: ProjectStatus.ACTIVE })
   status: ProjectStatus;
 
-  @Field({ nullable: true })
-  category?: string;
-
   @Field()
   userId: string;
 

@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { WitnessStatus } from '../../generated/prisma/client';
+import { FilterWitnessInput } from './dto/filter-witness.input';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { NotificationService } from '../notifications/notification.service';
@@ -90,25 +91,71 @@ export class WitnessesService {
     });
   }
 
-  async findMyRequests(userId: string, status?: WitnessStatus) {
-    return this.prisma.witness.findMany({
-      where: {
-        userId,
-        ...(status && { status }),
-      },
-      include: {
-        transaction: {
-          include: {
-            contact: true,
-            createdBy: true,
+  async findMyRequests(userId: string, filter?: FilterWitnessInput) {
+    const page = filter?.page ?? 1;
+    const limit = filter?.limit ?? 25;
+    const skip = (page - 1) * limit;
+
+    const where: {
+      userId: string;
+      status?: WitnessStatus;
+      invitedAt?: { gte?: Date; lte?: Date };
+      OR?: unknown[];
+    } = { userId };
+
+    if (filter?.startDate || filter?.endDate) {
+      where.invitedAt = {
+        ...(filter.startDate && { gte: filter.startDate }),
+        ...(filter.endDate && { lte: filter.endDate }),
+      };
+    }
+
+    if (filter?.search) {
+      where.OR = [
+        {
+          transaction: {
+            description: { contains: filter.search, mode: 'insensitive' },
           },
         },
-        user: true,
+        {
+          transaction: {
+            contact: {
+              firstName: { contains: filter.search, mode: 'insensitive' },
+            },
+          },
+        },
+        {
+          transaction: {
+            contact: {
+              lastName: { contains: filter.search, mode: 'insensitive' },
+            },
+          },
+        },
+      ];
+    }
+
+    const include = {
+      transaction: {
+        include: {
+          contact: true,
+          createdBy: true,
+        },
       },
-      orderBy: {
-        invitedAt: 'desc',
-      },
-    });
+      user: true,
+    };
+
+    const [total, items] = await Promise.all([
+      this.prisma.witness.count({ where }),
+      this.prisma.witness.findMany({
+        where,
+        include,
+        orderBy: { invitedAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+    ]);
+
+    return { items, total, page, limit };
   }
 
   async resendInvitation(witnessId: string, userId: string) {
