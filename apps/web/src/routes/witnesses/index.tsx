@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Search } from "lucide-react";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { WitnessList } from "@/components/witnesses/WitnessList";
 import { useAcknowledgeWitness, useMyWitnessRequests } from "@/hooks/useWitnesses";
 import { authGuard } from "@/utils/auth";
@@ -12,10 +15,18 @@ export const Route = createFileRoute("/witnesses/")({
 
 function WitnessRequestsPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
+  const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [page, setPage] = useState(1);
 
-  // Note: We're fetching all and filtering client-side for now to match the UI behavior
-  // Ideally, we'd pass the status to the hook based on the tab
-  const { requests, loading, error, refetch } = useMyWitnessRequests();
+  const { requests, total, limit, loading, error, refetch } = useMyWitnessRequests({
+    search: search || undefined,
+    startDate: startDate ? new Date(startDate) : undefined,
+    endDate: endDate ? new Date(endDate) : undefined,
+    page,
+    limit: 25,
+  });
 
   const { acknowledge, loading: mutationLoading } = useAcknowledgeWitness(() => refetch());
 
@@ -67,12 +78,53 @@ function WitnessRequestsPage() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by description or contact..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground whitespace-nowrap">From</label>
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => {
+              setStartDate(e.target.value);
+              setPage(1);
+            }}
+            className="h-9"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-muted-foreground whitespace-nowrap">To</label>
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => {
+              setEndDate(e.target.value);
+              setPage(1);
+            }}
+            className="h-9"
+          />
+        </div>
+      </div>
+
       <WitnessList
         requests={requests}
         activeTab={activeTab}
         onAction={acknowledge}
         isLoading={mutationLoading}
       />
+      <PaginationControls page={page} limit={limit} total={total} onPageChange={setPage} />
     </div>
   );
 }

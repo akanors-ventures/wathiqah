@@ -33,6 +33,9 @@ export function useTransactions(filter?: FilterTransactionInput) {
   return {
     transactions: data?.transactions.items || [],
     summary: data?.transactions.summary,
+    total: data?.transactions.total ?? 0,
+    page: data?.transactions.page ?? 1,
+    limit: data?.transactions.limit ?? 25,
     loading,
     error,
     createTransaction,
