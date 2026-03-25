@@ -29,9 +29,16 @@ export class StripeService {
     });
   }
 
-  async createSubscriptionSession(user: User, tier: SubscriptionTier) {
+  async createSubscriptionSession(
+    user: User,
+    tier: SubscriptionTier,
+    interval?: string,
+  ) {
     const proPlanId = this.configService.get<string>(
       'payment.stripe.proPlanId',
+    );
+    const proAnnualPlanId = this.configService.get<string>(
+      'payment.stripe.proAnnualPlanId',
     );
     const successUrl = this.configService.get<string>('payment.successUrl');
     const cancelUrl = this.configService.get<string>('payment.cancelUrl');
@@ -40,11 +47,22 @@ export class StripeService {
       throw new Error('Stripe Pro Plan ID not configured');
     }
 
+    let effectivePlanId = proPlanId;
+    if (interval === 'annual') {
+      if (proAnnualPlanId) {
+        effectivePlanId = proAnnualPlanId;
+      } else {
+        this.logger.warn(
+          'Stripe annual plan ID not configured, falling back to monthly plan',
+        );
+      }
+    }
+
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
         {
-          price: proPlanId,
+          price: effectivePlanId,
           quantity: 1,
         },
       ],

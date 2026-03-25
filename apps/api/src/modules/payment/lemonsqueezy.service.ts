@@ -33,13 +33,31 @@ export class LemonSqueezyService {
     }
   }
 
-  async createSubscriptionSession(user: User, tier: SubscriptionTier) {
+  async createSubscriptionSession(
+    user: User,
+    tier: SubscriptionTier,
+    interval?: string,
+  ) {
     const storeId = this.configService.get<string>(
       'payment.lemonsqueezy.storeId',
     );
-    const variantId = this.configService.get<string>(
+    const proVariantId = this.configService.get<string>(
       'payment.lemonsqueezy.proVariantId',
     );
+    const proAnnualVariantId = this.configService.get<string>(
+      'payment.lemonsqueezy.proAnnualVariantId',
+    );
+
+    let variantId = proVariantId;
+    if (interval === 'annual') {
+      if (proAnnualVariantId) {
+        variantId = proAnnualVariantId;
+      } else {
+        this.logger.warn(
+          'Lemon Squeezy annual variant ID not configured, falling back to monthly variant',
+        );
+      }
+    }
 
     if (!storeId || !variantId) {
       throw new Error('Lemon Squeezy Store ID or Variant ID not configured');
