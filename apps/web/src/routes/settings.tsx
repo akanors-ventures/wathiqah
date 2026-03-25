@@ -131,6 +131,8 @@ export function BillingSection() {
     );
   }
 
+  const TIER_DISPLAY: Record<string, string> = { FREE: "Ledger", PRO: "Wathīqah Pro" };
+
   const isUnlimited = maxWitnessesPerMonth === Infinity;
   const usagePercent = isUnlimited ? 0 : Math.min(100, (witnessUsage / maxWitnessesPerMonth) * 100);
   const status = subscription?.subscriptionStatus || "active";
@@ -160,13 +162,13 @@ export function BillingSection() {
                 Current Plan
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-black">{tier}</span>
+                <span className="text-2xl font-black">{TIER_DISPLAY[tier ?? "FREE"] ?? tier}</span>
                 {isPro && (
                   <Badge
                     variant="default"
                     className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
                   >
-                    PRO
+                    Pro
                   </Badge>
                 )}
               </div>
