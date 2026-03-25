@@ -1,13 +1,12 @@
-import { useQuery } from "@apollo/client/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Filter, Info, Package, Search } from "lucide-react";
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -24,10 +23,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { GET_MY_CONTACT_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
+import { useMyContactTransactions } from "@/hooks/useMyContactTransactions";
+import { useSharedHistoryFilters } from "@/hooks/useSharedHistoryFilters";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { AssetCategory, type TransactionType } from "@/types/__generated__/graphql";
+import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/transactions/my-contact-transactions")({
@@ -37,32 +37,24 @@ export const Route = createFileRoute("/transactions/my-contact-transactions")({
 
 function MyContactTransactionsPage() {
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("ALL");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [page, setPage] = useState(1);
+  const {
+    search,
+    setSearch,
+    types,
+    setTypes,
+    dateRange,
+    setDateRange,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useSharedHistoryFilters();
 
-  const { data, loading, error } = useQuery(GET_MY_CONTACT_TRANSACTIONS, {
-    variables: {
-      filter: {
-        search: search || undefined,
-        types:
-          typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
-        startDate: startDate ? new Date(startDate) : undefined,
-        endDate: endDate ? new Date(endDate) : undefined,
-        page,
-        limit: 25,
-      },
-    },
-  });
+  const { transactions, total, loading, error } = useMyContactTransactions(variables.filter);
 
   if (loading) return <PageLoader />;
   if (error) return <div className="p-8 text-center text-red-500">Error: {error.message}</div>;
-
-  const transactions = data?.myContactTransactions.items || [];
-  const total = data?.myContactTransactions.total ?? 0;
-  const limit = data?.myContactTransactions.limit ?? 25;
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -78,17 +70,22 @@ function MyContactTransactionsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by description or contact..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
-        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+        <Select
+          value={types[0] ?? "ALL"}
+          onValueChange={(v) =>
+            setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])
+          }
+        >
           <SelectTrigger className="sm:w-[160px]">
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Type" />
@@ -101,18 +98,7 @@ function MyContactTransactionsPage() {
             <SelectItem value="GIFT">Gift</SelectItem>
           </SelectContent>
         </Select>
-        <Input
-          type="date"
-          value={startDate}
-          onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
-          className="sm:w-[150px] h-9"
-        />
-        <Input
-          type="date"
-          value={endDate}
-          onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
-          className="sm:w-[150px] h-9"
-        />
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
       <div className="rounded-[24px] border border-blue-100 bg-blue-50/50 p-4 sm:p-5 dark:border-blue-900/30 dark:bg-blue-900/10">
@@ -413,7 +399,13 @@ function MyContactTransactionsPage() {
               </div>
             </>
           )}
-          <PaginationControls page={page} limit={limit} total={total} onPageChange={setPage} />
+          <Pagination
+            total={total}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={setLimit}
+          />
         </CardContent>
       </Card>
     </div>

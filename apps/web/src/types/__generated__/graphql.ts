@@ -704,6 +704,7 @@ export type QueryMyProjectsArgs = {
 
 export type QueryMyWitnessRequestsArgs = {
   filter?: InputMaybe<FilterWitnessInput>;
+  status?: InputMaybe<WitnessStatus>;
 };
 
 
@@ -1413,6 +1414,7 @@ export type SearchWitnessQueryVariables = Exact<{
 export type SearchWitnessQuery = { searchWitness: { __typename: 'WitnessCandidate', id: string, firstName: string, lastName: string } | null };
 
 export type MyWitnessRequestsQueryVariables = Exact<{
+  status?: InputMaybe<WitnessStatus>;
   filter?: InputMaybe<FilterWitnessInput>;
 }>;
 

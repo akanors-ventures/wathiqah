@@ -1,7 +1,6 @@
 import { useMutation } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Filter, Plus, Search, User } from "lucide-react";
-import { useState } from "react";
 import { ContactCard } from "@/components/contacts/ContactCard";
 import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import {
@@ -17,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -25,11 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useContactFilters } from "@/hooks/useContactFilters";
 import { useContacts } from "@/hooks/useContacts";
 import { useItems } from "@/hooks/useItems";
 import { GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
-import type { ContactBalanceStanding, GetContactsQuery } from "@/types/__generated__/graphql";
+import type { GetContactsQuery } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
+import { useState } from "react";
 
 export const Route = createFileRoute("/contacts/")({
   component: ContactsPage,
@@ -39,17 +40,19 @@ export const Route = createFileRoute("/contacts/")({
 type ContactItem = GetContactsQuery["contacts"]["items"][number];
 
 function ContactsPage() {
-  const [search, setSearch] = useState("");
-  const [balanceStanding, setBalanceStanding] = useState<string>("ALL");
-  const [page, setPage] = useState(1);
-
-  const { contacts, total, limit, loading, error, deleteContact } = useContacts({
-    search: search || undefined,
-    balanceStanding:
-      balanceStanding === "ALL" ? undefined : (balanceStanding as ContactBalanceStanding),
+  const {
+    search,
+    setSearch,
+    balanceStanding,
+    setBalanceStanding,
     page,
-    limit: 25,
-  });
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useContactFilters();
+
+  const { contacts, total, loading, error, deleteContact } = useContacts(variables.filter);
 
   const { items } = useItems();
 
@@ -89,11 +92,6 @@ function ContactsPage() {
     setEditingContact(null);
   };
 
-  const handleFilterChange = (setter: (v: string) => void) => (v: string) => {
-    setter(v);
-    setPage(1);
-  };
-
   return (
     <div className="container mx-auto p-4 max-w-5xl py-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -118,14 +116,11 @@ function ContactsPage() {
           <Input
             placeholder="Search by name, email, or phone..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10 h-10 bg-background"
           />
         </div>
-        <Select value={balanceStanding} onValueChange={handleFilterChange(setBalanceStanding)}>
+        <Select value={balanceStanding} onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}>
           <SelectTrigger className="sm:w-[200px]">
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Balance Standing" />
@@ -184,11 +179,12 @@ function ContactsPage() {
               );
             })}
           </div>
-          <PaginationControls
+          <Pagination
+            total={total}
             page={page}
             limit={limit}
-            total={total}
             onPageChange={setPage}
+            onLimitChange={setLimit}
           />
         </>
       )}

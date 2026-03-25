@@ -13,6 +13,7 @@
 ## Codegen Flow
 
 After all backend changes in a task are complete, if GraphQL types changed:
+
 1. Run `pnpm --filter api dev` — wait for "Application is running" to regenerate `apps/api/src/schema.gql`
 2. Stop the backend (Ctrl+C)
 3. Run `pnpm --filter web codegen` — regenerates `apps/web/src/types/__generated__/graphql.ts`
@@ -22,6 +23,7 @@ After all backend changes in a task are complete, if GraphQL types changed:
 ## Task 1: Prisma Schema Migration — ProjectStatus + Project category
 
 **Files:**
+
 - Modify: `apps/api/prisma/schema.prisma`
 
 > **Status: COMPLETE** (commits `77e8880` and subsequent commit for `category`)
@@ -38,6 +40,7 @@ After all backend changes in a task are complete, if GraphQL types changed:
 ## Task 2: Backend DTOs — Filter Inputs + Pagination
 
 **Files:**
+
 - Create: `apps/api/src/common/dto/pagination.input.ts`
 - Modify: `apps/api/src/modules/transactions/dto/filter-transaction.input.ts`
 - Create: `apps/api/src/modules/transactions/dto/filter-shared-history.input.ts`
@@ -51,7 +54,7 @@ After all backend changes in a task are complete, if GraphQL types changed:
 Create `apps/api/src/common/dto/pagination.input.ts`:
 
 ```typescript
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { InputType, Field, Int } from "@nestjs/graphql";
 
 @InputType()
 export class PaginationInput {
@@ -72,11 +75,11 @@ export function getPrismaSkip(page = 1, limit = 25): number {
 Replace the content of `apps/api/src/modules/transactions/dto/filter-transaction.input.ts`:
 
 ```typescript
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { InputType, Field, Int } from "@nestjs/graphql";
 import {
   TransactionType,
   TransactionStatus,
-} from '../../../generated/prisma/client';
+} from "../../../generated/prisma/client";
 
 @InputType()
 export class FilterTransactionInput {
@@ -125,11 +128,11 @@ Note: The standalone `limit` field is replaced by `page` + `limit` pair.
 Create `apps/api/src/modules/transactions/dto/filter-shared-history.input.ts`:
 
 ```typescript
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { InputType, Field, Int } from "@nestjs/graphql";
 import {
   TransactionType,
   TransactionStatus,
-} from '../../../generated/prisma/client';
+} from "../../../generated/prisma/client";
 
 @InputType()
 export class FilterSharedHistoryInput {
@@ -161,15 +164,15 @@ export class FilterSharedHistoryInput {
 Create `apps/api/src/modules/contacts/dto/filter-contact.input.ts`:
 
 ```typescript
-import { InputType, Field, Int, registerEnumType } from '@nestjs/graphql';
+import { InputType, Field, Int, registerEnumType } from "@nestjs/graphql";
 
 export enum ContactBalanceStanding {
-  ALL = 'ALL',
-  OWED_TO_ME = 'OWED_TO_ME',
-  I_OWE = 'I_OWE',
+  ALL = "ALL",
+  OWED_TO_ME = "OWED_TO_ME",
+  I_OWE = "I_OWE",
 }
 
-registerEnumType(ContactBalanceStanding, { name: 'ContactBalanceStanding' });
+registerEnumType(ContactBalanceStanding, { name: "ContactBalanceStanding" });
 
 @InputType()
 export class FilterContactInput {
@@ -192,16 +195,16 @@ export class FilterContactInput {
 Replace the full contents of `apps/api/src/modules/projects/dto/filter-project.input.ts`:
 
 ```typescript
-import { InputType, Field, Int, registerEnumType } from '@nestjs/graphql';
-import { ProjectStatus } from '../../../generated/prisma/enums';
+import { InputType, Field, Int, registerEnumType } from "@nestjs/graphql";
+import { ProjectStatus } from "../../../generated/prisma/enums";
 
 export enum ProjectBalanceStanding {
-  ALL = 'ALL',
-  UNDER_BUDGET = 'UNDER_BUDGET',
-  OVER_BUDGET = 'OVER_BUDGET',
+  ALL = "ALL",
+  UNDER_BUDGET = "UNDER_BUDGET",
+  OVER_BUDGET = "OVER_BUDGET",
 }
 
-registerEnumType(ProjectBalanceStanding, { name: 'ProjectBalanceStanding' });
+registerEnumType(ProjectBalanceStanding, { name: "ProjectBalanceStanding" });
 
 @InputType()
 export class FilterProjectInput {
@@ -227,7 +230,7 @@ export class FilterProjectInput {
 Create `apps/api/src/modules/witnesses/dto/filter-witness.input.ts`:
 
 ```typescript
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { InputType, Field, Int } from "@nestjs/graphql";
 
 @InputType()
 export class FilterWitnessInput {
@@ -253,8 +256,8 @@ export class FilterWitnessInput {
 Create `apps/api/src/modules/projects/dto/filter-project-transaction.input.ts`:
 
 ```typescript
-import { InputType, Field, Int } from '@nestjs/graphql';
-import { ProjectTransactionType } from '../../../generated/prisma/client';
+import { InputType, Field, Int } from "@nestjs/graphql";
+import { ProjectTransactionType } from "../../../generated/prisma/client";
 
 @InputType()
 export class FilterProjectTransactionInput {
@@ -298,6 +301,7 @@ git commit -m "feat(api): add filter input DTOs and pagination fields"
 ## Task 3: Backend Entities — Paginated Response Types + Entity Fixes
 
 **Files:**
+
 - Modify: `apps/api/src/modules/transactions/entities/transactions-response.entity.ts`
 - Create: `apps/api/src/modules/transactions/entities/paginated-shared-history-response.entity.ts`
 - Create: `apps/api/src/modules/contacts/entities/paginated-contacts-response.entity.ts`
@@ -313,8 +317,8 @@ git commit -m "feat(api): add filter input DTOs and pagination fields"
 In `apps/api/src/modules/transactions/entities/transactions-response.entity.ts`, add `Int` to the import and add three fields to `TransactionsResponse`:
 
 ```typescript
-import { ObjectType, Field, Float, Int } from '@nestjs/graphql';
-import { Transaction } from './transaction.entity';
+import { ObjectType, Field, Float, Int } from "@nestjs/graphql";
+import { Transaction } from "./transaction.entity";
 
 // TransactionsSummary unchanged ...
 
@@ -342,8 +346,8 @@ export class TransactionsResponse {
 Create `apps/api/src/modules/transactions/entities/paginated-shared-history-response.entity.ts`:
 
 ```typescript
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Transaction } from './transaction.entity';
+import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { Transaction } from "./transaction.entity";
 
 @ObjectType()
 export class PaginatedSharedHistoryResponse {
@@ -366,8 +370,8 @@ export class PaginatedSharedHistoryResponse {
 Create `apps/api/src/modules/contacts/entities/paginated-contacts-response.entity.ts`:
 
 ```typescript
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Contact } from './contact.entity';
+import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { Contact } from "./contact.entity";
 
 @ObjectType()
 export class PaginatedContactsResponse {
@@ -390,8 +394,8 @@ export class PaginatedContactsResponse {
 Create `apps/api/src/modules/projects/entities/paginated-projects-response.entity.ts`:
 
 ```typescript
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Project } from './project.entity';
+import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { Project } from "./project.entity";
 
 @ObjectType()
 export class PaginatedProjectsResponse {
@@ -414,8 +418,8 @@ export class PaginatedProjectsResponse {
 Create `apps/api/src/modules/projects/entities/paginated-project-transactions-response.entity.ts`:
 
 ```typescript
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { ProjectTransaction } from './project-transaction.entity';
+import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { ProjectTransaction } from "./project-transaction.entity";
 
 @ObjectType()
 export class PaginatedProjectTransactionsResponse {
@@ -438,8 +442,8 @@ export class PaginatedProjectTransactionsResponse {
 Create `apps/api/src/modules/witnesses/entities/paginated-witnesses-response.entity.ts`:
 
 ```typescript
-import { ObjectType, Field, Int } from '@nestjs/graphql';
-import { Witness } from './witness.entity';
+import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { Witness } from "./witness.entity";
 
 @ObjectType()
 export class PaginatedWitnessesResponse {
@@ -481,9 +485,9 @@ Check the Prisma `Witness` model to confirm `projectTransactionId` exists as a c
 Replace `apps/api/src/modules/projects/entities/project.entity.ts`:
 
 ```typescript
-import { ObjectType, Field, Float, ID } from '@nestjs/graphql';
-import { ProjectStatus } from '../../../generated/prisma/enums';
-import { PaginatedProjectTransactionsResponse } from './paginated-project-transactions-response.entity';
+import { ObjectType, Field, Float, ID } from "@nestjs/graphql";
+import { ProjectStatus } from "../../../generated/prisma/enums";
+import { PaginatedProjectTransactionsResponse } from "./paginated-project-transactions-response.entity";
 
 @ObjectType()
 export class Project {
@@ -508,7 +512,7 @@ export class Project {
   @Field(() => Float, { defaultValue: 0 })
   totalExpenses: number;
 
-  @Field({ defaultValue: 'NGN' })
+  @Field({ defaultValue: "NGN" })
   currency: string;
 
   @Field(() => ProjectStatus, { defaultValue: ProjectStatus.ACTIVE })
@@ -533,8 +537,8 @@ export class Project {
 In `apps/api/src/modules/projects/dto/create-project.input.ts`, add:
 
 ```typescript
-import { InputType, Field, Float } from '@nestjs/graphql';
-import { ProjectStatus } from '../../../generated/prisma/enums';
+import { InputType, Field, Float } from "@nestjs/graphql";
+import { ProjectStatus } from "../../../generated/prisma/enums";
 
 @InputType()
 export class CreateProjectInput {
@@ -550,7 +554,10 @@ export class CreateProjectInput {
   @Field({ nullable: true })
   currency?: string;
 
-  @Field(() => ProjectStatus, { nullable: true, defaultValue: ProjectStatus.ACTIVE })
+  @Field(() => ProjectStatus, {
+    nullable: true,
+    defaultValue: ProjectStatus.ACTIVE,
+  })
   status?: ProjectStatus;
 }
 ```
@@ -577,6 +584,7 @@ git commit -m "feat(api): add paginated response entities and fix witness/projec
 ## Task 4: Transactions Service + Resolver — Pagination
 
 **Files:**
+
 - Modify: `apps/api/src/modules/transactions/transactions.service.ts`
 - Modify: `apps/api/src/modules/transactions/transactions.resolver.ts`
 - Test: `apps/api/src/modules/transactions/transactions.service.spec.ts`
@@ -588,11 +596,11 @@ The `findAll` method must return `total`, `page`, `limit` alongside `items` and 
 Create or update `apps/api/src/modules/transactions/transactions.service.spec.ts`:
 
 ```typescript
-import { Test, TestingModule } from '@nestjs/testing';
-import { TransactionsService } from './transactions.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { TransactionsService } from "./transactions.service";
+import { PrismaService } from "../../prisma/prisma.service";
 
-describe('TransactionsService — pagination', () => {
+describe("TransactionsService — pagination", () => {
   let service: TransactionsService;
   let prisma: any;
 
@@ -605,27 +613,33 @@ describe('TransactionsService — pagination', () => {
       providers: [
         TransactionsService,
         { provide: PrismaService, useValue: prisma },
-        { provide: 'CACHE_MANAGER', useValue: { get: jest.fn(), set: jest.fn() } },
-        { provide: 'ConfigService', useValue: { get: jest.fn() } },
-        { provide: 'NotificationService', useValue: {} },
-        { provide: 'ExchangeRateService', useValue: { convert: jest.fn().mockResolvedValue(1) } },
+        {
+          provide: "CACHE_MANAGER",
+          useValue: { get: jest.fn(), set: jest.fn() },
+        },
+        { provide: "ConfigService", useValue: { get: jest.fn() } },
+        { provide: "NotificationService", useValue: {} },
+        {
+          provide: "ExchangeRateService",
+          useValue: { convert: jest.fn().mockResolvedValue(1) },
+        },
       ],
     }).compile();
     service = module.get<TransactionsService>(TransactionsService);
   });
 
-  it('returns total, page, limit in findAll response', async () => {
+  it("returns total, page, limit in findAll response", async () => {
     prisma.transaction.mockResolvedValue([5, []]);
-    const result = await service.findAll('user-1', { page: 1, limit: 10 });
+    const result = await service.findAll("user-1", { page: 1, limit: 10 });
     expect(result.total).toBe(5);
     expect(result.page).toBe(1);
     expect(result.limit).toBe(10);
     expect(result.items).toEqual([]);
   });
 
-  it('applies skip correctly for page 2', async () => {
+  it("applies skip correctly for page 2", async () => {
     prisma.transaction.mockResolvedValue([20, []]);
-    await service.findAll('user-1', { page: 2, limit: 10 });
+    await service.findAll("user-1", { page: 2, limit: 10 });
     // prisma.$transaction is called — verify count and findMany are called with correct skip
     expect(prisma.transaction).toHaveBeenCalled();
   });
@@ -645,6 +659,7 @@ Expected: Tests fail because `total`/`page`/`limit` are not returned yet.
 Find the `findAll` method in `apps/api/src/modules/transactions/transactions.service.ts`. The method currently returns `{ items, summary }`. Update it to also accept and apply pagination, and use `prisma.$transaction` to atomically fetch count + data:
 
 Key changes to make in `findAll`:
+
 1. Destructure `page = 1` and `limit = 25` from `filter`
 2. Compute `skip = (page - 1) * limit`
 3. Replace the current `findMany` call with `this.prisma.$transaction([countQuery, findManyQuery])`
@@ -661,6 +676,7 @@ async findMyContactTransactions(userId: string, filter?: FilterSharedHistoryInpu
 ```
 
 Import `FilterSharedHistoryInput`. Apply:
+
 - `search` filter: `OR [{ description: { contains: search, mode: 'insensitive' } }, { createdBy: { firstName/lastName contains search } }]`
 - `types` filter: `type: { in: types }`
 - `status` filter: `status: status`
@@ -713,6 +729,7 @@ git commit -m "feat(api): add pagination to transactions service and resolver"
 ## Task 5: Contacts Service + Resolver — Pagination + Filter
 
 **Files:**
+
 - Modify: `apps/api/src/modules/contacts/contacts.service.ts`
 - Modify: `apps/api/src/modules/contacts/contacts.resolver.ts`
 - Test: `apps/api/src/modules/contacts/contacts.service.spec.ts`
@@ -722,12 +739,12 @@ git commit -m "feat(api): add pagination to transactions service and resolver"
 Create `apps/api/src/modules/contacts/contacts.service.spec.ts`:
 
 ```typescript
-import { Test } from '@nestjs/testing';
-import { ContactsService } from './contacts.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ContactBalanceStanding } from './dto/filter-contact.input';
+import { Test } from "@nestjs/testing";
+import { ContactsService } from "./contacts.service";
+import { PrismaService } from "../../prisma/prisma.service";
+import { ContactBalanceStanding } from "./dto/filter-contact.input";
 
-describe('ContactsService — findAll pagination', () => {
+describe("ContactsService — findAll pagination", () => {
   let service: ContactsService;
   let prisma: any;
 
@@ -742,30 +759,56 @@ describe('ContactsService — findAll pagination', () => {
       providers: [
         ContactsService,
         { provide: PrismaService, useValue: prisma },
-        { provide: 'NotificationService', useValue: {} },
+        { provide: "NotificationService", useValue: {} },
       ],
     }).compile();
     service = module.get(ContactsService);
   });
 
-  it('returns paginated contacts with total', async () => {
-    prisma.contact.findMany.mockResolvedValue([{ id: '1', firstName: 'Ali', lastName: 'B', transactions: [] }]);
+  it("returns paginated contacts with total", async () => {
+    prisma.contact.findMany.mockResolvedValue([
+      { id: "1", firstName: "Ali", lastName: "B", transactions: [] },
+    ]);
     prisma.contact.count.mockResolvedValue(1);
-    const result = await service.findAll('user-1', { page: 1, limit: 10 });
+    const result = await service.findAll("user-1", { page: 1, limit: 10 });
     expect(result.total).toBe(1);
     expect(result.page).toBe(1);
     expect(result.limit).toBe(10);
     expect(result.items).toHaveLength(1);
   });
 
-  it('filters contacts by balance standing OWED_TO_ME — returns only positive-balance contacts', async () => {
+  it("filters contacts by balance standing OWED_TO_ME — returns only positive-balance contacts", async () => {
     const contacts = [
-      { id: '1', firstName: 'Ali', transactions: [{ type: 'GIVEN', amount: 100, status: 'COMPLETED', returnDirection: null }] },
-      { id: '2', firstName: 'Ben', transactions: [{ type: 'RECEIVED', amount: 50, status: 'COMPLETED', returnDirection: null }] },
+      {
+        id: "1",
+        firstName: "Ali",
+        transactions: [
+          {
+            type: "GIVEN",
+            amount: 100,
+            status: "COMPLETED",
+            returnDirection: null,
+          },
+        ],
+      },
+      {
+        id: "2",
+        firstName: "Ben",
+        transactions: [
+          {
+            type: "RECEIVED",
+            amount: 50,
+            status: "COMPLETED",
+            returnDirection: null,
+          },
+        ],
+      },
     ];
     prisma.contact.findMany.mockResolvedValue(contacts);
-    const result = await service.findAll('user-1', { balanceStanding: ContactBalanceStanding.OWED_TO_ME });
-    expect(result.items.map(c => c.id)).toEqual(['1']);
+    const result = await service.findAll("user-1", {
+      balanceStanding: ContactBalanceStanding.OWED_TO_ME,
+    });
+    expect(result.items.map((c) => c.id)).toEqual(["1"]);
   });
 });
 ```
@@ -881,6 +924,7 @@ git commit -m "feat(api): add pagination and balance standing filter to contacts
 ## Task 6: Projects Service + Resolver — Pagination + Status + Project Transactions
 
 **Files:**
+
 - Modify: `apps/api/src/modules/projects/projects.service.ts`
 - Modify: `apps/api/src/modules/projects/projects.resolver.ts`
 - Modify: `apps/api/src/modules/projects/project-transactions.service.ts`
@@ -891,12 +935,12 @@ git commit -m "feat(api): add pagination and balance standing filter to contacts
 Create `apps/api/src/modules/projects/projects.service.spec.ts`:
 
 ```typescript
-import { Test } from '@nestjs/testing';
-import { ProjectsService } from './projects.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ProjectBalanceStanding } from './dto/filter-project.input';
+import { Test } from "@nestjs/testing";
+import { ProjectsService } from "./projects.service";
+import { PrismaService } from "../../prisma/prisma.service";
+import { ProjectBalanceStanding } from "./dto/filter-project.input";
 
-describe('ProjectsService — findAll pagination', () => {
+describe("ProjectsService — findAll pagination", () => {
   let service: ProjectsService;
   let prisma: any;
 
@@ -914,18 +958,22 @@ describe('ProjectsService — findAll pagination', () => {
     service = module.get(ProjectsService);
   });
 
-  it('returns paginated projects with total', async () => {
-    prisma.project.findMany.mockResolvedValue([{ id: 'p1', name: 'Alpha', balance: 100, budget: 200, status: 'ACTIVE' }]);
+  it("returns paginated projects with total", async () => {
+    prisma.project.findMany.mockResolvedValue([
+      { id: "p1", name: "Alpha", balance: 100, budget: 200, status: "ACTIVE" },
+    ]);
     prisma.project.count.mockResolvedValue(1);
-    const result = await service.findAll('user-1', { page: 1, limit: 10 });
+    const result = await service.findAll("user-1", { page: 1, limit: 10 });
     expect(result.total).toBe(1);
     expect(result.items).toHaveLength(1);
   });
 
-  it('filters by OVER_BUDGET — balance > budget', async () => {
+  it("filters by OVER_BUDGET — balance > budget", async () => {
     prisma.project.findMany.mockResolvedValue([]);
     prisma.project.count.mockResolvedValue(0);
-    await service.findAll('user-1', { balanceStanding: ProjectBalanceStanding.OVER_BUDGET });
+    await service.findAll("user-1", {
+      balanceStanding: ProjectBalanceStanding.OVER_BUDGET,
+    });
     expect(prisma.project.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
@@ -984,21 +1032,25 @@ async findAll(userId: string, filter?: FilterProjectInput) {
 **Note on balance standing:** Prisma does not support comparing two stored columns in a `where` clause via the standard ORM API. Use raw SQL for `UNDER_BUDGET`/`OVER_BUDGET`:
 
 ```typescript
-if (filter?.balanceStanding && filter.balanceStanding !== ProjectBalanceStanding.ALL) {
-  const isOverBudget = filter.balanceStanding === ProjectBalanceStanding.OVER_BUDGET;
+if (
+  filter?.balanceStanding &&
+  filter.balanceStanding !== ProjectBalanceStanding.ALL
+) {
+  const isOverBudget =
+    filter.balanceStanding === ProjectBalanceStanding.OVER_BUDGET;
   const rawIds = await this.prisma.$queryRaw<{ id: string }[]>`
     SELECT id FROM "Project"
     WHERE "userId" = ${userId}
     AND "budget" IS NOT NULL
     AND ${isOverBudget ? Prisma.sql`"balance" > "budget"` : Prisma.sql`"balance" <= "budget"`}
-    ${filter?.search ? Prisma.sql`AND "name" ILIKE ${'%' + filter.search + '%'}` : Prisma.empty}
+    ${filter?.search ? Prisma.sql`AND "name" ILIKE ${"%" + filter.search + "%"}` : Prisma.empty}
     ${filter?.status ? Prisma.sql`AND "status" = ${filter.status}::"ProjectStatus"` : Prisma.empty}
   `;
-  const ids = rawIds.map(r => r.id);
+  const ids = rawIds.map((r) => r.id);
   const total = ids.length;
   const items = await this.prisma.project.findMany({
     where: { id: { in: ids } },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     skip: (page - 1) * limit,
     take: limit,
   });
@@ -1110,6 +1162,7 @@ git commit -m "feat(api): add pagination, status, and filter to projects"
 ## Task 7: Witnesses Service + Resolver — Pagination + Filter
 
 **Files:**
+
 - Modify: `apps/api/src/modules/witnesses/witnesses.service.ts`
 - Modify: `apps/api/src/modules/witnesses/witnesses.resolver.ts`
 - Test: `apps/api/src/modules/witnesses/witnesses.service.spec.ts`
@@ -1119,11 +1172,11 @@ git commit -m "feat(api): add pagination, status, and filter to projects"
 Create `apps/api/src/modules/witnesses/witnesses.service.spec.ts`:
 
 ```typescript
-import { Test } from '@nestjs/testing';
-import { WitnessesService } from './witnesses.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Test } from "@nestjs/testing";
+import { WitnessesService } from "./witnesses.service";
+import { PrismaService } from "../../prisma/prisma.service";
 
-describe('WitnessesService — findMyRequests pagination', () => {
+describe("WitnessesService — findMyRequests pagination", () => {
   let service: WitnessesService;
   let prisma: any;
 
@@ -1135,18 +1188,24 @@ describe('WitnessesService — findMyRequests pagination', () => {
       providers: [
         WitnessesService,
         { provide: PrismaService, useValue: prisma },
-        { provide: 'CACHE_MANAGER', useValue: { get: jest.fn(), set: jest.fn() } },
-        { provide: 'NotificationService', useValue: {} },
-        { provide: 'ConfigService', useValue: { get: jest.fn() } },
+        {
+          provide: "CACHE_MANAGER",
+          useValue: { get: jest.fn(), set: jest.fn() },
+        },
+        { provide: "NotificationService", useValue: {} },
+        { provide: "ConfigService", useValue: { get: jest.fn() } },
       ],
     }).compile();
     service = module.get(WitnessesService);
   });
 
-  it('returns paginated witnesses with total', async () => {
-    prisma.witness.findMany.mockResolvedValue([{ id: 'w1' }]);
+  it("returns paginated witnesses with total", async () => {
+    prisma.witness.findMany.mockResolvedValue([{ id: "w1" }]);
     prisma.witness.count.mockResolvedValue(1);
-    const result = await service.findMyRequests('user-1', undefined, { page: 1, limit: 10 });
+    const result = await service.findMyRequests("user-1", undefined, {
+      page: 1,
+      limit: 10,
+    });
     expect(result.total).toBe(1);
     expect(result.items).toHaveLength(1);
   });
@@ -1256,6 +1315,7 @@ git commit -m "feat(api): add pagination and search filter to witness requests"
 ## Task 8: Frontend TypeScript Types Regeneration
 
 **Files:**
+
 - Modify: `apps/web/src/types/__generated__/graphql.ts` (auto-generated)
 
 - [ ] **Step 1: Run frontend codegen**
@@ -1286,6 +1346,7 @@ git commit -m "chore(web): regenerate GraphQL types for pagination and filters"
 ## Task 9: Frontend Shared UI Components
 
 **Files:**
+
 - Create: `apps/web/src/components/ui/date-range-picker.tsx`
 - Create: `apps/web/src/components/ui/pagination.tsx`
 
@@ -1420,7 +1481,11 @@ export function Pagination({
     }
     pages.push(1);
     if (page > 3) pages.push("...");
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+    for (
+      let i = Math.max(2, page - 1);
+      i <= Math.min(totalPages - 1, page + 1);
+      i++
+    ) {
       pages.push(i);
     }
     if (page < totalPages - 2) pages.push("...");
@@ -1466,7 +1531,10 @@ export function Pagination({
           </Button>
           {getPageNumbers().map((p, i) =>
             p === "..." ? (
-              <span key={`ellipsis-${i}`} className="px-2 text-sm text-muted-foreground">
+              <span
+                key={`ellipsis-${i}`}
+                className="px-2 text-sm text-muted-foreground"
+              >
                 …
               </span>
             ) : (
@@ -1479,7 +1547,7 @@ export function Pagination({
               >
                 {p}
               </Button>
-            )
+            ),
           )}
           <Button
             variant="outline"
@@ -1516,6 +1584,7 @@ git commit -m "feat(web): add DateRangePicker and Pagination UI components"
 ## Task 10: Frontend Filter Hooks
 
 **Files:**
+
 - Create: `apps/web/src/hooks/useTransactionFilters.ts`
 - Create: `apps/web/src/hooks/useContactFilters.ts`
 - Create: `apps/web/src/hooks/useProjectFilters.ts`
@@ -1530,7 +1599,10 @@ Create `apps/web/src/hooks/useTransactionFilters.ts`:
 
 ```typescript
 import { useState, useEffect } from "react";
-import { TransactionStatus, TransactionType } from "@/types/__generated__/graphql";
+import {
+  TransactionStatus,
+  TransactionType,
+} from "@/types/__generated__/graphql";
 
 interface DateRange {
   from: string | null;
@@ -1542,12 +1614,17 @@ export function useTransactionFilters() {
   const [types, setTypes] = useState<TransactionType[]>([]);
   const [status, setStatus] = useState<TransactionStatus | "ALL">("ALL");
   const [currency, setCurrency] = useState("ALL");
-  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: null,
+    to: null,
+  });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 
   // Reset page on any filter change
-  useEffect(() => { setPage(1); }, [search, types, status, currency, dateRange]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, types, status, currency, dateRange]);
 
   const reset = () => {
     setSearch("");
@@ -1572,13 +1649,20 @@ export function useTransactionFilters() {
   };
 
   return {
-    search, setSearch,
-    types, setTypes,
-    status, setStatus,
-    currency, setCurrency,
-    dateRange, setDateRange,
-    page, setPage,
-    limit, setLimit,
+    search,
+    setSearch,
+    types,
+    setTypes,
+    status,
+    setStatus,
+    currency,
+    setCurrency,
+    dateRange,
+    setDateRange,
+    page,
+    setPage,
+    limit,
+    setLimit,
     reset,
     variables,
   };
@@ -1595,22 +1679,38 @@ import { ContactBalanceStanding } from "@/types/__generated__/graphql";
 
 export function useContactFilters() {
   const [search, setSearch] = useState("");
-  const [balanceStanding, setBalanceStanding] = useState<ContactBalanceStanding | "ALL">("ALL");
+  const [balanceStanding, setBalanceStanding] = useState<
+    ContactBalanceStanding | "ALL"
+  >("ALL");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 
-  useEffect(() => { setPage(1); }, [search, balanceStanding]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, balanceStanding]);
 
   const variables = {
     filter: {
       ...(search && { search }),
-      ...(balanceStanding !== "ALL" && { balanceStanding: balanceStanding as ContactBalanceStanding }),
+      ...(balanceStanding !== "ALL" && {
+        balanceStanding: balanceStanding as ContactBalanceStanding,
+      }),
       page,
       limit,
     },
   };
 
-  return { search, setSearch, balanceStanding, setBalanceStanding, page, setPage, limit, setLimit, variables };
+  return {
+    search,
+    setSearch,
+    balanceStanding,
+    setBalanceStanding,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  };
 }
 ```
 
@@ -1620,28 +1720,49 @@ Create `apps/web/src/hooks/useProjectFilters.ts`:
 
 ```typescript
 import { useState, useEffect } from "react";
-import { ProjectStatus, ProjectBalanceStanding } from "@/types/__generated__/graphql";
+import {
+  ProjectStatus,
+  ProjectBalanceStanding,
+} from "@/types/__generated__/graphql";
 
 export function useProjectFilters() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "ALL">("ALL");
-  const [balanceStanding, setBalanceStanding] = useState<ProjectBalanceStanding | "ALL">("ALL");
+  const [balanceStanding, setBalanceStanding] = useState<
+    ProjectBalanceStanding | "ALL"
+  >("ALL");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 
-  useEffect(() => { setPage(1); }, [search, status, balanceStanding]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, status, balanceStanding]);
 
   const variables = {
     filter: {
       ...(search && { search }),
       ...(status !== "ALL" && { status: status as ProjectStatus }),
-      ...(balanceStanding !== "ALL" && { balanceStanding: balanceStanding as ProjectBalanceStanding }),
+      ...(balanceStanding !== "ALL" && {
+        balanceStanding: balanceStanding as ProjectBalanceStanding,
+      }),
       page,
       limit,
     },
   };
 
-  return { search, setSearch, status, setStatus, balanceStanding, setBalanceStanding, page, setPage, limit, setLimit, variables };
+  return {
+    search,
+    setSearch,
+    status,
+    setStatus,
+    balanceStanding,
+    setBalanceStanding,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  };
 }
 ```
 
@@ -1651,19 +1772,30 @@ Create `apps/web/src/hooks/useSharedHistoryFilters.ts`:
 
 ```typescript
 import { useState, useEffect } from "react";
-import { TransactionType, TransactionStatus } from "@/types/__generated__/graphql";
+import {
+  TransactionType,
+  TransactionStatus,
+} from "@/types/__generated__/graphql";
 
-interface DateRange { from: string | null; to: string | null; }
+interface DateRange {
+  from: string | null;
+  to: string | null;
+}
 
 export function useSharedHistoryFilters() {
   const [search, setSearch] = useState("");
   const [types, setTypes] = useState<TransactionType[]>([]);
   const [status, setStatus] = useState<TransactionStatus | "ALL">("ALL");
-  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: null,
+    to: null,
+  });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 
-  useEffect(() => { setPage(1); }, [search, types, status, dateRange]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, types, status, dateRange]);
 
   const variables = {
     filter: {
@@ -1677,7 +1809,21 @@ export function useSharedHistoryFilters() {
     },
   };
 
-  return { search, setSearch, types, setTypes, status, setStatus, dateRange, setDateRange, page, setPage, limit, setLimit, variables };
+  return {
+    search,
+    setSearch,
+    types,
+    setTypes,
+    status,
+    setStatus,
+    dateRange,
+    setDateRange,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  };
 }
 ```
 
@@ -1688,15 +1834,23 @@ Create `apps/web/src/hooks/useWitnessFilters.ts`:
 ```typescript
 import { useState, useEffect } from "react";
 
-interface DateRange { from: string | null; to: string | null; }
+interface DateRange {
+  from: string | null;
+  to: string | null;
+}
 
 export function useWitnessFilters() {
   const [search, setSearch] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null });
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: null,
+    to: null,
+  });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 
-  useEffect(() => { setPage(1); }, [search, dateRange]);
+  useEffect(() => {
+    setPage(1);
+  }, [search, dateRange]);
 
   const variables = {
     filter: {
@@ -1708,7 +1862,17 @@ export function useWitnessFilters() {
     },
   };
 
-  return { search, setSearch, dateRange, setDateRange, page, setPage, limit, setLimit, variables };
+  return {
+    search,
+    setSearch,
+    dateRange,
+    setDateRange,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  };
 }
 ```
 
@@ -1730,6 +1894,7 @@ git commit -m "feat(web): add per-feature filter state hooks"
 ## Task 11: Frontend GraphQL Queries
 
 **Files:**
+
 - Modify: `apps/web/src/lib/apollo/queries/transactions.ts`
 - Modify: `apps/web/src/lib/apollo/queries/contacts.ts`
 - Modify: `apps/web/src/lib/apollo/queries/projects.ts`
@@ -1933,6 +2098,7 @@ git commit -m "feat(web): update GraphQL queries for server-side pagination"
 ## Task 12: Frontend Data Hooks
 
 **Files:**
+
 - Modify: `apps/web/src/hooks/useTransactions.ts`
 - Modify: `apps/web/src/hooks/useContacts.ts`
 - Modify: `apps/web/src/hooks/useProjects.ts`
@@ -2027,7 +2193,10 @@ export function useProjects(filter?: FilterProjectInput) {
 Update `useProject` to pass `transactionFilter` to the query:
 
 ```typescript
-export function useProject(id: string, transactionFilter?: FilterProjectTransactionInput) {
+export function useProject(
+  id: string,
+  transactionFilter?: FilterProjectTransactionInput,
+) {
   const { data, loading, error, refetch } = useQuery(GET_PROJECT, {
     variables: { id, transactionFilter },
     skip: !id,
@@ -2063,10 +2232,13 @@ import { GET_MY_CONTACT_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import type { FilterSharedHistoryInput } from "@/types/__generated__/graphql";
 
 export function useMyContactTransactions(filter?: FilterSharedHistoryInput) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_CONTACT_TRANSACTIONS, {
-    variables: { filter },
-    fetchPolicy: "cache-and-network",
-  });
+  const { data, loading, error, refetch } = useQuery(
+    GET_MY_CONTACT_TRANSACTIONS,
+    {
+      variables: { filter },
+      fetchPolicy: "cache-and-network",
+    },
+  );
 
   return {
     transactions: data?.myContactTransactions?.items ?? [],
@@ -2083,9 +2255,15 @@ export function useMyContactTransactions(filter?: FilterSharedHistoryInput) {
 - [ ] **Step 5: Update `useMyWitnessRequests` in `useWitnesses.ts`**
 
 ```typescript
-import { FilterWitnessInput, WitnessStatus } from "@/types/__generated__/graphql";
+import {
+  FilterWitnessInput,
+  WitnessStatus,
+} from "@/types/__generated__/graphql";
 
-export function useMyWitnessRequests(status?: WitnessStatus, filter?: FilterWitnessInput) {
+export function useMyWitnessRequests(
+  status?: WitnessStatus,
+  filter?: FilterWitnessInput,
+) {
   const { data, loading, error, refetch } = useQuery(MY_WITNESS_REQUESTS, {
     variables: { status, filter },
     fetchPolicy: "network-only",
@@ -2121,6 +2299,7 @@ git commit -m "feat(web): update data hooks for server-side pagination"
 ## Task 13: Transactions Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/transactions/index.tsx`
 
 - [ ] **Step 1: Replace inline filter state with `useTransactionFilters`**
@@ -2137,10 +2316,7 @@ In `apps/web/src/routes/transactions/index.tsx`:
 Import `DateRangePicker` from `@/components/ui/date-range-picker`. Add it to the existing filter row:
 
 ```tsx
-<DateRangePicker
-  value={dateRange}
-  onChange={setDateRange}
-/>
+<DateRangePicker value={dateRange} onChange={setDateRange} />
 ```
 
 - [ ] **Step 3: Add `Pagination` below both tabs**
@@ -2167,6 +2343,7 @@ pnpm --filter web build
 - [ ] **Step 5: Manually test**
 
 Start `pnpm dev` and verify:
+
 - Transactions load with pagination controls
 - Search, type, status, currency filters work
 - Date range filter narrows results
@@ -2185,6 +2362,7 @@ git commit -m "feat(web): add server-side pagination and date range to transacti
 ## Task 14: Contacts Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/contacts/index.tsx`
 
 - [ ] **Step 1: Replace inline search state with `useContactFilters`**
@@ -2211,7 +2389,11 @@ In the filter bar, below or alongside the search input:
           : "bg-background text-muted-foreground hover:text-foreground"
       }`}
     >
-      {standing === "ALL" ? "All" : standing === "OWED_TO_ME" ? "They Owe Me" : "I Owe Them"}
+      {standing === "ALL"
+        ? "All"
+        : standing === "OWED_TO_ME"
+          ? "They Owe Me"
+          : "I Owe Them"}
     </button>
   ))}
 </div>
@@ -2247,6 +2429,7 @@ git commit -m "feat(web): add pagination and balance standing filter to contacts
 ## Task 15: Contact Details Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/contacts/$contactId.tsx`
 
 - [ ] **Step 1: Add `useTransactionFilters` for the contact's transaction list**
@@ -2254,7 +2437,19 @@ git commit -m "feat(web): add pagination and balance standing filter to contacts
 The contact details page already calls `useTransactions({ contactId })`. Replace the manual filter approach with `useTransactionFilters()` and merge `contactId` into the filter:
 
 ```typescript
-const { variables, dateRange, setDateRange, types, setTypes, status, setStatus, page, setPage, limit, setLimit } = useTransactionFilters();
+const {
+  variables,
+  dateRange,
+  setDateRange,
+  types,
+  setTypes,
+  status,
+  setStatus,
+  page,
+  setPage,
+  limit,
+  setLimit,
+} = useTransactionFilters();
 const { transactions, total, loading } = useTransactions({
   ...variables.filter,
   contactId,
@@ -2268,8 +2463,13 @@ Above the transaction table, add a compact filter row:
 ```tsx
 <div className="flex flex-wrap gap-2 items-center p-4 border-b border-border/30">
   <DateRangePicker value={dateRange} onChange={setDateRange} />
-  <Select value={types[0] ?? "ALL"} onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as TransactionType])}>
-    <SelectTrigger className="h-8 w-36"><SelectValue placeholder="Type" /></SelectTrigger>
+  <Select
+    value={types[0] ?? "ALL"}
+    onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as TransactionType])}
+  >
+    <SelectTrigger className="h-8 w-36">
+      <SelectValue placeholder="Type" />
+    </SelectTrigger>
     <SelectContent>
       <SelectItem value="ALL">All Types</SelectItem>
       <SelectItem value="GIVEN">Given</SelectItem>
@@ -2278,8 +2478,13 @@ Above the transaction table, add a compact filter row:
       <SelectItem value="GIFT">Gift</SelectItem>
     </SelectContent>
   </Select>
-  <Select value={status} onValueChange={(v) => setStatus(v as TransactionStatus | "ALL")}>
-    <SelectTrigger className="h-8 w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+  <Select
+    value={status}
+    onValueChange={(v) => setStatus(v as TransactionStatus | "ALL")}
+  >
+    <SelectTrigger className="h-8 w-36">
+      <SelectValue placeholder="Status" />
+    </SelectTrigger>
     <SelectContent>
       <SelectItem value="ALL">All Status</SelectItem>
       <SelectItem value="COMPLETED">Completed</SelectItem>
@@ -2293,7 +2498,13 @@ Above the transaction table, add a compact filter row:
 - [ ] **Step 3: Add `Pagination` below transaction table**
 
 ```tsx
-<Pagination total={total} page={page} limit={limit} onPageChange={setPage} onLimitChange={setLimit} />
+<Pagination
+  total={total}
+  page={page}
+  limit={limit}
+  onPageChange={setPage}
+  onLimitChange={setLimit}
+/>
 ```
 
 - [ ] **Step 4: Lint, build, manual test, commit**
@@ -2310,6 +2521,7 @@ git commit -m "feat(web): add filter bar and pagination to contact details page"
 ## Task 16: Projects Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/projects/index.tsx`
 
 - [ ] **Step 1: Replace with `useProjectFilters`**
@@ -2319,33 +2531,48 @@ Call `useProjectFilters()`, pass `variables.filter` to `useProjects(filter)`.
 - [ ] **Step 2: Add search input, status control, balance standing control**
 
 ```tsx
-{/* Search */}
+{
+  /* Search */
+}
 <Input
   placeholder="Search projects..."
   value={search}
   onChange={(e) => setSearch(e.target.value)}
   className="h-9 w-full sm:w-64"
-/>
+/>;
 
-{/* Status tabs */}
+{
+  /* Status tabs */
+}
 <div className="flex rounded-lg overflow-hidden border border-border">
   {(["ALL", "ACTIVE", "COMPLETED", "ARCHIVED"] as const).map((s) => (
-    <button key={s} type="button" onClick={() => setStatus(s)}
-      className={`px-3 py-1.5 text-xs font-medium transition-colors ${status === s ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}>
+    <button
+      key={s}
+      type="button"
+      onClick={() => setStatus(s)}
+      className={`px-3 py-1.5 text-xs font-medium transition-colors ${status === s ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground hover:text-foreground"}`}
+    >
       {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()}
     </button>
   ))}
-</div>
+</div>;
 
-{/* Balance standing */}
-<Select value={balanceStanding} onValueChange={(v) => setBalanceStanding(v as ProjectBalanceStanding | "ALL")}>
-  <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
+{
+  /* Balance standing */
+}
+<Select
+  value={balanceStanding}
+  onValueChange={(v) => setBalanceStanding(v as ProjectBalanceStanding | "ALL")}
+>
+  <SelectTrigger className="h-9 w-40">
+    <SelectValue />
+  </SelectTrigger>
   <SelectContent>
     <SelectItem value="ALL">All Budgets</SelectItem>
     <SelectItem value="UNDER_BUDGET">Under Budget</SelectItem>
     <SelectItem value="OVER_BUDGET">Over Budget</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 - [ ] **Step 3: Add `Pagination` below project grid**
@@ -2364,6 +2591,7 @@ git commit -m "feat(web): add search, status, budget filter and pagination to pr
 ## Task 17: Project Details Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/projects/$projectId.tsx`
 
 - [ ] **Step 1: Add project transaction filter state**
@@ -2371,8 +2599,21 @@ git commit -m "feat(web): add search, status, budget filter and pagination to pr
 The project details page calls `useProject(id)`. Change it to:
 
 ```typescript
-const [txFilter, setTxFilter] = useState<FilterProjectTransactionInput>({ page: 1, limit: 25 });
-const { project, transactions, transactionsTotal, transactionsPage, transactionsLimit, loading, logTransaction, logging, refetch } = useProject(projectId, txFilter);
+const [txFilter, setTxFilter] = useState<FilterProjectTransactionInput>({
+  page: 1,
+  limit: 25,
+});
+const {
+  project,
+  transactions,
+  transactionsTotal,
+  transactionsPage,
+  transactionsLimit,
+  loading,
+  logTransaction,
+  logging,
+  refetch,
+} = useProject(projectId, txFilter);
 ```
 
 - [ ] **Step 2: Add compact filter bar above transaction table**
@@ -2380,11 +2621,32 @@ const { project, transactions, transactionsTotal, transactionsPage, transactions
 ```tsx
 <div className="flex flex-wrap gap-2 items-center p-4 border-b border-border/30">
   <DateRangePicker
-    value={{ from: txFilter.startDate ? txFilter.startDate.toString() : null, to: txFilter.endDate ? txFilter.endDate.toString() : null }}
-    onChange={(range) => setTxFilter(f => ({ ...f, startDate: range.from ? new Date(range.from) : undefined, endDate: range.to ? new Date(range.to) : undefined, page: 1 }))}
+    value={{
+      from: txFilter.startDate ? txFilter.startDate.toString() : null,
+      to: txFilter.endDate ? txFilter.endDate.toString() : null,
+    }}
+    onChange={(range) =>
+      setTxFilter((f) => ({
+        ...f,
+        startDate: range.from ? new Date(range.from) : undefined,
+        endDate: range.to ? new Date(range.to) : undefined,
+        page: 1,
+      }))
+    }
   />
-  <Select value={txFilter.type ?? "ALL"} onValueChange={(v) => setTxFilter(f => ({ ...f, type: v === "ALL" ? undefined : v as ProjectTransactionType, page: 1 }))}>
-    <SelectTrigger className="h-8 w-36"><SelectValue /></SelectTrigger>
+  <Select
+    value={txFilter.type ?? "ALL"}
+    onValueChange={(v) =>
+      setTxFilter((f) => ({
+        ...f,
+        type: v === "ALL" ? undefined : (v as ProjectTransactionType),
+        page: 1,
+      }))
+    }
+  >
+    <SelectTrigger className="h-8 w-36">
+      <SelectValue />
+    </SelectTrigger>
     <SelectContent>
       <SelectItem value="ALL">All Types</SelectItem>
       <SelectItem value="INCOME">Income</SelectItem>
@@ -2393,11 +2655,26 @@ const { project, transactions, transactionsTotal, transactionsPage, transactions
   </Select>
   {/* Category dropdown — populated from unique categories across all project transactions */}
   {availableCategories.length > 0 && (
-    <Select value={txFilter.category ?? "ALL"} onValueChange={(v) => setTxFilter(f => ({ ...f, category: v === "ALL" ? undefined : v, page: 1 }))}>
-      <SelectTrigger className="h-8 w-40"><SelectValue /></SelectTrigger>
+    <Select
+      value={txFilter.category ?? "ALL"}
+      onValueChange={(v) =>
+        setTxFilter((f) => ({
+          ...f,
+          category: v === "ALL" ? undefined : v,
+          page: 1,
+        }))
+      }
+    >
+      <SelectTrigger className="h-8 w-40">
+        <SelectValue />
+      </SelectTrigger>
       <SelectContent>
         <SelectItem value="ALL">All Categories</SelectItem>
-        {availableCategories.map((cat) => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+        {availableCategories.map((cat) => (
+          <SelectItem key={cat} value={cat}>
+            {cat}
+          </SelectItem>
+        ))}
       </SelectContent>
     </Select>
   )}
@@ -2410,7 +2687,9 @@ Derive `availableCategories` by fetching the project with no filter on page load
 const categoryCache = useRef<string[]>([]);
 useEffect(() => {
   if (categoryCache.current.length === 0 && initialTransactions.length > 0) {
-    categoryCache.current = [...new Set(initialTransactions.map(t => t.category).filter(Boolean))];
+    categoryCache.current = [
+      ...new Set(initialTransactions.map((t) => t.category).filter(Boolean)),
+    ];
   }
 }, [initialTransactions]);
 const availableCategories = categoryCache.current;
@@ -2423,8 +2702,8 @@ const availableCategories = categoryCache.current;
   total={transactionsTotal}
   page={transactionsPage}
   limit={transactionsLimit}
-  onPageChange={(p) => setTxFilter(f => ({ ...f, page: p }))}
-  onLimitChange={(l) => setTxFilter(f => ({ ...f, limit: l, page: 1 }))}
+  onPageChange={(p) => setTxFilter((f) => ({ ...f, page: p }))}
+  onLimitChange={(l) => setTxFilter((f) => ({ ...f, limit: l, page: 1 }))}
 />
 ```
 
@@ -2444,6 +2723,7 @@ git commit -m "feat(web): add filter bar and pagination to project details page"
 ## Task 18: Shared History Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/transactions/my-contact-transactions.tsx`
 
 - [ ] **Step 1: Replace inline `useQuery` with `useMyContactTransactions`**
@@ -2451,8 +2731,24 @@ git commit -m "feat(web): add filter bar and pagination to project details page"
 Remove the direct `useQuery(GET_MY_CONTACT_TRANSACTIONS)` call. Import and call:
 
 ```typescript
-const { search, setSearch, types, setTypes, status, setStatus, dateRange, setDateRange, page, setPage, limit, setLimit, variables } = useSharedHistoryFilters();
-const { transactions, total, loading, error } = useMyContactTransactions(variables.filter);
+const {
+  search,
+  setSearch,
+  types,
+  setTypes,
+  status,
+  setStatus,
+  dateRange,
+  setDateRange,
+  page,
+  setPage,
+  limit,
+  setLimit,
+  variables,
+} = useSharedHistoryFilters();
+const { transactions, total, loading, error } = useMyContactTransactions(
+  variables.filter,
+);
 ```
 
 - [ ] **Step 2: Add filter bar**
@@ -2468,10 +2764,16 @@ Above the transaction table:
     className="h-9 w-full sm:w-64"
   />
   <DateRangePicker value={dateRange} onChange={setDateRange} />
-  <Select value={types[0] ?? "ALL"} onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as TransactionType])}>
+  <Select
+    value={types[0] ?? "ALL"}
+    onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as TransactionType])}
+  >
     {/* same type options as contact details */}
   </Select>
-  <Select value={status} onValueChange={(v) => setStatus(v as TransactionStatus | "ALL")}>
+  <Select
+    value={status}
+    onValueChange={(v) => setStatus(v as TransactionStatus | "ALL")}
+  >
     {/* same status options */}
   </Select>
 </div>
@@ -2484,7 +2786,13 @@ Previously `data?.myContactTransactions || []`. Now `transactions` directly from
 - [ ] **Step 4: Add `Pagination`**
 
 ```tsx
-<Pagination total={total} page={page} limit={limit} onPageChange={setPage} onLimitChange={setLimit} />
+<Pagination
+  total={total}
+  page={page}
+  limit={limit}
+  onPageChange={setPage}
+  onLimitChange={setLimit}
+/>
 ```
 
 - [ ] **Step 5: Lint, build, manual test, commit**
@@ -2499,12 +2807,23 @@ git commit -m "feat(web): add filter bar and pagination to shared history page"
 ## Task 19: Witness Requests Page
 
 **Files:**
+
 - Modify: `apps/web/src/routes/witnesses/index.tsx`
 
 - [ ] **Step 1: Add `useWitnessFilters` and update `useMyWitnessRequests`**
 
 ```typescript
-const { search, setSearch, dateRange, setDateRange, page, setPage, limit, setLimit, variables } = useWitnessFilters();
+const {
+  search,
+  setSearch,
+  dateRange,
+  setDateRange,
+  page,
+  setPage,
+  limit,
+  setLimit,
+  variables,
+} = useWitnessFilters();
 
 // Check the actual tab values in this file — the existing code uses "pending" | "history"
 // For "pending" tab pass WitnessStatus.Pending; for "history" pass undefined (returns all non-pending)
@@ -2516,8 +2835,11 @@ const { requests, total, loading, error, refetch } = useMyWitnessRequests(
 ```
 
 Reset `page` to 1 when `activeTab` changes:
+
 ```typescript
-useEffect(() => { setPage(1); }, [activeTab]);
+useEffect(() => {
+  setPage(1);
+}, [activeTab]);
 ```
 
 - [ ] **Step 2: Add filter bar above tab content**
@@ -2579,6 +2901,7 @@ pnpm dev
 ```
 
 Verify each page:
+
 - [ ] Transactions: pagination works, date range filters, all existing filters still work, CSV export works
 - [ ] Contacts: search, balance standing, pagination — add/edit/delete still works
 - [ ] Contact details: compact filter bar, pagination, CSV export still works

@@ -16,8 +16,8 @@ export const MY_WITNESS_REQUESTS: TypedDocumentNode<
   MyWitnessRequestsQuery,
   MyWitnessRequestsQueryVariables
 > = gql`
-  query MyWitnessRequests($filter: FilterWitnessInput) {
-    myWitnessRequests(filter: $filter) {
+  query MyWitnessRequests($status: WitnessStatus, $filter: FilterWitnessInput) {
+    myWitnessRequests(status: $status, filter: $filter) {
       items {
         id
         status

@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Pagination } from "@/components/ui/pagination";
 import { WitnessList } from "@/components/witnesses/WitnessList";
+import { useWitnessFilters } from "@/hooks/useWitnessFilters";
 import { useAcknowledgeWitness, useMyWitnessRequests } from "@/hooks/useWitnesses";
+import { WitnessStatus } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/witnesses/")({
@@ -15,18 +18,27 @@ export const Route = createFileRoute("/witnesses/")({
 
 function WitnessRequestsPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
-  const [search, setSearch] = useState("");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [page, setPage] = useState(1);
-
-  const { requests, total, limit, loading, error, refetch } = useMyWitnessRequests({
-    search: search || undefined,
-    startDate: startDate ? new Date(startDate) : undefined,
-    endDate: endDate ? new Date(endDate) : undefined,
+  const {
+    search,
+    setSearch,
+    dateRange,
+    setDateRange,
     page,
-    limit: 25,
-  });
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useWitnessFilters();
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on tab change
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
+
+  const { requests, total, loading, error, refetch } = useMyWitnessRequests(
+    activeTab === "pending" ? WitnessStatus.Pending : undefined,
+    variables.filter,
+  );
 
   const { acknowledge, loading: mutationLoading } = useAcknowledgeWitness(() => refetch());
 
@@ -79,43 +91,17 @@ function WitnessRequestsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap gap-3 items-center mb-6">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by description or contact..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-muted-foreground whitespace-nowrap">From</label>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => {
-              setStartDate(e.target.value);
-              setPage(1);
-            }}
-            className="h-9"
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-muted-foreground whitespace-nowrap">To</label>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => {
-              setEndDate(e.target.value);
-              setPage(1);
-            }}
-            className="h-9"
-          />
-        </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
       </div>
 
       <WitnessList
@@ -124,7 +110,13 @@ function WitnessRequestsPage() {
         onAction={acknowledge}
         isLoading={mutationLoading}
       />
-      <PaginationControls page={page} limit={limit} total={total} onPageChange={setPage} />
+      <Pagination
+        total={total}
+        page={page}
+        limit={limit}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
+      />
     </div>
   );
 }

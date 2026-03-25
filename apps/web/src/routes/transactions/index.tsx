@@ -13,7 +13,8 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Pagination } from "@/components/ui/pagination";
 import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
 import { ItemsList } from "@/components/items/ItemsList";
 import { TransactionCharts } from "@/components/transactions/TransactionCharts";
@@ -43,13 +44,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useItems } from "@/hooks/useItems";
+import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import {
-  AssetCategory,
-  type TransactionStatus,
-  type TransactionType,
-} from "@/types/__generated__/graphql";
+import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/transactions/")({
@@ -65,31 +63,27 @@ function TransactionsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(tab);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("ALL");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [currencyFilter, setCurrencyFilter] = useState<string>("ALL");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [page, setPage] = useState(1);
-  const { transactions, loading, summary, total, limit } = useTransactions({
-    search: search || undefined,
-    status: statusFilter === "ALL" ? undefined : (statusFilter as TransactionStatus),
-    types: typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
-    currency: currencyFilter === "ALL" ? undefined : currencyFilter,
-    startDate: startDate ? new Date(startDate) : undefined,
-    endDate: endDate ? new Date(endDate) : undefined,
+  const {
+    search,
+    setSearch,
+    types,
+    setTypes,
+    status,
+    setStatus,
+    currency,
+    setCurrency,
+    dateRange,
+    setDateRange,
     page,
-    limit: 25,
-  });
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useTransactionFilters();
+  const { transactions, loading, summary, total } = useTransactions(variables.filter);
   const { items, loading: loadingItems, refetch: refetchItems } = useItems();
 
   const filteredTransactions = transactions;
-
-  const handleFilterChange = (setter: (v: string) => void) => (v: string) => {
-    setter(v);
-    setPage(1);
-  };
 
   const handleExport = () => {
     // Simple CSV export implementation
@@ -255,11 +249,16 @@ function TransactionsPage() {
                   placeholder="Search by description or contact..."
                   className="pl-8 w-full"
                   value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                  onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
               <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-                <Select value={typeFilter} onValueChange={handleFilterChange(setTypeFilter)}>
+                <Select
+                  value={types[0] ?? "ALL"}
+                  onValueChange={(v) =>
+                    setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])
+                  }
+                >
                   <SelectTrigger className="flex-1 sm:w-[150px]">
                     <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
                     <SelectValue placeholder="Filter Type" />
@@ -274,20 +273,20 @@ function TransactionsPage() {
                   </SelectContent>
                 </Select>
 
-                <Select value={statusFilter} onValueChange={handleFilterChange(setStatusFilter)}>
+                <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
                   <SelectTrigger className="flex-1 sm:w-[150px]">
                     <Package className="w-4 h-4 mr-2 text-muted-foreground" />
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ALL">Active</SelectItem>
+                    <SelectItem value="ALL">All Status</SelectItem>
                     <SelectItem value="COMPLETED">Completed</SelectItem>
                     <SelectItem value="PENDING">Pending</SelectItem>
                     <SelectItem value="CANCELLED">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
 
-                <Select value={currencyFilter} onValueChange={handleFilterChange(setCurrencyFilter)}>
+                <Select value={currency} onValueChange={setCurrency}>
                   <SelectTrigger className="flex-1 sm:w-[150px]">
                     <div className="flex items-center gap-2">
                       <span className="text-muted-foreground font-medium">$</span>
@@ -307,26 +306,7 @@ function TransactionsPage() {
                 </Select>
               </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <div className="flex items-center gap-2 flex-1">
-                <label className="text-xs text-muted-foreground whitespace-nowrap">From</label>
-                <Input
-                  type="date"
-                  className="flex-1 h-9"
-                  value={startDate}
-                  onChange={(e) => { setStartDate(e.target.value); setPage(1); }}
-                />
-              </div>
-              <div className="flex items-center gap-2 flex-1">
-                <label className="text-xs text-muted-foreground whitespace-nowrap">To</label>
-                <Input
-                  type="date"
-                  className="flex-1 h-9"
-                  value={endDate}
-                  onChange={(e) => { setEndDate(e.target.value); setPage(1); }}
-                />
-              </div>
-            </div>
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
 
           {/* Transactions Table */}
@@ -522,7 +502,13 @@ function TransactionsPage() {
             </Card>
           </div>
 
-          <PaginationControls page={page} limit={limit} total={total} onPageChange={setPage} />
+          <Pagination
+            total={total}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={setLimit}
+          />
 
           {/* Mobile Transactions List */}
           <div className="md:hidden space-y-4">

@@ -9,6 +9,7 @@ import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { AuthService } from '../auth/auth.service';
+import { WitnessStatus } from '../../generated/prisma/client';
 
 @Resolver(() => Witness)
 @UseGuards(GqlAuthGuard)
@@ -58,8 +59,9 @@ export class WitnessesResolver {
   @Query(() => PaginatedWitnessesResponse, { name: 'myWitnessRequests' })
   myWitnessRequests(
     @CurrentUser() user: User,
+    @Args('status', { type: () => WitnessStatus, nullable: true }) status?: WitnessStatus,
     @Args('filter', { nullable: true }) filter?: FilterWitnessInput,
   ) {
-    return this.witnessesService.findMyRequests(user.id, filter);
+    return this.witnessesService.findMyRequests(user.id, filter, status);
   }
 }

@@ -8,9 +8,12 @@ import {
 } from "@/lib/apollo/queries/witnesses";
 import type { FilterWitnessInput, WitnessStatus } from "@/types/__generated__/graphql";
 
-export function useMyWitnessRequests(filter?: FilterWitnessInput) {
+export function useMyWitnessRequests(
+  status?: WitnessStatus,
+  filter?: FilterWitnessInput,
+) {
   const { data, loading, error, refetch } = useQuery(MY_WITNESS_REQUESTS, {
-    variables: { filter },
+    variables: { status, filter },
     fetchPolicy: "network-only",
   });
 
