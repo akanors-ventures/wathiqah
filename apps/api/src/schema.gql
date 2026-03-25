@@ -425,7 +425,7 @@ type Query {
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
   mySupports: [Support!]!
-  myWitnessRequests(filter: FilterWitnessInput): PaginatedWitnessesResponse!
+  myWitnessRequests(filter: FilterWitnessInput, status: WitnessStatus): PaginatedWitnessesResponse!
   project(id: ID!): Project!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!

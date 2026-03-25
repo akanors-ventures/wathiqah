@@ -1,11 +1,10 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Filter, Plus, Search } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -13,13 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useProjectFilters } from "@/hooks/useProjectFilters";
 import { useProjects } from "@/hooks/useProjects";
 import { formatCurrency } from "@/lib/utils/formatters";
-import type {
-  ProjectBalanceStanding,
-  ProjectFieldsFragment,
-  ProjectStatus,
-} from "@/types/__generated__/graphql";
+import type { ProjectFieldsFragment } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/projects/")({
@@ -28,26 +24,23 @@ export const Route = createFileRoute("/projects/")({
 });
 
 function ProjectsPage() {
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState<string>("ALL");
-  const [balanceStanding, setBalanceStanding] = useState<string>("ALL");
-  const [page, setPage] = useState(1);
-
-  const { projects, total, limit, loading } = useProjects({
-    search: search || undefined,
-    status: status === "ALL" ? undefined : (status as ProjectStatus),
-    balanceStanding:
-      balanceStanding === "ALL" ? undefined : (balanceStanding as ProjectBalanceStanding),
+  const {
+    search,
+    setSearch,
+    status,
+    setStatus,
+    balanceStanding,
+    setBalanceStanding,
     page,
-    limit: 25,
-  });
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useProjectFilters();
+
+  const { projects, total, loading } = useProjects(variables.filter);
 
   const navigate = useNavigate();
-
-  const handleFilterChange = (setter: (v: string) => void) => (v: string) => {
-    setter(v);
-    setPage(1);
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -70,14 +63,11 @@ function ProjectsPage() {
           <Input
             placeholder="Search projects..."
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             className="pl-10"
           />
         </div>
-        <Select value={status} onValueChange={handleFilterChange(setStatus)}>
+        <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
           <SelectTrigger className="sm:w-[160px]">
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Status" />
@@ -89,7 +79,7 @@ function ProjectsPage() {
             <SelectItem value="ARCHIVED">Archived</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={balanceStanding} onValueChange={handleFilterChange(setBalanceStanding)}>
+        <Select value={balanceStanding} onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}>
           <SelectTrigger className="sm:w-[180px]">
             <SelectValue placeholder="Budget Standing" />
           </SelectTrigger>
@@ -159,7 +149,13 @@ function ProjectsPage() {
               </Card>
             ))}
           </div>
-          <PaginationControls page={page} limit={limit} total={total} onPageChange={setPage} />
+          <Pagination
+            total={total}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={setLimit}
+          />
         </>
       )}
     </div>

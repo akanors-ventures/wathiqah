@@ -17,8 +17,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { BrandLoader } from "@/components/ui/page-loader";
-import { PaginationControls } from "@/components/ui/pagination-controls";
+import { Pagination } from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
 import {
   Select,
@@ -50,26 +51,17 @@ export const Route = createFileRoute("/projects/$projectId")({
 function ProjectDetailsPage() {
   const { projectId } = Route.useParams();
   const navigate = useNavigate();
-  const [txType, setTxType] = useState<string>("ALL");
-  const [txCategory, setTxCategory] = useState("");
-  const [txStartDate, setTxStartDate] = useState("");
-  const [txEndDate, setTxEndDate] = useState("");
-  const [txPage, setTxPage] = useState(1);
+  const [txFilter, setTxFilter] = useState<{
+    type?: ProjectTransactionType;
+    category?: string;
+    startDate?: Date;
+    endDate?: Date;
+    page: number;
+    limit: number;
+  }>({ page: 1, limit: 25 });
 
   const { project, transactions, transactionsTotal, transactionsPage, transactionsLimit, loading } =
-    useProject(projectId, {
-      type: txType === "ALL" ? undefined : (txType as ProjectTransactionType),
-      category: txCategory || undefined,
-      startDate: txStartDate ? new Date(txStartDate) : undefined,
-      endDate: txEndDate ? new Date(txEndDate) : undefined,
-      page: txPage,
-      limit: 25,
-    });
-
-  const handleTxFilterChange = (setter: (v: string) => void) => (v: string) => {
-    setter(v);
-    setTxPage(1);
-  };
+    useProject(projectId, txFilter);
 
   if (loading) {
     return (
@@ -194,8 +186,17 @@ function ProjectDetailsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-2 pt-2">
-            <Select value={txType} onValueChange={handleTxFilterChange(setTxType)}>
+          <div className="flex flex-wrap gap-2 pt-2 items-center">
+            <Select
+              value={txFilter.type ?? "ALL"}
+              onValueChange={(v) =>
+                setTxFilter((f) => ({
+                  ...f,
+                  type: v === "ALL" ? undefined : (v as ProjectTransactionType),
+                  page: 1,
+                }))
+              }
+            >
               <SelectTrigger className="sm:w-[150px]">
                 <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
                 <SelectValue placeholder="Type" />
@@ -208,21 +209,29 @@ function ProjectDetailsPage() {
             </Select>
             <Input
               placeholder="Category..."
-              value={txCategory}
-              onChange={(e) => { setTxCategory(e.target.value); setTxPage(1); }}
+              value={txFilter.category ?? ""}
+              onChange={(e) =>
+                setTxFilter((f) => ({
+                  ...f,
+                  category: e.target.value || undefined,
+                  page: 1,
+                }))
+              }
               className="sm:w-[160px] h-9"
             />
-            <Input
-              type="date"
-              value={txStartDate}
-              onChange={(e) => { setTxStartDate(e.target.value); setTxPage(1); }}
-              className="sm:w-[150px] h-9"
-            />
-            <Input
-              type="date"
-              value={txEndDate}
-              onChange={(e) => { setTxEndDate(e.target.value); setTxPage(1); }}
-              className="sm:w-[150px] h-9"
+            <DateRangePicker
+              value={{
+                from: txFilter.startDate ? txFilter.startDate.toISOString().split("T")[0] : null,
+                to: txFilter.endDate ? txFilter.endDate.toISOString().split("T")[0] : null,
+              }}
+              onChange={(range) =>
+                setTxFilter((f) => ({
+                  ...f,
+                  startDate: range.from ? new Date(range.from) : undefined,
+                  endDate: range.to ? new Date(range.to) : undefined,
+                  page: 1,
+                }))
+              }
             />
           </div>
         </CardHeader>
@@ -353,11 +362,12 @@ function ProjectDetailsPage() {
               </TableBody>
             </Table>
           )}
-          <PaginationControls
+          <Pagination
+            total={transactionsTotal}
             page={transactionsPage}
             limit={transactionsLimit}
-            total={transactionsTotal}
-            onPageChange={setTxPage}
+            onPageChange={(p) => setTxFilter((f) => ({ ...f, page: p }))}
+            onLimitChange={(l) => setTxFilter((f) => ({ ...f, limit: l, page: 1 }))}
           />
         </CardContent>
       </Card>

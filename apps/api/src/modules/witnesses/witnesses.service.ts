@@ -91,7 +91,11 @@ export class WitnessesService {
     });
   }
 
-  async findMyRequests(userId: string, filter?: FilterWitnessInput) {
+  async findMyRequests(
+    userId: string,
+    filter?: FilterWitnessInput,
+    status?: WitnessStatus,
+  ) {
     const page = filter?.page ?? 1;
     const limit = filter?.limit ?? 25;
     const skip = (page - 1) * limit;
@@ -102,6 +106,10 @@ export class WitnessesService {
       invitedAt?: { gte?: Date; lte?: Date };
       OR?: unknown[];
     } = { userId };
+
+    if (status) {
+      where.status = status;
+    }
 
     if (filter?.startDate || filter?.endDate) {
       where.invitedAt = {
@@ -114,6 +122,11 @@ export class WitnessesService {
       where.OR = [
         {
           transaction: {
+            description: { contains: filter.search, mode: 'insensitive' },
+          },
+        },
+        {
+          projectTransaction: {
             description: { contains: filter.search, mode: 'insensitive' },
           },
         },

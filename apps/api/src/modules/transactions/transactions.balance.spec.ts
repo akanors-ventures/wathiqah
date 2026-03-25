@@ -16,6 +16,7 @@ const mockPrismaService = {
   transaction: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
+    count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -89,6 +90,7 @@ describe('TransactionsService - Balance & Audit', () => {
     exchangeRateService = module.get<ExchangeRateService>(ExchangeRateService);
 
     jest.clearAllMocks();
+    (prisma.transaction.count as jest.Mock).mockResolvedValue(0);
     (prisma.project.findMany as jest.Mock).mockResolvedValue([]);
     (prisma.projectTransaction.groupBy as jest.Mock).mockResolvedValue([]);
     (prisma.projectTransaction.findMany as jest.Mock).mockResolvedValue([]);

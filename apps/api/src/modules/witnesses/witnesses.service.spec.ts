@@ -42,7 +42,7 @@ describe('WitnessesService — findMyRequests pagination', () => {
     prisma.witness.findMany.mockResolvedValue([{ id: 'w1' }]);
     prisma.witness.count.mockResolvedValue(1);
 
-    const result = await service.findMyRequests('user-1', undefined, {
+    const result = await service.findMyRequests('user-1', {
       page: 1,
       limit: 10,
     });
