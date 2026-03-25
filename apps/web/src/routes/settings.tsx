@@ -47,6 +47,8 @@ import { CANCEL_SUBSCRIPTION } from "@/lib/apollo/queries/payment";
 import { cn } from "@/lib/utils";
 import { authGuard } from "@/utils/auth";
 
+const TIER_DISPLAY: Record<string, string> = { FREE: "Ledger", PRO: "Wathīqah Pro" };
+
 const SUPPORTED_CURRENCIES = [
   { code: "NGN", name: "Nigerian Naira", symbol: "₦" },
   { code: "USD", name: "US Dollar", symbol: "$" },
@@ -130,8 +132,6 @@ export function BillingSection() {
       </div>
     );
   }
-
-  const TIER_DISPLAY: Record<string, string> = { FREE: "Ledger", PRO: "Wathīqah Pro" };
 
   const isUnlimited = maxWitnessesPerMonth === Infinity;
   const usagePercent = isUnlimited ? 0 : Math.min(100, (witnessUsage / maxWitnessesPerMonth) * 100);

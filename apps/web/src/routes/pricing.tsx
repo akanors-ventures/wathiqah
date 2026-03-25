@@ -209,7 +209,7 @@ function PricingPage() {
                   <div>
                     <CardTitle className="text-2xl font-black uppercase tracking-widest flex items-center gap-2">
                       {t.name}
-                      {t.active && <TierBadge tier={t.active ? (isPro ? "PRO" : "FREE") : undefined} showIcon={false} />}
+                      {t.active && <TierBadge tier={isPro ? "PRO" : "FREE"} showIcon={false} />}
                     </CardTitle>
                     <CardDescription className="text-sm font-medium mt-1">
                       {t.description}
@@ -372,7 +372,7 @@ function PricingPage() {
             <div className="bg-card border border-border/50 rounded-3xl p-8 space-y-2">
               <h3 className="font-bold text-lg">What happens to my data if I downgrade?</h3>
               <p className="text-muted-foreground font-medium">
-                Nothing! All your data stays safe. You'll simply revert to Basic limits for new
+                Nothing! All your data stays safe. You'll simply revert to Ledger limits for new
                 witness requests and lose access to Pro-only features like advanced analytics.
               </p>
             </div>

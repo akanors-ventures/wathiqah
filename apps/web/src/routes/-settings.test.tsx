@@ -268,7 +268,7 @@ describe("SettingsPage", () => {
   describe("BillingSection", () => {
     it("displays Free plan details correctly", () => {
       render(<BillingSection />);
-      expect(screen.getByText("FREE")).toBeInTheDocument();
+      expect(screen.getByText("Ledger")).toBeInTheDocument();
       expect(screen.getByText("active")).toBeInTheDocument();
       expect(screen.getByText("Witness Requests")).toBeInTheDocument();
       expect(screen.getByText("5 / 10")).toBeInTheDocument();
@@ -289,7 +289,7 @@ describe("SettingsPage", () => {
       });
 
       render(<BillingSection />);
-      const proElements = screen.getAllByText("PRO");
+      const proElements = screen.getAllByText("Wathīqah Pro");
       expect(proElements.length).toBeGreaterThan(0);
       expect(screen.getByText(/active/i)).toBeInTheDocument();
       expect(screen.getByText("Unlimited")).toBeInTheDocument();
