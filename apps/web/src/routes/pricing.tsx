@@ -97,7 +97,8 @@ function PricingPage() {
 
   const tiers = [
     {
-      name: "Basic",
+      name: "Ledger",
+      tierKey: "FREE",
       price: "Free",
       description: "Perfect for individuals tracking personal transactions.",
       features: [
@@ -111,18 +112,19 @@ function PricingPage() {
         { name: "Professional PDF Reports", included: false },
         { name: "Priority Support", included: false },
       ],
-      buttonText: isPro ? "Current Plan" : "Already Active",
+      buttonText: isPro ? "Current Plan" : "Get Started Free",
       buttonVariant: "outline" as const,
       highlight: false,
       active: !isPro,
     },
     {
-      name: "Pro",
+      name: "Wathīqah Pro",
+      tierKey: "PRO",
       price: formatCurrency(selectedCurrency.price, selectedCurrency.code),
       period: "/ month",
       description: "The ultimate tool for high-trust financial management.",
       features: [
-        { name: "Everything in Basic", included: true },
+        { name: "Everything in Ledger", included: true },
         { name: "Unlimited Witness Requests", included: true },
         { name: "SMS Notifications", included: true },
         { name: "Advanced Financial Analytics", included: true },
@@ -144,7 +146,7 @@ function PricingPage() {
       <div className="container mx-auto py-16 px-4 max-w-6xl">
         <div className="text-center mb-8 space-y-4">
           <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4">
-            Upgrade to <span className="text-primary">Pro</span>
+            Choose Your <span className="text-primary">Plan</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
             Unlock the full power of Wathīqah and bring professional-grade accountability to your
@@ -207,7 +209,7 @@ function PricingPage() {
                   <div>
                     <CardTitle className="text-2xl font-black uppercase tracking-widest flex items-center gap-2">
                       {t.name}
-                      {t.active && <TierBadge tier={t.name.toUpperCase()} showIcon={false} />}
+                      {t.active && <TierBadge tier={t.active ? (isPro ? "PRO" : "FREE") : undefined} showIcon={false} />}
                     </CardTitle>
                     <CardDescription className="text-sm font-medium mt-1">
                       {t.description}
@@ -219,7 +221,7 @@ function PricingPage() {
                       t.highlight ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
                     )}
                   >
-                    {t.name === "Basic" ? (
+                    {t.tierKey === "FREE" ? (
                       <Shield className="w-6 h-6" />
                     ) : (
                       <Zap className="w-6 h-6" />
@@ -273,12 +275,12 @@ function PricingPage() {
                   )}
                   variant={t.buttonVariant}
                   disabled={t.active || loading}
-                  onClick={t.name === "Pro" && !t.active ? handleUpgrade : undefined}
-                  asChild={t.name === "Basic" && !t.active}
+                  onClick={t.tierKey === "PRO" && !t.active ? handleUpgrade : undefined}
+                  asChild={t.tierKey === "FREE" && !t.active}
                 >
                   {t.active ? (
                     <span>{t.buttonText}</span>
-                  ) : t.name === "Basic" ? (
+                  ) : t.tierKey === "FREE" ? (
                     <Link to="/"> {t.buttonText}</Link>
                   ) : (
                     <span>{t.buttonText}</span>

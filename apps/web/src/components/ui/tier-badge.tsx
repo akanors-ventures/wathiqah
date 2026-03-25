@@ -34,7 +34,7 @@ export function TierBadge({ tier, className, showIcon = true }: TierBadgeProps) 
       )}
     >
       {showIcon && <ShieldCheck className="w-3 h-3" />}
-      BASIC
+      LEDGER
     </Badge>
   );
 }
