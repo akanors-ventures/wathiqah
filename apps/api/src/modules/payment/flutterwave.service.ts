@@ -21,16 +21,36 @@ export class FlutterwaveService {
     private prisma: PrismaService,
   ) {}
 
-  async createSubscriptionSession(user: User, tier: SubscriptionTier) {
+  async createSubscriptionSession(
+    user: User,
+    tier: SubscriptionTier,
+    interval?: string,
+  ) {
     const proPlanId = this.configService.get<string>(
       'payment.flutterwave.proPlanId',
+    );
+    const proAnnualPlanId = this.configService.get<string>(
+      'payment.flutterwave.proAnnualPlanId',
     );
     const successUrl = this.configService.get<string>('payment.successUrl');
     const separator = successUrl.includes('?') ? '&' : '?';
 
+    let effectivePlanId = proPlanId;
+    if (interval === 'annual') {
+      if (proAnnualPlanId) {
+        effectivePlanId = proAnnualPlanId;
+      } else {
+        this.logger.warn(
+          'Flutterwave annual plan ID not configured, falling back to monthly plan',
+        );
+      }
+    }
+
+    const fallbackAmount = interval === 'annual' ? '50000' : '5000';
+
     const payload: Record<string, unknown> = {
       tx_ref: `sub_${user.id}_${Date.now()}`,
-      amount: tier === SubscriptionTier.PRO ? '5000' : '0', // Fallback amount if no plan
+      amount: tier === SubscriptionTier.PRO ? fallbackAmount : '0', // Fallback amount if no plan
       currency: 'NGN',
       redirect_url: `${successUrl}${separator}type=subscription`,
       payment_options: 'card,banktransfer,ussd',
@@ -51,8 +71,8 @@ export class FlutterwaveService {
     };
 
     // If a plan ID is configured, use it for recurring billing
-    if (proPlanId && tier === SubscriptionTier.PRO) {
-      payload.payment_plan = proPlanId;
+    if (effectivePlanId && tier === SubscriptionTier.PRO) {
+      payload.payment_plan = effectivePlanId;
     }
 
     try {

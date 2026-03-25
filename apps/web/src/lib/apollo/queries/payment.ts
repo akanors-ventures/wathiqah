@@ -10,10 +10,10 @@ import { gql, type TypedDocumentNode } from "@apollo/client";
 
 export const CREATE_CHECKOUT_SESSION: TypedDocumentNode<
   CreateCheckoutSessionMutation,
-  CreateCheckoutSessionMutationVariables
+  CreateCheckoutSessionMutationVariables & { interval?: string }
 > = gql`
-  mutation CreateCheckoutSession($tier: SubscriptionTier!, $currency: String!) {
-    createCheckoutSession(tier: $tier, currency: $currency) {
+  mutation CreateCheckoutSession($tier: SubscriptionTier!, $currency: String!, $interval: String) {
+    createCheckoutSession(tier: $tier, currency: $currency, interval: $interval) {
       url
     }
   }

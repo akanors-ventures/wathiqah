@@ -20,6 +20,8 @@ export class PaymentResolver {
     @Context() context: { req: Request & { user: User; geoip?: GeoIPInfo } },
     @Args('tier', { type: () => SubscriptionTier }) tier: SubscriptionTier,
     @Args('currency', { nullable: true }) currency?: string,
+    @Args('interval', { nullable: true, defaultValue: 'monthly' })
+    interval?: string,
   ) {
     const userId = context.req.user.id;
     return this.paymentService.createSubscriptionSession(
@@ -27,6 +29,7 @@ export class PaymentResolver {
       tier,
       currency,
       context.req.geoip,
+      interval,
     );
   }
 

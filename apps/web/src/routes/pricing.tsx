@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle, Heart } from "lucide-react";
+import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle, Heart, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,7 @@ import { useMutation } from "@apollo/client/react";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
 import { toast } from "sonner";
-import { SubscriptionTier } from "@/types/__generated__/graphql";
+import { SubscriptionTier, type CreateCheckoutSessionMutationVariables } from "@/types/__generated__/graphql";
 import { Footer } from "@/components/layout/Footer";
 
 export const Route = createFileRoute("/pricing")({
@@ -35,11 +35,18 @@ const CURRENCIES = [
   { code: "GBP", label: "GBP (£)", price: 3.99, regions: ["GB"] },
 ];
 
+const ANNUAL_PRICES: Record<string, number> = {
+  USD: 49.9,
+  NGN: 50000,
+  GBP: 39.9,
+};
+
 function PricingPage() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+  const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
 
   const [createCheckoutSession, { loading: checkoutLoading }] = useMutation(
     CREATE_CHECKOUT_SESSION,
@@ -74,7 +81,8 @@ function PricingPage() {
         variables: {
           tier: SubscriptionTier.Pro,
           currency: selectedCurrency.code,
-        },
+          interval: billingInterval,
+        } as CreateCheckoutSessionMutationVariables & { interval?: string },
       });
     } catch (_error) {
       // Error handled by onError
@@ -120,8 +128,21 @@ function PricingPage() {
     {
       name: "Wathīqah Pro",
       tierKey: "PRO",
-      price: formatCurrency(selectedCurrency.price, selectedCurrency.code),
-      period: "/ month",
+      price:
+        billingInterval === "annual"
+          ? formatCurrency(
+              ANNUAL_PRICES[selectedCurrency.code] ?? selectedCurrency.price * 10,
+              selectedCurrency.code,
+            )
+          : formatCurrency(selectedCurrency.price, selectedCurrency.code),
+      period: billingInterval === "annual" ? "/ year" : "/ month",
+      perMonthEquivalent:
+        billingInterval === "annual"
+          ? formatCurrency(
+              (ANNUAL_PRICES[selectedCurrency.code] ?? selectedCurrency.price * 10) / 12,
+              selectedCurrency.code,
+            )
+          : null,
       description: "The ultimate tool for high-trust financial management.",
       features: [
         { name: "Everything in Ledger", included: true },
@@ -173,7 +194,7 @@ function PricingPage() {
         )}
 
         {/* Region Indicator */}
-        <div className="flex flex-col items-center mb-12 gap-2">
+        <div className="flex flex-col items-center mb-8 gap-2">
           {!geoLoading && (
             <div className="inline-flex items-center bg-muted/50 px-4 py-2 rounded-2xl border border-border/50 animate-in fade-in zoom-in duration-500">
               <Globe className="w-3.5 h-3.5 mr-2 text-primary" />
@@ -185,6 +206,40 @@ function PricingPage() {
               </span>
             </div>
           )}
+        </div>
+
+        {/* Billing Interval Toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center bg-muted/50 rounded-2xl border border-border/50 p-1.5 gap-1">
+            <button
+              type="button"
+              onClick={() => setBillingInterval("monthly")}
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200",
+                billingInterval === "monthly"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval("annual")}
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 flex items-center gap-2",
+                billingInterval === "annual"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Annual
+              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                <Sparkles className="w-2.5 h-2.5" />
+                2 months free
+              </span>
+            </button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
@@ -232,6 +287,11 @@ function PricingPage() {
                   <span className="text-4xl font-black">{t.price}</span>
                   {t.period && <span className="text-muted-foreground font-bold">{t.period}</span>}
                 </div>
+                {"perMonthEquivalent" in t && t.perMonthEquivalent && (
+                  <p className="text-xs text-muted-foreground font-medium mt-1">
+                    ≈ {t.perMonthEquivalent}/mo
+                  </p>
+                )}
               </CardHeader>
 
               <CardContent className="flex-1 space-y-6">

@@ -24,6 +24,7 @@ export class PaymentService {
     tier: SubscriptionTier,
     currency?: string,
     geoip?: GeoIPInfo,
+    interval?: string,
   ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -47,15 +48,23 @@ export class PaymentService {
 
     // Determine which provider to use based on currency
     if (effectiveCurrency === 'NGN') {
-      return this.flutterwaveService.createSubscriptionSession(user, tier);
+      return this.flutterwaveService.createSubscriptionSession(
+        user,
+        tier,
+        interval,
+      );
     } else {
       const globalProvider = this.configService.get<string>(
         'payment.globalProvider',
       );
       if (globalProvider === 'lemonsqueezy') {
-        return this.lemonsqueezyService.createSubscriptionSession(user, tier);
+        return this.lemonsqueezyService.createSubscriptionSession(
+          user,
+          tier,
+          interval,
+        );
       }
-      return this.stripeService.createSubscriptionSession(user, tier);
+      return this.stripeService.createSubscriptionSession(user, tier, interval);
     }
   }
 
