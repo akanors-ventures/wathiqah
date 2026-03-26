@@ -34,6 +34,7 @@ import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
 import { toast } from "sonner";
 import {
+  BillingInterval,
   SubscriptionTier,
   type CreateCheckoutSessionMutationVariables,
 } from "@/types/__generated__/graphql";
@@ -71,7 +72,7 @@ function PricingPage() {
   const { isPro, loading: subLoading } = useSubscription();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "annual">("monthly");
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>(BillingInterval.Monthly);
 
   const [createCheckoutSession, { loading: checkoutLoading }] = useMutation(
     CREATE_CHECKOUT_SESSION,
@@ -107,7 +108,7 @@ function PricingPage() {
           tier: SubscriptionTier.Pro,
           currency: selectedCurrency.code,
           interval: billingInterval,
-        } as CreateCheckoutSessionMutationVariables & { interval?: string },
+        } satisfies CreateCheckoutSessionMutationVariables,
       });
     } catch (_error) {
       // Error handled by onError
@@ -154,15 +155,15 @@ function PricingPage() {
       name: "Wathīqah Pro",
       tierKey: "PRO",
       price:
-        billingInterval === "annual"
+        billingInterval === BillingInterval.Annual
           ? formatCurrency(
               getAnnualPrice(selectedCurrency.code, selectedCurrency.price),
               selectedCurrency.code,
             )
           : formatCurrency(selectedCurrency.price, selectedCurrency.code),
-      period: billingInterval === "annual" ? "/ year" : "/ month",
+      period: billingInterval === BillingInterval.Annual ? "/ year" : "/ month",
       perMonthEquivalent:
-        billingInterval === "annual"
+        billingInterval === BillingInterval.Annual
           ? formatCurrency(
               getAnnualPrice(selectedCurrency.code, selectedCurrency.price) / 12,
               selectedCurrency.code,
@@ -238,10 +239,10 @@ function PricingPage() {
           <div className="inline-flex items-center bg-muted/50 rounded-2xl border border-border/50 p-1.5 gap-1">
             <button
               type="button"
-              onClick={() => setBillingInterval("monthly")}
+              onClick={() => setBillingInterval(BillingInterval.Monthly)}
               className={cn(
                 "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200",
-                billingInterval === "monthly"
+                billingInterval === BillingInterval.Monthly
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}
@@ -250,10 +251,10 @@ function PricingPage() {
             </button>
             <button
               type="button"
-              onClick={() => setBillingInterval("annual")}
+              onClick={() => setBillingInterval(BillingInterval.Annual)}
               className={cn(
                 "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 flex items-center gap-2",
-                billingInterval === "annual"
+                billingInterval === BillingInterval.Annual
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground",
               )}

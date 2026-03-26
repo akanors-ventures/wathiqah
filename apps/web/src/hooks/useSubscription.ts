@@ -39,7 +39,7 @@ export function useSubscription() {
   const witnessRemaining =
     maxWitnessesPerMonth === Infinity ? Infinity : Math.max(0, maxWitnessesPerMonth - witnessUsage);
 
-  const rawMaxSmsPerMonth = (limits as unknown as { contactNotificationSms?: number })?.contactNotificationSms ?? 0;
+  const rawMaxSmsPerMonth = limits?.contactNotificationSms ?? 0;
   const maxSmsPerMonth = rawMaxSmsPerMonth === -1 ? Infinity : rawMaxSmsPerMonth;
   const smsRemaining = maxSmsPerMonth === Infinity ? Infinity : Math.max(0, maxSmsPerMonth - smsUsage);
 
