@@ -43,6 +43,12 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
+type Feature = {
+  name: string;
+  included: boolean;
+  highlight?: boolean;
+};
+
 const CURRENCIES = [
   { code: "USD", label: "USD ($)", price: 4.99, regions: ["US", "GLOBAL"] },
   { code: "NGN", label: "NGN (₦)", price: 5000, regions: ["NG"] },
@@ -315,12 +321,12 @@ function PricingPage() {
 
               <CardContent className="flex-1 space-y-6">
                 <div className="space-y-3">
-                  {t.features.map((feature) => (
+                  {(t.features as Feature[]).map((feature) => (
                     <div
                       key={feature.name}
                       className={cn(
                         "flex items-center gap-3",
-                        "highlight" in feature && feature.highlight &&
+                        feature.highlight &&
                           "bg-amber-50 dark:bg-amber-950/20 -mx-3 px-3 py-1.5 rounded-xl border border-amber-200/60 dark:border-amber-800/40",
                       )}
                     >
@@ -338,12 +344,12 @@ function PricingPage() {
                         className={cn(
                           "text-sm font-medium flex-1",
                           !feature.included && "text-muted-foreground/60",
-                          "highlight" in feature && feature.highlight && "font-bold text-amber-700 dark:text-amber-400",
+                          feature.highlight && "font-bold text-amber-700 dark:text-amber-400",
                         )}
                       >
                         {feature.name}
                       </span>
-                      {"highlight" in feature && feature.highlight && (
+                      {feature.highlight && (
                         <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 shrink-0">
                           Key Feature
                         </span>
@@ -387,7 +393,7 @@ function PricingPage() {
               Why People Upgrade
             </div>
             <h3 className="text-2xl font-black tracking-tight">
-              Your contacts hear from you <span className="text-amber-600">automatically</span>
+              Your contacts hear from you <span className="text-amber-600 dark:text-amber-400">automatically</span>
             </h3>
             <p className="text-muted-foreground font-medium leading-relaxed max-w-lg mx-auto">
               When you record a transaction against someone's phone number, they receive an SMS —
@@ -395,7 +401,12 @@ function PricingPage() {
               Upgrade to Pro for unlimited contact notifications and full SMS witness support.
             </p>
             <Button
-              onClick={() => document.getElementById("pro-card")?.scrollIntoView({ behavior: "smooth" })}
+              variant="default"
+              onClick={() => {
+                if (typeof document !== "undefined") {
+                  document.getElementById("pro-card")?.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
               className="rounded-2xl font-black uppercase tracking-widest px-8"
             >
               Upgrade to Wathīqah Pro
