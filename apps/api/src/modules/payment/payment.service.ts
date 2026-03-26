@@ -175,21 +175,23 @@ export class PaymentService {
 
     if (subscription.provider === 'stripe') {
       await this.stripeService.reactivateSubscription(subscription.externalId!);
+      await this.prisma.subscription.update({
+        where: { userId },
+        data: { cancelAtPeriodEnd: false },
+      });
     } else if (subscription.provider === 'flutterwave') {
       await this.flutterwaveService.reactivateSubscription(
         subscription.externalId!,
       );
+      // Flutterwave always throws above — no DB update needed here
     } else if (subscription.provider === 'lemonsqueezy') {
       await this.lemonsqueezyService.reactivateSubscription(
         subscription.externalId!,
       );
+      await this.prisma.subscription.update({
+        where: { userId },
+        data: { cancelAtPeriodEnd: false },
+      });
     }
-
-    // Optimistically update local DB — webhook will confirm later
-    // (Flutterwave path always throws before reaching here)
-    await this.prisma.subscription.update({
-      where: { userId },
-      data: { cancelAtPeriodEnd: false },
-    });
   }
 }

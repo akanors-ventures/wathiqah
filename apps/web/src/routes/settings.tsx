@@ -292,28 +292,37 @@ export function BillingSection() {
           </p>
 
           {/* Contact Notification SMS meter */}
-          {!isPro && (
-            <div className="mt-4 space-y-2 pt-4 border-t border-border/50">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-bold">Contact Notification SMS</span>
+          {(() => {
+            const isSmsUnlimited = maxSmsPerMonth === Infinity;
+            return (
+              <div className="mt-4 space-y-2 pt-4 border-t border-border/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-blue-500" />
+                    <span className="text-sm font-bold">Contact Notification SMS</span>
+                  </div>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {isSmsUnlimited ? "Unlimited" : `${smsUsage} / ${maxSmsPerMonth}`}
+                  </span>
                 </div>
-                <span className="text-xs font-medium text-muted-foreground">
-                  {smsUsage} / {maxSmsPerMonth === Infinity ? "∞" : maxSmsPerMonth}
-                </span>
+                {isSmsUnlimited ? (
+                  <div className="h-2 w-full bg-emerald-500/20 rounded-full overflow-hidden relative">
+                    <div className="absolute inset-0 bg-emerald-500/40 animate-pulse" />
+                  </div>
+                ) : (
+                  <Progress
+                    value={Math.min(100, (smsUsage / maxSmsPerMonth) * 100)}
+                    className="h-2"
+                  />
+                )}
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {isSmsUnlimited
+                    ? "You have unlimited contact notification SMS on Wathīqah Pro."
+                    : `You have used ${smsUsage} of your ${maxSmsPerMonth} monthly contact notification SMS.`}
+                </p>
               </div>
-              <Progress
-                value={maxSmsPerMonth === Infinity ? 0 : Math.min(100, (smsUsage / maxSmsPerMonth) * 100)}
-                className="h-2"
-              />
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {maxSmsPerMonth === Infinity
-                  ? "You have unlimited contact notification SMS on Wathīqah Pro."
-                  : `You have used ${smsUsage} of your ${maxSmsPerMonth} monthly contact notification SMS.`}
-              </p>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </div>
