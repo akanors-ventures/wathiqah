@@ -41,7 +41,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: ariga/setup-atlas@v0
@@ -58,8 +58,10 @@ jobs:
           dir: 'file://apps/api/atlas/migrations'
           dir-name: 'app'
           dev-url: 'postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable'
-      - uses: ariga/atlas-action/migrate/apply@v1
+      - name: Apply migrations
         if: github.ref == 'refs/heads/main'
-        with:
-          dir: 'file://apps/api/atlas/migrations'
-          url: ${{ secrets.DB_URL }}
+        run: |
+          atlas migrate apply \
+            --dir "file://atlas/migrations" \
+            --url "${{ secrets.DB_URL }}" \
+            --baseline "20260224181022"
