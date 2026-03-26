@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   Heart,
   Sparkles,
+  MessageSquare,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -133,7 +134,7 @@ function PricingPage() {
         { name: "10 Witness Requests / month", included: true },
         { name: "Basic Analytics", included: true },
         { name: "Email Notifications", included: true },
-        { name: "SMS Notifications", included: false },
+        { name: "Contact Notification SMS (10/month)", included: true, highlight: false },
         { name: "Advanced Analytics", included: false },
         { name: "Professional PDF Reports", included: false },
         { name: "Priority Support", included: false },
@@ -165,7 +166,7 @@ function PricingPage() {
       features: [
         { name: "Everything in Ledger", included: true },
         { name: "Unlimited Witness Requests", included: true },
-        { name: "SMS Notifications", included: true },
+        { name: "Unlimited Contact Notification SMS", included: true, highlight: true },
         { name: "Advanced Financial Analytics", included: true },
         { name: "Professional PDF Reports", included: true },
         { name: "Custom Categories", included: true },
@@ -263,6 +264,7 @@ function PricingPage() {
           {tiers.map((t) => (
             <Card
               key={t.name}
+              id={t.tierKey === "PRO" ? "pro-card" : undefined}
               className={cn(
                 "relative flex flex-col transition-all duration-500 rounded-[40px] overflow-hidden border-2",
                 t.highlight
@@ -314,7 +316,14 @@ function PricingPage() {
               <CardContent className="flex-1 space-y-6">
                 <div className="space-y-3">
                   {t.features.map((feature) => (
-                    <div key={feature.name} className="flex items-center gap-3">
+                    <div
+                      key={feature.name}
+                      className={cn(
+                        "flex items-center gap-3",
+                        "highlight" in feature && feature.highlight &&
+                          "bg-amber-50 dark:bg-amber-950/20 -mx-3 px-3 py-1.5 rounded-xl border border-amber-200/60 dark:border-amber-800/40",
+                      )}
+                    >
                       <div
                         className={cn(
                           "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
@@ -323,20 +332,22 @@ function PricingPage() {
                             : "bg-muted text-muted-foreground/40",
                         )}
                       >
-                        {feature.included ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <X className="w-3 h-3" />
-                        )}
+                        {feature.included ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                       </div>
                       <span
                         className={cn(
-                          "text-sm font-medium",
+                          "text-sm font-medium flex-1",
                           !feature.included && "text-muted-foreground/60",
+                          "highlight" in feature && feature.highlight && "font-bold text-amber-700 dark:text-amber-400",
                         )}
                       >
                         {feature.name}
                       </span>
+                      {"highlight" in feature && feature.highlight && (
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 shrink-0">
+                          Key Feature
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -366,6 +377,30 @@ function PricingPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        {/* Contact Notification SMS Callout */}
+        <div className="max-w-2xl mx-auto mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="rounded-[32px] border-2 border-amber-200 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/10 p-8 text-center space-y-4">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200/60 dark:border-amber-800/40">
+              <MessageSquare className="w-3.5 h-3.5" />
+              Why People Upgrade
+            </div>
+            <h3 className="text-2xl font-black tracking-tight">
+              Your contacts hear from you <span className="text-amber-600">automatically</span>
+            </h3>
+            <p className="text-muted-foreground font-medium leading-relaxed max-w-lg mx-auto">
+              When you record a transaction against someone's phone number, they receive an SMS —
+              even if they're not on Wathīqah. <strong className="text-foreground">Ledger users get 10 per month.</strong>{" "}
+              Upgrade to Pro for unlimited contact notifications and full SMS witness support.
+            </p>
+            <Button
+              onClick={() => document.getElementById("pro-card")?.scrollIntoView({ behavior: "smooth" })}
+              className="rounded-2xl font-black uppercase tracking-widest px-8"
+            >
+              Upgrade to Wathīqah Pro
+            </Button>
+          </div>
         </div>
 
         {/* Support Section */}
