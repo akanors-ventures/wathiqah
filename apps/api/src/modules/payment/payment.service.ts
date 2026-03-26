@@ -163,4 +163,28 @@ export class PaymentService {
       );
     }
   }
+
+  async reactivateSubscription(userId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { userId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('No active subscription found');
+    }
+
+    if (subscription.provider === 'stripe') {
+      return this.stripeService.reactivateSubscription(
+        subscription.externalId!,
+      );
+    } else if (subscription.provider === 'flutterwave') {
+      return this.flutterwaveService.reactivateSubscription(
+        subscription.externalId!,
+      );
+    } else if (subscription.provider === 'lemonsqueezy') {
+      return this.lemonsqueezyService.reactivateSubscription(
+        subscription.externalId!,
+      );
+    }
+  }
 }

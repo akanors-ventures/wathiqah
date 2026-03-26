@@ -38,3 +38,12 @@ export const CANCEL_SUBSCRIPTION: TypedDocumentNode<
     cancelSubscription
   }
 `;
+
+export const REACTIVATE_SUBSCRIPTION: TypedDocumentNode<
+  { reactivateSubscription: boolean },
+  Record<string, never>
+> = gql`
+  mutation ReactivateSubscription {
+    reactivateSubscription
+  }
+`;
