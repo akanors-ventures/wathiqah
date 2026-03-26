@@ -465,6 +465,11 @@ export class ProjectTransactionsService {
       }),
     ]);
 
-    return { items: items as unknown as PaginatedProjectTransactionsResponse['items'], total, page, limit };
+    return {
+      items: items as unknown as PaginatedProjectTransactionsResponse['items'],
+      total,
+      page,
+      limit,
+    };
   }
 }

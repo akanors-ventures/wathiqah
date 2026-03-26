@@ -1,15 +1,10 @@
 import { useState, useEffect } from "react";
-import type {
-  ProjectStatus,
-  ProjectBalanceStanding,
-} from "@/types/__generated__/graphql";
+import type { ProjectStatus, ProjectBalanceStanding } from "@/types/__generated__/graphql";
 
 export function useProjectFilters() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ProjectStatus | "ALL">("ALL");
-  const [balanceStanding, setBalanceStanding] = useState<
-    ProjectBalanceStanding | "ALL"
-  >("ALL");
+  const [balanceStanding, setBalanceStanding] = useState<ProjectBalanceStanding | "ALL">("ALL");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 

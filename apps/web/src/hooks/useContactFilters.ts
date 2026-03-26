@@ -3,9 +3,7 @@ import type { ContactBalanceStanding } from "@/types/__generated__/graphql";
 
 export function useContactFilters() {
   const [search, setSearch] = useState("");
-  const [balanceStanding, setBalanceStanding] = useState<
-    ContactBalanceStanding | "ALL"
-  >("ALL");
+  const [balanceStanding, setBalanceStanding] = useState<ContactBalanceStanding | "ALL">("ALL");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
 

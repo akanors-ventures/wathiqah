@@ -55,7 +55,12 @@ export class ProjectsService {
         take: limit,
       });
 
-      return { items: items as unknown as PaginatedProjectsResponse['items'], total, page, limit };
+      return {
+        items: items as unknown as PaginatedProjectsResponse['items'],
+        total,
+        page,
+        limit,
+      };
     }
 
     const where: Prisma.ProjectWhereInput = {
@@ -76,7 +81,12 @@ export class ProjectsService {
       }),
     ]);
 
-    return { items: items as unknown as PaginatedProjectsResponse['items'], total, page, limit };
+    return {
+      items: items as unknown as PaginatedProjectsResponse['items'],
+      total,
+      page,
+      limit,
+    };
   }
 
   async findOne(id: string, userId: string) {

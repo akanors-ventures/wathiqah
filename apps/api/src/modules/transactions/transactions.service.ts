@@ -790,9 +790,10 @@ export class TransactionsService {
     }));
 
     // Combine and sort
-    const combinedItems = [...transformedItems, ...mappedProjectTransactions].sort(
-      (a, b) => b.date.getTime() - a.date.getTime(),
-    );
+    const combinedItems = [
+      ...transformedItems,
+      ...mappedProjectTransactions,
+    ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
     // Determine target currency for summary
     let targetCurrency = filter?.summaryCurrency || filter?.currency;

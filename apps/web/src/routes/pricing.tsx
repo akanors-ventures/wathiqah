@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle, Heart, Sparkles } from "lucide-react";
+import {
+  Check,
+  X,
+  Zap,
+  Shield,
+  HelpCircle,
+  Globe,
+  AlertTriangle,
+  Heart,
+  Sparkles,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +32,10 @@ import { useMutation } from "@apollo/client/react";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
 import { toast } from "sonner";
-import { SubscriptionTier, type CreateCheckoutSessionMutationVariables } from "@/types/__generated__/graphql";
+import {
+  SubscriptionTier,
+  type CreateCheckoutSessionMutationVariables,
+} from "@/types/__generated__/graphql";
 import { Footer } from "@/components/layout/Footer";
 
 export const Route = createFileRoute("/pricing")({
@@ -235,8 +248,7 @@ function PricingPage() {
             >
               Annual
               <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                <Sparkles className="w-2.5 h-2.5" />
-                2 months free
+                <Sparkles className="w-2.5 h-2.5" />2 months free
               </span>
             </button>
           </div>

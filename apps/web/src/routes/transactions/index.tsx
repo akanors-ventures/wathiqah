@@ -255,9 +255,7 @@ function TransactionsPage() {
               <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
                 <Select
                   value={types[0] ?? "ALL"}
-                  onValueChange={(v) =>
-                    setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])
-                  }
+                  onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])}
                 >
                   <SelectTrigger className="flex-1 sm:w-[150px]">
                     <Filter className="w-4 h-4 mr-2 text-muted-foreground" />

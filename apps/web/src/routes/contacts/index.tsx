@@ -120,7 +120,10 @@ function ContactsPage() {
             className="pl-10 h-10 bg-background"
           />
         </div>
-        <Select value={balanceStanding} onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}>
+        <Select
+          value={balanceStanding}
+          onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}
+        >
           <SelectTrigger className="sm:w-[200px]">
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Balance Standing" />
