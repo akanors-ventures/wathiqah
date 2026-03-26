@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import {
   lemonSqueezySetup,
   createCheckout,
@@ -303,6 +304,39 @@ export class LemonSqueezyService {
     } catch (error) {
       this.logger.error(`Failed to cancel LS subscription: ${error.message}`);
       throw new Error('Could not cancel subscription with Lemon Squeezy');
+    }
+  }
+
+  async reactivateSubscription(subscriptionId: string) {
+    const apiKey = this.configService.get<string>(
+      'payment.lemonsqueezy.apiKey',
+    );
+    try {
+      await axios.patch(
+        `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
+        {
+          data: {
+            type: 'subscriptions',
+            id: subscriptionId,
+            attributes: { cancelled: false },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            Accept: 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json',
+          },
+        },
+      );
+      this.logger.log(
+        `LemonSqueezy subscription ${subscriptionId} reactivated`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to reactivate LemonSqueezy subscription: ${error.message}`,
+      );
+      throw new Error('Could not reactivate subscription with LemonSqueezy');
     }
   }
 }

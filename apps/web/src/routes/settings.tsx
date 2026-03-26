@@ -7,6 +7,7 @@ import {
   ExternalLink,
   Eye,
   Key,
+  MessageSquare,
   Plus,
   Trash2,
   User,
@@ -43,7 +44,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSharedAccess } from "@/hooks/useSharedAccess";
 import { useSubscription } from "@/hooks/useSubscription";
-import { CANCEL_SUBSCRIPTION } from "@/lib/apollo/queries/payment";
+import { CANCEL_SUBSCRIPTION, REACTIVATE_SUBSCRIPTION } from "@/lib/apollo/queries/payment";
 import { cn } from "@/lib/utils";
 import { authGuard } from "@/utils/auth";
 
@@ -105,6 +106,8 @@ export function BillingSection() {
     refetch,
     cancelAtPeriodEnd,
     currentPeriodEnd,
+    smsUsage,
+    maxSmsPerMonth,
   } = useSubscription();
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -123,6 +126,20 @@ export function BillingSection() {
 
   const handleCancel = async () => {
     await cancelSubscription();
+  };
+
+  const [reactivateSubscription, { loading: reactivating }] = useMutation(REACTIVATE_SUBSCRIPTION, {
+    onCompleted: () => {
+      toast.success("Subscription reactivated successfully");
+      refetch();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to reactivate subscription");
+    },
+  });
+
+  const handleReactivate = async () => {
+    await reactivateSubscription();
   };
 
   if (loading) {
@@ -230,8 +247,19 @@ export function BillingSection() {
                 </AlertDialogContent>
               </AlertDialog>
             ) : isPro && cancelAtPeriodEnd ? (
-              <div className="text-sm text-center text-amber-600 font-medium bg-amber-50 p-2 rounded border border-amber-200">
-                Auto-renewal disabled
+              <div className="space-y-2">
+                <div className="text-sm text-center text-amber-600 font-medium bg-amber-50 dark:bg-amber-950/20 p-2 rounded border border-amber-200 dark:border-amber-800">
+                  Auto-renewal disabled
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full font-bold"
+                  onClick={handleReactivate}
+                  disabled={reactivating}
+                >
+                  {reactivating ? "Reactivating..." : "Reactivate Subscription"}
+                </Button>
               </div>
             ) : (
               <Button asChild size="sm" className="w-full font-bold">
@@ -266,6 +294,28 @@ export function BillingSection() {
               ? "You have unlimited witness requests on the Pro plan."
               : `You have used ${witnessUsage} of your ${maxWitnessesPerMonth} monthly witness requests.`}
           </p>
+
+          {/* Contact Notification SMS meter */}
+          {!isPro && (
+            <div className="mt-4 space-y-2 pt-4 border-t border-border/50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm font-bold">Contact Notification SMS</span>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {smsUsage} / {maxSmsPerMonth === Infinity ? "∞" : maxSmsPerMonth}
+                </span>
+              </div>
+              <Progress
+                value={maxSmsPerMonth === Infinity ? 0 : Math.min(100, (smsUsage / maxSmsPerMonth) * 100)}
+                className="h-2"
+              />
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {`You have used ${smsUsage} of your ${maxSmsPerMonth} monthly contact notification SMS.`}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

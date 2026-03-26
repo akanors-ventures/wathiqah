@@ -346,4 +346,15 @@ export class FlutterwaveService {
       throw new Error('Could not cancel subscription with Flutterwave');
     }
   }
+
+  async reactivateSubscription(subscriptionId: string) {
+    // Flutterwave does not support direct subscription reactivation via API.
+    // Users must create a new subscription.
+    this.logger.warn(
+      `Reactivation not supported for Flutterwave subscription ${subscriptionId}. User must subscribe again.`,
+    );
+    throw new Error(
+      'Reactivation is not supported for your payment provider. Please subscribe again from the pricing page.',
+    );
+  }
 }

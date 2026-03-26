@@ -47,4 +47,14 @@ export class PaymentResolver {
     await this.paymentService.cancelSubscription(userId);
     return true;
   }
+
+  @Mutation(() => Boolean)
+  @UseGuards(GqlAuthGuard)
+  async reactivateSubscription(
+    @Context() context: { req: Request & { user: User } },
+  ) {
+    const userId = context.req.user.id;
+    await this.paymentService.reactivateSubscription(userId);
+    return true;
+  }
 }

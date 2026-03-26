@@ -282,4 +282,18 @@ export class StripeService {
       throw new Error('Could not cancel subscription with Stripe');
     }
   }
+
+  async reactivateSubscription(subscriptionId: string) {
+    try {
+      await this.stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: false,
+      });
+      this.logger.log(`Stripe subscription ${subscriptionId} reactivated`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to reactivate Stripe subscription: ${error.message}`,
+      );
+      throw new Error('Could not reactivate subscription with Stripe');
+    }
+  }
 }
