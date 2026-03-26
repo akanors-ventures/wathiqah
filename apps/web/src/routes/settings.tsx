@@ -138,10 +138,6 @@ export function BillingSection() {
     },
   });
 
-  const handleReactivate = async () => {
-    await reactivateSubscription();
-  };
-
   if (loading) {
     return (
       <div className="bg-card border border-border rounded-lg p-6 shadow-sm h-40 flex items-center justify-center">
@@ -255,7 +251,7 @@ export function BillingSection() {
                   size="sm"
                   variant="outline"
                   className="w-full font-bold"
-                  onClick={handleReactivate}
+                  onClick={() => reactivateSubscription()}
                   disabled={reactivating}
                 >
                   {reactivating ? "Reactivating..." : "Reactivate Subscription"}
@@ -312,7 +308,9 @@ export function BillingSection() {
                 className="h-2"
               />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                {`You have used ${smsUsage} of your ${maxSmsPerMonth} monthly contact notification SMS.`}
+                {maxSmsPerMonth === Infinity
+                  ? "You have unlimited contact notification SMS on Wathīqah Pro."
+                  : `You have used ${smsUsage} of your ${maxSmsPerMonth} monthly contact notification SMS.`}
               </p>
             </div>
           )}

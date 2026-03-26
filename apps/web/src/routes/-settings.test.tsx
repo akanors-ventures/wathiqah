@@ -166,7 +166,9 @@ vi.mock("lucide-react", () => ({
   Plus: () => <svg data-testid="plus-icon" />,
   Trash2: () => <svg data-testid="trash2-icon" />,
   Calendar: () => <svg data-testid="calendar-icon" />,
+  CalendarDays: () => <svg data-testid="calendar-days-icon" />,
   ExternalLink: () => <svg data-testid="external-link-icon" />,
+  MessageSquare: () => <svg data-testid="message-square-icon" />,
 }));
 
 // Mock router
