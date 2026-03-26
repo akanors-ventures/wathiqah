@@ -1,6 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { UpgradePromptDialog } from "@/components/ui/upgrade-prompt-dialog";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
   const { witnessRemaining, isPro } = useSubscription();
   const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
   const [error, setError] = useState("");
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const [addWitness, { loading }] = useMutation(ADD_WITNESS, {
     refetchQueries: [{ query: GET_TRANSACTION, variables: { id: transactionId } }],
@@ -32,7 +34,12 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
       setSelectedWitnesses([]);
       setError("");
     },
-    onError: (err) => setError(err.message),
+    onError: (err) => {
+      if (/limit/i.test(err.message)) {
+        setShowUpgradePrompt(true);
+      }
+      setError(err.message || "Failed to add witness");
+    },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,6 +77,7 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -117,5 +125,11 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
         </form>
       </DialogContent>
     </Dialog>
+    <UpgradePromptDialog
+      open={showUpgradePrompt}
+      onOpenChange={setShowUpgradePrompt}
+      limitType="witnesses"
+    />
+    </>
   );
 }
