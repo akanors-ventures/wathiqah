@@ -1,15 +1,13 @@
 import { useLazyQuery } from "@apollo/client/react";
-import { Search, UserPlus, X } from "lucide-react";
+import { Lock, Search, UserPlus, X } from "lucide-react";
 import { useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UpgradePromptDialog } from "@/components/ui/upgrade-prompt-dialog";
 import { SEARCH_WITNESS_QUERY } from "@/lib/apollo/queries/users";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
-import { Lock } from "lucide-react";
 import {
   SearchType,
   type SearchWitnessQuery,
@@ -26,10 +24,11 @@ export interface SelectedWitness {
 interface WitnessSelectorProps {
   selectedWitnesses: SelectedWitness[];
   onChange: (witnesses: SelectedWitness[]) => void;
+  onUpgradeRequest?: () => void;
   className?: string;
 }
 
-export function WitnessSelector({ selectedWitnesses, onChange, className }: WitnessSelectorProps) {
+export function WitnessSelector({ selectedWitnesses, onChange, onUpgradeRequest, className }: WitnessSelectorProps) {
   const { allowSMS, witnessRemaining } = useSubscription();
   const inviteNameId = useId();
   const inviteEmailId = useId();
@@ -43,7 +42,6 @@ export function WitnessSelector({ selectedWitnesses, onChange, className }: Witn
     type: SearchType;
   } | null>(null);
   const [showInviteForm, setShowInviteForm] = useState(false);
-  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [invitePhone, setInvitePhone] = useState("");
@@ -158,7 +156,7 @@ export function WitnessSelector({ selectedWitnesses, onChange, className }: Witn
           witnessRemaining === 0 ? (
             <button
               type="button"
-              onClick={() => setShowUpgradePrompt(true)}
+              onClick={() => onUpgradeRequest?.()}
               className="text-[11px] font-medium text-amber-600 bg-amber-50 dark:bg-amber-950/20 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors flex items-center gap-1"
             >
               <span>Witness limit reached</span>
@@ -321,11 +319,6 @@ export function WitnessSelector({ selectedWitnesses, onChange, className }: Witn
           </div>
         </div>
       )}
-      <UpgradePromptDialog
-        open={showUpgradePrompt}
-        onOpenChange={setShowUpgradePrompt}
-        limitType="witnesses"
-      />
     </div>
   );
 }
