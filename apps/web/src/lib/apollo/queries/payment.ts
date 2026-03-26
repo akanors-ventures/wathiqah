@@ -5,12 +5,13 @@ import type {
   CreateCheckoutSessionMutationVariables,
   CreateSupportSessionMutation,
   CreateSupportSessionMutationVariables,
+  ReactivateSubscriptionMutation,
 } from "@/types/__generated__/graphql";
 import { gql, type TypedDocumentNode } from "@apollo/client";
 
 export const CREATE_CHECKOUT_SESSION: TypedDocumentNode<
   CreateCheckoutSessionMutation,
-  CreateCheckoutSessionMutationVariables & { interval?: string }
+  CreateCheckoutSessionMutationVariables
 > = gql`
   mutation CreateCheckoutSession($tier: SubscriptionTier!, $currency: String!, $interval: BillingInterval) {
     createCheckoutSession(tier: $tier, currency: $currency, interval: $interval) {
@@ -40,7 +41,7 @@ export const CANCEL_SUBSCRIPTION: TypedDocumentNode<
 `;
 
 export const REACTIVATE_SUBSCRIPTION: TypedDocumentNode<
-  { reactivateSubscription: boolean },
+  ReactivateSubscriptionMutation,
   Record<string, never>
 > = gql`
   mutation ReactivateSubscription {

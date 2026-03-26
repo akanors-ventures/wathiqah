@@ -64,6 +64,12 @@ export type AuthPayload = {
   user: User;
 };
 
+/** Billing interval for subscriptions */
+export enum BillingInterval {
+  Annual = 'ANNUAL',
+  Monthly = 'MONTHLY'
+}
+
 export type ChangePasswordInput = {
   currentPassword: Scalars['String']['input'];
   newPassword: Scalars['String']['input'];
@@ -283,6 +289,7 @@ export type Mutation = {
   logout: Scalars['Boolean']['output'];
   markSharedHistorySeen: Scalars['Boolean']['output'];
   provisionPro: User;
+  reactivateSubscription: Scalars['Boolean']['output'];
   refreshToken: AuthPayload;
   removeContact: Contact;
   removePromise: Promise;
@@ -332,6 +339,7 @@ export type MutationChangePasswordArgs = {
 
 export type MutationCreateCheckoutSessionArgs = {
   currency?: InputMaybe<Scalars['String']['input']>;
+  interval?: InputMaybe<BillingInterval>;
   tier: SubscriptionTier;
 };
 
@@ -866,6 +874,7 @@ export type TierLimitsEntity = {
   allowAdvancedAnalytics: Scalars['Boolean']['output'];
   allowProfessionalReports: Scalars['Boolean']['output'];
   allowSMS: Scalars['Boolean']['output'];
+  contactNotificationSms: Scalars['Int']['output'];
   maxContacts: Scalars['Int']['output'];
   maxWitnessesPerMonth: Scalars['Int']['output'];
 };
@@ -1196,6 +1205,7 @@ export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: s
 export type CreateCheckoutSessionMutationVariables = Exact<{
   tier: SubscriptionTier;
   currency: Scalars['String']['input'];
+  interval?: InputMaybe<BillingInterval>;
 }>;
 
 
@@ -1213,6 +1223,11 @@ export type CancelSubscriptionMutationVariables = Exact<{ [key: string]: never; 
 
 
 export type CancelSubscriptionMutation = { cancelSubscription: boolean };
+
+export type ReactivateSubscriptionMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReactivateSubscriptionMutation = { reactivateSubscription: boolean };
 
 export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, status: ProjectStatus, userId: string, createdAt: string, updatedAt: string };
 
@@ -1328,7 +1343,7 @@ export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', us
 export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
+export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, contactNotificationSms: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
 
 export type TotalBalanceQueryVariables = Exact<{
   currency?: InputMaybe<Scalars['String']['input']>;

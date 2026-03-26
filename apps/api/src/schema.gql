@@ -46,6 +46,12 @@ type AuthPayload {
   user: User!
 }
 
+"""Billing interval for subscriptions"""
+enum BillingInterval {
+  ANNUAL
+  MONTHLY
+}
+
 input ChangePasswordInput {
   currentPassword: String!
   newPassword: String!
@@ -252,7 +258,7 @@ type Mutation {
   addWitness(input: AddWitnessInput!): Transaction!
   cancelSubscription: Boolean!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
-  createCheckoutSession(currency: String, tier: SubscriptionTier!): CheckoutSession!
+  createCheckoutSession(currency: String, interval: BillingInterval = MONTHLY, tier: SubscriptionTier!): CheckoutSession!
   createContact(createContactInput: CreateContactInput!): Contact!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
@@ -268,6 +274,7 @@ type Mutation {
   logout: Boolean!
   markSharedHistorySeen: Boolean!
   provisionPro(input: ProvisionProInput!): User!
+  reactivateSubscription: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
   removePromise(id: String!): Promise!
@@ -535,6 +542,7 @@ type TierLimitsEntity {
   allowAdvancedAnalytics: Boolean!
   allowProfessionalReports: Boolean!
   allowSMS: Boolean!
+  contactNotificationSms: Int!
   maxContacts: Int!
   maxWitnessesPerMonth: Int!
 }
