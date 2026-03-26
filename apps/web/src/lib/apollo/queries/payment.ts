@@ -12,7 +12,7 @@ export const CREATE_CHECKOUT_SESSION: TypedDocumentNode<
   CreateCheckoutSessionMutation,
   CreateCheckoutSessionMutationVariables & { interval?: string }
 > = gql`
-  mutation CreateCheckoutSession($tier: SubscriptionTier!, $currency: String!, $interval: String) {
+  mutation CreateCheckoutSession($tier: SubscriptionTier!, $currency: String!, $interval: BillingInterval) {
     createCheckoutSession(tier: $tier, currency: $currency, interval: $interval) {
       url
     }

@@ -54,6 +54,11 @@ const ANNUAL_PRICES: Record<string, number> = {
   GBP: 39.9,
 };
 
+function getAnnualPrice(currencyCode: string, monthlyPrice: number): number {
+  // 10 months × monthly = "2 months free"; ANNUAL_PRICES provides exact negotiated prices
+  return ANNUAL_PRICES[currencyCode] ?? monthlyPrice * 10;
+}
+
 function PricingPage() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
@@ -144,7 +149,7 @@ function PricingPage() {
       price:
         billingInterval === "annual"
           ? formatCurrency(
-              ANNUAL_PRICES[selectedCurrency.code] ?? selectedCurrency.price * 10,
+              getAnnualPrice(selectedCurrency.code, selectedCurrency.price),
               selectedCurrency.code,
             )
           : formatCurrency(selectedCurrency.price, selectedCurrency.code),
@@ -152,7 +157,7 @@ function PricingPage() {
       perMonthEquivalent:
         billingInterval === "annual"
           ? formatCurrency(
-              (ANNUAL_PRICES[selectedCurrency.code] ?? selectedCurrency.price * 10) / 12,
+              getAnnualPrice(selectedCurrency.code, selectedCurrency.price) / 12,
               selectedCurrency.code,
             )
           : null,

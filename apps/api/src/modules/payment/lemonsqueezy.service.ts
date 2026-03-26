@@ -11,6 +11,7 @@ import {
   PaymentStatus,
   PaymentType,
 } from '../../generated/prisma/enums';
+import { BillingInterval } from './dto/billing-interval.enum';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -36,7 +37,7 @@ export class LemonSqueezyService {
   async createSubscriptionSession(
     user: User,
     tier: SubscriptionTier,
-    interval?: string,
+    interval?: BillingInterval,
   ) {
     const storeId = this.configService.get<string>(
       'payment.lemonsqueezy.storeId',
@@ -49,7 +50,7 @@ export class LemonSqueezyService {
     );
 
     let variantId = proVariantId;
-    if (interval === 'annual') {
+    if (interval === BillingInterval.ANNUAL) {
       if (proAnnualVariantId) {
         variantId = proAnnualVariantId;
       } else {

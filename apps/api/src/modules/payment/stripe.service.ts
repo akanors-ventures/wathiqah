@@ -7,6 +7,7 @@ import {
   PaymentStatus,
   PaymentType,
 } from '../../generated/prisma/enums';
+import { BillingInterval } from './dto/billing-interval.enum';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -32,7 +33,7 @@ export class StripeService {
   async createSubscriptionSession(
     user: User,
     tier: SubscriptionTier,
-    interval?: string,
+    interval?: BillingInterval,
   ) {
     const proPlanId = this.configService.get<string>(
       'payment.stripe.proPlanId',
@@ -48,7 +49,7 @@ export class StripeService {
     }
 
     let effectivePlanId = proPlanId;
-    if (interval === 'annual') {
+    if (interval === BillingInterval.ANNUAL) {
       if (proAnnualPlanId) {
         effectivePlanId = proAnnualPlanId;
       } else {
