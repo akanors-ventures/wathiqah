@@ -125,7 +125,12 @@ describe('TransactionsService - Pagination', () => {
     createdAt: new Date(),
     createdById: userId,
     contactId: 'contact-1',
-    contact: { id: 'contact-1', firstName: 'John', lastName: 'Doe', linkedUserId: null },
+    contact: {
+      id: 'contact-1',
+      firstName: 'John',
+      lastName: 'Doe',
+      linkedUserId: null,
+    },
     createdBy: {
       id: userId,
       firstName: 'Alice',

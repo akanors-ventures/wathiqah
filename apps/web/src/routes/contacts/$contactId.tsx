@@ -274,9 +274,7 @@ function ContactDetailsPage() {
           <div className="flex flex-wrap gap-2 items-center">
             <Select
               value={types[0] ?? "ALL"}
-              onValueChange={(v) =>
-                setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])
-              }
+              onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])}
             >
               <SelectTrigger className="w-[140px] h-8">
                 <Filter className="w-3 h-3 mr-1 text-muted-foreground" />

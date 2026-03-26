@@ -1,8 +1,5 @@
 import { useState, useEffect } from "react";
-import type {
-  TransactionType,
-  TransactionStatus,
-} from "@/types/__generated__/graphql";
+import type { TransactionType, TransactionStatus } from "@/types/__generated__/graphql";
 
 interface DateRange {
   from: string | null;

@@ -15,6 +15,9 @@ export class CreateProjectInput {
   @Field({ nullable: true })
   currency?: string;
 
-  @Field(() => ProjectStatus, { nullable: true, defaultValue: ProjectStatus.ACTIVE })
+  @Field(() => ProjectStatus, {
+    nullable: true,
+    defaultValue: ProjectStatus.ACTIVE,
+  })
   status?: ProjectStatus;
 }

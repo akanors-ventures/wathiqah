@@ -16,13 +16,7 @@ interface PaginationProps {
   onLimitChange: (limit: number) => void;
 }
 
-export function Pagination({
-  total,
-  page,
-  limit,
-  onPageChange,
-  onLimitChange,
-}: PaginationProps) {
+export function Pagination({ total, page, limit, onPageChange, onLimitChange }: PaginationProps) {
   if (total <= limit) return null;
 
   const totalPages = Math.ceil(total / limit);
@@ -40,11 +34,7 @@ export function Pagination({
     }
     const items: PageItem[] = [{ type: "page", value: 1 }];
     if (page > 3) items.push({ type: "ellipsis", key: "start" });
-    for (
-      let i = Math.max(2, page - 1);
-      i <= Math.min(totalPages - 1, page + 1);
-      i++
-    ) {
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
       items.push({ type: "page", value: i });
     }
     if (page < totalPages - 2) items.push({ type: "ellipsis", key: "end" });
@@ -90,10 +80,7 @@ export function Pagination({
           </Button>
           {getPageNumbers().map((item) =>
             item.type === "ellipsis" ? (
-              <span
-                key={item.key}
-                className="px-2 text-sm text-muted-foreground"
-              >
+              <span key={item.key} className="px-2 text-sm text-muted-foreground">
                 …
               </span>
             ) : (

@@ -18,17 +18,8 @@ export const Route = createFileRoute("/witnesses/")({
 
 function WitnessRequestsPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
-  const {
-    search,
-    setSearch,
-    dateRange,
-    setDateRange,
-    page,
-    setPage,
-    limit,
-    setLimit,
-    variables,
-  } = useWitnessFilters();
+  const { search, setSearch, dateRange, setDateRange, page, setPage, limit, setLimit, variables } =
+    useWitnessFilters();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on tab change
   useEffect(() => {

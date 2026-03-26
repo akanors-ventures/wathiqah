@@ -65,7 +65,9 @@ export class TransactionsResolver {
     return this.transactionsService.findAll(user.id, filter);
   }
 
-  @Query(() => PaginatedSharedHistoryResponse, { name: 'myContactTransactions' })
+  @Query(() => PaginatedSharedHistoryResponse, {
+    name: 'myContactTransactions',
+  })
   async findMyContactTransactions(
     @CurrentUser() user: User,
     @Args('filter', { nullable: true }) filter?: FilterSharedHistoryInput,

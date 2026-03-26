@@ -79,7 +79,10 @@ function ProjectsPage() {
             <SelectItem value="ARCHIVED">Archived</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={balanceStanding} onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}>
+        <Select
+          value={balanceStanding}
+          onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}
+        >
           <SelectTrigger className="sm:w-[180px]">
             <SelectValue placeholder="Budget Standing" />
           </SelectTrigger>

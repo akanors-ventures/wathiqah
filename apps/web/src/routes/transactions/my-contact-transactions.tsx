@@ -82,9 +82,7 @@ function MyContactTransactionsPage() {
         </div>
         <Select
           value={types[0] ?? "ALL"}
-          onValueChange={(v) =>
-            setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])
-          }
+          onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])}
         >
           <SelectTrigger className="sm:w-[160px]">
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" />

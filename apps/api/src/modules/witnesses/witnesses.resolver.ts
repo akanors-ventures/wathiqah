@@ -59,7 +59,8 @@ export class WitnessesResolver {
   @Query(() => PaginatedWitnessesResponse, { name: 'myWitnessRequests' })
   myWitnessRequests(
     @CurrentUser() user: User,
-    @Args('status', { type: () => WitnessStatus, nullable: true }) status?: WitnessStatus,
+    @Args('status', { type: () => WitnessStatus, nullable: true })
+    status?: WitnessStatus,
     @Args('filter', { nullable: true }) filter?: FilterWitnessInput,
   ) {
     return this.witnessesService.findMyRequests(user.id, filter, status);
