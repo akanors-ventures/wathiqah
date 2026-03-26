@@ -174,17 +174,22 @@ export class PaymentService {
     }
 
     if (subscription.provider === 'stripe') {
-      return this.stripeService.reactivateSubscription(
-        subscription.externalId!,
-      );
+      await this.stripeService.reactivateSubscription(subscription.externalId!);
     } else if (subscription.provider === 'flutterwave') {
-      return this.flutterwaveService.reactivateSubscription(
+      await this.flutterwaveService.reactivateSubscription(
         subscription.externalId!,
       );
     } else if (subscription.provider === 'lemonsqueezy') {
-      return this.lemonsqueezyService.reactivateSubscription(
+      await this.lemonsqueezyService.reactivateSubscription(
         subscription.externalId!,
       );
     }
+
+    // Optimistically update local DB — webhook will confirm later
+    // (Flutterwave path always throws before reaching here)
+    await this.prisma.subscription.update({
+      where: { userId },
+      data: { cancelAtPeriodEnd: false },
+    });
   }
 }
