@@ -6,6 +6,7 @@ import { FlutterwaveService } from './flutterwave.service';
 import { LemonSqueezyService } from './lemonsqueezy.service';
 import { SubscriptionTier } from '../../generated/prisma/enums';
 import { GeoIPInfo } from '../geoip/entities/geoip-info.entity';
+import { BillingInterval } from './dto/billing-interval.enum';
 
 @Injectable()
 export class PaymentService {
@@ -24,7 +25,7 @@ export class PaymentService {
     tier: SubscriptionTier,
     currency?: string,
     geoip?: GeoIPInfo,
-    interval?: string,
+    interval?: BillingInterval,
   ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

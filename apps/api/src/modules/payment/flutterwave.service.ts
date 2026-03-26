@@ -7,6 +7,7 @@ import {
   PaymentStatus,
   PaymentType,
 } from '../../generated/prisma/enums';
+import { BillingInterval } from './dto/billing-interval.enum';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -24,7 +25,7 @@ export class FlutterwaveService {
   async createSubscriptionSession(
     user: User,
     tier: SubscriptionTier,
-    interval?: string,
+    interval?: BillingInterval,
   ) {
     const proPlanId = this.configService.get<string>(
       'payment.flutterwave.proPlanId',
@@ -36,7 +37,7 @@ export class FlutterwaveService {
     const separator = successUrl.includes('?') ? '&' : '?';
 
     let effectivePlanId = proPlanId;
-    if (interval === 'annual') {
+    if (interval === BillingInterval.ANNUAL) {
       if (proAnnualPlanId) {
         effectivePlanId = proAnnualPlanId;
       } else {
@@ -46,7 +47,13 @@ export class FlutterwaveService {
       }
     }
 
-    const fallbackAmount = interval === 'annual' ? '50000' : '5000';
+    // If annual interval but no plan ID at all is configured, throw — don't silently charge a large one-time amount
+    if (interval === BillingInterval.ANNUAL && !proPlanId) {
+      throw new Error(
+        'Annual subscription plan is not configured. Contact support.',
+      );
+    }
+    const fallbackAmount = '5000';
 
     const payload: Record<string, unknown> = {
       tx_ref: `sub_${user.id}_${Date.now()}`,
