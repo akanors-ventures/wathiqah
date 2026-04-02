@@ -422,48 +422,7 @@ export class TransactionsService {
       });
     }
 
-    // Contact notification for qualifying transaction types
-    const qualifyingTypes = [
-      TransactionType.GIVEN,
-      TransactionType.RECEIVED,
-      TransactionType.RETURNED,
-    ];
-
-    let smsSkipped = false;
-
-    if (
-      (qualifyingTypes as TransactionType[]).includes(transaction.type) &&
-      transaction.contactId
-    ) {
-      const [contact, creator] = await Promise.all([
-        this.prisma.contact.findUnique({
-          where: { id: transaction.contactId },
-        }),
-        this.prisma.user.findUnique({ where: { id: userId } }),
-      ]);
-
-      if (contact && creator) {
-        const result = await this.notificationService
-          .sendContactNotification({
-            transactionId: transaction.id,
-            contactPhoneNumber: contact.phoneNumber ?? null,
-            contactEmail: contact.email ?? null,
-            contactFirstName: contact.firstName ?? null,
-            creatorId: creator.id,
-            creatorDisplayName: creator.firstName ?? creator.email,
-            amount: transaction.amount?.toNumber() ?? 0,
-            currency: transaction.currency,
-          })
-          .catch((err) => {
-            console.error('Failed to send contact notifications:', err);
-            return { smsSkipped: false };
-          });
-
-        smsSkipped = result.smsSkipped;
-      }
-    }
-
-    return { ...transaction, smsSkipped };
+    return transaction;
   }
 
   async addWitness(addWitnessInput: AddWitnessInput, userId: string) {
