@@ -1,14 +1,13 @@
-import { ProjectTransactionForm } from "@/components/projects/ProjectTransactionForm";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
+import { ProjectTransactionForm } from "@/components/projects/ProjectTransactionForm";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,12 +28,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { useAmountInput } from "@/hooks/useAmountInput";
 import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/transactions/new")({
@@ -205,13 +205,7 @@ function NewTransactionPage() {
         witnessUserIds,
         witnessInvites,
       });
-      if (result.data?.createTransaction.smsSkipped) {
-        toast.warning(
-          "Transaction saved. SMS not sent — you've reached your 10 free contact notifications this month. Upgrade to Pro for unlimited notifications.",
-        );
-      } else {
-        toast.success("Transaction created successfully");
-      }
+      toast.success("Transaction created successfully");
       resetAmount();
       navigate({
         to: "/transactions",

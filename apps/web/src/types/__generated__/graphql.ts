@@ -899,7 +899,6 @@ export type Transaction = {
   parentId: Maybe<Scalars['String']['output']>;
   quantity: Maybe<Scalars['Int']['output']>;
   returnDirection: Maybe<ReturnDirection>;
-  smsSkipped: Maybe<Scalars['Boolean']['output']>;
   status: TransactionStatus;
   type: TransactionType;
   witnesses: Maybe<Array<Witness>>;
@@ -1393,7 +1392,7 @@ export type CreateTransactionMutationVariables = Exact<{
 }>;
 
 
-export type CreateTransactionMutation = { createTransaction: { __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, description: string | null, date: string, parentId: string | null, smsSkipped: boolean | null } };
+export type CreateTransactionMutation = { createTransaction: { __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, description: string | null, date: string, parentId: string | null } };
 
 export type AddWitnessMutationVariables = Exact<{
   input: AddWitnessInput;

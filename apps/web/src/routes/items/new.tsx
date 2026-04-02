@@ -20,13 +20,7 @@ function NewItemPage() {
   const handleSubmit = async (values: CreateTransactionInput) => {
     try {
       const result = await createTransaction(values);
-      if (result.data?.createTransaction.smsSkipped) {
-        toast.warning(
-          "Transaction saved. SMS not sent — you've reached your 10 free contact notifications this month. Upgrade to Pro for unlimited notifications.",
-        );
-      } else {
-        toast.success("Item transaction recorded successfully");
-      }
+      toast.success("Item transaction recorded successfully");
       navigate({ to: "/items" });
     } catch (error) {
       console.error(error);
