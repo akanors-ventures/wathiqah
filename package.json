@@ -8,11 +8,10 @@
     "lint:fix": "turbo run lint:fix",
     "format:fix": "turbo run format:fix",
     "test": "turbo run test",
-    "prepare": "husky"
+    "prepare": "lefthook install"
   },
   "devDependencies": {
-    "husky": "^9.1.7",
-    "lint-staged": "^15.5.2",
+    "lefthook": "^1.11.13",
     "prettier": "^3.8.0",
     "turbo": "^2.7.5",
     "typescript": "^5.9.3"
