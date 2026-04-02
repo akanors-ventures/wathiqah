@@ -138,6 +138,8 @@ export class NotificationsProcessor extends WorkerHost {
       amount,
       currency,
       creatorId,
+      witnessDisplayName,
+      transactionType,
     } = data;
 
     const optedOut = await this.smsOptOutService.isOptedOut(contactPhoneNumber);
@@ -151,7 +153,15 @@ export class NotificationsProcessor extends WorkerHost {
     const appUrl = this.configService
       .get<string>('app.url')
       ?.replace(/\/$/, '');
-    const body = `${name}, a transaction of ${formattedAmount} has been recorded in your name by ${creatorDisplayName} on Wathīqah. View your record at ${appUrl}. Reply STOP to opt out.`;
+
+    const typeLabels: Record<string, string> = {
+      GIVEN: 'loan',
+      RECEIVED: 'credit',
+      RETURNED: 'repayment',
+    };
+    const typeLabel = typeLabels[transactionType] ?? 'transaction';
+
+    const body = `${name}, ${creatorDisplayName} has recorded a ${typeLabel} of ${formattedAmount} in your name on Wathīqah. This has been witnessed and confirmed by ${witnessDisplayName}. View your record at ${appUrl}. Reply STOP to opt out.`;
 
     await this.smsProvider.sendSms({ to: contactPhoneNumber, body });
     await this.subscriptionService.incrementFeatureUsage(
@@ -170,18 +180,34 @@ export class NotificationsProcessor extends WorkerHost {
       creatorDisplayName,
       amount,
       currency,
+      witnessDisplayName,
+      transactionType,
     } = data;
 
     const name = contactFirstName ?? 'Someone';
     const formattedAmount = this.formatAmount(amount, currency);
-    const subject = 'A transaction has been recorded in your name on Wathīqah';
+    const subject =
+      'A witnessed transaction has been recorded in your name on Wathīqah';
 
-    // Note: map contactFirstName → name for the template variable
+    const typeLabels: Record<string, string> = {
+      GIVEN: 'loan',
+      RECEIVED: 'credit',
+      RETURNED: 'repayment',
+    };
+    const typeLabel = typeLabels[transactionType] ?? 'transaction';
+
     await this.handleSendEmail({
       to: contactEmail,
       subject,
       templateName: 'contact-transaction-notification',
-      templateData: { name, creatorDisplayName, formattedAmount, subject },
+      templateData: {
+        name,
+        creatorDisplayName,
+        formattedAmount,
+        witnessDisplayName,
+        typeLabel,
+        subject,
+      },
     });
 
     this.logger.log(`Contact notification email sent to ${contactEmail}`);
