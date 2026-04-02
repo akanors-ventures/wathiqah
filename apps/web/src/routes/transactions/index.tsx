@@ -13,6 +13,8 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Pagination } from "@/components/ui/pagination";
 import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
 import { ItemsList } from "@/components/items/ItemsList";
 import { TransactionCharts } from "@/components/transactions/TransactionCharts";
@@ -42,13 +44,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
 import { useItems } from "@/hooks/useItems";
+import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import {
-  AssetCategory,
-  type TransactionStatus,
-  type TransactionType,
-} from "@/types/__generated__/graphql";
+import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/transactions/")({
@@ -64,23 +63,27 @@ function TransactionsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState(tab);
-  const [search, setSearch] = useState("");
-  const [typeFilter, setTypeFilter] = useState<string>("ALL");
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
-  const [currencyFilter, setCurrencyFilter] = useState<string>("ALL");
-  const { transactions, loading, summary } = useTransactions({
-    status: statusFilter === "ALL" ? undefined : (statusFilter as TransactionStatus),
-    types: typeFilter === "ALL" ? undefined : ([typeFilter] as TransactionType[]),
-    currency: currencyFilter === "ALL" ? undefined : currencyFilter,
-  });
+  const {
+    search,
+    setSearch,
+    types,
+    setTypes,
+    status,
+    setStatus,
+    currency,
+    setCurrency,
+    dateRange,
+    setDateRange,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useTransactionFilters();
+  const { transactions, loading, summary, total } = useTransactions(variables.filter);
   const { items, loading: loadingItems, refetch: refetchItems } = useItems();
 
-  const filteredTransactions = transactions.filter((tx) => {
-    const matchesSearch =
-      (tx.description?.toLowerCase() || "").includes(search.toLowerCase()) ||
-      (tx.contact?.name?.toLowerCase() || "").includes(search.toLowerCase());
-    return matchesSearch;
-  });
+  const filteredTransactions = transactions;
 
   const handleExport = () => {
     // Simple CSV export implementation
@@ -238,64 +241,70 @@ function TransactionsPage() {
           )}
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 items-center bg-card p-4 rounded-lg border">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by description or contact..."
-                className="pl-8 w-full"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Filter Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Types</SelectItem>
-                  <SelectItem value="GIVEN">Given (Lent)</SelectItem>
-                  <SelectItem value="RECEIVED">Received (Borrowed)</SelectItem>
-                  <SelectItem value="RETURNED">Returned</SelectItem>
-                  <SelectItem value="EXPENSE">Expense</SelectItem>
-                  <SelectItem value="INCOME">Income</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex flex-col gap-3 bg-card p-4 rounded-lg border">
+            <div className="flex flex-col sm:flex-row gap-3 items-center">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by description or contact..."
+                  className="pl-8 w-full"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+                <Select
+                  value={types[0] ?? "ALL"}
+                  onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])}
+                >
+                  <SelectTrigger className="flex-1 sm:w-[150px]">
+                    <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Filter Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Types</SelectItem>
+                    <SelectItem value="GIVEN">Given (Lent)</SelectItem>
+                    <SelectItem value="RECEIVED">Received (Borrowed)</SelectItem>
+                    <SelectItem value="RETURNED">Returned</SelectItem>
+                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                    <SelectItem value="INCOME">Income</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <Package className="w-4 h-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">Active</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+                  <SelectTrigger className="flex-1 sm:w-[150px]">
+                    <Package className="w-4 h-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Status</SelectItem>
+                    <SelectItem value="COMPLETED">Completed</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={currencyFilter} onValueChange={setCurrencyFilter}>
-                <SelectTrigger className="flex-1 sm:w-[150px]">
-                  <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground font-medium">$</span>
-                    <SelectValue placeholder="Currency" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All Currencies</SelectItem>
-                  <SelectItem value="NGN">NGN (₦)</SelectItem>
-                  <SelectItem value="USD">USD ($)</SelectItem>
-                  <SelectItem value="EUR">EUR (€)</SelectItem>
-                  <SelectItem value="GBP">GBP (£)</SelectItem>
-                  <SelectItem value="CAD">CAD ($)</SelectItem>
-                  <SelectItem value="AED">AED (د.إ)</SelectItem>
-                  <SelectItem value="SAR">SAR (ر.س)</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={currency} onValueChange={setCurrency}>
+                  <SelectTrigger className="flex-1 sm:w-[150px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground font-medium">$</span>
+                      <SelectValue placeholder="Currency" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">All Currencies</SelectItem>
+                    <SelectItem value="NGN">NGN (₦)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AED">AED (د.إ)</SelectItem>
+                    <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
 
           {/* Transactions Table */}
@@ -490,6 +499,14 @@ function TransactionsPage() {
               </CardContent>
             </Card>
           </div>
+
+          <Pagination
+            total={total}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={setLimit}
+          />
 
           {/* Mobile Transactions List */}
           <div className="md:hidden space-y-4">

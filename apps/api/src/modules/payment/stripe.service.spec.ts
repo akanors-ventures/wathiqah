@@ -24,7 +24,7 @@ jest.mock('stripe', () => {
         },
       },
       subscriptions: {
-        cancel: jest.fn(),
+        update: jest.fn(),
       },
     })),
   };
@@ -81,6 +81,37 @@ describe('StripeService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  describe('reactivateSubscription', () => {
+    it('should call subscriptions.update with cancel_at_period_end: false', async () => {
+      const mockStripe = service['stripe'] as unknown as {
+        subscriptions: { update: jest.Mock };
+      };
+      mockStripe.subscriptions.update.mockResolvedValue({});
+
+      await service.reactivateSubscription('sub_test123');
+
+      expect(mockStripe.subscriptions.update).toHaveBeenCalledWith(
+        'sub_test123',
+        {
+          cancel_at_period_end: false,
+        },
+      );
+    });
+
+    it('should throw a user-friendly error when Stripe throws', async () => {
+      const mockStripe = service['stripe'] as unknown as {
+        subscriptions: { update: jest.Mock };
+      };
+      mockStripe.subscriptions.update.mockRejectedValue(
+        new Error('Stripe error'),
+      );
+
+      await expect(
+        service.reactivateSubscription('sub_test123'),
+      ).rejects.toThrow('Could not reactivate subscription with Stripe');
+    });
   });
 
   describe('handleWebhook', () => {

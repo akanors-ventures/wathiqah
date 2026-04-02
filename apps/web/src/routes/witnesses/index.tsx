@@ -1,8 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Input } from "@/components/ui/input";
 import { PageLoader } from "@/components/ui/page-loader";
+import { Pagination } from "@/components/ui/pagination";
 import { WitnessList } from "@/components/witnesses/WitnessList";
+import { useWitnessFilters } from "@/hooks/useWitnessFilters";
 import { useAcknowledgeWitness, useMyWitnessRequests } from "@/hooks/useWitnesses";
+import { WitnessStatus } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/witnesses/")({
@@ -12,10 +18,18 @@ export const Route = createFileRoute("/witnesses/")({
 
 function WitnessRequestsPage() {
   const [activeTab, setActiveTab] = useState<"pending" | "history">("pending");
+  const { search, setSearch, dateRange, setDateRange, page, setPage, limit, setLimit, variables } =
+    useWitnessFilters();
 
-  // Note: We're fetching all and filtering client-side for now to match the UI behavior
-  // Ideally, we'd pass the status to the hook based on the tab
-  const { requests, loading, error, refetch } = useMyWitnessRequests();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on tab change
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
+
+  const { requests, total, loading, error, refetch } = useMyWitnessRequests(
+    activeTab === "pending" ? WitnessStatus.Pending : undefined,
+    variables.filter,
+  );
 
   const { acknowledge, loading: mutationLoading } = useAcknowledgeWitness(() => refetch());
 
@@ -67,11 +81,32 @@ function WitnessRequestsPage() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-center mb-6">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by description or contact..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
+      </div>
+
       <WitnessList
         requests={requests}
         activeTab={activeTab}
         onAction={acknowledge}
         isLoading={mutationLoading}
+      />
+      <Pagination
+        total={total}
+        page={page}
+        limit={limit}
+        onPageChange={setPage}
+        onLimitChange={setLimit}
       />
     </div>
   );

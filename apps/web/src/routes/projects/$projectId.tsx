@@ -1,8 +1,33 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useProject } from "@/hooks/useProjects";
+import {
+  ArrowDownCircle,
+  ArrowLeft,
+  ArrowUpCircle,
+  Clock,
+  Filter,
+  Target,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
+import { useState } from "react";
+import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { BrandLoader } from "@/components/ui/page-loader";
+import { Pagination } from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -11,24 +36,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  ArrowLeft,
-  Clock,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-  Target,
-  ArrowDownCircle,
-  ArrowUpCircle,
-} from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useProject } from "@/hooks/useProjects";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { BrandLoader } from "@/components/ui/page-loader";
+import type { ProjectTransactionType } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 import { format } from "date-fns";
-import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -38,7 +51,17 @@ export const Route = createFileRoute("/projects/$projectId")({
 function ProjectDetailsPage() {
   const { projectId } = Route.useParams();
   const navigate = useNavigate();
-  const { project, loading } = useProject(projectId);
+  const [txFilter, setTxFilter] = useState<{
+    type?: ProjectTransactionType;
+    category?: string;
+    startDate?: Date;
+    endDate?: Date;
+    page: number;
+    limit: number;
+  }>({ page: 1, limit: 25 });
+
+  const { project, transactions, transactionsTotal, transactionsPage, transactionsLimit, loading } =
+    useProject(projectId, txFilter);
 
   if (loading) {
     return (
@@ -163,9 +186,57 @@ function ProjectDetailsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Transaction History</CardTitle>
+          <div className="flex flex-wrap gap-2 pt-2 items-center">
+            <Select
+              value={txFilter.type ?? "ALL"}
+              onValueChange={(v) =>
+                setTxFilter((f) => ({
+                  ...f,
+                  type: v === "ALL" ? undefined : (v as ProjectTransactionType),
+                  page: 1,
+                }))
+              }
+            >
+              <SelectTrigger className="sm:w-[150px]">
+                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Types</SelectItem>
+                <SelectItem value="INCOME">Income</SelectItem>
+                <SelectItem value="EXPENSE">Expense</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              placeholder="Category..."
+              value={txFilter.category ?? ""}
+              onChange={(e) =>
+                setTxFilter((f) => ({
+                  ...f,
+                  category: e.target.value || undefined,
+                  page: 1,
+                }))
+              }
+              className="sm:w-[160px] h-9"
+            />
+            <DateRangePicker
+              value={{
+                from: txFilter.startDate ? txFilter.startDate.toISOString().split("T")[0] : null,
+                to: txFilter.endDate ? txFilter.endDate.toISOString().split("T")[0] : null,
+              }}
+              onChange={(range) =>
+                setTxFilter((f) => ({
+                  ...f,
+                  startDate: range.from ? new Date(range.from) : undefined,
+                  endDate: range.to ? new Date(range.to) : undefined,
+                  page: 1,
+                }))
+              }
+            />
+          </div>
         </CardHeader>
         <CardContent>
-          {!project.transactions || project.transactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="text-center py-10 text-muted-foreground">
               No transactions yet. Start by logging an income or expense.
             </div>
@@ -183,7 +254,7 @@ function ProjectDetailsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {project.transactions.map((tx) => (
+                {transactions.map((tx) => (
                   <TableRow key={tx.id}>
                     <TableCell className="font-medium">
                       {format(new Date(tx.date), "MMM d, yyyy")}
@@ -291,6 +362,13 @@ function ProjectDetailsPage() {
               </TableBody>
             </Table>
           )}
+          <Pagination
+            total={transactionsTotal}
+            page={transactionsPage}
+            limit={transactionsLimit}
+            onPageChange={(p) => setTxFilter((f) => ({ ...f, page: p }))}
+            onLimitChange={(l) => setTxFilter((f) => ({ ...f, limit: l, page: 1 }))}
+          />
         </CardContent>
       </Card>
     </div>

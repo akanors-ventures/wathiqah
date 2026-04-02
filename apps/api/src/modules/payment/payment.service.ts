@@ -6,6 +6,7 @@ import { FlutterwaveService } from './flutterwave.service';
 import { LemonSqueezyService } from './lemonsqueezy.service';
 import { SubscriptionTier } from '../../generated/prisma/enums';
 import { GeoIPInfo } from '../geoip/entities/geoip-info.entity';
+import { BillingInterval } from './dto/billing-interval.enum';
 
 @Injectable()
 export class PaymentService {
@@ -24,6 +25,7 @@ export class PaymentService {
     tier: SubscriptionTier,
     currency?: string,
     geoip?: GeoIPInfo,
+    interval?: BillingInterval,
   ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -47,15 +49,23 @@ export class PaymentService {
 
     // Determine which provider to use based on currency
     if (effectiveCurrency === 'NGN') {
-      return this.flutterwaveService.createSubscriptionSession(user, tier);
+      return this.flutterwaveService.createSubscriptionSession(
+        user,
+        tier,
+        interval,
+      );
     } else {
       const globalProvider = this.configService.get<string>(
         'payment.globalProvider',
       );
       if (globalProvider === 'lemonsqueezy') {
-        return this.lemonsqueezyService.createSubscriptionSession(user, tier);
+        return this.lemonsqueezyService.createSubscriptionSession(
+          user,
+          tier,
+          interval,
+        );
       }
-      return this.stripeService.createSubscriptionSession(user, tier);
+      return this.stripeService.createSubscriptionSession(user, tier, interval);
     }
   }
 
@@ -151,6 +161,37 @@ export class PaymentService {
       return this.lemonsqueezyService.cancelSubscription(
         subscription.externalId!,
       );
+    }
+  }
+
+  async reactivateSubscription(userId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { userId },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException('No active subscription found');
+    }
+
+    if (subscription.provider === 'stripe') {
+      await this.stripeService.reactivateSubscription(subscription.externalId!);
+      await this.prisma.subscription.update({
+        where: { userId },
+        data: { cancelAtPeriodEnd: false },
+      });
+    } else if (subscription.provider === 'flutterwave') {
+      await this.flutterwaveService.reactivateSubscription(
+        subscription.externalId!,
+      );
+      // Flutterwave always throws above — no DB update needed here
+    } else if (subscription.provider === 'lemonsqueezy') {
+      await this.lemonsqueezyService.reactivateSubscription(
+        subscription.externalId!,
+      );
+      await this.prisma.subscription.update({
+        where: { userId },
+        data: { cancelAtPeriodEnd: false },
+      });
     }
   }
 }

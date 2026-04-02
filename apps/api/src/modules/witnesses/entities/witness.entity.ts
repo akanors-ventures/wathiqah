@@ -17,8 +17,11 @@ export class Witness {
   @Field({ nullable: true })
   acknowledgedAt?: Date;
 
-  @Field()
-  transactionId: string;
+  @Field({ nullable: true })
+  transactionId?: string;
+
+  @Field({ nullable: true })
+  projectTransactionId?: string;
 
   @Field(() => Transaction, { nullable: true })
   transaction?: Transaction;

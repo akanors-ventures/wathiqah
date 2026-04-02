@@ -8,7 +8,9 @@ import {
   TransactionsResponse,
   TransactionsSummary,
 } from './entities/transactions-response.entity';
+import { PaginatedSharedHistoryResponse } from './entities/paginated-shared-history-response.entity';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
+import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { ContactGroupedSummary } from './entities/contact-grouped-summary.entity';
 import { UseGuards, UseInterceptors } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
@@ -63,9 +65,14 @@ export class TransactionsResolver {
     return this.transactionsService.findAll(user.id, filter);
   }
 
-  @Query(() => [Transaction], { name: 'myContactTransactions' })
-  async findMyContactTransactions(@CurrentUser() user: User) {
-    return this.transactionsService.findMyContactTransactions(user.id);
+  @Query(() => PaginatedSharedHistoryResponse, {
+    name: 'myContactTransactions',
+  })
+  async findMyContactTransactions(
+    @CurrentUser() user: User,
+    @Args('filter', { nullable: true }) filter?: FilterSharedHistoryInput,
+  ) {
+    return this.transactionsService.findMyContactTransactions(user.id, filter);
   }
 
   @Query(() => [ContactGroupedSummary], {

@@ -1,13 +1,13 @@
 import { useLazyQuery } from "@apollo/client/react";
-import { Search, UserPlus, X } from "lucide-react";
+import { Lock, Search, UserPlus, X } from "lucide-react";
 import { useId, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SEARCH_WITNESS_QUERY } from "@/lib/apollo/queries/users";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
-import { Lock } from "lucide-react";
 import {
   SearchType,
   type SearchWitnessQuery,
@@ -24,10 +24,11 @@ export interface SelectedWitness {
 interface WitnessSelectorProps {
   selectedWitnesses: SelectedWitness[];
   onChange: (witnesses: SelectedWitness[]) => void;
+  onUpgradeRequest?: () => void;
   className?: string;
 }
 
-export function WitnessSelector({ selectedWitnesses, onChange, className }: WitnessSelectorProps) {
+export function WitnessSelector({ selectedWitnesses, onChange, onUpgradeRequest, className }: WitnessSelectorProps) {
   const { allowSMS, witnessRemaining } = useSubscription();
   const inviteNameId = useId();
   const inviteEmailId = useId();
@@ -152,45 +153,67 @@ export function WitnessSelector({ selectedWitnesses, onChange, className }: Witn
         </div>
 
         {witnessRemaining !== undefined && (
-          <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md">
-            Witnesses remaining:{" "}
-            <span className={cn(witnessRemaining === 0 ? "text-red-500" : "text-emerald-600")}>
-              {witnessRemaining}
-            </span>
-          </div>
+          witnessRemaining === 0 ? (
+            <button
+              type="button"
+              onClick={() => onUpgradeRequest?.()}
+              className="text-[11px] font-medium text-amber-600 bg-amber-50 dark:bg-amber-950/20 px-2 py-1 rounded-md border border-amber-200 dark:border-amber-800 hover:bg-amber-100 transition-colors flex items-center gap-1"
+            >
+              <span>Witness limit reached</span>
+              <span className="underline">Upgrade →</span>
+            </button>
+          ) : (
+            <div className="text-[11px] font-medium text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded-md">
+              Witnesses remaining:{" "}
+              <span className={cn(witnessRemaining <= 2 ? "text-amber-500" : "text-emerald-600")}>
+                {witnessRemaining}
+              </span>
+            </div>
+          )
         )}
       </div>
 
       {!showInviteForm && !searchResult && (
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-            />
-            <Input
-              placeholder="Search by email or phone..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSearch();
-                }
-              }}
-              className="pl-9 h-11 sm:h-10"
-            />
+        <>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
+              />
+              <Input
+                placeholder="Search by email or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleSearch();
+                  }
+                }}
+                className="pl-9 h-11 sm:h-10"
+                disabled={witnessRemaining === 0}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSearch}
+              disabled={searching || !searchQuery.trim() || witnessRemaining === 0}
+              className="h-11 sm:h-10"
+            >
+              {searching ? "Searching..." : "Search"}
+            </Button>
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleSearch}
-            disabled={searching || !searchQuery.trim()}
-            className="h-11 sm:h-10"
-          >
-            {searching ? "Searching..." : "Search"}
-          </Button>
-        </div>
+          {witnessRemaining === 0 && (
+            <p className="text-xs text-muted-foreground">
+              <Link to="/pricing" className="text-amber-600 underline hover:text-amber-700">
+                Upgrade to Pro
+              </Link>{" "}
+              to add more witnesses this month.
+            </p>
+          )}
+        </>
       )}
 
       {searchResult && (

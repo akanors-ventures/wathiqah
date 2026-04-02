@@ -1,6 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { UpgradePromptDialog } from "@/components/ui/upgrade-prompt-dialog";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
   const { witnessRemaining, isPro } = useSubscription();
   const [selectedWitnesses, setSelectedWitnesses] = useState<SelectedWitness[]>([]);
   const [error, setError] = useState("");
+  const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
 
   const [addWitness, { loading }] = useMutation(ADD_WITNESS, {
     refetchQueries: [{ query: GET_TRANSACTION, variables: { id: transactionId } }],
@@ -32,7 +34,12 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
       setSelectedWitnesses([]);
       setError("");
     },
-    onError: (err) => setError(err.message),
+    onError: (err) => {
+      if (/limit/i.test(err.message)) {
+        setShowUpgradePrompt(true);
+      }
+      setError(err.message || "Failed to add witness");
+    },
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,52 +77,63 @@ export function AddWitnessDialog({ isOpen, onClose, transactionId }: AddWitnessD
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Add Witnesses</DialogTitle>
-          <DialogDescription>
-            Search for existing users or invite new ones to witness this transaction.
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Witnesses</DialogTitle>
+            <DialogDescription>
+              Search for existing users or invite new ones to witness this transaction.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-          {error && (
-            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-200 dark:border-red-900">
-              {error}
-            </div>
-          )}
-
-          {!isPro && witnessRemaining <= 2 && (
-            <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-900 flex items-start gap-2">
-              <Lock size={14} className="mt-0.5 shrink-0" />
-              <div>
-                <p className="font-semibold mb-1">Witness Limit Warning</p>
-                <p>
-                  You have {witnessRemaining} witness invites remaining this month. Upgrade to PRO
-                  for unlimited witnesses.
-                </p>
+          <form onSubmit={handleSubmit} className="grid gap-6 py-4">
+            {error && (
+              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-200 dark:border-red-900">
+                {error}
               </div>
-            </div>
-          )}
+            )}
 
-          <WitnessSelector selectedWitnesses={selectedWitnesses} onChange={setSelectedWitnesses} />
+            {!isPro && witnessRemaining <= 2 && (
+              <div className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-xl border border-amber-200 dark:border-amber-900 flex items-start gap-2">
+                <Lock size={14} className="mt-0.5 shrink-0" />
+                <div>
+                  <p className="font-semibold mb-1">Witness Limit Warning</p>
+                  <p>
+                    You have {witnessRemaining} witness invites remaining this month. Upgrade to PRO
+                    for unlimited witnesses.
+                  </p>
+                </div>
+              </div>
+            )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              isLoading={loading}
-              disabled={selectedWitnesses.length === 0}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              Add Witnesses
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <WitnessSelector
+              selectedWitnesses={selectedWitnesses}
+              onChange={setSelectedWitnesses}
+              onUpgradeRequest={() => setShowUpgradePrompt(true)}
+            />
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                isLoading={loading}
+                disabled={selectedWitnesses.length === 0}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              >
+                Add Witnesses
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      <UpgradePromptDialog
+        open={showUpgradePrompt}
+        onOpenChange={setShowUpgradePrompt}
+        limitType="witnesses"
+      />
+    </>
   );
 }

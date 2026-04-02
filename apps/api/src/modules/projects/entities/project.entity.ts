@@ -1,4 +1,14 @@
-import { ObjectType, Field, Float, ID } from '@nestjs/graphql';
+import {
+  ObjectType,
+  Field,
+  Float,
+  ID,
+  registerEnumType,
+} from '@nestjs/graphql';
+import { ProjectStatus } from '../../../generated/prisma/enums';
+import { PaginatedProjectTransactionsResponse } from './paginated-project-transactions-response.entity';
+
+registerEnumType(ProjectStatus, { name: 'ProjectStatus' });
 
 @ObjectType()
 export class Project {
@@ -26,6 +36,9 @@ export class Project {
   @Field({ defaultValue: 'NGN' })
   currency: string;
 
+  @Field(() => ProjectStatus, { defaultValue: ProjectStatus.ACTIVE })
+  status: ProjectStatus;
+
   @Field()
   userId: string;
 
@@ -34,4 +47,7 @@ export class Project {
 
   @Field()
   updatedAt: Date;
+
+  @Field(() => PaginatedProjectTransactionsResponse, { nullable: true })
+  transactions?: PaginatedProjectTransactionsResponse;
 }

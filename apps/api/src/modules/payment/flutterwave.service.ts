@@ -7,6 +7,7 @@ import {
   PaymentStatus,
   PaymentType,
 } from '../../generated/prisma/enums';
+import { BillingInterval } from './dto/billing-interval.enum';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -21,16 +22,42 @@ export class FlutterwaveService {
     private prisma: PrismaService,
   ) {}
 
-  async createSubscriptionSession(user: User, tier: SubscriptionTier) {
+  async createSubscriptionSession(
+    user: User,
+    tier: SubscriptionTier,
+    interval?: BillingInterval,
+  ) {
     const proPlanId = this.configService.get<string>(
       'payment.flutterwave.proPlanId',
+    );
+    const proAnnualPlanId = this.configService.get<string>(
+      'payment.flutterwave.proAnnualPlanId',
     );
     const successUrl = this.configService.get<string>('payment.successUrl');
     const separator = successUrl.includes('?') ? '&' : '?';
 
+    let effectivePlanId = proPlanId;
+    if (interval === BillingInterval.ANNUAL) {
+      if (proAnnualPlanId) {
+        effectivePlanId = proAnnualPlanId;
+      } else {
+        this.logger.warn(
+          'Flutterwave annual plan ID not configured, falling back to monthly plan',
+        );
+      }
+    }
+
+    // If annual interval but no plan ID at all is configured, throw — don't silently charge a large one-time amount
+    if (interval === BillingInterval.ANNUAL && !proPlanId) {
+      throw new Error(
+        'Annual subscription plan is not configured. Contact support.',
+      );
+    }
+    const fallbackAmount = '5000';
+
     const payload: Record<string, unknown> = {
       tx_ref: `sub_${user.id}_${Date.now()}`,
-      amount: tier === SubscriptionTier.PRO ? '5000' : '0', // Fallback amount if no plan
+      amount: tier === SubscriptionTier.PRO ? fallbackAmount : '0', // Fallback amount if no plan
       currency: 'NGN',
       redirect_url: `${successUrl}${separator}type=subscription`,
       payment_options: 'card,banktransfer,ussd',
@@ -51,8 +78,8 @@ export class FlutterwaveService {
     };
 
     // If a plan ID is configured, use it for recurring billing
-    if (proPlanId && tier === SubscriptionTier.PRO) {
-      payload.payment_plan = proPlanId;
+    if (effectivePlanId && tier === SubscriptionTier.PRO) {
+      payload.payment_plan = effectivePlanId;
     }
 
     try {
@@ -318,5 +345,16 @@ export class FlutterwaveService {
       );
       throw new Error('Could not cancel subscription with Flutterwave');
     }
+  }
+
+  async reactivateSubscription(subscriptionId: string) {
+    // Flutterwave does not support direct subscription reactivation via API.
+    // Users must create a new subscription.
+    this.logger.warn(
+      `Reactivation not supported for Flutterwave subscription ${subscriptionId}. User must subscribe again.`,
+    );
+    throw new Error(
+      'Reactivation is not supported for your payment provider. Please subscribe again from the pricing page.',
+    );
   }
 }

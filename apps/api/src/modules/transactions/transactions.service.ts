@@ -29,6 +29,7 @@ import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
 import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
+import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 
 export interface WitnessNotification {
@@ -685,22 +686,30 @@ export class TransactionsService {
       where.status = { not: TransactionStatus.CANCELLED };
     }
 
-    const items = await this.prisma.transaction.findMany({
-      where,
-      include: {
-        contact: true,
-        createdBy: true,
-        witnesses: {
-          include: {
-            user: true,
+    const page = filter?.page ?? 1;
+    const limit = filter?.limit ?? 25;
+    const skip = (page - 1) * limit;
+
+    const [total, items] = await this.prisma.$transaction([
+      this.prisma.transaction.count({ where }),
+      this.prisma.transaction.findMany({
+        where,
+        include: {
+          contact: true,
+          createdBy: true,
+          witnesses: {
+            include: {
+              user: true,
+            },
           },
         },
-      },
-      orderBy: {
-        date: 'desc',
-      },
-      take: filter?.limit,
-    });
+        orderBy: {
+          date: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+    ]);
 
     const transformedItems = items.map((item) =>
       this.applyPerspective(item, userId),
@@ -743,7 +752,6 @@ export class TransactionsService {
       orderBy: {
         date: 'desc',
       },
-      take: filter?.limit,
     });
 
     const mappedProjectTransactions = projectTransactions.map((pt) => ({
@@ -782,9 +790,10 @@ export class TransactionsService {
     }));
 
     // Combine and sort
-    const combinedItems = [...transformedItems, ...mappedProjectTransactions]
-      .sort((a, b) => b.date.getTime() - a.date.getTime())
-      .slice(0, filter?.limit || undefined);
+    const combinedItems = [
+      ...transformedItems,
+      ...mappedProjectTransactions,
+    ].sort((a, b) => b.date.getTime() - a.date.getTime());
 
     // Determine target currency for summary
     let targetCurrency = filter?.summaryCurrency || filter?.currency;
@@ -806,6 +815,9 @@ export class TransactionsService {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       items: combinedItems as any,
       summary,
+      total,
+      page,
+      limit,
     };
   }
 
@@ -1588,27 +1600,82 @@ export class TransactionsService {
     return cancelledTransaction;
   }
 
-  async findMyContactTransactions(userId: string) {
-    const items = await this.prisma.transaction.findMany({
-      where: {
-        contact: {
-          linkedUserId: userId,
-        },
+  async findMyContactTransactions(
+    userId: string,
+    filter?: FilterSharedHistoryInput,
+  ) {
+    const page = filter?.page ?? 1;
+    const limit = filter?.limit ?? 25;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.TransactionWhereInput = {
+      contact: {
+        linkedUserId: userId,
       },
-      include: {
-        contact: true,
-        createdBy: true,
-        witnesses: {
-          include: {
-            user: true,
+    };
+
+    if (filter?.types && filter.types.length > 0) {
+      where.type = { in: filter.types };
+    }
+    if (filter?.status) {
+      where.status = filter.status;
+    }
+    if (filter?.startDate || filter?.endDate) {
+      where.date = {
+        ...(filter.startDate && { gte: filter.startDate }),
+        ...(filter.endDate && { lte: filter.endDate }),
+      };
+    }
+    if (filter?.search) {
+      const searchFilter: Prisma.TransactionWhereInput = {
+        OR: [
+          { description: { contains: filter.search, mode: 'insensitive' } },
+          {
+            createdBy: {
+              firstName: { contains: filter.search, mode: 'insensitive' },
+            },
+          },
+          {
+            createdBy: {
+              lastName: { contains: filter.search, mode: 'insensitive' },
+            },
+          },
+        ],
+      };
+      const existingWhere = { ...where };
+      where.AND = [existingWhere, searchFilter];
+      delete where.contact;
+      delete where.type;
+      delete where.status;
+      delete where.date;
+    }
+
+    const [total, items] = await Promise.all([
+      this.prisma.transaction.count({ where }),
+      this.prisma.transaction.findMany({
+        where,
+        include: {
+          contact: true,
+          createdBy: true,
+          witnesses: {
+            include: {
+              user: true,
+            },
           },
         },
-      },
-      orderBy: {
-        date: 'desc',
-      },
-    });
+        orderBy: {
+          date: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+    ]);
 
-    return items.map((item) => this.applyPerspective(item, userId));
+    return {
+      items: items.map((item) => this.applyPerspective(item, userId)),
+      total,
+      page,
+      limit,
+    };
   }
 }

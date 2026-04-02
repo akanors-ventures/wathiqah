@@ -8,6 +8,8 @@ import {
 } from "@/lib/apollo/queries/projects";
 import type {
   CreateProjectInput,
+  FilterProjectInput,
+  FilterProjectTransactionInput,
   UpdateProjectInput,
   LogProjectTransactionInput,
   GetMyProjectsQuery,
@@ -17,8 +19,9 @@ import type {
   LogProjectTransactionMutation,
 } from "@/types/__generated__/graphql";
 
-export function useProjects() {
+export function useProjects(filter?: FilterProjectInput) {
   const { data, loading, error, refetch } = useQuery<GetMyProjectsQuery>(GET_MY_PROJECTS, {
+    variables: { filter },
     fetchPolicy: "cache-and-network",
   });
 
@@ -36,7 +39,10 @@ export function useProjects() {
   };
 
   return {
-    projects: data?.myProjects || [],
+    projects: data?.myProjects.items || [],
+    total: data?.myProjects.total ?? 0,
+    page: data?.myProjects.page ?? 1,
+    limit: data?.myProjects.limit ?? 25,
     loading,
     error,
     createProject,
@@ -45,9 +51,9 @@ export function useProjects() {
   };
 }
 
-export function useProject(id: string) {
+export function useProject(id: string, transactionFilter?: FilterProjectTransactionInput) {
   const { data, loading, error, refetch } = useQuery<GetProjectQuery>(GET_PROJECT, {
-    variables: { id },
+    variables: { id, filter: transactionFilter },
     skip: !id,
     fetchPolicy: "cache-and-network",
   });
@@ -76,6 +82,10 @@ export function useProject(id: string) {
 
   return {
     project: data?.project,
+    transactions: data?.project?.transactions?.items || [],
+    transactionsTotal: data?.project?.transactions?.total ?? 0,
+    transactionsPage: data?.project?.transactions?.page ?? 1,
+    transactionsLimit: data?.project?.transactions?.limit ?? 25,
     loading,
     error,
     updateProject,

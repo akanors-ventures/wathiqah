@@ -5,6 +5,7 @@ export default registerAs('payment', () => ({
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
     proPlanId: process.env.STRIPE_PRO_PLAN_ID,
+    proAnnualPlanId: process.env.STRIPE_PRO_ANNUAL_PLAN_ID,
   },
   flutterwave: {
     publicKey: process.env.FLUTTERWAVE_PUBLIC_KEY,
@@ -12,6 +13,7 @@ export default registerAs('payment', () => ({
     encryptionKey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
     webhookHash: process.env.FLUTTERWAVE_WEBHOOK_HASH,
     proPlanId: process.env.FLUTTERWAVE_PRO_PLAN_ID,
+    proAnnualPlanId: process.env.FLUTTERWAVE_PRO_ANNUAL_PLAN_ID,
     supportLink: process.env.FLUTTERWAVE_SUPPORT_LINK,
   },
   lemonsqueezy: {
@@ -19,6 +21,7 @@ export default registerAs('payment', () => ({
     webhookSecret: process.env.LEMON_SQUEEZY_WEBHOOK_SECRET,
     storeId: process.env.LEMON_SQUEEZY_STORE_ID,
     proVariantId: process.env.LEMON_SQUEEZY_PRO_VARIANT_ID,
+    proAnnualVariantId: process.env.LEMON_SQUEEZY_PRO_ANNUAL_VARIANT_ID,
     supportVariantId: process.env.LEMON_SQUEEZY_SUPPORT_VARIANT_ID,
   },
   globalProvider: process.env.GLOBAL_PAYMENT_PROVIDER || 'stripe', // 'stripe' or 'lemonsqueezy'

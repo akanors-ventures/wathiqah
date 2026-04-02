@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 import {
   lemonSqueezySetup,
   createCheckout,
@@ -11,6 +12,7 @@ import {
   PaymentStatus,
   PaymentType,
 } from '../../generated/prisma/enums';
+import { BillingInterval } from './dto/billing-interval.enum';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -33,13 +35,31 @@ export class LemonSqueezyService {
     }
   }
 
-  async createSubscriptionSession(user: User, tier: SubscriptionTier) {
+  async createSubscriptionSession(
+    user: User,
+    tier: SubscriptionTier,
+    interval?: BillingInterval,
+  ) {
     const storeId = this.configService.get<string>(
       'payment.lemonsqueezy.storeId',
     );
-    const variantId = this.configService.get<string>(
+    const proVariantId = this.configService.get<string>(
       'payment.lemonsqueezy.proVariantId',
     );
+    const proAnnualVariantId = this.configService.get<string>(
+      'payment.lemonsqueezy.proAnnualVariantId',
+    );
+
+    let variantId = proVariantId;
+    if (interval === BillingInterval.ANNUAL) {
+      if (proAnnualVariantId) {
+        variantId = proAnnualVariantId;
+      } else {
+        this.logger.warn(
+          'Lemon Squeezy annual variant ID not configured, falling back to monthly variant',
+        );
+      }
+    }
 
     if (!storeId || !variantId) {
       throw new Error('Lemon Squeezy Store ID or Variant ID not configured');
@@ -284,6 +304,39 @@ export class LemonSqueezyService {
     } catch (error) {
       this.logger.error(`Failed to cancel LS subscription: ${error.message}`);
       throw new Error('Could not cancel subscription with Lemon Squeezy');
+    }
+  }
+
+  async reactivateSubscription(subscriptionId: string) {
+    const apiKey = this.configService.get<string>(
+      'payment.lemonsqueezy.apiKey',
+    );
+    try {
+      await axios.patch(
+        `https://api.lemonsqueezy.com/v1/subscriptions/${subscriptionId}`,
+        {
+          data: {
+            type: 'subscriptions',
+            id: subscriptionId,
+            attributes: { cancelled: false },
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            Accept: 'application/vnd.api+json',
+            'Content-Type': 'application/vnd.api+json',
+          },
+        },
+      );
+      this.logger.log(
+        `LemonSqueezy subscription ${subscriptionId} reactivated`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to reactivate LemonSqueezy subscription: ${error.message}`,
+      );
+      throw new Error('Could not reactivate subscription with LemonSqueezy');
     }
   }
 }

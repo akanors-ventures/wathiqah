@@ -22,6 +22,15 @@ export function useSubscription() {
 
   const witnessUsage = getWitnessUsage();
 
+  const getSmsUsage = () => {
+    if (!featureUsage) return 0;
+    const now = new Date();
+    const monthKey = `contactNotificationSms_${now.getFullYear()}_${now.getMonth() + 1}`;
+    return featureUsage[monthKey] || 0;
+  };
+
+  const smsUsage = getSmsUsage();
+
   const rawMaxContacts = limits?.maxContacts ?? 0;
   const rawMaxWitnessesPerMonth = limits?.maxWitnessesPerMonth ?? 0;
 
@@ -29,6 +38,10 @@ export function useSubscription() {
   const maxWitnessesPerMonth = rawMaxWitnessesPerMonth === -1 ? Infinity : rawMaxWitnessesPerMonth;
   const witnessRemaining =
     maxWitnessesPerMonth === Infinity ? Infinity : Math.max(0, maxWitnessesPerMonth - witnessUsage);
+
+  const rawMaxSmsPerMonth = limits?.contactNotificationSms ?? 0;
+  const maxSmsPerMonth = rawMaxSmsPerMonth === -1 ? Infinity : rawMaxSmsPerMonth;
+  const smsRemaining = maxSmsPerMonth === Infinity ? Infinity : Math.max(0, maxSmsPerMonth - smsUsage);
 
   return {
     subscription,
@@ -46,6 +59,9 @@ export function useSubscription() {
     maxWitnessesPerMonth,
     witnessUsage,
     witnessRemaining,
+    smsUsage,
+    maxSmsPerMonth,
+    smsRemaining,
     cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false,
     currentPeriodEnd: subscription?.currentPeriodEnd
       ? new Date(subscription.currentPeriodEnd)

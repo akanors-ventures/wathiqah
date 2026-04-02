@@ -1,4 +1,5 @@
 import { InputType, Field, Float } from '@nestjs/graphql';
+import { ProjectStatus } from '../../../generated/prisma/enums';
 
 @InputType()
 export class CreateProjectInput {
@@ -13,4 +14,10 @@ export class CreateProjectInput {
 
   @Field({ nullable: true })
   currency?: string;
+
+  @Field(() => ProjectStatus, {
+    nullable: true,
+    defaultValue: ProjectStatus.ACTIVE,
+  })
+  status?: ProjectStatus;
 }

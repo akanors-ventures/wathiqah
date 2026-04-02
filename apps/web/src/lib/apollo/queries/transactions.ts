@@ -157,42 +157,47 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
   MyContactTransactionsQuery,
   MyContactTransactionsQueryVariables
 > = gql`
-  query MyContactTransactions {
-    myContactTransactions {
-      id
-      amount
-      category
-      type
-      currency
-      date
-      description
-      itemName
-      quantity
-      returnDirection
-      createdAt
-      createdBy {
+  query MyContactTransactions($filter: FilterSharedHistoryInput) {
+    myContactTransactions(filter: $filter) {
+      items {
         id
-        name
-        email
-        isSupporter
-      }
-      contact {
-        id
-        name
-        isSupporter
-      }
-      witnesses {
-        id
-        status
-        invitedAt
-        acknowledgedAt
-        user {
+        amount
+        category
+        type
+        currency
+        date
+        description
+        itemName
+        quantity
+        returnDirection
+        createdAt
+        createdBy {
           id
           name
           email
           isSupporter
         }
+        contact {
+          id
+          name
+          isSupporter
+        }
+        witnesses {
+          id
+          status
+          invitedAt
+          acknowledgedAt
+          user {
+            id
+            name
+            email
+            isSupporter
+          }
+        }
       }
+      total
+      page
+      limit
     }
   }
 `;

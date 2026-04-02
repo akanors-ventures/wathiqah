@@ -1,5 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Check, X, Zap, Shield, HelpCircle, Globe, AlertTriangle, Heart } from "lucide-react";
+import {
+  Check,
+  X,
+  Zap,
+  Shield,
+  HelpCircle,
+  Globe,
+  AlertTriangle,
+  Heart,
+  Sparkles,
+  MessageSquare,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,12 +33,22 @@ import { useMutation } from "@apollo/client/react";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
 import { toast } from "sonner";
-import { SubscriptionTier } from "@/types/__generated__/graphql";
+import {
+  BillingInterval,
+  SubscriptionTier,
+  type CreateCheckoutSessionMutationVariables,
+} from "@/types/__generated__/graphql";
 import { Footer } from "@/components/layout/Footer";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
+
+type Feature = {
+  name: string;
+  included: boolean;
+  highlight?: boolean;
+};
 
 const CURRENCIES = [
   { code: "USD", label: "USD ($)", price: 4.99, regions: ["US", "GLOBAL"] },
@@ -35,11 +56,23 @@ const CURRENCIES = [
   { code: "GBP", label: "GBP (£)", price: 3.99, regions: ["GB"] },
 ];
 
+const ANNUAL_PRICES: Record<string, number> = {
+  USD: 49.9,
+  NGN: 50000,
+  GBP: 39.9,
+};
+
+function getAnnualPrice(currencyCode: string, monthlyPrice: number): number {
+  // 10 months × monthly = "2 months free"; ANNUAL_PRICES provides exact negotiated prices
+  return ANNUAL_PRICES[currencyCode] ?? monthlyPrice * 10;
+}
+
 function PricingPage() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+  const [billingInterval, setBillingInterval] = useState<BillingInterval>(BillingInterval.Monthly);
 
   const [createCheckoutSession, { loading: checkoutLoading }] = useMutation(
     CREATE_CHECKOUT_SESSION,
@@ -74,7 +107,8 @@ function PricingPage() {
         variables: {
           tier: SubscriptionTier.Pro,
           currency: selectedCurrency.code,
-        },
+          interval: billingInterval,
+        } satisfies CreateCheckoutSessionMutationVariables,
       });
     } catch (_error) {
       // Error handled by onError
@@ -97,7 +131,8 @@ function PricingPage() {
 
   const tiers = [
     {
-      name: "Basic",
+      name: "Ledger",
+      tierKey: "FREE",
       price: "Free",
       description: "Perfect for individuals tracking personal transactions.",
       features: [
@@ -106,25 +141,39 @@ function PricingPage() {
         { name: "10 Witness Requests / month", included: true },
         { name: "Basic Analytics", included: true },
         { name: "Email Notifications", included: true },
-        { name: "SMS Notifications", included: false },
+        { name: "Contact Notification SMS (10/month)", included: true, highlight: false },
         { name: "Advanced Analytics", included: false },
         { name: "Professional PDF Reports", included: false },
         { name: "Priority Support", included: false },
       ],
-      buttonText: isPro ? "Current Plan" : "Already Active",
+      buttonText: isPro ? "Current Plan" : "Get Started Free",
       buttonVariant: "outline" as const,
       highlight: false,
       active: !isPro,
     },
     {
-      name: "Pro",
-      price: formatCurrency(selectedCurrency.price, selectedCurrency.code),
-      period: "/ month",
+      name: "Wathīqah Pro",
+      tierKey: "PRO",
+      price:
+        billingInterval === BillingInterval.Annual
+          ? formatCurrency(
+              getAnnualPrice(selectedCurrency.code, selectedCurrency.price),
+              selectedCurrency.code,
+            )
+          : formatCurrency(selectedCurrency.price, selectedCurrency.code),
+      period: billingInterval === BillingInterval.Annual ? "/ year" : "/ month",
+      perMonthEquivalent:
+        billingInterval === BillingInterval.Annual
+          ? formatCurrency(
+              getAnnualPrice(selectedCurrency.code, selectedCurrency.price) / 12,
+              selectedCurrency.code,
+            )
+          : null,
       description: "The ultimate tool for high-trust financial management.",
       features: [
-        { name: "Everything in Basic", included: true },
+        { name: "Everything in Ledger", included: true },
         { name: "Unlimited Witness Requests", included: true },
-        { name: "SMS Notifications", included: true },
+        { name: "Unlimited Contact Notification SMS", included: true, highlight: true },
         { name: "Advanced Financial Analytics", included: true },
         { name: "Professional PDF Reports", included: true },
         { name: "Custom Categories", included: true },
@@ -144,7 +193,7 @@ function PricingPage() {
       <div className="container mx-auto py-16 px-4 max-w-6xl">
         <div className="text-center mb-8 space-y-4">
           <h1 className="text-4xl md:text-6xl font-black tracking-tight mb-4">
-            Upgrade to <span className="text-primary">Pro</span>
+            Choose Your <span className="text-primary">Plan</span>
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-medium">
             Unlock the full power of Wathīqah and bring professional-grade accountability to your
@@ -171,7 +220,7 @@ function PricingPage() {
         )}
 
         {/* Region Indicator */}
-        <div className="flex flex-col items-center mb-12 gap-2">
+        <div className="flex flex-col items-center mb-8 gap-2">
           {!geoLoading && (
             <div className="inline-flex items-center bg-muted/50 px-4 py-2 rounded-2xl border border-border/50 animate-in fade-in zoom-in duration-500">
               <Globe className="w-3.5 h-3.5 mr-2 text-primary" />
@@ -185,10 +234,44 @@ function PricingPage() {
           )}
         </div>
 
+        {/* Billing Interval Toggle */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center bg-muted/50 rounded-2xl border border-border/50 p-1.5 gap-1">
+            <button
+              type="button"
+              onClick={() => setBillingInterval(BillingInterval.Monthly)}
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200",
+                billingInterval === BillingInterval.Monthly
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setBillingInterval(BillingInterval.Annual)}
+              className={cn(
+                "px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-200 flex items-center gap-2",
+                billingInterval === BillingInterval.Annual
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              Annual
+              <span className="inline-flex items-center gap-1 bg-primary/10 text-primary px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                <Sparkles className="w-2.5 h-2.5" />2 months free
+              </span>
+            </button>
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
           {tiers.map((t) => (
             <Card
               key={t.name}
+              id={t.tierKey === "PRO" ? "pro-card" : undefined}
               className={cn(
                 "relative flex flex-col transition-all duration-500 rounded-[40px] overflow-hidden border-2",
                 t.highlight
@@ -207,7 +290,7 @@ function PricingPage() {
                   <div>
                     <CardTitle className="text-2xl font-black uppercase tracking-widest flex items-center gap-2">
                       {t.name}
-                      {t.active && <TierBadge tier={t.name.toUpperCase()} showIcon={false} />}
+                      {t.active && <TierBadge tier={isPro ? "PRO" : "FREE"} showIcon={false} />}
                     </CardTitle>
                     <CardDescription className="text-sm font-medium mt-1">
                       {t.description}
@@ -219,7 +302,7 @@ function PricingPage() {
                       t.highlight ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
                     )}
                   >
-                    {t.name === "Basic" ? (
+                    {t.tierKey === "FREE" ? (
                       <Shield className="w-6 h-6" />
                     ) : (
                       <Zap className="w-6 h-6" />
@@ -230,12 +313,24 @@ function PricingPage() {
                   <span className="text-4xl font-black">{t.price}</span>
                   {t.period && <span className="text-muted-foreground font-bold">{t.period}</span>}
                 </div>
+                {"perMonthEquivalent" in t && t.perMonthEquivalent && (
+                  <p className="text-xs text-muted-foreground font-medium mt-1">
+                    ≈ {t.perMonthEquivalent}/mo
+                  </p>
+                )}
               </CardHeader>
 
               <CardContent className="flex-1 space-y-6">
                 <div className="space-y-3">
-                  {t.features.map((feature) => (
-                    <div key={feature.name} className="flex items-center gap-3">
+                  {(t.features as Feature[]).map((feature) => (
+                    <div
+                      key={feature.name}
+                      className={cn(
+                        "flex items-center gap-3",
+                        feature.highlight &&
+                          "bg-amber-50 dark:bg-amber-950/20 -mx-3 px-3 py-1.5 rounded-xl border border-amber-200/60 dark:border-amber-800/40",
+                      )}
+                    >
                       <div
                         className={cn(
                           "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
@@ -244,20 +339,22 @@ function PricingPage() {
                             : "bg-muted text-muted-foreground/40",
                         )}
                       >
-                        {feature.included ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <X className="w-3 h-3" />
-                        )}
+                        {feature.included ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                       </div>
                       <span
                         className={cn(
-                          "text-sm font-medium",
+                          "text-sm font-medium flex-1",
                           !feature.included && "text-muted-foreground/60",
+                          feature.highlight && "font-bold text-amber-700 dark:text-amber-400",
                         )}
                       >
                         {feature.name}
                       </span>
+                      {feature.highlight && (
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 shrink-0">
+                          Key Feature
+                        </span>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -273,12 +370,12 @@ function PricingPage() {
                   )}
                   variant={t.buttonVariant}
                   disabled={t.active || loading}
-                  onClick={t.name === "Pro" && !t.active ? handleUpgrade : undefined}
-                  asChild={t.name === "Basic" && !t.active}
+                  onClick={t.tierKey === "PRO" && !t.active ? handleUpgrade : undefined}
+                  asChild={t.tierKey === "FREE" && !t.active}
                 >
                   {t.active ? (
                     <span>{t.buttonText}</span>
-                  ) : t.name === "Basic" ? (
+                  ) : t.tierKey === "FREE" ? (
                     <Link to="/"> {t.buttonText}</Link>
                   ) : (
                     <span>{t.buttonText}</span>
@@ -287,6 +384,35 @@ function PricingPage() {
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        {/* Contact Notification SMS Callout */}
+        <div className="max-w-2xl mx-auto mb-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="rounded-[32px] border-2 border-amber-200 dark:border-amber-800/60 bg-amber-50/50 dark:bg-amber-950/10 p-8 text-center space-y-4">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-200/60 dark:border-amber-800/40">
+              <MessageSquare className="w-3.5 h-3.5" />
+              Why People Upgrade
+            </div>
+            <h3 className="text-2xl font-black tracking-tight">
+              Your contacts hear from you <span className="text-amber-600 dark:text-amber-400">automatically</span>
+            </h3>
+            <p className="text-muted-foreground font-medium leading-relaxed max-w-lg mx-auto">
+              When you record a transaction against someone's phone number, they receive an SMS —
+              even if they're not on Wathīqah. <strong className="text-foreground">Ledger users get 10 per month.</strong>{" "}
+              Upgrade to Pro for unlimited contact notifications and full SMS witness support.
+            </p>
+            <Button
+              variant="default"
+              onClick={() => {
+                if (typeof document !== "undefined") {
+                  document.getElementById("pro-card")?.scrollIntoView({ behavior: "smooth" });
+                }
+              }}
+              className="rounded-2xl font-black uppercase tracking-widest px-8"
+            >
+              Upgrade to Wathīqah Pro
+            </Button>
+          </div>
         </div>
 
         {/* Support Section */}
@@ -370,7 +496,7 @@ function PricingPage() {
             <div className="bg-card border border-border/50 rounded-3xl p-8 space-y-2">
               <h3 className="font-bold text-lg">What happens to my data if I downgrade?</h3>
               <p className="text-muted-foreground font-medium">
-                Nothing! All your data stays safe. You'll simply revert to Basic limits for new
+                Nothing! All your data stays safe. You'll simply revert to Ledger limits for new
                 witness requests and lose access to Pro-only features like advanced analytics.
               </p>
             </div>

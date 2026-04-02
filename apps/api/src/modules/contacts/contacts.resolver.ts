@@ -13,6 +13,8 @@ import { Contact } from './entities/contact.entity';
 import { Contact as PrismaContact } from '../../generated/prisma/client';
 import { CreateContactInput } from './dto/create-contact.input';
 import { UpdateContactInput } from './dto/update-contact.input';
+import { FilterContactInput } from './dto/filter-contact.input';
+import { PaginatedContactsResponse } from './entities/paginated-contacts-response.entity';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -38,9 +40,12 @@ export class ContactsResolver {
     return this.contactsService.create(createContactInput, user.id);
   }
 
-  @Query(() => [Contact], { name: 'contacts' })
-  findAll(@CurrentUser() user: User) {
-    return this.contactsService.findAll(user.id);
+  @Query(() => PaginatedContactsResponse, { name: 'contacts' })
+  findAll(
+    @CurrentUser() user: User,
+    @Args('filter', { nullable: true }) filter?: FilterContactInput,
+  ) {
+    return this.contactsService.findAll(user.id, filter);
   }
 
   @Query(() => Contact, { name: 'contact' })

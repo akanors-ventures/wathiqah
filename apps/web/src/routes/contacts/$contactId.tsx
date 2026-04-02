@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Clock,
   Download,
+  Filter,
   Package,
   Plus,
   ShieldCheck,
@@ -20,7 +21,16 @@ import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
+import { Pagination } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import {
   Table,
@@ -31,6 +41,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/hooks/use-auth";
+import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import { cn } from "@/lib/utils";
@@ -46,6 +57,19 @@ export const Route = createFileRoute("/contacts/$contactId")({
 function ContactDetailsPage() {
   const navigate = useNavigate();
   const { contactId } = Route.useParams();
+  const {
+    types,
+    setTypes,
+    status,
+    setStatus,
+    dateRange,
+    setDateRange,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    variables,
+  } = useTransactionFilters();
 
   const {
     data: contactData,
@@ -56,7 +80,12 @@ function ContactDetailsPage() {
   });
 
   const { data: txData, loading: txLoading } = useQuery(GET_TRANSACTIONS, {
-    variables: { filter: { contactId } },
+    variables: {
+      filter: {
+        ...variables.filter,
+        contactId,
+      },
+    },
   });
 
   const [inviteContact] = useMutation(INVITE_CONTACT, {
@@ -225,7 +254,7 @@ function ContactDetailsPage() {
 
       {/* Transactions Table */}
       <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
-        <CardHeader className="p-6 border-b border-border/30">
+        <CardHeader className="p-6 border-b border-border/30 space-y-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
               Transaction History
@@ -241,6 +270,36 @@ function ContactDetailsPage() {
                 CSV
               </Button>
             )}
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            <Select
+              value={types[0] ?? "ALL"}
+              onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])}
+            >
+              <SelectTrigger className="w-[140px] h-8">
+                <Filter className="w-3 h-3 mr-1 text-muted-foreground" />
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Types</SelectItem>
+                <SelectItem value="GIVEN">Given</SelectItem>
+                <SelectItem value="RECEIVED">Received</SelectItem>
+                <SelectItem value="RETURNED">Returned</SelectItem>
+                <SelectItem value="GIFT">Gift</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+              <SelectTrigger className="w-[140px] h-8">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -515,6 +574,13 @@ function ContactDetailsPage() {
               </div>
             </>
           )}
+          <Pagination
+            total={txData?.transactions.total ?? 0}
+            page={page}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={setLimit}
+          />
         </CardContent>
       </Card>
     </div>
