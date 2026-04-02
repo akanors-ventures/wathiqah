@@ -195,7 +195,7 @@ function NewTransactionPage() {
           email: invite.email.trim().toLowerCase(),
         }));
 
-      const result = await createTransaction({
+      await createTransaction({
         ...values,
         amount: values.category === AssetCategory.Funds ? values.amount : undefined,
         itemName: values.category === AssetCategory.Item ? values.itemName : undefined,

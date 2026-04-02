@@ -19,7 +19,7 @@ function NewItemPage() {
 
   const handleSubmit = async (values: CreateTransactionInput) => {
     try {
-      const result = await createTransaction(values);
+      await createTransaction(values);
       toast.success("Item transaction recorded successfully");
       navigate({ to: "/items" });
     } catch (error) {
