@@ -73,7 +73,7 @@ const mockPrismaService = {
 const mockNotificationService = {
   sendTransactionWitnessInvite: jest.fn(),
   sendWitnessUpdateNotification: jest.fn(),
-  sendContactNotification: jest.fn().mockResolvedValue({ smsSkipped: false }),
+  sendContactNotification: jest.fn().mockResolvedValue(undefined),
 };
 
 const mockConfigService = { getOrThrow: jest.fn(), get: jest.fn() };
@@ -82,7 +82,7 @@ const mockExchangeRateService = {
   convert: jest.fn((v: number) => Promise.resolve(v)),
 };
 
-describe('TransactionsService - create() contact notification', () => {
+describe('TransactionsService - create()', () => {
   let service: TransactionsService;
 
   beforeEach(async () => {
@@ -103,15 +103,12 @@ describe('TransactionsService - create() contact notification', () => {
     mockPrismaService.contact.findUnique.mockResolvedValue(mockContact);
     mockPrismaService.user.findUnique.mockResolvedValue(mockCreator);
     mockPrismaService.transaction.create.mockResolvedValue(mockTransaction);
-    mockNotificationService.sendContactNotification.mockResolvedValue({
-      smsSkipped: false,
-    });
   });
 
   const TX_DATE = new Date('2026-03-22');
 
-  it('sends contact notification for a GIVEN transaction and returns smsSkipped', async () => {
-    const result = await service.create(
+  it('does NOT send contact notification at creation time for a GIVEN transaction', async () => {
+    await service.create(
       {
         type: TransactionType.GIVEN,
         category: AssetCategory.FUNDS,
@@ -125,22 +122,10 @@ describe('TransactionsService - create() contact notification', () => {
 
     expect(
       mockNotificationService.sendContactNotification,
-    ).toHaveBeenCalledWith(
-      expect.objectContaining({
-        transactionId: mockTransaction.id,
-        contactPhoneNumber: mockContact.phoneNumber,
-        contactEmail: mockContact.email,
-        contactFirstName: mockContact.firstName,
-        creatorId: CREATOR_ID,
-        creatorDisplayName: mockCreator.firstName,
-        amount: 5000,
-        currency: 'NGN',
-      }),
-    );
-    expect(result.smsSkipped).toBe(false);
+    ).not.toHaveBeenCalled();
   });
 
-  it('sends contact notification for a RECEIVED transaction', async () => {
+  it('does NOT send contact notification at creation time for a RECEIVED transaction', async () => {
     mockPrismaService.transaction.create.mockResolvedValue({
       ...mockTransaction,
       type: TransactionType.RECEIVED,
@@ -158,10 +143,10 @@ describe('TransactionsService - create() contact notification', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).toHaveBeenCalled();
+    expect(mockNotificationService.sendContactNotification).not.toHaveBeenCalled();
   });
 
-  it('sends contact notification for a RETURNED transaction', async () => {
+  it('does NOT send contact notification at creation time for a RETURNED transaction', async () => {
     mockPrismaService.transaction.create.mockResolvedValue({
       ...mockTransaction,
       type: TransactionType.RETURNED,
@@ -179,7 +164,7 @@ describe('TransactionsService - create() contact notification', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).toHaveBeenCalled();
+    expect(mockNotificationService.sendContactNotification).not.toHaveBeenCalled();
   });
 
   it('does NOT send contact notification for a GIFT transaction', async () => {
@@ -226,52 +211,5 @@ describe('TransactionsService - create() contact notification', () => {
     expect(
       mockNotificationService.sendContactNotification,
     ).not.toHaveBeenCalled();
-  });
-
-  it('returns smsSkipped: true when notification service reports limit hit', async () => {
-    mockNotificationService.sendContactNotification.mockResolvedValue({
-      smsSkipped: true,
-    });
-
-    const result = await service.create(
-      {
-        type: TransactionType.GIVEN,
-        category: AssetCategory.FUNDS,
-        amount: 5000,
-        currency: 'NGN',
-        contactId: CONTACT_ID,
-        date: TX_DATE,
-      },
-      CREATOR_ID,
-    );
-
-    expect(result.smsSkipped).toBe(true);
-  });
-
-  it('uses creator email as display name when firstName is absent', async () => {
-    mockPrismaService.user.findUnique.mockResolvedValue({
-      ...mockCreator,
-      firstName: null,
-    });
-
-    await service.create(
-      {
-        type: TransactionType.GIVEN,
-        category: AssetCategory.FUNDS,
-        amount: 5000,
-        currency: 'NGN',
-        contactId: CONTACT_ID,
-        date: TX_DATE,
-      },
-      CREATOR_ID,
-    );
-
-    expect(
-      mockNotificationService.sendContactNotification,
-    ).toHaveBeenCalledWith(
-      expect.objectContaining({
-        creatorDisplayName: mockCreator.email,
-      }),
-    );
   });
 });

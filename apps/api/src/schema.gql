@@ -566,7 +566,6 @@ type Transaction {
   parentId: String
   quantity: Int
   returnDirection: ReturnDirection
-  smsSkipped: Boolean
   status: TransactionStatus!
   type: TransactionType!
   witnesses: [Witness!]

@@ -103,11 +103,4 @@ export class Transaction {
   @Field(() => [TransactionHistory], { nullable: true })
   history?: TransactionHistory[];
 
-  /**
-   * Transient field — not stored in the database.
-   * True when the contact SMS was skipped because the creator has reached
-   * their free-tier contactNotificationSms monthly limit.
-   */
-  @Field(() => Boolean, { nullable: true })
-  smsSkipped?: boolean;
 }
