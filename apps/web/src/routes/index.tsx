@@ -10,11 +10,12 @@ import {
   Wallet,
 } from "lucide-react";
 import { Dashboard } from "@/components/dashboard/Dashboard";
-import { SharedHistoryInterstitial } from "@/components/onboarding/SharedHistoryInterstitial";
 import { Footer } from "@/components/layout/Footer";
 import { HeroMockup } from "@/components/marketing/HeroMockup";
+import { IslamicFoundation } from "@/components/marketing/IslamicFoundation";
 import { SecurityFeatures } from "@/components/marketing/SecurityFeatures";
 import { TrustSignals } from "@/components/marketing/TrustSignals";
+import { SharedHistoryInterstitial } from "@/components/onboarding/SharedHistoryInterstitial";
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
 import { useAuth } from "@/hooks/use-auth";
@@ -206,6 +207,9 @@ function LandingPage() {
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[100px] -z-10 -translate-y-1/2 translate-x-1/2"></div>
         <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[100px] -z-10 translate-y-1/2 -translate-x-1/2"></div>
       </section>
+
+      {/* Islamic Foundation Section */}
+      <IslamicFoundation />
 
       {/* CTA Section */}
       {!user && !loading && (
