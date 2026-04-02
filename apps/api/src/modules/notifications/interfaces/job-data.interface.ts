@@ -19,6 +19,8 @@ export interface ContactNotificationSmsJobData {
   creatorDisplayName: string;
   amount: number;
   currency: string;
+  witnessDisplayName: string;
+  transactionType: string;
 }
 
 export interface ContactNotificationEmailJobData {
@@ -29,6 +31,8 @@ export interface ContactNotificationEmailJobData {
   creatorDisplayName: string;
   amount: number;
   currency: string;
+  witnessDisplayName: string;
+  transactionType: string;
 }
 
 export interface ProvisioningNotificationJobData {
@@ -36,8 +40,8 @@ export interface ProvisioningNotificationJobData {
   notificationType: 'granted' | 'expired' | 'revoked';
   email: string;
   name: string;
-  expiresAt?: string; // ISO string — present only for 'granted'
-  expiredAt?: string; // ISO string — present only for 'expired'
+  expiresAt?: string;
+  expiredAt?: string;
 }
 
 export interface RoleChangeNotificationJobData {
