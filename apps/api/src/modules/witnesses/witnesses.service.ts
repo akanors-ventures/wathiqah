@@ -4,9 +4,10 @@ import {
   ForbiddenException,
   BadRequestException,
   Inject,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WitnessStatus } from '../../generated/prisma/client';
+import { WitnessStatus, TransactionType } from '../../generated/prisma/client';
 import { FilterWitnessInput } from './dto/filter-witness.input';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -18,6 +19,8 @@ import * as ms from 'ms';
 
 @Injectable()
 export class WitnessesService {
+  private readonly logger = new Logger(WitnessesService.name);
+
   constructor(
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
@@ -42,7 +45,7 @@ export class WitnessesService {
       );
     }
 
-    return this.prisma.$transaction(async (prisma) => {
+    const result = await this.prisma.$transaction(async (prisma) => {
       const updatedWitness = await prisma.witness.update({
         where: { id: witnessId },
         data: {
@@ -61,7 +64,6 @@ export class WitnessesService {
         },
       });
 
-      // Create history record for the transaction
       await prisma.transactionHistory.create({
         data: {
           transactionId: updatedWitness.transactionId,
@@ -89,6 +91,59 @@ export class WitnessesService {
 
       return updatedWitness;
     });
+
+    // Send contact notification on the first acknowledgment only
+    if (status === WitnessStatus.ACKNOWLEDGED) {
+      const { transaction } = result;
+      const qualifyingTypes: TransactionType[] = [
+        TransactionType.GIVEN,
+        TransactionType.RECEIVED,
+        TransactionType.RETURNED,
+      ];
+
+      const hasContact =
+        transaction.contact &&
+        (transaction.contact.phoneNumber || transaction.contact.email);
+
+      if (qualifyingTypes.includes(transaction.type) && hasContact) {
+        const previousAcknowledgements = await this.prisma.witness.count({
+          where: {
+            transactionId: transaction.id,
+            id: { not: witnessId },
+            status: WitnessStatus.ACKNOWLEDGED,
+          },
+        });
+
+        if (previousAcknowledgements === 0) {
+          const witnessDisplayName =
+            `${result.user.firstName} ${result.user.lastName}`.trim();
+          const creatorDisplayName =
+            `${transaction.createdBy.firstName} ${transaction.createdBy.lastName}`.trim();
+
+          await this.notificationService
+            .sendContactNotification({
+              transactionId: transaction.id,
+              contactPhoneNumber: transaction.contact!.phoneNumber ?? null,
+              contactEmail: transaction.contact!.email ?? null,
+              contactFirstName: transaction.contact!.firstName ?? null,
+              creatorId: transaction.createdById,
+              creatorDisplayName,
+              amount: transaction.amount?.toNumber() ?? 0,
+              currency: transaction.currency,
+              witnessDisplayName,
+              transactionType: transaction.type,
+            })
+            .catch((err) => {
+              this.logger.error(
+                'Failed to send contact notification after witness acknowledgment',
+                err,
+              );
+            });
+        }
+      }
+    }
+
+    return result;
   }
 
   async findMyRequests(
