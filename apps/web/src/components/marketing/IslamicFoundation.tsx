@@ -5,7 +5,7 @@ export function IslamicFoundation() {
         <div className="flex flex-col items-center text-center gap-8 max-w-2xl mx-auto">
           <p className="text-xs font-bold uppercase tracking-[4px] text-primary">Our Foundation</p>
 
-          <blockquote className="text-2xl md:text-3xl font-serif italic text-foreground leading-relaxed m-0">
+          <blockquote className="text-2xl md:text-3xl font-serif italic text-foreground leading-relaxed">
             "O you who believe — when you contract a debt for a specified term, write it down."
           </blockquote>
 
