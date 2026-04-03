@@ -99,7 +99,7 @@ describe('TransactionsService - Balance & Audit', () => {
   describe('Balance Calculation (calculateConvertedSummary)', () => {
     const userId = 'user-1';
 
-    it('should correctly calculate net balance with Income and Expense', async () => {
+    it('should ignore legacy INCOME and EXPENSE in net balance', async () => {
       // Mock user preferred currency
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         preferredCurrency: 'NGN',
@@ -108,19 +108,16 @@ describe('TransactionsService - Balance & Audit', () => {
       // Mock findAll transactions (items) - irrelevant for summary but required
       (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
 
-      // Mock Aggregations
-      // Own transactions: 1000 Income, 500 Expense
+      // Legacy INCOME/EXPENSE rows — should be ignored in the new summary
       (prisma.transaction.groupBy as jest.Mock)
         .mockResolvedValueOnce([
           {
             type: TransactionType.INCOME,
-            returnDirection: null,
             currency: 'NGN',
             _sum: { amount: 1000 },
           },
           {
             type: TransactionType.EXPENSE,
-            returnDirection: null,
             currency: 'NGN',
             _sum: { amount: 500 },
           },
@@ -129,9 +126,7 @@ describe('TransactionsService - Balance & Audit', () => {
 
       const result = await service.findAll(userId);
 
-      expect(result.summary.totalIncome).toBe(1000);
-      expect(result.summary.totalExpense).toBe(500);
-      expect(result.summary.netBalance).toBe(1000 - 500); // 500
+      expect(result.summary.netBalance).toBe(0); // INCOME/EXPENSE excluded
     });
 
     it('should correctly handle shared transactions (flipping perspective)', async () => {
@@ -146,14 +141,12 @@ describe('TransactionsService - Balance & Audit', () => {
         .mockResolvedValueOnce([]) // ownAggregations
         .mockResolvedValueOnce([
           {
-            type: TransactionType.GIVEN, // Contact GAVE me (so I RECEIVED)
-            returnDirection: null,
+            type: TransactionType.LOAN_GIVEN, // Contact GAVE me → I LOAN_RECEIVED
             currency: 'NGN',
             _sum: { amount: 200 },
           },
           {
-            type: TransactionType.RECEIVED, // Contact RECEIVED from me (so I GAVE)
-            returnDirection: null,
+            type: TransactionType.LOAN_RECEIVED, // Contact RECEIVED from me → I LOAN_GIVEN
             currency: 'NGN',
             _sum: { amount: 300 },
           },
@@ -161,10 +154,10 @@ describe('TransactionsService - Balance & Audit', () => {
 
       const result = await service.findAll(userId);
 
-      // Flipped: GIVEN -> RECEIVED, RECEIVED -> GIVEN
-      expect(result.summary.totalReceived).toBe(200);
-      expect(result.summary.totalGiven).toBe(300);
-      // Net Balance: Received - Given = 200 - 300 = -100
+      // Flipped: LOAN_GIVEN -> LOAN_RECEIVED, LOAN_RECEIVED -> LOAN_GIVEN
+      expect(result.summary.totalLoanReceived).toBe(200);
+      expect(result.summary.totalLoanGiven).toBe(300);
+      // Net Balance: LoanReceived - LoanGiven = 200 - 300 = -100
       expect(result.summary.netBalance).toBe(-100);
     });
 
@@ -186,8 +179,7 @@ describe('TransactionsService - Balance & Audit', () => {
       (prisma.transaction.groupBy as jest.Mock)
         .mockResolvedValueOnce([
           {
-            type: TransactionType.INCOME,
-            returnDirection: null,
+            type: TransactionType.LOAN_RECEIVED,
             currency: 'USD',
             _sum: { amount: 10 }, // 10 USD
           },
@@ -196,7 +188,7 @@ describe('TransactionsService - Balance & Audit', () => {
 
       const result = await service.findAll(userId);
 
-      expect(result.summary.totalIncome).toBe(15000); // 10 * 1500
+      expect(result.summary.totalLoanReceived).toBe(15000); // 10 * 1500
       expect(result.summary.netBalance).toBe(15000);
     });
     it('should exclude CANCELLED transactions from balance calculation', async () => {
@@ -238,7 +230,7 @@ describe('TransactionsService - Balance & Audit', () => {
       expect(firstCallArgs.where.date).toBeUndefined();
     });
 
-    it('should include project transactions in balance calculation', async () => {
+    it('should exclude project transactions from the summary (they have their own resolver)', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         preferredCurrency: 'NGN',
       });
@@ -247,53 +239,10 @@ describe('TransactionsService - Balance & Audit', () => {
         .mockResolvedValueOnce([]) // ownAggregations
         .mockResolvedValueOnce([]); // contactAggregations
 
-      // Mock Projects
-      const projectA = { id: 'proj-A', currency: 'NGN', userId };
-      const projectB = { id: 'proj-B', currency: 'USD', userId };
-      (prisma.project.findMany as jest.Mock).mockResolvedValue([
-        projectA,
-        projectB,
-      ]);
-
-      // Mock Project Transactions
-      (prisma.projectTransaction.groupBy as jest.Mock).mockResolvedValue([
-        {
-          projectId: 'proj-A',
-          type: 'INCOME',
-          _sum: { amount: 2000 },
-        },
-        {
-          projectId: 'proj-A',
-          type: 'EXPENSE',
-          _sum: { amount: 1000 },
-        },
-        {
-          projectId: 'proj-B', // USD Project
-          type: 'INCOME',
-          _sum: { amount: 10 }, // 10 USD
-        },
-      ]);
-
-      // Mock conversion: 1 USD = 1500 NGN
-      (exchangeRateService.convert as jest.Mock).mockImplementation(
-        (amount, from, to) => {
-          if (from === 'USD' && to === 'NGN')
-            return Promise.resolve(amount * 1500);
-          return Promise.resolve(amount);
-        },
-      );
-
       const result = await service.findAll(userId);
 
-      // Project A: +2000 -1000 = +1000 NGN
-      // Project B: +10 USD = +15000 NGN
-      // Total Income: 2000 + 15000 = 17000
-      // Total Expense: 1000
-      // Net Balance: 17000 - 1000 = 16000
-
-      expect(result.summary.totalIncome).toBe(17000);
-      expect(result.summary.totalExpense).toBe(1000);
-      expect(result.summary.netBalance).toBe(16000);
+      // Project transactions are not aggregated into the contact-obligation summary
+      expect(result.summary.netBalance).toBe(0);
     });
 
     it('should include project transactions in items list', async () => {
@@ -436,6 +385,129 @@ describe('TransactionsService - Balance & Audit', () => {
         where: { id: transactionId },
       });
       expect(prisma.transactionHistory.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('TransactionSummary — new formal types', () => {
+    const userId = 'user-1';
+
+    beforeEach(() => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        preferredCurrency: 'NGN',
+      });
+      (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
+    });
+
+    it('accumulates LOAN_GIVEN; netBalance negative', async () => {
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 1000 },
+          },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.findAll(userId);
+      expect(result.summary.totalLoanGiven).toBe(1000);
+      expect(result.summary.netBalance).toBe(-1000);
+    });
+
+    it('accumulates LOAN_RECEIVED; netBalance positive', async () => {
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_RECEIVED,
+            currency: 'NGN',
+            _sum: { amount: 500 },
+          },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.findAll(userId);
+      expect(result.summary.totalLoanReceived).toBe(500);
+      expect(result.summary.netBalance).toBe(500);
+    });
+
+    it('flips LOAN_GIVEN → LOAN_RECEIVED for shared transactions', async () => {
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([])
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 200 },
+          },
+        ]);
+
+      const result = await service.findAll(userId);
+      expect(result.summary.totalLoanReceived).toBe(200);
+      expect(result.summary.netBalance).toBe(200);
+    });
+
+    it('accumulates REPAYMENT_MADE and REPAYMENT_RECEIVED with correct signs', async () => {
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.REPAYMENT_MADE,
+            currency: 'NGN',
+            _sum: { amount: 300 },
+          },
+          {
+            type: TransactionType.REPAYMENT_RECEIVED,
+            currency: 'NGN',
+            _sum: { amount: 150 },
+          },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.findAll(userId);
+      expect(result.summary.totalRepaymentMade).toBe(300);
+      expect(result.summary.totalRepaymentReceived).toBe(150);
+      expect(result.summary.netBalance).toBe(150 - 300); // -150
+    });
+
+    it('ESCROWED increases netBalance, REMITTED decreases it', async () => {
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.ESCROWED,
+            currency: 'NGN',
+            _sum: { amount: 800 },
+          },
+          {
+            type: TransactionType.REMITTED,
+            currency: 'NGN',
+            _sum: { amount: 600 },
+          },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.findAll(userId);
+      expect(result.summary.totalEscrowed).toBe(800);
+      expect(result.summary.totalRemitted).toBe(600);
+      expect(result.summary.netBalance).toBe(800 - 600); // 200
+    });
+
+    it('ignores legacy EXPENSE and INCOME rows in summary', async () => {
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.EXPENSE,
+            currency: 'NGN',
+            _sum: { amount: 500 },
+          },
+          {
+            type: TransactionType.INCOME,
+            currency: 'NGN',
+            _sum: { amount: 1000 },
+          },
+        ])
+        .mockResolvedValueOnce([]);
+
+      const result = await service.findAll(userId);
+      expect(result.summary.netBalance).toBe(0);
     });
   });
 });
