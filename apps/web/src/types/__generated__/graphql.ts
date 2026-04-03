@@ -161,7 +161,6 @@ export type CreateTransactionInput = {
   itemName?: InputMaybe<Scalars['String']['input']>;
   parentId?: InputMaybe<Scalars['ID']['input']>;
   quantity?: InputMaybe<Scalars['Int']['input']>;
-  returnDirection?: InputMaybe<ReturnDirection>;
   type: TransactionType;
   witnessInvites?: InputMaybe<Array<WitnessInviteInput>>;
   witnessUserIds?: InputMaybe<Array<Scalars['ID']['input']>>;
@@ -785,11 +784,6 @@ export type ResetPasswordInput = {
   token: Scalars['String']['input'];
 };
 
-export enum ReturnDirection {
-  ToContact = 'TO_CONTACT',
-  ToMe = 'TO_ME'
-}
-
 export enum SearchType {
   Email = 'EMAIL',
   Phone = 'PHONE'
@@ -898,7 +892,6 @@ export type Transaction = {
   parent: Maybe<Transaction>;
   parentId: Maybe<Scalars['String']['output']>;
   quantity: Maybe<Scalars['Int']['output']>;
-  returnDirection: Maybe<ReturnDirection>;
   status: TransactionStatus;
   type: TransactionType;
   witnesses: Maybe<Array<Witness>>;
@@ -923,11 +916,23 @@ export enum TransactionStatus {
 }
 
 export enum TransactionType {
+  AdvancePaid = 'ADVANCE_PAID',
+  AdvanceReceived = 'ADVANCE_RECEIVED',
+  DepositPaid = 'DEPOSIT_PAID',
+  DepositReceived = 'DEPOSIT_RECEIVED',
+  Escrowed = 'ESCROWED',
   Expense = 'EXPENSE',
   Gift = 'GIFT',
+  GiftGiven = 'GIFT_GIVEN',
+  GiftReceived = 'GIFT_RECEIVED',
   Given = 'GIVEN',
   Income = 'INCOME',
+  LoanGiven = 'LOAN_GIVEN',
+  LoanReceived = 'LOAN_RECEIVED',
   Received = 'RECEIVED',
+  Remitted = 'REMITTED',
+  RepaymentMade = 'REPAYMENT_MADE',
+  RepaymentReceived = 'REPAYMENT_RECEIVED',
   Returned = 'RETURNED'
 }
 
@@ -944,15 +949,18 @@ export type TransactionsSummary = {
   __typename: 'TransactionsSummary';
   currency: Scalars['String']['output'];
   netBalance: Scalars['Float']['output'];
-  totalExpense: Scalars['Float']['output'];
+  totalAdvancePaid: Scalars['Float']['output'];
+  totalAdvanceReceived: Scalars['Float']['output'];
+  totalDepositPaid: Scalars['Float']['output'];
+  totalDepositReceived: Scalars['Float']['output'];
+  totalEscrowed: Scalars['Float']['output'];
   totalGiftGiven: Scalars['Float']['output'];
   totalGiftReceived: Scalars['Float']['output'];
-  totalGiven: Scalars['Float']['output'];
-  totalIncome: Scalars['Float']['output'];
-  totalReceived: Scalars['Float']['output'];
-  totalReturned: Scalars['Float']['output'];
-  totalReturnedToMe: Scalars['Float']['output'];
-  totalReturnedToOther: Scalars['Float']['output'];
+  totalLoanGiven: Scalars['Float']['output'];
+  totalLoanReceived: Scalars['Float']['output'];
+  totalRemitted: Scalars['Float']['output'];
+  totalRepaymentMade: Scalars['Float']['output'];
+  totalRepaymentReceived: Scalars['Float']['output'];
 };
 
 export type UpdateContactInput = {
@@ -1002,7 +1010,6 @@ export type UpdateTransactionInput = {
   itemName?: InputMaybe<Scalars['String']['input']>;
   parentId?: InputMaybe<Scalars['ID']['input']>;
   quantity?: InputMaybe<Scalars['Int']['input']>;
-  returnDirection?: InputMaybe<ReturnDirection>;
   type?: InputMaybe<TransactionType>;
   witnessInvites?: InputMaybe<Array<WitnessInviteInput>>;
   witnessUserIds?: InputMaybe<Array<Scalars['ID']['input']>>;
@@ -1337,7 +1344,7 @@ export type SharedDataQueryVariables = Exact<{
 }>;
 
 
-export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } | null, transactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, date: string, description: string | null, category: AssetCategory, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, user: { __typename: 'User', name: string } | null }> | null }> | null, promises: Array<{ __typename: 'Promise', id: string, description: string, promiseTo: string, dueDate: string, priority: Priority, status: PromiseStatus, notes: string | null }> | null, projects: Array<{ __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, createdAt: string, updatedAt: string }> | null } };
+export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } | null, transactions: Array<{ __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, date: string, description: string | null, category: AssetCategory, itemName: string | null, quantity: number | null, contact: { __typename: 'Contact', name: string } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, user: { __typename: 'User', name: string } | null }> | null }> | null, promises: Array<{ __typename: 'Promise', id: string, description: string, promiseTo: string, dueDate: string, priority: Priority, status: PromiseStatus, notes: string | null }> | null, projects: Array<{ __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, currency: string, createdAt: string, updatedAt: string }> | null } };
 
 export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1350,14 +1357,14 @@ export type TotalBalanceQueryVariables = Exact<{
 }>;
 
 
-export type TotalBalanceQuery = { totalBalance: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } };
+export type TotalBalanceQuery = { totalBalance: { __typename: 'TransactionsSummary', totalLoanGiven: number, totalLoanReceived: number, totalRepaymentMade: number, totalRepaymentReceived: number, totalGiftGiven: number, totalGiftReceived: number, totalAdvancePaid: number, totalAdvanceReceived: number, totalDepositPaid: number, totalDepositReceived: number, totalEscrowed: number, totalRemitted: number, netBalance: number, currency: string } };
 
 export type TransactionQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
+export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
 
 export type RemoveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1371,21 +1378,21 @@ export type TransactionsQueryVariables = Exact<{
 }>;
 
 
-export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } } };
+export type TransactionsQuery = { transactions: { __typename: 'TransactionsResponse', items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus }> | null }>, summary: { __typename: 'TransactionsSummary', totalLoanGiven: number, totalLoanReceived: number, totalRepaymentMade: number, totalRepaymentReceived: number, totalGiftGiven: number, totalGiftReceived: number, totalAdvancePaid: number, totalAdvanceReceived: number, totalDepositPaid: number, totalDepositReceived: number, totalEscrowed: number, totalRemitted: number, netBalance: number, currency: string } } };
 
 export type MyContactTransactionsQueryVariables = Exact<{
   filter?: InputMaybe<FilterSharedHistoryInput>;
 }>;
 
 
-export type MyContactTransactionsQuery = { myContactTransactions: { __typename: 'PaginatedSharedHistoryResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null }> } };
+export type MyContactTransactionsQuery = { myContactTransactions: { __typename: 'PaginatedSharedHistoryResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, createdBy: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null }> } };
 
 export type TransactionsGroupedByContactQueryVariables = Exact<{
   filter?: InputMaybe<FilterTransactionInput>;
 }>;
 
 
-export type TransactionsGroupedByContactQuery = { transactionsGroupedByContact: Array<{ __typename: 'ContactGroupedSummary', contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, summary: { __typename: 'TransactionsSummary', totalGiven: number, totalReceived: number, totalReturned: number, totalReturnedToMe: number, totalReturnedToOther: number, totalIncome: number, totalExpense: number, totalGiftGiven: number, totalGiftReceived: number, netBalance: number, currency: string } }> };
+export type TransactionsGroupedByContactQuery = { transactionsGroupedByContact: Array<{ __typename: 'ContactGroupedSummary', contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, summary: { __typename: 'TransactionsSummary', totalLoanGiven: number, totalLoanReceived: number, totalRepaymentMade: number, totalRepaymentReceived: number, totalGiftGiven: number, totalGiftReceived: number, totalAdvancePaid: number, totalAdvanceReceived: number, totalDepositPaid: number, totalDepositReceived: number, totalEscrowed: number, totalRemitted: number, netBalance: number, currency: string } }> };
 
 export type CreateTransactionMutationVariables = Exact<{
   input: CreateTransactionInput;
@@ -1406,7 +1413,7 @@ export type UpdateTransactionMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, returnDirection: ReturnDirection | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null } };
+export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
@@ -1433,7 +1440,7 @@ export type MyWitnessRequestsQueryVariables = Exact<{
 }>;
 
 
-export type MyWitnessRequestsQuery = { myWitnessRequests: { __typename: 'PaginatedWitnessesResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, returnDirection: ReturnDirection | null, createdBy: { __typename: 'User', name: string, email: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null }> } };
+export type MyWitnessRequestsQuery = { myWitnessRequests: { __typename: 'PaginatedWitnessesResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, email: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null }> } };
 
 export type ResendWitnessInvitationMutationVariables = Exact<{
   witnessId: Scalars['ID']['input'];
@@ -1461,4 +1468,4 @@ export type GetWitnessInvitationQueryVariables = Exact<{
 }>;
 
 
-export type GetWitnessInvitationQuery = { witnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, returnDirection: ReturnDirection | null, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };
+export type GetWitnessInvitationQuery = { witnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };
