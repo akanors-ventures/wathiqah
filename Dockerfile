@@ -13,7 +13,7 @@ RUN corepack prepare pnpm@10.28.1 --activate
 FROM base AS builder
 WORKDIR /app
 COPY . .
-RUN LEFTHOOK=0 pnpm install
+RUN pnpm install --ignore-scripts
 
 # Generate Prisma client (no real DB needed)
 WORKDIR /app/apps/api
@@ -22,7 +22,7 @@ RUN pnpm prisma generate
 
 WORKDIR /app
 RUN pnpm build --filter api --output-logs=errors-only
-RUN pnpm --filter api deploy --prod /app/apps/api/.output
+RUN pnpm --filter api deploy --prod --ignore-scripts /app/apps/api/.output
 
 # -------------------------
 # Runtime image
