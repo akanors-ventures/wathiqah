@@ -3,17 +3,17 @@ pre-commit:
   commands:
     api-lint:
       root: "apps/api/"
-      glob: "{src,test}/**/*.{ts,js}"
+      glob: "apps/api/{src,test}/**/*.{ts,js}"
       run: node_modules/.bin/eslint --fix {staged_files}
       stage_fixed: true
     api-format:
       root: "apps/api/"
-      glob: "{src,test}/**/*.{ts,js}"
+      glob: "apps/api/{src,test}/**/*.{ts,js}"
       run: node_modules/.bin/prettier --write {staged_files}
       stage_fixed: true
     web-biome:
       root: "apps/web/"
-      glob: "**/*.{ts,tsx,js,jsx,json,css,html}"
+      glob: "apps/web/**/*.{ts,tsx,js,jsx,json,css,html}"
       run: node_modules/.bin/biome check --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
     markdown:
