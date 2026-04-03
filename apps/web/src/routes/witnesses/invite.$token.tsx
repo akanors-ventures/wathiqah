@@ -7,16 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoader } from "@/components/ui/page-loader";
 import { PasswordInput } from "@/components/ui/password-input";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useAcknowledgeWitness, useWitnessInvitation } from "@/hooks/useWitnesses";
-import {
-  AssetCategory,
-  ReturnDirection,
-  TransactionType,
-  WitnessStatus,
-} from "@/types/__generated__/graphql";
-import { formatDate, formatCurrency } from "@/lib/utils/formatters";
-import { SupporterBadge } from "@/components/ui/supporter-badge";
+import { formatCurrency, formatDate } from "@/lib/utils/formatters";
+import { AssetCategory, TransactionType, WitnessStatus } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/witnesses/invite/$token")({
   component: InviteComponent,
@@ -110,39 +105,27 @@ function InviteComponent() {
   };
 
   const getTypeStyles = () => {
-    const type = transaction.type;
-    const returnDirection = transaction.returnDirection;
-
-    switch (type) {
-      case TransactionType.Received:
-        return "text-red-600 border-red-200 bg-red-50";
-      case TransactionType.Given:
+    switch (transaction.type) {
+      case TransactionType.LoanGiven:
+      case TransactionType.RepaymentMade:
         return "text-blue-600 border-blue-200 bg-blue-50";
-      case TransactionType.Gift:
-        return returnDirection === ReturnDirection.ToMe
-          ? "text-purple-600 border-purple-200 bg-purple-50"
-          : "text-pink-600 border-pink-200 bg-pink-50";
-      case TransactionType.Returned:
-        return returnDirection === ReturnDirection.ToMe
-          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-          : "text-blue-600 border-blue-200 bg-blue-50";
+      case TransactionType.LoanReceived:
+      case TransactionType.RepaymentReceived:
+        return "text-rose-600 border-rose-200 bg-rose-50";
+      case TransactionType.GiftReceived:
+      case TransactionType.AdvanceReceived:
+      case TransactionType.DepositReceived:
+        return "text-purple-600 border-purple-200 bg-purple-50";
+      case TransactionType.GiftGiven:
+        return "text-pink-600 border-pink-200 bg-pink-50";
+      case TransactionType.Escrowed:
+        return "text-emerald-600 border-emerald-200 bg-emerald-50";
       default:
         return "text-neutral-600 border-neutral-200 bg-neutral-50";
     }
   };
 
-  const getTypeLabel = () => {
-    const type = transaction.type;
-    const returnDirection = transaction.returnDirection;
-
-    if (type === TransactionType.Gift) {
-      return returnDirection === ReturnDirection.ToMe ? "Gift Received" : "Gift Given";
-    }
-    if (type === TransactionType.Returned) {
-      return returnDirection === ReturnDirection.ToMe ? "Returned to Me" : "Returned to Contact";
-    }
-    return type;
-  };
+  const getTypeLabel = () => transaction.type.toLowerCase().replace(/_/g, " ");
 
   return (
     <div className="flex flex-1 items-center justify-center bg-neutral-50 dark:bg-neutral-950 p-4">
