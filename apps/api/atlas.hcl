@@ -15,7 +15,7 @@ data "external_schema" "prisma" {
 
 env "local" {
   url = "postgresql://fawazabdganiyu@localhost:5432/wathiqah-db?sslmode=disable"
-  dev = "docker://postgres/16/dev?search_path=public"
+  dev = "postgresql://fawazabdganiyu@localhost:5432/wathiqah-dev?sslmode=disable"
   schema {
     src = data.external_schema.prisma.url
   }
