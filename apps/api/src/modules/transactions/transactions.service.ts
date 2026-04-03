@@ -14,7 +14,6 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
-  ReturnDirection,
   Prisma,
   Witness,
   ProjectTransactionType,
@@ -758,7 +757,6 @@ export class TransactionsService {
         isSupporter: false,
       },
       witnesses: [],
-      returnDirection: null,
       itemName: null,
       quantity: null,
       parentId: null,
@@ -1124,7 +1122,6 @@ export class TransactionsService {
       itemName: transaction.itemName,
       quantity: transaction.quantity,
       type: transaction.type,
-      returnDirection: transaction.returnDirection,
       date: transaction.date,
       description: transaction.description,
       contactId: transaction.contactId,
@@ -1204,15 +1201,6 @@ export class TransactionsService {
     if (rest.type && rest.type !== transaction.type) {
       changes.type = rest.type;
       changeDescriptions.push(`Type changed to ${rest.type}`);
-    }
-    if (
-      rest.returnDirection !== undefined &&
-      rest.returnDirection !== transaction.returnDirection
-    ) {
-      changes.returnDirection = rest.returnDirection ?? null;
-      changeDescriptions.push(
-        `Return direction changed to ${rest.returnDirection ?? 'none'}`,
-      );
     }
     if (rest.contactId && rest.contactId !== transaction.contactId) {
       changes.contactId = rest.contactId;
@@ -1303,35 +1291,6 @@ export class TransactionsService {
       }
     }
 
-    // Determine the effective type and returnDirection after this update
-    const effectiveType = rest.type ?? transaction.type;
-    const needsReturnDirection =
-      (effectiveType === TransactionType.RETURNED ||
-        effectiveType === TransactionType.GIFT) &&
-      !!transaction.contactId;
-
-    // Compute the resolved returnDirection to write:
-    // - If type no longer needs a direction, clear it.
-    // - If type requires a direction, use the provided value or fall back to the
-    //   existing DB value (so partial updates that only change amount etc. don't
-    //   accidentally wipe a valid direction).
-    const {
-      returnDirection: inputReturnDirection,
-      ...restWithoutReturnDirection
-    } = rest;
-    let resolvedReturnDirection: ReturnDirection | null;
-    if (!needsReturnDirection) {
-      resolvedReturnDirection = null;
-    } else {
-      resolvedReturnDirection =
-        inputReturnDirection ?? transaction.returnDirection ?? null;
-      if (!resolvedReturnDirection) {
-        throw new BadRequestException(
-          'returnDirection is required when type is RETURNED or GIFT',
-        );
-      }
-    }
-
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
         const updated = await prisma.transaction.update({
@@ -1356,8 +1315,7 @@ export class TransactionsService {
                 : category === AssetCategory.FUNDS
                   ? null
                   : quantity,
-            ...restWithoutReturnDirection,
-            returnDirection: resolvedReturnDirection,
+            ...rest,
           },
         });
 
