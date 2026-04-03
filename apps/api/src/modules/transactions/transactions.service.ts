@@ -503,15 +503,8 @@ export class TransactionsService {
   private flipStatePerspective(state: Record<string, unknown> | null) {
     if (!state) return null;
     const flipped = { ...state };
-    if (state.type === TransactionType.GIVEN) {
-      flipped.type = TransactionType.RECEIVED;
-    } else if (state.type === TransactionType.RECEIVED) {
-      flipped.type = TransactionType.GIVEN;
-    }
-    if (state.returnDirection === 'TO_ME') {
-      flipped.returnDirection = 'TO_CONTACT';
-    } else if (state.returnDirection === 'TO_CONTACT') {
-      flipped.returnDirection = 'TO_ME';
+    if (typeof state.type === 'string' && PERSPECTIVE_FLIP_MAP[state.type]) {
+      flipped.type = PERSPECTIVE_FLIP_MAP[state.type];
     }
     return flipped;
   }
@@ -520,7 +513,6 @@ export class TransactionsService {
     T extends {
       createdById: string;
       type: TransactionType;
-      returnDirection?: ReturnDirection | null;
       history?: {
         previousState: unknown;
         newState: unknown;
@@ -560,20 +552,10 @@ export class TransactionsService {
       transformed.contact = virtualContact;
     }
 
-    if (transaction.type === TransactionType.GIVEN) {
-      transformed.type = TransactionType.RECEIVED;
-    } else if (transaction.type === TransactionType.RECEIVED) {
-      transformed.type = TransactionType.GIVEN;
-    } else if (transaction.type === TransactionType.RETURNED) {
-      transformed.returnDirection =
-        transaction.returnDirection === ReturnDirection.TO_ME
-          ? ReturnDirection.TO_CONTACT
-          : ReturnDirection.TO_ME;
-    } else if (transaction.type === TransactionType.GIFT) {
-      transformed.returnDirection =
-        transaction.returnDirection === ReturnDirection.TO_ME
-          ? ReturnDirection.TO_CONTACT
-          : ReturnDirection.TO_ME;
+    if (PERSPECTIVE_FLIP_MAP[transaction.type]) {
+      transformed.type = PERSPECTIVE_FLIP_MAP[
+        transaction.type
+      ] as TransactionType;
     }
 
     // Flip history entries if present
