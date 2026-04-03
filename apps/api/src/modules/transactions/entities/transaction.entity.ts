@@ -11,7 +11,6 @@ import {
   TransactionType,
   TransactionStatus,
   WitnessStatus,
-  ReturnDirection,
 } from '../../../generated/prisma/client';
 import { Contact } from '../../contacts/entities/contact.entity';
 import { User } from '../../users/entities/user.entity';
@@ -20,10 +19,6 @@ import { TransactionHistory } from './transaction-history.entity';
 
 registerEnumType(TransactionStatus, {
   name: 'TransactionStatus',
-});
-
-registerEnumType(ReturnDirection, {
-  name: 'ReturnDirection',
 });
 
 registerEnumType(AssetCategory, {
@@ -57,9 +52,6 @@ export class Transaction {
 
   @Field(() => TransactionType)
   type: TransactionType;
-
-  @Field(() => ReturnDirection, { nullable: true })
-  returnDirection?: ReturnDirection;
 
   @Field(() => TransactionStatus)
   status: TransactionStatus;
