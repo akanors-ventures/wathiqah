@@ -12,10 +12,6 @@ on:
     paths:
       - 'apps/api/prisma/schema.prisma'
       - 'apps/api/atlas/migrations/*'
-# Permissions to write comments on the pull request.
-permissions:
-  contents: read
-  pull-requests: write
 defaults:
   run:
     working-directory: apps/api
@@ -38,26 +34,17 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: ariga/setup-atlas@v0
-        with:
-          cloud-token: ${{ secrets.ATLAS_CLOUD_TOKEN_KRORA4 }}
-      - uses: ariga/atlas-action/migrate/lint@v1
-        with:
-          dir: 'file://apps/api/atlas/migrations'
-          dir-name: 'app'
-          dev-url: 'postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable'
-      - uses: ariga/atlas-action/migrate/push@v1
-        if: github.ref == 'refs/heads/main'
-        with:
-          dir: 'file://apps/api/atlas/migrations'
-          dir-name: 'app'
-          dev-url: 'postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable'
+      - name: Lint migrations
+        run: |
+          atlas migrate lint \
+            --dir "file://atlas/migrations" \
+            --dev-url "postgres://postgres:pass@localhost:5432/dev?search_path=public&sslmode=disable" \
+            --latest 1
       - name: Apply migrations
         if: github.ref == 'refs/heads/main'
         run: |
