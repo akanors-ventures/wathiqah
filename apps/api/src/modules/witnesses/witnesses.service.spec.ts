@@ -73,7 +73,9 @@ describe('WitnessesService — findMyRequests pagination', () => {
           provide: NotificationService,
           useValue: {
             sendTransactionWitnessInvite: jest.fn(),
-            sendContactNotification: jest.fn().mockResolvedValue({ smsSkipped: false }),
+            sendContactNotification: jest
+              .fn()
+              .mockResolvedValue({ smsSkipped: false }),
           },
         },
         {
@@ -90,7 +92,10 @@ describe('WitnessesService — findMyRequests pagination', () => {
     prisma.witness.findMany.mockResolvedValue([{ id: 'w1' }]);
     prisma.witness.count.mockResolvedValue(1);
 
-    const result = await service.findMyRequests('user-1', { page: 1, limit: 10 });
+    const result = await service.findMyRequests('user-1', {
+      page: 1,
+      limit: 10,
+    });
 
     expect(result.total).toBe(1);
     expect(result.items).toHaveLength(1);
@@ -106,7 +111,12 @@ describe('WitnessesService — findMyRequests pagination', () => {
 describe('WitnessesService — acknowledge()', () => {
   let service: WitnessesService;
   let prisma: {
-    witness: { findUnique: jest.Mock; update: jest.Mock; count: jest.Mock; findMany: jest.Mock };
+    witness: {
+      findUnique: jest.Mock;
+      update: jest.Mock;
+      count: jest.Mock;
+      findMany: jest.Mock;
+    };
     transactionHistory: { create: jest.Mock };
     $transaction: jest.Mock;
   };
@@ -125,7 +135,9 @@ describe('WitnessesService — acknowledge()', () => {
     };
 
     notificationService = {
-      sendContactNotification: jest.fn().mockResolvedValue({ smsSkipped: false }),
+      sendContactNotification: jest
+        .fn()
+        .mockResolvedValue({ smsSkipped: false }),
     };
 
     const module = await Test.createTestingModule({
@@ -159,7 +171,11 @@ describe('WitnessesService — acknowledge()', () => {
     prisma.transactionHistory.create.mockResolvedValue({});
     prisma.witness.count.mockResolvedValue(0); // first acknowledgment
 
-    await service.acknowledge('witness-1', WitnessStatus.ACKNOWLEDGED, 'user-1');
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
 
     expect(notificationService.sendContactNotification).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -177,7 +193,11 @@ describe('WitnessesService — acknowledge()', () => {
     prisma.transactionHistory.create.mockResolvedValue({});
     prisma.witness.count.mockResolvedValue(1); // already acknowledged by someone else
 
-    await service.acknowledge('witness-1', WitnessStatus.ACKNOWLEDGED, 'user-1');
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
 
     expect(notificationService.sendContactNotification).not.toHaveBeenCalled();
   });
@@ -185,7 +205,10 @@ describe('WitnessesService — acknowledge()', () => {
   it('does not send contact notification when status is DECLINED', async () => {
     prisma.witness.findUnique.mockResolvedValue(makeWitness());
     prisma.witness.update.mockResolvedValue(
-      makeUpdatedWitness({ status: WitnessStatus.DECLINED, acknowledgedAt: null }),
+      makeUpdatedWitness({
+        status: WitnessStatus.DECLINED,
+        acknowledgedAt: null,
+      }),
     );
     prisma.transactionHistory.create.mockResolvedValue({});
 
@@ -217,7 +240,11 @@ describe('WitnessesService — acknowledge()', () => {
     prisma.transactionHistory.create.mockResolvedValue({});
     prisma.witness.count.mockResolvedValue(0);
 
-    await service.acknowledge('witness-1', WitnessStatus.ACKNOWLEDGED, 'user-1');
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
 
     expect(notificationService.sendContactNotification).not.toHaveBeenCalled();
   });
@@ -245,7 +272,11 @@ describe('WitnessesService — acknowledge()', () => {
     prisma.transactionHistory.create.mockResolvedValue({});
     prisma.witness.count.mockResolvedValue(0);
 
-    await service.acknowledge('witness-1', WitnessStatus.ACKNOWLEDGED, 'user-1');
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
 
     expect(notificationService.sendContactNotification).not.toHaveBeenCalled();
   });
@@ -268,7 +299,11 @@ describe('WitnessesService — acknowledge()', () => {
     prisma.transactionHistory.create.mockResolvedValue({});
     prisma.witness.count.mockResolvedValue(0);
 
-    await service.acknowledge('witness-1', WitnessStatus.ACKNOWLEDGED, 'user-1');
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
 
     expect(notificationService.sendContactNotification).not.toHaveBeenCalled();
   });
@@ -296,7 +331,11 @@ describe('WitnessesService — acknowledge()', () => {
     prisma.transactionHistory.create.mockResolvedValue({});
     prisma.witness.count.mockResolvedValue(0);
 
-    await service.acknowledge('witness-1', WitnessStatus.ACKNOWLEDGED, 'user-1');
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
 
     expect(notificationService.sendContactNotification).toHaveBeenCalledWith(
       expect.objectContaining({

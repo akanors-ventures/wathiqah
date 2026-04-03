@@ -24,11 +24,7 @@ interface UpgradePromptDialogProps {
   limitType: keyof typeof LIMIT_CONTENT;
 }
 
-export function UpgradePromptDialog({
-  open,
-  onOpenChange,
-  limitType,
-}: UpgradePromptDialogProps) {
+export function UpgradePromptDialog({ open, onOpenChange, limitType }: UpgradePromptDialogProps) {
   const content = LIMIT_CONTENT[limitType];
 
   return (
