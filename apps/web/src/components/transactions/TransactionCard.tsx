@@ -9,8 +9,8 @@ import {
   Package,
   UserCircle,
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
@@ -26,7 +26,6 @@ interface TransactionCardProps {
     description?: string | null;
     itemName?: string | null;
     quantity?: number | null;
-    returnDirection?: string | null;
     contact?: {
       id?: string | null;
       name?: string | null;
@@ -46,68 +45,91 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
   const isCreator = user?.id === tx.createdBy?.id;
 
   const isPositive =
-    tx.type === "GIVEN" ||
-    (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-    tx.type === "INCOME" ||
-    (tx.type === "GIFT" && tx.returnDirection === "TO_ME");
+    tx.type === "LOAN_RECEIVED" ||
+    tx.type === "REPAYMENT_RECEIVED" ||
+    tx.type === "GIFT_RECEIVED" ||
+    tx.type === "ADVANCE_RECEIVED" ||
+    tx.type === "DEPOSIT_RECEIVED" ||
+    tx.type === "ESCROWED" ||
+    tx.type === "INCOME"; // legacy display support
 
   const getTheme = () => {
     switch (tx.type) {
-      case "GIVEN":
+      case "LOAN_GIVEN":
+      case "REPAYMENT_MADE":
         return {
           bg: "bg-blue-500/10",
           text: "text-blue-500",
           border: "border-blue-500/20",
           gradient: "from-blue-500 via-blue-500/80 to-blue-500/60",
         };
-      case "RETURNED":
-        return tx.returnDirection === "TO_ME"
-          ? {
-              bg: "bg-emerald-500/10",
-              text: "text-emerald-500",
-              border: "border-emerald-500/20",
-              gradient: "from-emerald-500 via-emerald-500/80 to-emerald-500/60",
-            }
-          : {
-              bg: "bg-blue-500/10",
-              text: "text-blue-500",
-              border: "border-blue-500/20",
-              gradient: "from-blue-500 via-blue-500/80 to-blue-500/60",
-            };
-      case "INCOME":
-        return {
-          bg: "bg-emerald-500/10",
-          text: "text-emerald-500",
-          border: "border-emerald-500/20",
-          gradient: "from-emerald-500 via-emerald-500/80 to-emerald-500/60",
-        };
-      case "GIFT":
-        return tx.returnDirection === "TO_ME"
-          ? {
-              bg: "bg-purple-500/10",
-              text: "text-purple-500",
-              border: "border-purple-500/20",
-              gradient: "from-purple-500 via-purple-500/80 to-purple-500/60",
-            }
-          : {
-              bg: "bg-pink-500/10",
-              text: "text-pink-500",
-              border: "border-pink-500/20",
-              gradient: "from-pink-500 via-pink-500/80 to-pink-500/60",
-            };
-      default:
+      case "LOAN_RECEIVED":
+      case "REPAYMENT_RECEIVED":
         return {
           bg: "bg-rose-500/10",
           text: "text-rose-500",
           border: "border-rose-500/20",
           gradient: "from-rose-500 via-rose-500/80 to-rose-500/60",
         };
+      case "ESCROWED":
+        return {
+          bg: "bg-emerald-500/10",
+          text: "text-emerald-500",
+          border: "border-emerald-500/20",
+          gradient: "from-emerald-500 via-emerald-500/80 to-emerald-500/60",
+        };
+      case "GIFT_RECEIVED":
+      case "ADVANCE_RECEIVED":
+      case "DEPOSIT_RECEIVED":
+        return {
+          bg: "bg-purple-500/10",
+          text: "text-purple-500",
+          border: "border-purple-500/20",
+          gradient: "from-purple-500 via-purple-500/80 to-purple-500/60",
+        };
+      case "GIFT_GIVEN":
+        return {
+          bg: "bg-pink-500/10",
+          text: "text-pink-500",
+          border: "border-pink-500/20",
+          gradient: "from-pink-500 via-pink-500/80 to-pink-500/60",
+        };
+      case "ADVANCE_PAID":
+      case "DEPOSIT_PAID":
+      case "REMITTED":
+        return {
+          bg: "bg-orange-500/10",
+          text: "text-orange-500",
+          border: "border-orange-500/20",
+          gradient: "from-orange-500 via-orange-500/80 to-orange-500/60",
+        };
+      case "INCOME": // legacy
+        return {
+          bg: "bg-emerald-500/10",
+          text: "text-emerald-500",
+          border: "border-emerald-500/20",
+          gradient: "from-emerald-500 via-emerald-500/80 to-emerald-500/60",
+        };
+      case "EXPENSE": // legacy
+        return {
+          bg: "bg-rose-500/10",
+          text: "text-rose-500",
+          border: "border-rose-500/20",
+          gradient: "from-rose-500 via-rose-500/80 to-rose-500/60",
+        };
+      default:
+        return {
+          bg: "bg-slate-500/10",
+          text: "text-slate-500",
+          border: "border-slate-500/20",
+          gradient: "from-slate-500 via-slate-500/80 to-slate-500/60",
+        };
     }
   };
 
   const theme = getTheme();
 
-  // INCOME/EXPENSE transactions that have a contact are project transactions —
+  // Legacy INCOME/EXPENSE transactions that have a contact are project transactions —
   // they live in the ProjectTransaction table, not Transaction, so navigating
   // to /transactions/:id would return a 404.
   const isProjectTransaction = (tx.type === "INCOME" || tx.type === "EXPENSE") && !!tx.contact;
