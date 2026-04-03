@@ -102,5 +102,4 @@ export class Transaction {
 
   @Field(() => [TransactionHistory], { nullable: true })
   history?: TransactionHistory[];
-
 }

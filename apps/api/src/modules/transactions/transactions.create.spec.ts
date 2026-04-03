@@ -143,7 +143,9 @@ describe('TransactionsService - create()', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).not.toHaveBeenCalled();
+    expect(
+      mockNotificationService.sendContactNotification,
+    ).not.toHaveBeenCalled();
   });
 
   it('does NOT send contact notification at creation time for a RETURNED transaction', async () => {
@@ -164,7 +166,9 @@ describe('TransactionsService - create()', () => {
       CREATOR_ID,
     );
 
-    expect(mockNotificationService.sendContactNotification).not.toHaveBeenCalled();
+    expect(
+      mockNotificationService.sendContactNotification,
+    ).not.toHaveBeenCalled();
   });
 
   it('does NOT send contact notification for a GIFT transaction', async () => {

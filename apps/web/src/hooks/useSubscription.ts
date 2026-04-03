@@ -41,7 +41,8 @@ export function useSubscription() {
 
   const rawMaxSmsPerMonth = limits?.contactNotificationSms ?? 0;
   const maxSmsPerMonth = rawMaxSmsPerMonth === -1 ? Infinity : rawMaxSmsPerMonth;
-  const smsRemaining = maxSmsPerMonth === Infinity ? Infinity : Math.max(0, maxSmsPerMonth - smsUsage);
+  const smsRemaining =
+    maxSmsPerMonth === Infinity ? Infinity : Math.max(0, maxSmsPerMonth - smsUsage);
 
   return {
     subscription,

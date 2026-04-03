@@ -1,17 +1,22 @@
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
+import { useMutation } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
+  AlertTriangle,
   Check,
+  Globe,
+  Heart,
+  HelpCircle,
+  MessageSquare,
+  Shield,
+  Sparkles,
   X,
   Zap,
-  Shield,
-  HelpCircle,
-  Globe,
-  AlertTriangle,
-  Heart,
-  Sparkles,
-  MessageSquare,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Footer } from "@/components/layout/Footer";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,24 +26,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useSubscription } from "@/hooks/useSubscription";
-import { useAuth } from "@/hooks/use-auth";
-import { redirectToLogin } from "@/utils/auth";
-import { useGeoIP } from "@/hooks/useGeoIP";
-import { cn } from "@/lib/utils";
 import { TierBadge } from "@/components/ui/tier-badge";
-import { formatCurrency } from "@/lib/utils/formatters";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useMutation } from "@apollo/client/react";
-import { CombinedGraphQLErrors } from "@apollo/client/errors";
+import { useAuth } from "@/hooks/use-auth";
+import { useGeoIP } from "@/hooks/useGeoIP";
+import { useSubscription } from "@/hooks/useSubscription";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
-import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/formatters";
 import {
   BillingInterval,
-  SubscriptionTier,
   type CreateCheckoutSessionMutationVariables,
+  SubscriptionTier,
 } from "@/types/__generated__/graphql";
-import { Footer } from "@/components/layout/Footer";
+import { redirectToLogin } from "@/utils/auth";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
@@ -339,7 +339,11 @@ function PricingPage() {
                             : "bg-muted text-muted-foreground/40",
                         )}
                       >
-                        {feature.included ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                        {feature.included ? (
+                          <Check className="w-3 h-3" />
+                        ) : (
+                          <X className="w-3 h-3" />
+                        )}
                       </div>
                       <span
                         className={cn(
@@ -394,12 +398,14 @@ function PricingPage() {
               Why People Upgrade
             </div>
             <h3 className="text-2xl font-black tracking-tight">
-              Your contacts hear from you <span className="text-amber-600 dark:text-amber-400">automatically</span>
+              Your contacts hear from you{" "}
+              <span className="text-amber-600 dark:text-amber-400">automatically</span>
             </h3>
             <p className="text-muted-foreground font-medium leading-relaxed max-w-lg mx-auto">
               When you record a transaction against someone's phone number, they receive an SMS —
-              even if they're not on Wathīqah. <strong className="text-foreground">Ledger users get 10 per month.</strong>{" "}
-              Upgrade to Pro for unlimited contact notifications and full SMS witness support.
+              even if they're not on Wathīqah.{" "}
+              <strong className="text-foreground">Ledger users get 10 per month.</strong> Upgrade to
+              Pro for unlimited contact notifications and full SMS witness support.
             </p>
             <Button
               variant="default"

@@ -1,12 +1,12 @@
 import { useLazyQuery } from "@apollo/client/react";
+import { Link } from "@tanstack/react-router";
 import { Lock, Search, UserPlus, X } from "lucide-react";
 import { useId, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SEARCH_WITNESS_QUERY } from "@/lib/apollo/queries/users";
 import { useSubscription } from "@/hooks/useSubscription";
+import { SEARCH_WITNESS_QUERY } from "@/lib/apollo/queries/users";
 import { cn } from "@/lib/utils";
 import {
   SearchType,
@@ -28,7 +28,12 @@ interface WitnessSelectorProps {
   className?: string;
 }
 
-export function WitnessSelector({ selectedWitnesses, onChange, onUpgradeRequest, className }: WitnessSelectorProps) {
+export function WitnessSelector({
+  selectedWitnesses,
+  onChange,
+  onUpgradeRequest,
+  className,
+}: WitnessSelectorProps) {
   const { allowSMS, witnessRemaining } = useSubscription();
   const inviteNameId = useId();
   const inviteEmailId = useId();
@@ -152,8 +157,8 @@ export function WitnessSelector({ selectedWitnesses, onChange, onUpgradeRequest,
           ))}
         </div>
 
-        {witnessRemaining !== undefined && (
-          witnessRemaining === 0 ? (
+        {witnessRemaining !== undefined &&
+          (witnessRemaining === 0 ? (
             <button
               type="button"
               onClick={() => onUpgradeRequest?.()}
@@ -169,8 +174,7 @@ export function WitnessSelector({ selectedWitnesses, onChange, onUpgradeRequest,
                 {witnessRemaining}
               </span>
             </div>
-          )
-        )}
+          ))}
       </div>
 
       {!showInviteForm && !searchResult && (
