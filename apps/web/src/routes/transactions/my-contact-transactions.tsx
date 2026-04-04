@@ -90,10 +90,18 @@ function MyContactTransactionsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="GIVEN">Given</SelectItem>
-            <SelectItem value="RECEIVED">Received</SelectItem>
-            <SelectItem value="RETURNED">Returned</SelectItem>
-            <SelectItem value="GIFT">Gift</SelectItem>
+            <SelectItem value="LOAN_GIVEN">Loan Given</SelectItem>
+            <SelectItem value="LOAN_RECEIVED">Loan Received</SelectItem>
+            <SelectItem value="REPAYMENT_MADE">Repayment Made</SelectItem>
+            <SelectItem value="REPAYMENT_RECEIVED">Repayment Received</SelectItem>
+            <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
+            <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
+            <SelectItem value="ADVANCE_PAID">Advance Paid</SelectItem>
+            <SelectItem value="ADVANCE_RECEIVED">Advance Received</SelectItem>
+            <SelectItem value="DEPOSIT_PAID">Deposit Paid</SelectItem>
+            <SelectItem value="DEPOSIT_RECEIVED">Deposit Received</SelectItem>
+            <SelectItem value="ESCROWED">Escrowed</SelectItem>
+            <SelectItem value="REMITTED">Remitted</SelectItem>
           </SelectContent>
         </Select>
         <DateRangePicker value={dateRange} onChange={setDateRange} />
