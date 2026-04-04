@@ -30,8 +30,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { PageLoader } from "@/components/ui/page-loader";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { useTransaction } from "@/hooks/useTransaction";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRemoveWitness, useResendWitnessInvitation } from "@/hooks/useWitnesses";
@@ -124,13 +124,13 @@ function TransactionDetailPage() {
 
   const canConvertToGift =
     currentTransaction.category === AssetCategory.Funds &&
-    (currentTransaction.type === TransactionType.Given ||
-      currentTransaction.type === TransactionType.Received);
+    (currentTransaction.type === TransactionType.LoanGiven ||
+      currentTransaction.type === TransactionType.LoanReceived);
 
   const canRecordReturn =
     currentTransaction.category === AssetCategory.Funds &&
-    (currentTransaction.type === TransactionType.Given ||
-      currentTransaction.type === TransactionType.Received) &&
+    (currentTransaction.type === TransactionType.LoanGiven ||
+      currentTransaction.type === TransactionType.LoanReceived) &&
     !!currentTransaction.contact;
 
   const totalConverted = conversions.reduce(
@@ -155,23 +155,10 @@ function TransactionDetailPage() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white leading-tight">
-                {currentTransaction.type === TransactionType.Given
-                  ? "Given to"
-                  : currentTransaction.type === TransactionType.Received
-                    ? "Received from"
-                    : currentTransaction.type === TransactionType.Returned
-                      ? currentTransaction.returnDirection === "TO_ME"
-                        ? "Returned to me by"
-                        : "Returned to"
-                      : currentTransaction.type === TransactionType.Gift
-                        ? currentTransaction.returnDirection === "TO_ME"
-                          ? "Gift received from"
-                          : "Gift given to"
-                        : currentTransaction.type === TransactionType.Income
-                          ? "Income from"
-                          : currentTransaction.type === TransactionType.Expense
-                            ? "Expense to"
-                            : "Collected from"}{" "}
+                <span className="capitalize">
+                  {currentTransaction.type.toLowerCase().replace(/_/g, " ")}
+                </span>{" "}
+                {"—"}{" "}
                 <span className="inline-flex items-center gap-2 flex-wrap">
                   {currentTransaction.contact?.name || "Personal"}
                   {currentTransaction.contact?.isSupporter && (
@@ -188,35 +175,38 @@ function TransactionDetailPage() {
             {/* Amount — flex-shrink-0 so it never compresses */}
             <div className="text-right flex-shrink-0">
               {currentTransaction.category === AssetCategory.Funds &&
-                currentTransaction.amount !== null && (
-                  <div
-                    className={`text-xl sm:text-2xl font-bold ${
-                      currentTransaction.type === "GIVEN"
-                        ? "text-blue-600 dark:text-blue-400"
-                        : currentTransaction.type === "RETURNED"
-                          ? currentTransaction.returnDirection === "TO_ME"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-blue-600 dark:text-blue-400"
-                          : currentTransaction.type === "INCOME"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : currentTransaction.type === "GIFT"
-                              ? currentTransaction.returnDirection === "TO_ME"
-                                ? "text-purple-600 dark:text-purple-400"
-                                : "text-pink-600 dark:text-pink-400"
-                              : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {currentTransaction.type === "GIVEN" ||
-                    (currentTransaction.type === "RETURNED" &&
-                      currentTransaction.returnDirection === "TO_ME") ||
-                    currentTransaction.type === "INCOME" ||
-                    (currentTransaction.type === "GIFT" &&
-                      currentTransaction.returnDirection === "TO_ME")
-                      ? "+"
-                      : "-"}
-                    {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
-                  </div>
-                )}
+                currentTransaction.amount !== null &&
+                (() => {
+                  const type = currentTransaction.type;
+                  const isPositive =
+                    type === "LOAN_RECEIVED" ||
+                    type === "REPAYMENT_RECEIVED" ||
+                    type === "GIFT_RECEIVED" ||
+                    type === "ADVANCE_RECEIVED" ||
+                    type === "DEPOSIT_RECEIVED" ||
+                    type === "ESCROWED" ||
+                    type === "INCOME";
+                  const colorClass =
+                    type === "LOAN_GIVEN" || type === "REPAYMENT_MADE"
+                      ? "text-blue-600 dark:text-blue-400"
+                      : type === "LOAN_RECEIVED" || type === "REPAYMENT_RECEIVED"
+                        ? "text-red-600 dark:text-red-400"
+                        : type === "ESCROWED" || type === "INCOME"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : type === "GIFT_RECEIVED" ||
+                              type === "ADVANCE_RECEIVED" ||
+                              type === "DEPOSIT_RECEIVED"
+                            ? "text-purple-600 dark:text-purple-400"
+                            : type === "GIFT_GIVEN"
+                              ? "text-pink-600 dark:text-pink-400"
+                              : "text-orange-600 dark:text-orange-400";
+                  return (
+                    <div className={`text-xl sm:text-2xl font-bold ${colorClass}`}>
+                      {isPositive ? "+" : "-"}
+                      {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
+                    </div>
+                  );
+                })()}
               {totalConverted > 0 && (
                 <div className="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 mt-0.5">
                   Gift: {formatCurrency(totalConverted, currentTransaction.currency)}
@@ -311,15 +301,6 @@ function TransactionDetailPage() {
                     <span className="text-neutral-500">x{currentTransaction.quantity}</span>
                   )}
                 </div>
-              </div>
-            )}
-
-            {currentTransaction.returnDirection && (
-              <div>
-                <span className="block text-sm font-medium text-neutral-500">Return Direction</span>
-                <p className="mt-1 text-neutral-900 dark:text-neutral-100">
-                  {currentTransaction.returnDirection === "TO_ME" ? "To Me" : "To Contact"}
-                </p>
               </div>
             )}
           </div>

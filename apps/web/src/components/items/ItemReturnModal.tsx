@@ -42,7 +42,8 @@ export function ItemReturnModal({ item, open, onOpenChange, onSuccess }: ItemRet
       // Logic:
       // If LENT (we gave), we receive it back.
       // If BORROWED (we received), we give it back.
-      const type = item.status === "LENT" ? TransactionType.Received : TransactionType.Given;
+      const type =
+        item.status === "LENT" ? TransactionType.LoanReceived : TransactionType.LoanGiven;
 
       await createTransaction({
         category: AssetCategory.Item,
