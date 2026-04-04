@@ -27,14 +27,6 @@ export const PaymentType = {
 export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
 
 
-export const ReturnDirection = {
-  TO_ME: 'TO_ME',
-  TO_CONTACT: 'TO_CONTACT'
-} as const
-
-export type ReturnDirection = (typeof ReturnDirection)[keyof typeof ReturnDirection]
-
-
 export const AssetCategory = {
   FUNDS: 'FUNDS',
   ITEM: 'ITEM'
@@ -44,10 +36,6 @@ export type AssetCategory = (typeof AssetCategory)[keyof typeof AssetCategory]
 
 
 export const TransactionType = {
-  GIVEN: 'GIVEN',
-  RECEIVED: 'RECEIVED',
-  RETURNED: 'RETURNED',
-  GIFT: 'GIFT',
   EXPENSE: 'EXPENSE',
   INCOME: 'INCOME',
   LOAN_GIVEN: 'LOAN_GIVEN',
