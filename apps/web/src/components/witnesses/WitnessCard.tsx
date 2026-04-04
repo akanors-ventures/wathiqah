@@ -5,9 +5,9 @@ import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
+  AssetCategory,
   type MyWitnessRequestsQuery,
   WitnessStatus,
-  AssetCategory,
 } from "@/types/__generated__/graphql";
 import { WitnessStatusBadge } from "./WitnessStatusBadge";
 
@@ -24,10 +24,13 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
   if (!transaction || !transaction.createdBy) return null;
 
   const isPositive =
-    transaction.type === "GIVEN" ||
-    (transaction.type === "RETURNED" && transaction.returnDirection === "TO_ME") ||
-    transaction.type === "INCOME" ||
-    (transaction.type === "GIFT" && transaction.returnDirection === "TO_ME");
+    transaction.type === "LOAN_RECEIVED" ||
+    transaction.type === "REPAYMENT_RECEIVED" ||
+    transaction.type === "GIFT_RECEIVED" ||
+    transaction.type === "ADVANCE_RECEIVED" ||
+    transaction.type === "DEPOSIT_RECEIVED" ||
+    transaction.type === "ESCROWED" ||
+    transaction.type === "INCOME";
 
   const isPending = status === WitnessStatus.Pending || status === WitnessStatus.Modified;
 

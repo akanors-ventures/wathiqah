@@ -155,9 +155,16 @@ export class NotificationsProcessor extends WorkerHost {
       ?.replace(/\/$/, '');
 
     const typeLabels: Record<string, string> = {
-      GIVEN: 'loan',
-      RECEIVED: 'credit',
-      RETURNED: 'repayment',
+      LOAN_GIVEN: 'loan given',
+      LOAN_RECEIVED: 'loan received',
+      REPAYMENT_MADE: 'repayment made',
+      REPAYMENT_RECEIVED: 'repayment received',
+      ADVANCE_PAID: 'advance payment',
+      ADVANCE_RECEIVED: 'advance received',
+      DEPOSIT_PAID: 'deposit paid',
+      DEPOSIT_RECEIVED: 'deposit received',
+      ESCROWED: 'escrowed payment',
+      REMITTED: 'remittance',
     };
     const typeLabel = typeLabels[transactionType] ?? 'transaction';
 
@@ -190,9 +197,16 @@ export class NotificationsProcessor extends WorkerHost {
       'A witnessed transaction has been recorded in your name on Wathīqah';
 
     const typeLabels: Record<string, string> = {
-      GIVEN: 'loan',
-      RECEIVED: 'credit',
-      RETURNED: 'repayment',
+      LOAN_GIVEN: 'loan given',
+      LOAN_RECEIVED: 'loan received',
+      REPAYMENT_MADE: 'repayment made',
+      REPAYMENT_RECEIVED: 'repayment received',
+      ADVANCE_PAID: 'advance payment',
+      ADVANCE_RECEIVED: 'advance received',
+      DEPOSIT_PAID: 'deposit paid',
+      DEPOSIT_RECEIVED: 'deposit received',
+      ESCROWED: 'escrowed payment',
+      REMITTED: 'remittance',
     };
     const typeLabel = typeLabels[transactionType] ?? 'transaction';
 

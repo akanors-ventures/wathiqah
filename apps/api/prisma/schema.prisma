@@ -147,7 +147,7 @@ model Transaction {
   contactId       String?
   createdById     String
   status          TransactionStatus    @default(COMPLETED)
-  returnDirection ReturnDirection?
+
   parentId        String?
   currency        String               @default("NGN")
   history         TransactionHistory[]
@@ -310,10 +310,6 @@ model ContactInvitation {
   @@map("contact_invitations")
 }
 
-enum ReturnDirection {
-  TO_ME
-  TO_CONTACT
-}
 
 enum AssetCategory {
   FUNDS
@@ -321,12 +317,20 @@ enum AssetCategory {
 }
 
 enum TransactionType {
-  GIVEN
-  RECEIVED
-  RETURNED
-  GIFT
   EXPENSE
   INCOME
+  LOAN_GIVEN
+  LOAN_RECEIVED
+  REPAYMENT_MADE
+  REPAYMENT_RECEIVED
+  GIFT_GIVEN
+  GIFT_RECEIVED
+  ADVANCE_PAID
+  ADVANCE_RECEIVED
+  DEPOSIT_PAID
+  DEPOSIT_RECEIVED
+  ESCROWED
+  REMITTED
 }
 
 enum TransactionStatus {

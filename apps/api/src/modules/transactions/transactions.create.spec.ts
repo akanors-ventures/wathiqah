@@ -32,7 +32,7 @@ const mockTransaction = {
   id: 'tx-1',
   createdById: CREATOR_ID,
   contactId: CONTACT_ID,
-  type: TransactionType.GIVEN,
+  type: TransactionType.LOAN_GIVEN,
   category: AssetCategory.FUNDS,
   amount: {
     toNumber: () => 5000,
@@ -44,7 +44,6 @@ const mockTransaction = {
   description: null,
   itemName: null,
   quantity: null,
-  returnDirection: null,
   parentId: null,
   dueDate: null,
 };
@@ -107,10 +106,10 @@ describe('TransactionsService - create()', () => {
 
   const TX_DATE = new Date('2026-03-22');
 
-  it('does NOT send contact notification at creation time for a GIVEN transaction', async () => {
+  it('does NOT send contact notification at creation time for a LOAN_GIVEN transaction', async () => {
     await service.create(
       {
-        type: TransactionType.GIVEN,
+        type: TransactionType.LOAN_GIVEN,
         category: AssetCategory.FUNDS,
         amount: 5000,
         currency: 'NGN',
@@ -125,15 +124,15 @@ describe('TransactionsService - create()', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('does NOT send contact notification at creation time for a RECEIVED transaction', async () => {
+  it('does NOT send contact notification at creation time for a LOAN_RECEIVED transaction', async () => {
     mockPrismaService.transaction.create.mockResolvedValue({
       ...mockTransaction,
-      type: TransactionType.RECEIVED,
+      type: TransactionType.LOAN_RECEIVED,
     });
 
     await service.create(
       {
-        type: TransactionType.RECEIVED,
+        type: TransactionType.LOAN_RECEIVED,
         category: AssetCategory.FUNDS,
         amount: 3000,
         currency: 'NGN',
@@ -148,15 +147,15 @@ describe('TransactionsService - create()', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('does NOT send contact notification at creation time for a RETURNED transaction', async () => {
+  it('does NOT send contact notification at creation time for a REPAYMENT_MADE transaction', async () => {
     mockPrismaService.transaction.create.mockResolvedValue({
       ...mockTransaction,
-      type: TransactionType.RETURNED,
+      type: TransactionType.REPAYMENT_MADE,
     });
 
     await service.create(
       {
-        type: TransactionType.RETURNED,
+        type: TransactionType.REPAYMENT_MADE,
         category: AssetCategory.FUNDS,
         amount: 2000,
         currency: 'NGN',
@@ -171,17 +170,17 @@ describe('TransactionsService - create()', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('does NOT send contact notification for a GIFT transaction', async () => {
+  it('does NOT send contact notification for a GIFT_GIVEN transaction', async () => {
     mockPrismaService.transaction.create.mockResolvedValue({
       ...mockTransaction,
-      type: TransactionType.GIFT,
+      type: TransactionType.GIFT_GIVEN,
       amount: null,
       contactId: null,
     });
 
     await service.create(
       {
-        type: TransactionType.GIFT,
+        type: TransactionType.GIFT_GIVEN,
         category: AssetCategory.FUNDS,
         amount: 1000,
         currency: 'NGN',
@@ -203,7 +202,7 @@ describe('TransactionsService - create()', () => {
 
     await service.create(
       {
-        type: TransactionType.GIVEN,
+        type: TransactionType.LOAN_GIVEN,
         category: AssetCategory.FUNDS,
         amount: 5000,
         currency: 'NGN',

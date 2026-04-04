@@ -66,10 +66,9 @@ describe('ContactsService — findAll pagination', () => {
         firstName: 'Ali',
         transactions: [
           {
-            type: 'GIVEN',
+            type: 'LOAN_GIVEN',
             amount: { toNumber: () => 100 },
             status: 'COMPLETED',
-            returnDirection: null,
           },
         ],
       },
@@ -78,10 +77,9 @@ describe('ContactsService — findAll pagination', () => {
         firstName: 'Ben',
         transactions: [
           {
-            type: 'RECEIVED',
+            type: 'LOAN_RECEIVED',
             amount: { toNumber: () => 50 },
             status: 'COMPLETED',
-            returnDirection: null,
           },
         ],
       },
@@ -102,10 +100,9 @@ describe('ContactsService — findAll pagination', () => {
         firstName: 'Ali',
         transactions: [
           {
-            type: 'GIVEN',
+            type: 'LOAN_GIVEN',
             amount: { toNumber: () => 100 },
             status: 'COMPLETED',
-            returnDirection: null,
           },
         ],
       },
@@ -114,10 +111,9 @@ describe('ContactsService — findAll pagination', () => {
         firstName: 'Ben',
         transactions: [
           {
-            type: 'RECEIVED',
+            type: 'LOAN_RECEIVED',
             amount: { toNumber: () => 50 },
             status: 'COMPLETED',
-            returnDirection: null,
           },
         ],
       },
@@ -138,10 +134,9 @@ describe('ContactsService — findAll pagination', () => {
         firstName: 'Ali',
         transactions: [
           {
-            type: 'GIVEN',
+            type: 'LOAN_GIVEN',
             amount: { toNumber: () => 100 },
             status: 'CANCELLED',
-            returnDirection: null,
           },
         ],
       },
@@ -162,10 +157,9 @@ describe('ContactsService — findAll pagination', () => {
       firstName: `Contact${i + 1}`,
       transactions: [
         {
-          type: 'GIVEN',
+          type: 'LOAN_GIVEN',
           amount: { toNumber: () => 100 },
           status: 'COMPLETED',
-          returnDirection: null,
         },
       ],
     }));

@@ -90,10 +90,18 @@ function MyContactTransactionsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="GIVEN">Given</SelectItem>
-            <SelectItem value="RECEIVED">Received</SelectItem>
-            <SelectItem value="RETURNED">Returned</SelectItem>
-            <SelectItem value="GIFT">Gift</SelectItem>
+            <SelectItem value="LOAN_GIVEN">Loan Given</SelectItem>
+            <SelectItem value="LOAN_RECEIVED">Loan Received</SelectItem>
+            <SelectItem value="REPAYMENT_MADE">Repayment Made</SelectItem>
+            <SelectItem value="REPAYMENT_RECEIVED">Repayment Received</SelectItem>
+            <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
+            <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
+            <SelectItem value="ADVANCE_PAID">Advance Paid</SelectItem>
+            <SelectItem value="ADVANCE_RECEIVED">Advance Received</SelectItem>
+            <SelectItem value="DEPOSIT_PAID">Deposit Paid</SelectItem>
+            <SelectItem value="DEPOSIT_RECEIVED">Deposit Received</SelectItem>
+            <SelectItem value="ESCROWED">Escrowed</SelectItem>
+            <SelectItem value="REMITTED">Remitted</SelectItem>
           </SelectContent>
         </Select>
         <DateRangePicker value={dateRange} onChange={setDateRange} />
@@ -186,32 +194,26 @@ function MyContactTransactionsPage() {
                             variant="outline"
                             className={cn(
                               "text-[10px] font-bold px-2 py-0.5",
-                              tx.type === "GIVEN"
+                              tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
                                 ? "text-blue-600 border-blue-200 bg-blue-50"
-                                : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600 border-red-200 bg-red-50"
-                                  : tx.type === "RETURNED"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                      : "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "INCOME"
-                                      ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                      : tx.type === "GIFT"
-                                        ? tx.returnDirection === "TO_ME"
-                                          ? "text-purple-600 border-purple-200 bg-purple-50"
-                                          : "text-pink-600 border-pink-200 bg-pink-50"
-                                        : "text-gray-600 border-gray-200 bg-gray-50",
+                                : tx.type === "LOAN_RECEIVED" || tx.type === "REPAYMENT_RECEIVED"
+                                  ? "text-rose-600 border-rose-200 bg-rose-50"
+                                  : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                    ? "text-emerald-600 border-emerald-200 bg-emerald-50"
+                                    : tx.type === "GIFT_RECEIVED" ||
+                                        tx.type === "ADVANCE_RECEIVED" ||
+                                        tx.type === "DEPOSIT_RECEIVED"
+                                      ? "text-purple-600 border-purple-200 bg-purple-50"
+                                      : tx.type === "GIFT_GIVEN"
+                                        ? "text-pink-600 border-pink-200 bg-pink-50"
+                                        : tx.type === "ADVANCE_PAID" ||
+                                            tx.type === "DEPOSIT_PAID" ||
+                                            tx.type === "REMITTED"
+                                          ? "text-orange-600 border-orange-200 bg-orange-50"
+                                          : "text-gray-600 border-gray-200 bg-gray-50",
                             )}
                           >
-                            {tx.type === "RETURNED"
-                              ? tx.returnDirection === "TO_ME"
-                                ? "RETURNED TO ME"
-                                : "RETURNED TO CONTACT"
-                              : tx.type === "GIFT"
-                                ? tx.returnDirection === "TO_ME"
-                                  ? "GIFT RECEIVED"
-                                  : "GIFT GIVEN"
-                                : tx.type}
+                            {tx.type.toLowerCase().replace(/_/g, " ")}
                           </Badge>
                         </TableCell>
                         <TableCell className="py-4 max-w-[200px]">
@@ -224,27 +226,32 @@ function MyContactTransactionsPage() {
                             <span
                               className={cn(
                                 "text-sm font-bold",
-                                tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600"
-                                  : tx.type === "GIVEN"
-                                    ? "text-blue-600"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-green-600"
-                                        : "text-blue-600"
-                                      : tx.type === "INCOME"
-                                        ? "text-green-600"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600"
-                                            : "text-pink-600"
-                                          : "text-foreground",
+                                tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
+                                  ? "text-blue-600"
+                                  : tx.type === "LOAN_RECEIVED" || tx.type === "REPAYMENT_RECEIVED"
+                                    ? "text-rose-600"
+                                    : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                      ? "text-emerald-600"
+                                      : tx.type === "GIFT_RECEIVED" ||
+                                          tx.type === "ADVANCE_RECEIVED" ||
+                                          tx.type === "DEPOSIT_RECEIVED"
+                                        ? "text-purple-600"
+                                        : tx.type === "GIFT_GIVEN"
+                                          ? "text-pink-600"
+                                          : tx.type === "ADVANCE_PAID" ||
+                                              tx.type === "DEPOSIT_PAID" ||
+                                              tx.type === "REMITTED"
+                                            ? "text-orange-600"
+                                            : "text-foreground",
                               )}
                             >
-                              {tx.type === "GIVEN" ||
-                              (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                              tx.type === "INCOME" ||
-                              (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                              {tx.type === "LOAN_RECEIVED" ||
+                              tx.type === "REPAYMENT_RECEIVED" ||
+                              tx.type === "GIFT_RECEIVED" ||
+                              tx.type === "ADVANCE_RECEIVED" ||
+                              tx.type === "DEPOSIT_RECEIVED" ||
+                              tx.type === "ESCROWED" ||
+                              tx.type === "INCOME"
                                 ? "+"
                                 : "-"}
                               {formatCurrency(tx.amount || 0, tx.currency)}
@@ -316,32 +323,26 @@ function MyContactTransactionsPage() {
                           variant="outline"
                           className={cn(
                             "text-[10px] font-bold px-2 py-0.5",
-                            tx.type === "GIVEN"
+                            tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
                               ? "text-blue-600 border-blue-200 bg-blue-50"
-                              : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                ? "text-red-600 border-red-200 bg-red-50"
-                                : tx.type === "RETURNED"
-                                  ? tx.returnDirection === "TO_ME"
-                                    ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                    : "text-blue-600 border-blue-200 bg-blue-50"
-                                  : tx.type === "INCOME"
-                                    ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                    : tx.type === "GIFT"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-purple-600 border-purple-200 bg-purple-50"
-                                        : "text-pink-600 border-pink-200 bg-pink-50"
-                                      : "text-gray-600 border-gray-200 bg-gray-50",
+                              : tx.type === "LOAN_RECEIVED" || tx.type === "REPAYMENT_RECEIVED"
+                                ? "text-rose-600 border-rose-200 bg-rose-50"
+                                : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                  ? "text-emerald-600 border-emerald-200 bg-emerald-50"
+                                  : tx.type === "GIFT_RECEIVED" ||
+                                      tx.type === "ADVANCE_RECEIVED" ||
+                                      tx.type === "DEPOSIT_RECEIVED"
+                                    ? "text-purple-600 border-purple-200 bg-purple-50"
+                                    : tx.type === "GIFT_GIVEN"
+                                      ? "text-pink-600 border-pink-200 bg-pink-50"
+                                      : tx.type === "ADVANCE_PAID" ||
+                                          tx.type === "DEPOSIT_PAID" ||
+                                          tx.type === "REMITTED"
+                                        ? "text-orange-600 border-orange-200 bg-orange-50"
+                                        : "text-gray-600 border-gray-200 bg-gray-50",
                           )}
                         >
-                          {tx.type === "RETURNED"
-                            ? tx.returnDirection === "TO_ME"
-                              ? "RETURNED TO ME"
-                              : "RETURNED TO CONTACT"
-                            : tx.type === "GIFT"
-                              ? tx.returnDirection === "TO_ME"
-                                ? "GIFT RECEIVED"
-                                : "GIFT GIVEN"
-                              : tx.type}
+                          {tx.type.toLowerCase().replace(/_/g, " ")}
                         </Badge>
                       </div>
 
@@ -356,27 +357,32 @@ function MyContactTransactionsPage() {
                             <span
                               className={cn(
                                 "text-sm font-bold",
-                                tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600"
-                                  : tx.type === "GIVEN"
-                                    ? "text-blue-600"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-green-600"
-                                        : "text-blue-600"
-                                      : tx.type === "INCOME"
-                                        ? "text-green-600"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600"
-                                            : "text-pink-600"
-                                          : "text-foreground",
+                                tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
+                                  ? "text-blue-600"
+                                  : tx.type === "LOAN_RECEIVED" || tx.type === "REPAYMENT_RECEIVED"
+                                    ? "text-rose-600"
+                                    : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                      ? "text-emerald-600"
+                                      : tx.type === "GIFT_RECEIVED" ||
+                                          tx.type === "ADVANCE_RECEIVED" ||
+                                          tx.type === "DEPOSIT_RECEIVED"
+                                        ? "text-purple-600"
+                                        : tx.type === "GIFT_GIVEN"
+                                          ? "text-pink-600"
+                                          : tx.type === "ADVANCE_PAID" ||
+                                              tx.type === "DEPOSIT_PAID" ||
+                                              tx.type === "REMITTED"
+                                            ? "text-orange-600"
+                                            : "text-foreground",
                               )}
                             >
-                              {tx.type === "GIVEN" ||
-                              (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                              tx.type === "INCOME" ||
-                              (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                              {tx.type === "LOAN_RECEIVED" ||
+                              tx.type === "REPAYMENT_RECEIVED" ||
+                              tx.type === "GIFT_RECEIVED" ||
+                              tx.type === "ADVANCE_RECEIVED" ||
+                              tx.type === "DEPOSIT_RECEIVED" ||
+                              tx.type === "ESCROWED" ||
+                              tx.type === "INCOME"
                                 ? "+"
                                 : "-"}
                               {formatCurrency(tx.amount || 0, tx.currency)}

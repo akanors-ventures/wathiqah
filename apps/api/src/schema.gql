@@ -139,7 +139,6 @@ input CreateTransactionInput {
   itemName: String
   parentId: ID
   quantity: Int = 1
-  returnDirection: ReturnDirection
   type: TransactionType!
   witnessInvites: [WitnessInviteInput!]
   witnessUserIds: [ID!]
@@ -458,11 +457,6 @@ input ResetPasswordInput {
   token: String!
 }
 
-enum ReturnDirection {
-  TO_CONTACT
-  TO_ME
-}
-
 enum SearchType {
   EMAIL
   PHONE
@@ -565,7 +559,6 @@ type Transaction {
   parent: Transaction
   parentId: String
   quantity: Int
-  returnDirection: ReturnDirection
   status: TransactionStatus!
   type: TransactionType!
   witnesses: [Witness!]
@@ -589,12 +582,20 @@ enum TransactionStatus {
 }
 
 enum TransactionType {
+  ADVANCE_PAID
+  ADVANCE_RECEIVED
+  DEPOSIT_PAID
+  DEPOSIT_RECEIVED
+  ESCROWED
   EXPENSE
-  GIFT
-  GIVEN
+  GIFT_GIVEN
+  GIFT_RECEIVED
   INCOME
-  RECEIVED
-  RETURNED
+  LOAN_GIVEN
+  LOAN_RECEIVED
+  REMITTED
+  REPAYMENT_MADE
+  REPAYMENT_RECEIVED
 }
 
 type TransactionsResponse {
@@ -608,15 +609,18 @@ type TransactionsResponse {
 type TransactionsSummary {
   currency: String!
   netBalance: Float!
-  totalExpense: Float!
+  totalAdvancePaid: Float!
+  totalAdvanceReceived: Float!
+  totalDepositPaid: Float!
+  totalDepositReceived: Float!
+  totalEscrowed: Float!
   totalGiftGiven: Float!
   totalGiftReceived: Float!
-  totalGiven: Float!
-  totalIncome: Float!
-  totalReceived: Float!
-  totalReturned: Float!
-  totalReturnedToMe: Float!
-  totalReturnedToOther: Float!
+  totalLoanGiven: Float!
+  totalLoanReceived: Float!
+  totalRemitted: Float!
+  totalRepaymentMade: Float!
+  totalRepaymentReceived: Float!
 }
 
 input UpdateContactInput {
@@ -666,7 +670,6 @@ input UpdateTransactionInput {
   itemName: String
   parentId: ID
   quantity: Int = 1
-  returnDirection: ReturnDirection
   type: TransactionType
   witnessInvites: [WitnessInviteInput!]
   witnessUserIds: [ID!]

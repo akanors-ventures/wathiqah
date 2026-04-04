@@ -2,10 +2,10 @@ import { InputType, Field, Float, Int, ID } from '@nestjs/graphql';
 import {
   AssetCategory,
   TransactionType,
-  ReturnDirection,
 } from '../../../generated/prisma/client';
 import {
   IsEnum,
+  IsNotIn,
   IsOptional,
   IsString,
   IsNumber,
@@ -41,12 +41,11 @@ export class CreateTransactionInput {
 
   @Field(() => TransactionType)
   @IsEnum(TransactionType)
+  @IsNotIn(['EXPENSE', 'INCOME', 'GIVEN', 'RECEIVED', 'RETURNED', 'GIFT'], {
+    message:
+      'This transaction type is no longer supported. Use the new formal types.',
+  })
   type: TransactionType;
-
-  @Field(() => ReturnDirection, { nullable: true })
-  @IsOptional()
-  @IsEnum(ReturnDirection)
-  returnDirection?: ReturnDirection;
 
   @Field({ defaultValue: 'NGN' })
   @IsString()

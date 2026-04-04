@@ -21,10 +21,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { useAmountInput } from "@/hooks/useAmountInput";
-import { AssetCategory, ReturnDirection, TransactionType } from "@/types/__generated__/graphql";
+import { AssetCategory, TransactionType } from "@/types/__generated__/graphql";
 
 const formSchema = z.object({
   amount: z.coerce.number<number>().min(0.01, "Amount must be positive"),
@@ -70,24 +70,22 @@ export function ConvertGiftDialog({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Determine returnDirection based on parent type
-      // GIVEN (I lent) -> GIFT TO_CONTACT (I gifted it out)
-      // RECEIVED (I borrowed) -> GIFT TO_ME (Contact gifted it to me)
-      const returnDirection =
-        transaction.type === TransactionType.Given
-          ? ReturnDirection.ToContact
-          : ReturnDirection.ToMe;
+      // LOAN_GIVEN → forgiving the debt → GIFT_GIVEN (I gave it)
+      // LOAN_RECEIVED → contact forgives → GIFT_RECEIVED (I received gift)
+      const giftType =
+        transaction.type === TransactionType.LoanGiven
+          ? TransactionType.GiftGiven
+          : TransactionType.GiftReceived;
 
       await createTransaction({
         category: AssetCategory.Funds,
         amount: values.amount,
         currency: transaction.currency,
-        type: TransactionType.Gift,
+        type: giftType,
         date: new Date().toISOString(),
         description: values.description,
         contactId: transaction.contactId || undefined,
         parentId: transaction.id,
-        returnDirection,
       });
 
       toast.success("Transaction converted to gift successfully");

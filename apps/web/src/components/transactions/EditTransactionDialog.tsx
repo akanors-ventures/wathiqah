@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
@@ -33,13 +33,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { WitnessSelector } from "@/components/witnesses/WitnessSelector";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { useContacts } from "@/hooks/useContacts";
 import { useTransaction } from "@/hooks/useTransaction";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { useAmountInput } from "@/hooks/useAmountInput";
 import {
   AssetCategory,
-  ReturnDirection,
   type TransactionQuery,
   TransactionType,
 } from "@/types/__generated__/graphql";
@@ -48,12 +47,18 @@ const formSchema = z
   .object({
     contactId: z.string().optional(),
     type: z.enum([
-      TransactionType.Given,
-      TransactionType.Received,
-      TransactionType.Returned,
-      TransactionType.Gift,
-      TransactionType.Expense,
-      TransactionType.Income,
+      TransactionType.LoanGiven,
+      TransactionType.LoanReceived,
+      TransactionType.RepaymentMade,
+      TransactionType.RepaymentReceived,
+      TransactionType.GiftGiven,
+      TransactionType.GiftReceived,
+      TransactionType.AdvancePaid,
+      TransactionType.AdvanceReceived,
+      TransactionType.DepositPaid,
+      TransactionType.DepositReceived,
+      TransactionType.Escrowed,
+      TransactionType.Remitted,
     ]),
     amount: z.coerce.number<number>().min(0, "Amount must be positive").optional(),
     itemName: z.string().optional(),
@@ -61,7 +66,6 @@ const formSchema = z
     date: z.string().min(1, "Date is required"),
     description: z.string().optional(),
     category: z.enum([AssetCategory.Funds, AssetCategory.Item]),
-    returnDirection: z.enum([ReturnDirection.ToMe, ReturnDirection.ToContact]).optional(),
     currency: z.string().min(1, "Currency is required"),
     witnesses: z
       .array(
@@ -102,42 +106,6 @@ const formSchema = z
       message: "Item name and quantity are required for physical items (ITEM category)",
       path: ["itemName"],
     },
-  )
-  .refine(
-    (data) => {
-      if (data.contactId) {
-        return (
-          [
-            TransactionType.Given,
-            TransactionType.Received,
-            TransactionType.Returned,
-            TransactionType.Gift,
-          ] as TransactionType[]
-        ).includes(data.type);
-      }
-      return ([TransactionType.Expense, TransactionType.Income] as TransactionType[]).includes(
-        data.type,
-      );
-    },
-    {
-      message: "Invalid transaction type for the selected context",
-      path: ["type"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (
-        (data.type === TransactionType.Returned || data.type === TransactionType.Gift) &&
-        data.contactId
-      ) {
-        return !!data.returnDirection;
-      }
-      return true;
-    },
-    {
-      message: "Return direction is required for this transaction type",
-      path: ["returnDirection"],
-    },
   );
 
 type TransactionFormValues = z.infer<typeof formSchema>;
@@ -164,7 +132,7 @@ export function EditTransactionDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema) as Resolver<TransactionFormValues>,
     defaultValues: {
-      type: transaction.type,
+      type: transaction.type as TransactionFormValues["type"],
       contactId: transaction.contact?.id ?? undefined,
       amount: transaction.amount ?? 0,
       itemName: transaction.itemName ?? "",
@@ -172,14 +140,11 @@ export function EditTransactionDialog({
       date: format(new Date(transaction.date), "yyyy-MM-dd"),
       description: transaction.description ?? "",
       category: transaction.category,
-      returnDirection: transaction.returnDirection ?? undefined,
       currency: transaction.currency ?? "NGN",
       witnesses: [],
     },
   });
 
-  const contactId = form.watch("contactId");
-  const type = form.watch("type");
   const category = form.watch("category");
   const currencyCode = form.watch("currency");
 
@@ -213,7 +178,6 @@ export function EditTransactionDialog({
         date: new Date(values.date).toISOString(),
         description: values.description,
         contactId: values.contactId || undefined,
-        returnDirection: values.returnDirection || undefined,
         currency: values.currency,
         witnessUserIds,
         witnessInvites,
@@ -253,26 +217,7 @@ export function EditTransactionDialog({
                   </div>
                   <Select
                     onValueChange={(value) => {
-                      const hasContact = value !== "none";
-                      field.onChange(hasContact ? value : undefined);
-
-                      const currentType = form.getValues("type");
-                      if (hasContact) {
-                        const contactTypes = [
-                          TransactionType.Given,
-                          TransactionType.Received,
-                          TransactionType.Returned,
-                          TransactionType.Gift,
-                        ];
-                        if (!contactTypes.includes(currentType)) {
-                          form.setValue("type", TransactionType.Given);
-                        }
-                      } else {
-                        const personalTypes = [TransactionType.Expense, TransactionType.Income];
-                        if (!personalTypes.includes(currentType)) {
-                          form.setValue("type", TransactionType.Expense);
-                        }
-                      }
+                      field.onChange(value !== "none" ? value : undefined);
                     }}
                     value={field.value ?? "none"}
                   >
@@ -282,7 +227,7 @@ export function EditTransactionDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="none">Personal (No Contact)</SelectItem>
+                      <SelectItem value="none">No Contact</SelectItem>
                       {newlyCreatedContact &&
                         !contacts.some((c) => c.id === newlyCreatedContact.id) && (
                           <SelectItem key={newlyCreatedContact.id} value={newlyCreatedContact.id}>
@@ -400,19 +345,26 @@ export function EditTransactionDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {contactId ? (
-                          <>
-                            <SelectItem value={TransactionType.Given}>Given</SelectItem>
-                            <SelectItem value={TransactionType.Received}>Received</SelectItem>
-                            <SelectItem value={TransactionType.Returned}>Returned</SelectItem>
-                            <SelectItem value={TransactionType.Gift}>Gift</SelectItem>
-                          </>
-                        ) : (
-                          <>
-                            <SelectItem value={TransactionType.Expense}>Expense</SelectItem>
-                            <SelectItem value={TransactionType.Income}>Income</SelectItem>
-                          </>
-                        )}
+                        <SelectItem value={TransactionType.LoanGiven}>Loan Given</SelectItem>
+                        <SelectItem value={TransactionType.LoanReceived}>Loan Received</SelectItem>
+                        <SelectItem value={TransactionType.RepaymentMade}>
+                          Repayment Made
+                        </SelectItem>
+                        <SelectItem value={TransactionType.RepaymentReceived}>
+                          Repayment Received
+                        </SelectItem>
+                        <SelectItem value={TransactionType.GiftGiven}>Gift Given</SelectItem>
+                        <SelectItem value={TransactionType.GiftReceived}>Gift Received</SelectItem>
+                        <SelectItem value={TransactionType.AdvancePaid}>Advance Paid</SelectItem>
+                        <SelectItem value={TransactionType.AdvanceReceived}>
+                          Advance Received
+                        </SelectItem>
+                        <SelectItem value={TransactionType.DepositPaid}>Deposit Paid</SelectItem>
+                        <SelectItem value={TransactionType.DepositReceived}>
+                          Deposit Received
+                        </SelectItem>
+                        <SelectItem value={TransactionType.Escrowed}>Escrowed</SelectItem>
+                        <SelectItem value={TransactionType.Remitted}>Remitted</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -420,30 +372,6 @@ export function EditTransactionDialog({
                 )}
               />
             </div>
-
-            {(type === TransactionType.Returned || type === TransactionType.Gift) && contactId && (
-              <FormField
-                control={form.control}
-                name="returnDirection"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Direction</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select direction" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={ReturnDirection.ToMe}>To Me</SelectItem>
-                        <SelectItem value={ReturnDirection.ToContact}>To Contact</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <FormField
               control={form.control}
@@ -540,16 +468,6 @@ export function EditTransactionDialog({
               shouldDirty: true,
               shouldValidate: true,
             });
-            const currentType = form.getValues("type");
-            const contactTypes = [
-              TransactionType.Given,
-              TransactionType.Received,
-              TransactionType.Returned,
-              TransactionType.Gift,
-            ];
-            if (!contactTypes.includes(currentType)) {
-              form.setValue("type", TransactionType.Given);
-            }
           }, 0);
         }}
       />

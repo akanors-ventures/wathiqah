@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Eye, History, Lock, Package, User, Briefcase } from "lucide-react";
+import { ArrowLeft, Briefcase, Eye, History, Lock, Package, User } from "lucide-react";
 import { PromiseCard } from "@/components/promises/PromiseCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -218,24 +218,28 @@ function SharedAccessView() {
                                 variant="outline"
                                 className={cn(
                                   "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-0 shadow-sm",
-                                  tx.type === "GIVEN"
+                                  tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
                                     ? "text-blue-600 bg-blue-500/10"
-                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
+                                    : tx.type === "LOAN_RECEIVED" ||
+                                        tx.type === "REPAYMENT_RECEIVED" ||
+                                        tx.type === "EXPENSE"
                                       ? "text-rose-600 bg-rose-500/10"
-                                      : tx.type === "RETURNED"
-                                        ? tx.returnDirection === "TO_ME"
-                                          ? "text-emerald-600 bg-emerald-500/10"
-                                          : "text-blue-600 bg-blue-500/10"
-                                        : tx.type === "INCOME"
-                                          ? "text-emerald-600 bg-emerald-500/10"
-                                          : tx.type === "GIFT"
-                                            ? tx.returnDirection === "TO_ME"
-                                              ? "text-purple-600 bg-purple-500/10"
-                                              : "text-pink-600 bg-pink-500/10"
-                                            : "text-blue-600 bg-blue-500/10",
+                                      : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                        ? "text-emerald-600 bg-emerald-500/10"
+                                        : tx.type === "GIFT_RECEIVED" ||
+                                            tx.type === "ADVANCE_RECEIVED" ||
+                                            tx.type === "DEPOSIT_RECEIVED"
+                                          ? "text-purple-600 bg-purple-500/10"
+                                          : tx.type === "GIFT_GIVEN"
+                                            ? "text-pink-600 bg-pink-500/10"
+                                            : tx.type === "ADVANCE_PAID" ||
+                                                tx.type === "DEPOSIT_PAID" ||
+                                                tx.type === "REMITTED"
+                                              ? "text-orange-600 bg-orange-500/10"
+                                              : "text-slate-600 bg-slate-500/10",
                                 )}
                               >
-                                {tx.type}
+                                {tx.type.toLowerCase().replace(/_/g, " ")}
                               </Badge>
                             </TableCell>
                             <TableCell className="p-5 font-bold text-xs tracking-tight text-foreground/80 group-hover/row:text-primary transition-colors">
@@ -269,27 +273,34 @@ function SharedAccessView() {
                                 <div
                                   className={cn(
                                     "text-sm font-black tracking-tight",
-                                    tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                      ? "text-rose-600"
-                                      : tx.type === "GIVEN"
-                                        ? "text-blue-600"
-                                        : tx.type === "RETURNED"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-emerald-600"
-                                            : "text-blue-600"
-                                          : tx.type === "INCOME"
-                                            ? "text-emerald-600"
-                                            : tx.type === "GIFT"
-                                              ? tx.returnDirection === "TO_ME"
-                                                ? "text-purple-600"
-                                                : "text-pink-600"
-                                              : "text-foreground",
+                                    tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
+                                      ? "text-blue-600"
+                                      : tx.type === "LOAN_RECEIVED" ||
+                                          tx.type === "REPAYMENT_RECEIVED" ||
+                                          tx.type === "EXPENSE"
+                                        ? "text-rose-600"
+                                        : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                          ? "text-emerald-600"
+                                          : tx.type === "GIFT_RECEIVED" ||
+                                              tx.type === "ADVANCE_RECEIVED" ||
+                                              tx.type === "DEPOSIT_RECEIVED"
+                                            ? "text-purple-600"
+                                            : tx.type === "GIFT_GIVEN"
+                                              ? "text-pink-600"
+                                              : tx.type === "ADVANCE_PAID" ||
+                                                  tx.type === "DEPOSIT_PAID" ||
+                                                  tx.type === "REMITTED"
+                                                ? "text-orange-600"
+                                                : "text-foreground",
                                   )}
                                 >
-                                  {tx.type === "GIVEN" ||
-                                  (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                                  tx.type === "INCOME" ||
-                                  (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
+                                  {tx.type === "LOAN_RECEIVED" ||
+                                  tx.type === "REPAYMENT_RECEIVED" ||
+                                  tx.type === "GIFT_RECEIVED" ||
+                                  tx.type === "ADVANCE_RECEIVED" ||
+                                  tx.type === "DEPOSIT_RECEIVED" ||
+                                  tx.type === "ESCROWED" ||
+                                  tx.type === "INCOME"
                                     ? "+"
                                     : "-"}
                                   {formatCurrency(tx.amount || 0, tx.currency)}

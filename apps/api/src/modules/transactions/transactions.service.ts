@@ -14,7 +14,6 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
-  ReturnDirection,
   Prisma,
   Witness,
   ProjectTransactionType,
@@ -31,6 +30,39 @@ import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
+
+/** Perspective-flip pairs for shared-ledger view. */
+const PERSPECTIVE_FLIP_MAP: Partial<Record<string, string>> = {
+  LOAN_GIVEN: 'LOAN_RECEIVED',
+  LOAN_RECEIVED: 'LOAN_GIVEN',
+  REPAYMENT_MADE: 'REPAYMENT_RECEIVED',
+  REPAYMENT_RECEIVED: 'REPAYMENT_MADE',
+  GIFT_GIVEN: 'GIFT_RECEIVED',
+  GIFT_RECEIVED: 'GIFT_GIVEN',
+  ADVANCE_PAID: 'ADVANCE_RECEIVED',
+  ADVANCE_RECEIVED: 'ADVANCE_PAID',
+  DEPOSIT_PAID: 'DEPOSIT_RECEIVED',
+  DEPOSIT_RECEIVED: 'DEPOSIT_PAID',
+  ESCROWED: 'REMITTED',
+  REMITTED: 'ESCROWED',
+};
+
+function computeNetBalance(summary: TransactionSummary): number {
+  return (
+    summary.totalLoanReceived -
+    summary.totalLoanGiven +
+    summary.totalRepaymentReceived -
+    summary.totalRepaymentMade +
+    summary.totalGiftReceived -
+    summary.totalGiftGiven +
+    summary.totalAdvanceReceived -
+    summary.totalAdvancePaid +
+    summary.totalDepositReceived -
+    summary.totalDepositPaid +
+    summary.totalEscrowed -
+    summary.totalRemitted
+  );
+}
 
 export interface WitnessNotification {
   witnessId: string;
@@ -51,15 +83,18 @@ export interface WitnessNotification {
 }
 
 export interface TransactionSummary {
-  totalGiven: number;
-  totalReceived: number;
-  totalReturned: number;
-  totalReturnedToMe: number;
-  totalReturnedToOther: number;
-  totalExpense: number;
-  totalIncome: number;
+  totalLoanGiven: number;
+  totalLoanReceived: number;
+  totalRepaymentMade: number;
+  totalRepaymentReceived: number;
   totalGiftGiven: number;
   totalGiftReceived: number;
+  totalAdvancePaid: number;
+  totalAdvanceReceived: number;
+  totalDepositPaid: number;
+  totalDepositReceived: number;
+  totalEscrowed: number;
+  totalRemitted: number;
   netBalance?: number;
   currency: string;
 }
@@ -467,15 +502,8 @@ export class TransactionsService {
   private flipStatePerspective(state: Record<string, unknown> | null) {
     if (!state) return null;
     const flipped = { ...state };
-    if (state.type === TransactionType.GIVEN) {
-      flipped.type = TransactionType.RECEIVED;
-    } else if (state.type === TransactionType.RECEIVED) {
-      flipped.type = TransactionType.GIVEN;
-    }
-    if (state.returnDirection === 'TO_ME') {
-      flipped.returnDirection = 'TO_CONTACT';
-    } else if (state.returnDirection === 'TO_CONTACT') {
-      flipped.returnDirection = 'TO_ME';
+    if (typeof state.type === 'string' && PERSPECTIVE_FLIP_MAP[state.type]) {
+      flipped.type = PERSPECTIVE_FLIP_MAP[state.type];
     }
     return flipped;
   }
@@ -484,7 +512,6 @@ export class TransactionsService {
     T extends {
       createdById: string;
       type: TransactionType;
-      returnDirection?: ReturnDirection | null;
       history?: {
         previousState: unknown;
         newState: unknown;
@@ -524,20 +551,10 @@ export class TransactionsService {
       transformed.contact = virtualContact;
     }
 
-    if (transaction.type === TransactionType.GIVEN) {
-      transformed.type = TransactionType.RECEIVED;
-    } else if (transaction.type === TransactionType.RECEIVED) {
-      transformed.type = TransactionType.GIVEN;
-    } else if (transaction.type === TransactionType.RETURNED) {
-      transformed.returnDirection =
-        transaction.returnDirection === ReturnDirection.TO_ME
-          ? ReturnDirection.TO_CONTACT
-          : ReturnDirection.TO_ME;
-    } else if (transaction.type === TransactionType.GIFT) {
-      transformed.returnDirection =
-        transaction.returnDirection === ReturnDirection.TO_ME
-          ? ReturnDirection.TO_CONTACT
-          : ReturnDirection.TO_ME;
+    if (PERSPECTIVE_FLIP_MAP[transaction.type]) {
+      transformed.type = PERSPECTIVE_FLIP_MAP[
+        transaction.type
+      ] as TransactionType;
     }
 
     // Flip history entries if present
@@ -740,7 +757,6 @@ export class TransactionsService {
         isSupporter: false,
       },
       witnesses: [],
-      returnDirection: null,
       itemName: null,
       quantity: null,
       parentId: null,
@@ -787,7 +803,7 @@ export class TransactionsService {
   ) {
     // 1. Aggregations for transactions created by the user
     const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'returnDirection', 'currency'],
+      by: ['type', 'currency'],
       where: { ...where, createdById: userId },
       _sum: {
         amount: true,
@@ -796,7 +812,7 @@ export class TransactionsService {
 
     // 2. Aggregations for transactions where user is the contact (flip required)
     const contactAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'returnDirection', 'currency'],
+      by: ['type', 'currency'],
       where: {
         ...where,
         createdById: { not: userId },
@@ -807,49 +823,19 @@ export class TransactionsService {
       },
     });
 
-    // 3. Aggregations for project transactions
-    // First, get all projects for the user to determine their currency
-    const projects = await this.prisma.project.findMany({
-      where: { userId },
-      select: { id: true, currency: true },
-    });
-
-    const projectCurrencyMap = new Map<string, string>();
-    projects.forEach((p) => projectCurrencyMap.set(p.id, p.currency));
-
-    const projectWhere: Prisma.ProjectTransactionWhereInput = {
-      projectId: { in: projects.map((p) => p.id) },
-    };
-
-    // Map relevant filters from TransactionWhereInput to ProjectTransactionWhereInput
-    if (where.date) {
-      projectWhere.date = where.date as Prisma.DateTimeFilter;
-    }
-    // Amount filter is tricky because Transaction amount is Decimal/Float but ProjectTransaction is Decimal.
-    // Assuming structure is compatible or we need to cast.
-    // Prisma filters usually use standard structure { gte, lte, etc. }
-    if (where.amount) {
-      projectWhere.amount = where.amount as Prisma.DecimalFilter;
-    }
-
-    const projectAggregations = await this.prisma.projectTransaction.groupBy({
-      by: ['projectId', 'type'],
-      where: projectWhere,
-      _sum: {
-        amount: true,
-      },
-    });
-
-    const summary = {
-      totalGiven: 0,
-      totalReceived: 0,
-      totalReturned: 0,
-      totalReturnedToMe: 0,
-      totalReturnedToOther: 0,
-      totalExpense: 0,
-      totalIncome: 0,
+    const summary: TransactionSummary = {
+      totalLoanGiven: 0,
+      totalLoanReceived: 0,
+      totalRepaymentMade: 0,
+      totalRepaymentReceived: 0,
       totalGiftGiven: 0,
       totalGiftReceived: 0,
+      totalAdvancePaid: 0,
+      totalAdvanceReceived: 0,
+      totalDepositPaid: 0,
+      totalDepositReceived: 0,
+      totalEscrowed: 0,
+      totalRemitted: 0,
       netBalance: 0,
       currency: targetCurrency,
     };
@@ -865,12 +851,7 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      this.updateSummaryWithTransaction(
-        summary,
-        agg.type,
-        agg.returnDirection,
-        convertedAmount,
-      );
+      this.updateSummaryWithTransaction(summary, agg.type, convertedAmount);
     }
 
     // Process contact transactions (with flip)
@@ -884,59 +865,12 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      // Flip type and returnDirection for perspective
-      let flippedType = agg.type;
-      let flippedReturnDirection = agg.returnDirection;
-
-      if (agg.type === TransactionType.GIVEN) {
-        flippedType = TransactionType.RECEIVED;
-      } else if (agg.type === TransactionType.RECEIVED) {
-        flippedType = TransactionType.GIVEN;
-      } else if (agg.type === TransactionType.RETURNED) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      } else if (agg.type === TransactionType.GIFT) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      }
-
-      this.updateSummaryWithTransaction(
-        summary,
-        flippedType,
-        flippedReturnDirection,
-        convertedAmount,
-      );
+      const flippedType = (PERSPECTIVE_FLIP_MAP[agg.type] ??
+        agg.type) as TransactionType;
+      this.updateSummaryWithTransaction(summary, flippedType, convertedAmount);
     }
 
-    // Process project transactions
-    for (const agg of projectAggregations) {
-      const amount = Number(agg._sum.amount) || 0;
-      if (amount === 0) continue;
-
-      const currency = projectCurrencyMap.get(agg.projectId) || 'NGN';
-
-      const convertedAmount = await this.exchangeRateService.convert(
-        amount,
-        currency,
-        targetCurrency,
-      );
-
-      if (agg.type === ProjectTransactionType.INCOME) {
-        summary.totalIncome += convertedAmount;
-      } else if (agg.type === ProjectTransactionType.EXPENSE) {
-        summary.totalExpense += convertedAmount;
-      }
-    }
-
-    summary.netBalance =
-      summary.totalIncome -
-      summary.totalExpense +
-      summary.totalReceived -
-      summary.totalGiven +
-      summary.totalReturnedToMe -
-      summary.totalReturnedToOther +
-      summary.totalGiftReceived -
-      summary.totalGiftGiven;
+    summary.netBalance = computeNetBalance(summary);
 
     return summary;
   }
@@ -944,31 +878,25 @@ export class TransactionsService {
   private updateSummaryWithTransaction(
     summary: TransactionSummary,
     type: TransactionType,
-    returnDirection: string,
     amount: number,
   ) {
-    if (type === 'GIVEN') {
-      summary.totalGiven += amount;
-    } else if (type === 'RECEIVED') {
-      summary.totalReceived += amount;
-    } else if (type === 'RETURNED') {
-      summary.totalReturned += amount;
-      if (returnDirection === 'TO_ME') {
-        summary.totalReturnedToMe += amount;
-      } else {
-        summary.totalReturnedToOther += amount;
-      }
-    } else if (type === 'EXPENSE') {
-      summary.totalExpense += amount;
-    } else if (type === 'INCOME') {
-      summary.totalIncome += amount;
-    } else if (type === 'GIFT') {
-      if (returnDirection === 'TO_ME') {
-        summary.totalGiftReceived += amount;
-      } else {
-        summary.totalGiftGiven += amount;
-      }
-    }
+    const fieldMap: Partial<Record<string, keyof TransactionSummary>> = {
+      LOAN_GIVEN: 'totalLoanGiven',
+      LOAN_RECEIVED: 'totalLoanReceived',
+      REPAYMENT_MADE: 'totalRepaymentMade',
+      REPAYMENT_RECEIVED: 'totalRepaymentReceived',
+      GIFT_GIVEN: 'totalGiftGiven',
+      GIFT_RECEIVED: 'totalGiftReceived',
+      ADVANCE_PAID: 'totalAdvancePaid',
+      ADVANCE_RECEIVED: 'totalAdvanceReceived',
+      DEPOSIT_PAID: 'totalDepositPaid',
+      DEPOSIT_RECEIVED: 'totalDepositReceived',
+      ESCROWED: 'totalEscrowed',
+      REMITTED: 'totalRemitted',
+      // EXPENSE and INCOME deliberately omitted — legacy rows ignored in summaries
+    };
+    const field = fieldMap[type];
+    if (field) (summary[field] as number) += amount;
   }
 
   async groupByContact(userId: string, filter?: FilterTransactionInput) {
@@ -1010,7 +938,7 @@ export class TransactionsService {
 
     // 1. Aggregations for transactions created by the user
     const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['contactId', 'type', 'returnDirection', 'currency'],
+      by: ['contactId', 'type', 'currency'],
       where: {
         ...baseWhere,
         createdById: userId,
@@ -1023,7 +951,7 @@ export class TransactionsService {
 
     // 2. Aggregations for transactions where user is the contact (flip required)
     const sharedAggregations = await this.prisma.transaction.groupBy({
-      by: ['createdById', 'type', 'returnDirection', 'currency'],
+      by: ['createdById', 'type', 'currency'],
       where: {
         ...baseWhere,
         createdById: { not: userId },
@@ -1049,15 +977,18 @@ export class TransactionsService {
     const groupedByContact = new Map<string | null, TransactionSummary>();
 
     const getInitialSummary = (): TransactionSummary => ({
-      totalGiven: 0,
-      totalReceived: 0,
-      totalReturned: 0,
-      totalReturnedToMe: 0,
-      totalReturnedToOther: 0,
-      totalExpense: 0,
-      totalIncome: 0,
+      totalLoanGiven: 0,
+      totalLoanReceived: 0,
+      totalRepaymentMade: 0,
+      totalRepaymentReceived: 0,
       totalGiftGiven: 0,
       totalGiftReceived: 0,
+      totalAdvancePaid: 0,
+      totalAdvanceReceived: 0,
+      totalDepositPaid: 0,
+      totalDepositReceived: 0,
+      totalEscrowed: 0,
+      totalRemitted: 0,
       netBalance: 0,
       currency: targetCurrency,
     });
@@ -1079,12 +1010,7 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      this.updateSummaryWithTransaction(
-        summary,
-        agg.type,
-        agg.returnDirection,
-        convertedAmount,
-      );
+      this.updateSummaryWithTransaction(summary, agg.type, convertedAmount);
     }
 
     // Process shared transactions (with flip)
@@ -1110,41 +1036,15 @@ export class TransactionsService {
       );
 
       // Flip perspective
-      let flippedType = agg.type;
-      let flippedReturnDirection = agg.returnDirection;
-
-      if (agg.type === TransactionType.GIVEN) {
-        flippedType = TransactionType.RECEIVED;
-      } else if (agg.type === TransactionType.RECEIVED) {
-        flippedType = TransactionType.GIVEN;
-      } else if (agg.type === TransactionType.RETURNED) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      } else if (agg.type === TransactionType.GIFT) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      }
-
-      this.updateSummaryWithTransaction(
-        summary,
-        flippedType,
-        flippedReturnDirection,
-        convertedAmount,
-      );
+      const flippedType = (PERSPECTIVE_FLIP_MAP[agg.type] ??
+        agg.type) as TransactionType;
+      this.updateSummaryWithTransaction(summary, flippedType, convertedAmount);
     }
 
     // Calculate net balance for each contact and format result
     const result = Array.from(groupedByContact.entries()).map(
       ([contactId, summary]) => {
-        summary.netBalance =
-          summary.totalIncome -
-          summary.totalExpense +
-          summary.totalReceived -
-          summary.totalGiven +
-          summary.totalReturnedToMe -
-          summary.totalReturnedToOther +
-          summary.totalGiftReceived -
-          summary.totalGiftGiven;
+        summary.netBalance = computeNetBalance(summary);
 
         return {
           contact: contactId ? contactMap.get(contactId) : null,
@@ -1222,7 +1122,6 @@ export class TransactionsService {
       itemName: transaction.itemName,
       quantity: transaction.quantity,
       type: transaction.type,
-      returnDirection: transaction.returnDirection,
       date: transaction.date,
       description: transaction.description,
       contactId: transaction.contactId,
@@ -1302,15 +1201,6 @@ export class TransactionsService {
     if (rest.type && rest.type !== transaction.type) {
       changes.type = rest.type;
       changeDescriptions.push(`Type changed to ${rest.type}`);
-    }
-    if (
-      rest.returnDirection !== undefined &&
-      rest.returnDirection !== transaction.returnDirection
-    ) {
-      changes.returnDirection = rest.returnDirection ?? null;
-      changeDescriptions.push(
-        `Return direction changed to ${rest.returnDirection ?? 'none'}`,
-      );
     }
     if (rest.contactId && rest.contactId !== transaction.contactId) {
       changes.contactId = rest.contactId;
@@ -1401,35 +1291,6 @@ export class TransactionsService {
       }
     }
 
-    // Determine the effective type and returnDirection after this update
-    const effectiveType = rest.type ?? transaction.type;
-    const needsReturnDirection =
-      (effectiveType === TransactionType.RETURNED ||
-        effectiveType === TransactionType.GIFT) &&
-      !!transaction.contactId;
-
-    // Compute the resolved returnDirection to write:
-    // - If type no longer needs a direction, clear it.
-    // - If type requires a direction, use the provided value or fall back to the
-    //   existing DB value (so partial updates that only change amount etc. don't
-    //   accidentally wipe a valid direction).
-    const {
-      returnDirection: inputReturnDirection,
-      ...restWithoutReturnDirection
-    } = rest;
-    let resolvedReturnDirection: ReturnDirection | null;
-    if (!needsReturnDirection) {
-      resolvedReturnDirection = null;
-    } else {
-      resolvedReturnDirection =
-        inputReturnDirection ?? transaction.returnDirection ?? null;
-      if (!resolvedReturnDirection) {
-        throw new BadRequestException(
-          'returnDirection is required when type is RETURNED or GIFT',
-        );
-      }
-    }
-
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
         const updated = await prisma.transaction.update({
@@ -1454,8 +1315,7 @@ export class TransactionsService {
                 : category === AssetCategory.FUNDS
                   ? null
                   : quantity,
-            ...restWithoutReturnDirection,
-            returnDirection: resolvedReturnDirection,
+            ...rest,
           },
         });
 
