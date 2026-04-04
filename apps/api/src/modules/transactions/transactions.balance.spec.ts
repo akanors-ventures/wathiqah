@@ -305,7 +305,7 @@ describe('TransactionsService - Balance & Audit', () => {
         createdById: userId,
         amount: 100,
         category: AssetCategory.FUNDS,
-        type: TransactionType.GIVEN,
+        type: TransactionType.LOAN_GIVEN,
         currency: 'NGN',
         date: new Date(),
         witnesses: [],
