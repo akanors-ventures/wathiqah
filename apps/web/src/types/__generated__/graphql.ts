@@ -922,18 +922,14 @@ export enum TransactionType {
   DepositReceived = 'DEPOSIT_RECEIVED',
   Escrowed = 'ESCROWED',
   Expense = 'EXPENSE',
-  Gift = 'GIFT',
   GiftGiven = 'GIFT_GIVEN',
   GiftReceived = 'GIFT_RECEIVED',
-  Given = 'GIVEN',
   Income = 'INCOME',
   LoanGiven = 'LOAN_GIVEN',
   LoanReceived = 'LOAN_RECEIVED',
-  Received = 'RECEIVED',
   Remitted = 'REMITTED',
   RepaymentMade = 'REPAYMENT_MADE',
-  RepaymentReceived = 'REPAYMENT_RECEIVED',
-  Returned = 'RETURNED'
+  RepaymentReceived = 'REPAYMENT_RECEIVED'
 }
 
 export type TransactionsResponse = {
@@ -1364,7 +1360,7 @@ export type TransactionQueryVariables = Exact<{
 }>;
 
 
-export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
+export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, parentId: string | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string, status: TransactionStatus }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
 
 export type RemoveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];

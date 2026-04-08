@@ -36,6 +36,7 @@ import { useTransaction } from "@/hooks/useTransaction";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRemoveWitness, useResendWitnessInvitation } from "@/hooks/useWitnesses";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -118,7 +119,15 @@ function TransactionDetailPage() {
   }
 
   const currentTransaction = transaction;
-  const conversions = currentTransaction.conversions ?? [];
+  const allChildren = (currentTransaction.conversions ?? []).filter(
+    (c): c is NonNullable<typeof c> => c !== null && c.status !== "CANCELLED",
+  );
+  const giftConversions = allChildren.filter(
+    (c) => c.type === TransactionType.GiftGiven || c.type === TransactionType.GiftReceived,
+  );
+  const repayments = allChildren.filter(
+    (c) => c.type === TransactionType.RepaymentMade || c.type === TransactionType.RepaymentReceived,
+  );
   const witnesses = currentTransaction.witnesses ?? [];
   const history = currentTransaction.history ?? [];
 
@@ -133,12 +142,11 @@ function TransactionDetailPage() {
       currentTransaction.type === TransactionType.LoanReceived) &&
     !!currentTransaction.contact;
 
-  const totalConverted = conversions.reduce(
-    (sum, conversion) => sum + (conversion?.amount || 0),
-    0,
-  );
+  const totalGifted = giftConversions.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalRepaid = repayments.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalSettled = totalGifted + totalRepaid;
 
-  const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalConverted);
+  const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalSettled);
 
   return (
     <div className="container mx-auto max-w-3xl p-4 py-8 overflow-x-hidden">
@@ -177,39 +185,27 @@ function TransactionDetailPage() {
               {currentTransaction.category === AssetCategory.Funds &&
                 currentTransaction.amount !== null &&
                 (() => {
-                  const type = currentTransaction.type;
-                  const isPositive =
-                    type === "LOAN_RECEIVED" ||
-                    type === "REPAYMENT_RECEIVED" ||
-                    type === "GIFT_RECEIVED" ||
-                    type === "ADVANCE_RECEIVED" ||
-                    type === "DEPOSIT_RECEIVED" ||
-                    type === "ESCROWED" ||
-                    type === "INCOME";
-                  const colorClass =
-                    type === "LOAN_GIVEN" || type === "REPAYMENT_MADE"
-                      ? "text-blue-600 dark:text-blue-400"
-                      : type === "LOAN_RECEIVED" || type === "REPAYMENT_RECEIVED"
-                        ? "text-red-600 dark:text-red-400"
-                        : type === "ESCROWED" || type === "INCOME"
-                          ? "text-emerald-600 dark:text-emerald-400"
-                          : type === "GIFT_RECEIVED" ||
-                              type === "ADVANCE_RECEIVED" ||
-                              type === "DEPOSIT_RECEIVED"
-                            ? "text-purple-600 dark:text-purple-400"
-                            : type === "GIFT_GIVEN"
-                              ? "text-pink-600 dark:text-pink-400"
-                              : "text-orange-600 dark:text-orange-400";
+                  const theme = getTransactionTheme(currentTransaction.type);
                   return (
-                    <div className={`text-xl sm:text-2xl font-bold ${colorClass}`}>
-                      {isPositive ? "+" : "-"}
+                    <div className={`text-xl sm:text-2xl font-bold ${theme.textClass}`}>
+                      {theme.sign}
                       {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
                     </div>
                   );
                 })()}
-              {totalConverted > 0 && (
+              {totalGifted > 0 && (
                 <div className="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 mt-0.5">
-                  Gift: {formatCurrency(totalConverted, currentTransaction.currency)}
+                  Gifted: {formatCurrency(totalGifted, currentTransaction.currency)}
+                </div>
+              )}
+              {totalRepaid > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  Repaid: {formatCurrency(totalRepaid, currentTransaction.currency)}
+                </div>
+              )}
+              {(canConvertToGift || canRecordReturn) && totalSettled > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-muted-foreground mt-0.5">
+                  Remaining: {formatCurrency(remainingAmount, currentTransaction.currency)}
                 </div>
               )}
               {currentTransaction.category === AssetCategory.Item &&
@@ -223,7 +219,7 @@ function TransactionDetailPage() {
 
           {/* Row 2: all actions in one wrapping row */}
           <div className="flex flex-wrap gap-2">
-            {canRecordReturn && (
+            {canRecordReturn && remainingAmount > 0 && (
               <Button
                 variant="outline"
                 size="sm"
@@ -278,7 +274,32 @@ function TransactionDetailPage() {
           <div className="space-y-4">
             {currentTransaction.parentId && (
               <div className="rounded-lg bg-neutral-50 p-3 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                This transaction is a conversion from another transaction.
+                {currentTransaction.type === TransactionType.RepaymentMade ||
+                currentTransaction.type === TransactionType.RepaymentReceived ? (
+                  <>
+                    This is a repayment linked to{" "}
+                    <Link
+                      to="/transactions/$id"
+                      params={{ id: currentTransaction.parentId }}
+                      className="text-emerald-600 hover:underline font-medium"
+                    >
+                      the original loan
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>
+                    This transaction is a gift converted from{" "}
+                    <Link
+                      to="/transactions/$id"
+                      params={{ id: currentTransaction.parentId }}
+                      className="text-emerald-600 hover:underline font-medium"
+                    >
+                      another transaction
+                    </Link>
+                    .
+                  </>
+                )}
               </div>
             )}
 
@@ -306,32 +327,67 @@ function TransactionDetailPage() {
           </div>
         </div>
 
-        {/* Conversions Section if applicable */}
-        {conversions.length > 0 && (
+        {/* Gift Conversions */}
+        {giftConversions.length > 0 && (
           <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
               <Gift size={20} className="text-orange-600" />
               Gift Conversions
             </h3>
             <div className="space-y-3">
-              {conversions.map((conversion) => (
+              {giftConversions.map((conversion) => (
                 <div
-                  key={conversion?.id}
+                  key={conversion.id}
                   className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800"
                 >
                   <div>
                     <p className="text-sm font-medium">
-                      {format(new Date(conversion?.date as string), "MMM d, yyyy")}
+                      {format(new Date(conversion.date as string), "MMM d, yyyy")}
                     </p>
                     <p className="text-xs text-neutral-500">Gifted back</p>
                   </div>
                   <div className="font-semibold text-orange-600">
                     {formatCurrency(
-                      conversion?.amount || 0,
-                      conversion?.currency || currentTransaction.currency,
+                      conversion.amount || 0,
+                      conversion.currency || currentTransaction.currency,
                     )}
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Repayments */}
+        {repayments.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
+              <ArrowRightLeft size={20} className="text-emerald-600" />
+              Repayments
+            </h3>
+            <div className="space-y-3">
+              {repayments.map((repayment) => (
+                <Link
+                  key={repayment.id}
+                  to="/transactions/$id"
+                  params={{ id: repayment.id }}
+                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {format(new Date(repayment.date as string), "MMM d, yyyy")}
+                    </p>
+                    <p className="text-xs text-neutral-500 capitalize">
+                      {repayment.type.toLowerCase().replace(/_/g, " ")}
+                    </p>
+                  </div>
+                  <div className="font-semibold text-emerald-600">
+                    {formatCurrency(
+                      repayment.amount || 0,
+                      repayment.currency || currentTransaction.currency,
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -363,7 +419,7 @@ function TransactionDetailPage() {
           onOpenChange={setIsEditOpen}
         />
 
-        {canRecordReturn && currentTransaction.contact && (
+        {canRecordReturn && currentTransaction.contact && remainingAmount > 0 && (
           <RecordReturnDialog
             open={isRecordReturnOpen}
             onOpenChange={setIsRecordReturnOpen}
@@ -374,6 +430,7 @@ function TransactionDetailPage() {
               currency: currentTransaction.currency,
               contactId: currentTransaction.contact.id,
               contactName: currentTransaction.contact.name,
+              remainingAmount,
             }}
             onSuccess={refetch}
           />

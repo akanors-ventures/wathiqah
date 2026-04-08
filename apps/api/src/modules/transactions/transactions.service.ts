@@ -347,11 +347,19 @@ export class TransactionsService {
       );
     }
 
+    const isRepayment =
+      rest.type === 'REPAYMENT_MADE' || rest.type === 'REPAYMENT_RECEIVED';
+    const isGiftConversion =
+      rest.type === 'GIFT_GIVEN' || rest.type === 'GIFT_RECEIVED';
+
     // Start a transaction to ensure all witness records are created or nothing is
     let notifications: WitnessNotification[] = [];
     const transaction = await this.prisma.$transaction(async (prisma) => {
-      let parentTransaction = null;
-      // If this is a GIFT conversion, validate parent existence and ownership
+      let parentTransaction: Awaited<
+        ReturnType<typeof prisma.transaction.findUnique>
+      > = null;
+      let derivedContactId: string | undefined;
+
       if (rest.parentId) {
         parentTransaction = await prisma.transaction.findUnique({
           where: { id: rest.parentId },
@@ -365,33 +373,97 @@ export class TransactionsService {
 
         if (parentTransaction.createdById !== userId) {
           throw new ForbiddenException(
-            'Cannot convert a transaction you do not own',
+            'Cannot link to a transaction you do not own',
           );
         }
 
-        if (
-          parentTransaction.type !== 'GIVEN' &&
-          parentTransaction.type !== 'RECEIVED'
-        ) {
-          throw new BadRequestException(
-            'Only GIVEN or RECEIVED transactions can be converted to GIFT',
-          );
-        }
+        if (isGiftConversion) {
+          // Gift conversion must attach to an open loan
+          if (
+            parentTransaction.type !== 'LOAN_GIVEN' &&
+            parentTransaction.type !== 'LOAN_RECEIVED'
+          ) {
+            throw new BadRequestException(
+              'Only LOAN_GIVEN or LOAN_RECEIVED transactions can be converted to a gift',
+            );
+          }
+          if (
+            amount &&
+            parentTransaction.amount &&
+            Number(amount) > Number(parentTransaction.amount)
+          ) {
+            throw new BadRequestException(
+              'Gift conversion amount cannot exceed parent transaction amount',
+            );
+          }
+        } else if (isRepayment) {
+          // Repayment must be linked to a matching loan
+          const expectedParentType =
+            rest.type === 'REPAYMENT_RECEIVED' ? 'LOAN_GIVEN' : 'LOAN_RECEIVED';
+          if (parentTransaction.type !== expectedParentType) {
+            throw new BadRequestException(
+              `${rest.type} must be linked to a ${expectedParentType} transaction`,
+            );
+          }
+          if (parentTransaction.category !== AssetCategory.FUNDS) {
+            throw new BadRequestException(
+              'Repayments can only be recorded against FUNDS loans',
+            );
+          }
+          if (!parentTransaction.contactId) {
+            throw new BadRequestException(
+              'Parent loan must have a contact to record a repayment',
+            );
+          }
 
-        // Validate amount doesn't exceed parent amount
-        if (
-          amount &&
-          parentTransaction.amount &&
-          Number(amount) > Number(parentTransaction.amount)
-        ) {
+          // Derive contactId/currency from parent (ignore any client-supplied values)
+          derivedContactId = parentTransaction.contactId;
+          rest.contactId = parentTransaction.contactId;
+          rest.currency =
+            parentTransaction.currency ?? rest.currency ?? undefined;
+
+          // Outstanding = parent amount - (sum of existing repayment children + sum of gift conversions)
+          const children = await prisma.transaction.findMany({
+            where: {
+              parentId: rest.parentId,
+              status: { not: 'CANCELLED' },
+            },
+            select: { amount: true, type: true },
+          });
+          const alreadySettled = children.reduce(
+            (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+            0,
+          );
+          const parentAmount = parentTransaction.amount
+            ? Number(parentTransaction.amount)
+            : 0;
+          const outstanding = Math.max(0, parentAmount - alreadySettled);
+          const repayAmount = Number(amount ?? 0);
+
+          if (repayAmount <= 0) {
+            throw new BadRequestException(
+              'Repayment amount must be greater than zero',
+            );
+          }
+          if (repayAmount > outstanding) {
+            throw new BadRequestException(
+              `Repayment amount (${repayAmount}) exceeds outstanding balance (${outstanding}) on the parent loan`,
+            );
+          }
+        } else {
+          // Parent linkage is only supported for gifts and repayments
           throw new BadRequestException(
-            'Gift conversion amount cannot exceed parent transaction amount',
+            'parentId is only valid for gift conversions or repayments',
           );
         }
+      } else if (isRepayment) {
+        throw new BadRequestException(
+          'Repayments must be linked to a parent loan via parentId',
+        );
       }
 
-      // Validate contactId if provided
-      if (rest.contactId) {
+      // Validate contactId if provided (skipped when derived from parent above)
+      if (rest.contactId && !derivedContactId) {
         const contact = await prisma.contact.findUnique({
           where: { id: rest.contactId },
         });
@@ -418,24 +490,34 @@ export class TransactionsService {
         },
       });
 
-      // If it's a conversion, log it in the parent's history as well
+      // Log parent-history entry for conversions and repayments
       if (rest.parentId && parentTransaction) {
+        const parentAmountNum = parentTransaction.amount
+          ? Number(parentTransaction.amount)
+          : 0;
+        const thisAmountNum = Number(amount ?? 0);
         await prisma.transactionHistory.create({
           data: {
             transactionId: rest.parentId,
             userId,
-            changeType: 'PARTIAL_CONVERSION_TO_GIFT',
+            changeType: isRepayment
+              ? 'REPAYMENT_RECORDED'
+              : 'PARTIAL_CONVERSION_TO_GIFT',
             previousState: {
               amount: parentTransaction.amount,
               type: parentTransaction.type,
             },
-            newState: {
-              conversionId: transaction.id,
-              giftAmount: amount,
-              remainingAmount: parentTransaction.amount
-                ? Number(parentTransaction.amount) - Number(amount)
-                : 0,
-            },
+            newState: isRepayment
+              ? {
+                  repaymentId: transaction.id,
+                  repaymentAmount: amount,
+                  repaymentType: rest.type,
+                }
+              : {
+                  conversionId: transaction.id,
+                  giftAmount: amount,
+                  remainingAmount: parentAmountNum - thisAmountNum,
+                },
           },
         });
       }

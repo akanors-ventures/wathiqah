@@ -61,6 +61,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
         type
         currency
         date
+        status
       }
       contact {
         id
