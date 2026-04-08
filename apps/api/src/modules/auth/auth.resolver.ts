@@ -118,7 +118,8 @@ export class AuthResolver {
       this.setCookies(res, payload);
       return payload;
     } catch (error) {
-      throw new UnauthorizedException(error.message);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthorizedException(message);
     }
   }
 
@@ -136,7 +137,7 @@ export class AuthResolver {
         // Ignore verification errors during logout, we still want to clear cookies
         console.debug(
           '[AuthResolver] Error during logout session invalidation:',
-          error.message,
+          error instanceof Error ? error.message : String(error),
         );
       }
     }

@@ -46,6 +46,7 @@ import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import { AssetCategory, type Transaction } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -202,7 +203,7 @@ function ContactDetailsPage() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Net Balance with Contact</CardTitle>
@@ -230,10 +231,10 @@ function ContactDetailsPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Borrowed</CardTitle>
-              <ArrowDownLeft className="h-4 w-4 text-red-500" />
+              <ArrowDownLeft className="h-4 w-4 text-rose-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-rose-600">
                 {formatCurrency(summary.totalLoanReceived, "NGN")}
               </div>
             </CardContent>
@@ -246,6 +247,17 @@ function ContactDetailsPage() {
             <CardContent>
               <div className="text-2xl font-bold text-emerald-600">
                 {formatCurrency(summary.totalRepaymentReceived, "NGN")}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Repayments Made</CardTitle>
+              <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">
+                {formatCurrency(summary.totalRepaymentMade, "NGN")}
               </div>
             </CardContent>
           </Card>
@@ -350,6 +362,7 @@ function ContactDetailsPage() {
                   <TableBody>
                     {transactions.map((tx) => {
                       const isCreator = user?.id === tx.createdBy?.id;
+                      const theme = getTransactionTheme(tx.type);
                       return (
                         <TableRow
                           key={tx.id}
@@ -370,25 +383,7 @@ function ContactDetailsPage() {
                                 variant="outline"
                                 className={cn(
                                   "text-[10px] font-bold px-2 py-0.5",
-                                  tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
-                                    ? "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "LOAN_RECEIVED" ||
-                                        tx.type === "REPAYMENT_RECEIVED" ||
-                                        tx.type === "EXPENSE"
-                                      ? "text-red-600 border-red-200 bg-red-50"
-                                      : tx.type === "ESCROWED" || tx.type === "INCOME"
-                                        ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                        : tx.type === "GIFT_RECEIVED" ||
-                                            tx.type === "ADVANCE_RECEIVED" ||
-                                            tx.type === "DEPOSIT_RECEIVED"
-                                          ? "text-purple-600 border-purple-200 bg-purple-50"
-                                          : tx.type === "GIFT_GIVEN"
-                                            ? "text-pink-600 border-pink-200 bg-pink-50"
-                                            : tx.type === "ADVANCE_PAID" ||
-                                                tx.type === "DEPOSIT_PAID" ||
-                                                tx.type === "REMITTED"
-                                              ? "text-orange-600 border-orange-200 bg-orange-50"
-                                              : "text-gray-600 border-gray-200 bg-gray-50",
+                                  theme.badgeClass,
                                 )}
                               >
                                 {tx.type.toLowerCase().replace(/_/g, " ")}
@@ -418,40 +413,14 @@ function ContactDetailsPage() {
                               "text-right font-bold text-sm",
                               tx.category === AssetCategory.Item
                                 ? "text-muted-foreground font-normal italic text-xs"
-                                : tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
-                                  ? "text-blue-600"
-                                  : tx.type === "LOAN_RECEIVED" ||
-                                      tx.type === "REPAYMENT_RECEIVED" ||
-                                      tx.type === "EXPENSE"
-                                    ? "text-red-600"
-                                    : tx.type === "ESCROWED" || tx.type === "INCOME"
-                                      ? "text-emerald-600"
-                                      : tx.type === "GIFT_RECEIVED" ||
-                                          tx.type === "ADVANCE_RECEIVED" ||
-                                          tx.type === "DEPOSIT_RECEIVED"
-                                        ? "text-purple-600"
-                                        : tx.type === "GIFT_GIVEN"
-                                          ? "text-pink-600"
-                                          : tx.type === "ADVANCE_PAID" ||
-                                              tx.type === "DEPOSIT_PAID" ||
-                                              tx.type === "REMITTED"
-                                            ? "text-orange-600"
-                                            : "text-emerald-600",
+                                : theme.textClass,
                             )}
                           >
                             {tx.category === AssetCategory.Item ? (
                               "Physical Item"
                             ) : (
                               <>
-                                {tx.type === "LOAN_RECEIVED" ||
-                                tx.type === "REPAYMENT_RECEIVED" ||
-                                tx.type === "GIFT_RECEIVED" ||
-                                tx.type === "ADVANCE_RECEIVED" ||
-                                tx.type === "DEPOSIT_RECEIVED" ||
-                                tx.type === "ESCROWED" ||
-                                tx.type === "INCOME"
-                                  ? "+"
-                                  : "-"}
+                                {theme.sign}
                                 {formatCurrency(tx.amount, tx.currency || "NGN")}
                               </>
                             )}
@@ -470,6 +439,7 @@ function ContactDetailsPage() {
               <div className="md:hidden space-y-3 p-4">
                 {transactions.map((tx) => {
                   const isCreator = user?.id === tx.createdBy?.id;
+                  const theme = getTransactionTheme(tx.type);
                   return (
                     <Card
                       key={tx.id}
@@ -492,25 +462,7 @@ function ContactDetailsPage() {
                                 variant="outline"
                                 className={cn(
                                   "text-[10px] font-bold px-2 py-0.5 w-fit",
-                                  tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
-                                    ? "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "LOAN_RECEIVED" ||
-                                        tx.type === "REPAYMENT_RECEIVED" ||
-                                        tx.type === "EXPENSE"
-                                      ? "text-red-600 border-red-200 bg-red-50"
-                                      : tx.type === "ESCROWED" || tx.type === "INCOME"
-                                        ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                        : tx.type === "GIFT_RECEIVED" ||
-                                            tx.type === "ADVANCE_RECEIVED" ||
-                                            tx.type === "DEPOSIT_RECEIVED"
-                                          ? "text-purple-600 border-purple-200 bg-purple-50"
-                                          : tx.type === "GIFT_GIVEN"
-                                            ? "text-pink-600 border-pink-200 bg-pink-50"
-                                            : tx.type === "ADVANCE_PAID" ||
-                                                tx.type === "DEPOSIT_PAID" ||
-                                                tx.type === "REMITTED"
-                                              ? "text-orange-600 border-orange-200 bg-orange-50"
-                                              : "text-gray-600 border-gray-200 bg-gray-50",
+                                  theme.badgeClass,
                                 )}
                               >
                                 {tx.type.toLowerCase().replace(/_/g, " ")}
@@ -529,39 +481,8 @@ function ContactDetailsPage() {
                                 Physical Item
                               </div>
                             ) : (
-                              <div
-                                className={cn(
-                                  "font-bold text-sm",
-                                  tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
-                                    ? "text-blue-600"
-                                    : tx.type === "LOAN_RECEIVED" ||
-                                        tx.type === "REPAYMENT_RECEIVED" ||
-                                        tx.type === "EXPENSE"
-                                      ? "text-red-600"
-                                      : tx.type === "ESCROWED" || tx.type === "INCOME"
-                                        ? "text-emerald-600"
-                                        : tx.type === "GIFT_RECEIVED" ||
-                                            tx.type === "ADVANCE_RECEIVED" ||
-                                            tx.type === "DEPOSIT_RECEIVED"
-                                          ? "text-purple-600"
-                                          : tx.type === "GIFT_GIVEN"
-                                            ? "text-pink-600"
-                                            : tx.type === "ADVANCE_PAID" ||
-                                                tx.type === "DEPOSIT_PAID" ||
-                                                tx.type === "REMITTED"
-                                              ? "text-orange-600"
-                                              : "text-emerald-600",
-                                )}
-                              >
-                                {tx.type === "LOAN_RECEIVED" ||
-                                tx.type === "REPAYMENT_RECEIVED" ||
-                                tx.type === "GIFT_RECEIVED" ||
-                                tx.type === "ADVANCE_RECEIVED" ||
-                                tx.type === "DEPOSIT_RECEIVED" ||
-                                tx.type === "ESCROWED" ||
-                                tx.type === "INCOME"
-                                  ? "+"
-                                  : "-"}
+                              <div className={cn("font-bold text-sm", theme.textClass)}>
+                                {theme.sign}
                                 {formatCurrency(tx.amount, tx.currency || "NGN")}
                               </div>
                             )}

@@ -248,7 +248,8 @@ export class AuthService {
         user: this.usersService.toEntity(user),
       };
     } catch (error) {
-      throw new UnauthorizedException(`Access Denied: ${error.message}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new UnauthorizedException(`Access Denied: ${message}`);
     }
   }
 

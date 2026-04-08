@@ -47,54 +47,20 @@ import { useItems } from "@/hooks/useItems";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 function getTypeBadgeClass(type: string): string {
-  if (type === "LOAN_GIVEN" || type === "REPAYMENT_MADE") {
-    return "text-blue-600 border-blue-200 bg-blue-50";
-  }
-  if (type === "LOAN_RECEIVED" || type === "REPAYMENT_RECEIVED" || type === "EXPENSE") {
-    return "text-red-600 border-red-200 bg-red-50";
-  }
-  if (type === "ESCROWED" || type === "INCOME") {
-    return "text-green-600 border-green-200 bg-green-50";
-  }
-  if (type === "GIFT_RECEIVED" || type === "ADVANCE_RECEIVED" || type === "DEPOSIT_RECEIVED") {
-    return "text-purple-600 border-purple-200 bg-purple-50";
-  }
-  if (type === "GIFT_GIVEN") {
-    return "text-pink-600 border-pink-200 bg-pink-50";
-  }
-  if (type === "ADVANCE_PAID" || type === "DEPOSIT_PAID" || type === "REMITTED") {
-    return "text-orange-600 border-orange-200 bg-orange-50";
-  }
-  return "text-gray-600 border-gray-200 bg-gray-50";
+  return getTransactionTheme(type).badgeClass;
 }
 
 function getTypeAmountClass(type: string): string {
-  if (type === "LOAN_GIVEN" || type === "REPAYMENT_MADE") return "text-blue-600";
-  if (type === "LOAN_RECEIVED" || type === "REPAYMENT_RECEIVED" || type === "EXPENSE")
-    return "text-red-600";
-  if (type === "ESCROWED" || type === "INCOME") return "text-emerald-600";
-  if (type === "GIFT_RECEIVED" || type === "ADVANCE_RECEIVED" || type === "DEPOSIT_RECEIVED")
-    return "text-purple-600";
-  if (type === "GIFT_GIVEN") return "text-pink-600";
-  if (type === "ADVANCE_PAID" || type === "DEPOSIT_PAID" || type === "REMITTED")
-    return "text-orange-600";
-  return "text-emerald-600";
+  return getTransactionTheme(type).textClass;
 }
 
 function isPositiveType(type: string): boolean {
-  return (
-    type === "LOAN_RECEIVED" ||
-    type === "REPAYMENT_RECEIVED" ||
-    type === "GIFT_RECEIVED" ||
-    type === "ADVANCE_RECEIVED" ||
-    type === "DEPOSIT_RECEIVED" ||
-    type === "ESCROWED" ||
-    type === "INCOME"
-  );
+  return getTransactionTheme(type).isIncoming;
 }
 
 export const Route = createFileRoute("/transactions/")({

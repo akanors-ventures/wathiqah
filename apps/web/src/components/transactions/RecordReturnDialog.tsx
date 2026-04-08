@@ -27,17 +27,10 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory, TransactionType } from "@/types/__generated__/graphql";
 
-const formSchema = z.object({
-  amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
-  date: z.string().min(1, "Date is required"),
-});
-
-type RecordReturnFormValues = z.infer<typeof formSchema>;
-
 interface RecordReturnDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Original transaction being (partially) returned. */
+  /** Original loan transaction being (partially) returned. */
   transaction: {
     id: string;
     type: TransactionType;
@@ -45,14 +38,17 @@ interface RecordReturnDialogProps {
     currency: string | null | undefined;
     contactId: string;
     contactName: string;
+    /** Amount still outstanding (parent amount minus already-recorded repayments/conversions). */
+    remainingAmount: number;
   };
   onSuccess?: () => void;
 }
 
 /**
  * Quick-action dialog to record a repayment against an existing LOAN_GIVEN or LOAN_RECEIVED
- * transaction. Creates a NEW REPAYMENT_RECEIVED or REPAYMENT_MADE transaction — the original
- * transaction is kept intact so the full audit trail is preserved.
+ * transaction. Creates a NEW REPAYMENT_RECEIVED or REPAYMENT_MADE transaction linked to the
+ * parent loan via parentId. The original transaction is kept intact so the full audit trail
+ * is preserved, and repayments are capped at the outstanding balance.
  */
 export function RecordReturnDialog({
   open,
@@ -71,18 +67,29 @@ export function RecordReturnDialog({
       : TransactionType.RepaymentMade;
 
   const currencyCode = transaction.currency ?? "NGN";
+  const remaining = transaction.remainingAmount;
+
+  const formSchema = z.object({
+    amount: z.coerce
+      .number()
+      .min(0.01, "Amount must be greater than 0")
+      .max(remaining, `Amount cannot exceed outstanding balance (${remaining})`),
+    date: z.string().min(1, "Date is required"),
+  });
+
+  type RecordReturnFormValues = z.infer<typeof formSchema>;
 
   const form = useForm<RecordReturnFormValues>({
     resolver: zodResolver(formSchema) as Resolver<RecordReturnFormValues>,
     defaultValues: {
-      amount: transaction.amount ?? 0,
+      amount: remaining,
       date: format(new Date(), "yyyy-MM-dd"),
     },
   });
 
   const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
     // key prop on the parent ensures this resets when dialog reopens
-    initialValue: transaction.amount ?? 0,
+    initialValue: remaining,
     currencyCode,
     onChange: (value) =>
       form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
@@ -95,7 +102,10 @@ export function RecordReturnDialog({
         category: AssetCategory.Funds,
         amount: values.amount,
         currency: currencyCode,
+        // Backend derives contactId from parent loan — we still pass contactId for schemas
+        // that require it, but the server will override it from the parent.
         contactId: transaction.contactId,
+        parentId: transaction.id,
         date: new Date(values.date).toISOString(),
       });
       toast.success("Repayment recorded successfully");
@@ -103,7 +113,7 @@ export function RecordReturnDialog({
       onOpenChange(false);
       // Reset so dialog is clean on next open
       form.reset({
-        amount: transaction.amount ?? 0,
+        amount: remaining,
         date: format(new Date(), "yyyy-MM-dd"),
       });
       setAmountKey((k) => k + 1);
@@ -119,8 +129,11 @@ export function RecordReturnDialog({
         <DialogHeader>
           <DialogTitle>Record Repayment</DialogTitle>
           <DialogDescription>
-            Record a partial or full repayment against this transaction. The original record is
-            preserved.
+            Record a partial or full repayment against this loan. Outstanding balance:{" "}
+            <span className="font-semibold text-foreground">
+              {formatCurrency(remaining, currencyCode)}
+            </span>
+            . The original loan record is preserved.
           </DialogDescription>
         </DialogHeader>
 
