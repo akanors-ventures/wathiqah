@@ -84,8 +84,8 @@ All code should use the `AssetCategory` enum instead of hardcoded strings:
 |------|---------|-------|-----------------------|
 | `LOAN_GIVEN` | I lent money out | Blue | + (contact owes me) |
 | `LOAN_RECEIVED` | I borrowed money | Rose | − (I owe contact) |
-| `REPAYMENT_MADE` | I repaid a debt | Blue | + (reduces my debt) |
-| `REPAYMENT_RECEIVED` | Contact repaid me | Rose | − (reduces their debt) |
+| `REPAYMENT_MADE` | I repaid a debt (cash out, debt-clearing) | Emerald | + (reduces my debt) |
+| `REPAYMENT_RECEIVED` | Contact repaid me (cash in, debt-clearing) | Emerald | − (reduces their debt) |
 | `GIFT_GIVEN` | Gift I gave | Pink | _(no obligation)_ |
 | `GIFT_RECEIVED` | Gift I received | Purple | _(no obligation)_ |
 | `ADVANCE_PAID` | Advance I paid out | Orange | + (contact owes goods/money) |
