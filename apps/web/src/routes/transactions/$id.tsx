@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   CalendarDays,
+  CheckCircle2,
   Edit2,
   FileText,
   Gift,
@@ -17,7 +18,9 @@ import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
+import { RecordRemitDialog } from "@/components/transactions/RecordRemitDialog";
 import { RecordReturnDialog } from "@/components/transactions/RecordReturnDialog";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { TransactionWitnessList } from "@/components/transactions/TransactionWitnessList";
 import {
   AlertDialog,
@@ -36,7 +39,6 @@ import { useTransaction } from "@/hooks/useTransaction";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRemoveWitness, useResendWitnessInvitation } from "@/hooks/useWitnesses";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -52,6 +54,7 @@ function TransactionDetailPage() {
   const [isConvertGiftOpen, setIsConvertGiftOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isRecordReturnOpen, setIsRecordReturnOpen] = useState(false);
+  const [isRecordRemitOpen, setIsRecordRemitOpen] = useState(false);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [removingWitnessId, setRemovingWitnessId] = useState<string | null>(null);
@@ -128,6 +131,7 @@ function TransactionDetailPage() {
   const repayments = allChildren.filter(
     (c) => c.type === TransactionType.RepaymentMade || c.type === TransactionType.RepaymentReceived,
   );
+  const remittances = allChildren.filter((c) => c.type === TransactionType.Remitted);
   const witnesses = currentTransaction.witnesses ?? [];
   const history = currentTransaction.history ?? [];
 
@@ -142,14 +146,20 @@ function TransactionDetailPage() {
       currentTransaction.type === TransactionType.LoanReceived) &&
     !!currentTransaction.contact;
 
+  const canRecordRemit =
+    currentTransaction.category === AssetCategory.Funds &&
+    currentTransaction.type === TransactionType.Escrowed &&
+    !!currentTransaction.contact;
+
   const totalGifted = giftConversions.reduce((sum, c) => sum + (c.amount || 0), 0);
   const totalRepaid = repayments.reduce((sum, c) => sum + (c.amount || 0), 0);
-  const totalSettled = totalGifted + totalRepaid;
+  const totalRemitted = remittances.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalSettled = totalGifted + totalRepaid + totalRemitted;
 
   const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalSettled);
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 py-8 overflow-x-hidden">
+    <div className="container mx-auto max-w-3xl p-4 py-8">
       <div className="mb-6">
         <Link
           to="/"
@@ -172,6 +182,21 @@ function TransactionDetailPage() {
                   {currentTransaction.contact?.isSupporter && (
                     <SupporterBadge className="h-5 px-1.5" />
                   )}
+                  {currentTransaction.status === "COMPLETED" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {currentTransaction.type === TransactionType.LoanGiven ||
+                      currentTransaction.type === TransactionType.LoanReceived ||
+                      currentTransaction.type === TransactionType.Escrowed
+                        ? "Settled"
+                        : "Completed"}
+                    </span>
+                  )}
+                  {currentTransaction.status === "CANCELLED" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                      Cancelled
+                    </span>
+                  )}
                 </span>
               </h1>
               <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2 text-sm">
@@ -183,16 +208,14 @@ function TransactionDetailPage() {
             {/* Amount — flex-shrink-0 so it never compresses */}
             <div className="text-right flex-shrink-0">
               {currentTransaction.category === AssetCategory.Funds &&
-                currentTransaction.amount !== null &&
-                (() => {
-                  const theme = getTransactionTheme(currentTransaction.type);
-                  return (
-                    <div className={`text-xl sm:text-2xl font-bold ${theme.textClass}`}>
-                      {theme.sign}
-                      {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
-                    </div>
-                  );
-                })()}
+                currentTransaction.amount !== null && (
+                  <TransactionAmount
+                    type={currentTransaction.type}
+                    amount={currentTransaction.amount}
+                    currency={currentTransaction.currency}
+                    className="text-xl sm:text-2xl"
+                  />
+                )}
               {totalGifted > 0 && (
                 <div className="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 mt-0.5">
                   Gifted: {formatCurrency(totalGifted, currentTransaction.currency)}
@@ -203,7 +226,12 @@ function TransactionDetailPage() {
                   Repaid: {formatCurrency(totalRepaid, currentTransaction.currency)}
                 </div>
               )}
-              {(canConvertToGift || canRecordReturn) && totalSettled > 0 && (
+              {totalRemitted > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  Remitted: {formatCurrency(totalRemitted, currentTransaction.currency)}
+                </div>
+              )}
+              {(canConvertToGift || canRecordReturn || canRecordRemit) && totalSettled > 0 && (
                 <div className="text-xs sm:text-sm font-medium text-muted-foreground mt-0.5">
                   Remaining: {formatCurrency(remainingAmount, currentTransaction.currency)}
                 </div>
@@ -228,6 +256,17 @@ function TransactionDetailPage() {
               >
                 <ArrowRightLeft size={14} />
                 Record Return
+              </Button>
+            )}
+            {canRecordRemit && remainingAmount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
+                onClick={() => setIsRecordRemitOpen(true)}
+              >
+                <ArrowRightLeft size={14} />
+                Record Remittance
               </Button>
             )}
             {canConvertToGift && remainingAmount > 0 && (
@@ -284,6 +323,18 @@ function TransactionDetailPage() {
                       className="text-emerald-600 hover:underline font-medium"
                     >
                       the original loan
+                    </Link>
+                    .
+                  </>
+                ) : currentTransaction.type === TransactionType.Remitted ? (
+                  <>
+                    This is a remittance linked to{" "}
+                    <Link
+                      to="/transactions/$id"
+                      params={{ id: currentTransaction.parentId }}
+                      className="text-emerald-600 hover:underline font-medium"
+                    >
+                      the original escrow
                     </Link>
                     .
                   </>
@@ -393,6 +444,39 @@ function TransactionDetailPage() {
           </div>
         )}
 
+        {/* Remittances */}
+        {remittances.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
+              <ArrowRightLeft size={20} className="text-emerald-600" />
+              Remittances
+            </h3>
+            <div className="space-y-3">
+              {remittances.map((remittance) => (
+                <Link
+                  key={remittance.id}
+                  to="/transactions/$id"
+                  params={{ id: remittance.id }}
+                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {format(new Date(remittance.date as string), "MMM d, yyyy")}
+                    </p>
+                    <p className="text-xs text-neutral-500">Remitted</p>
+                  </div>
+                  <div className="font-semibold text-emerald-600">
+                    {formatCurrency(
+                      remittance.amount || 0,
+                      remittance.currency || currentTransaction.currency,
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Witnesses Section */}
         <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex items-center justify-between mb-4">
@@ -426,6 +510,22 @@ function TransactionDetailPage() {
             transaction={{
               id: currentTransaction.id,
               type: currentTransaction.type,
+              amount: currentTransaction.amount,
+              currency: currentTransaction.currency,
+              contactId: currentTransaction.contact.id,
+              contactName: currentTransaction.contact.name,
+              remainingAmount,
+            }}
+            onSuccess={refetch}
+          />
+        )}
+
+        {canRecordRemit && currentTransaction.contact && remainingAmount > 0 && (
+          <RecordRemitDialog
+            open={isRecordRemitOpen}
+            onOpenChange={setIsRecordRemitOpen}
+            transaction={{
+              id: currentTransaction.id,
               amount: currentTransaction.amount,
               currency: currentTransaction.currency,
               contactId: currentTransaction.contact.id,
