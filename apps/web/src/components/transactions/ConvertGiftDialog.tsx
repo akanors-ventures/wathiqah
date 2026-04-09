@@ -57,7 +57,10 @@ export function ConvertGiftDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       amount: transaction.amount || 0,
-      description: `Gift conversion from transaction: ${transaction.id}`,
+      description:
+        transaction.type === TransactionType.LoanGiven
+          ? "Forgiven as a gift"
+          : "Received as a gift",
     },
   });
 
