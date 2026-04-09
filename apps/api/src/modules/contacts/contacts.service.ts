@@ -145,6 +145,35 @@ export class ContactsService {
     return { items, total, page, limit };
   }
 
+  /**
+   * Returns the effective principal of a transaction for balance math:
+   * the raw amount minus any non-cancelled gift conversions (clamped at 0).
+   * Shared by `computeContactBalance` (list view) and `getBalance`
+   * (single contact) so both code paths stay in lockstep.
+   */
+  private effectiveTransactionAmount(tx: {
+    amount: unknown;
+    conversions?: Array<{ amount: unknown }>;
+  }): number {
+    const toNum = (value: unknown): number => {
+      if (value == null) return 0;
+      if (typeof value === 'object' && value !== null && 'toNumber' in value) {
+        return (value as { toNumber: () => number }).toNumber();
+      }
+      return Number(value);
+    };
+
+    let amount = toNum(tx.amount);
+    if (tx.conversions && tx.conversions.length > 0) {
+      const totalGifted = tx.conversions.reduce(
+        (sum, conv) => sum + toNum(conv.amount),
+        0,
+      );
+      amount = Math.max(0, amount - totalGifted);
+    }
+    return amount;
+  }
+
   private computeContactBalance(
     transactions: Array<{
       type: string;
@@ -155,14 +184,6 @@ export class ContactsService {
     }>,
     isCreator = true,
   ): number {
-    const toNum = (value: unknown): number => {
-      if (value == null) return 0;
-      if (typeof value === 'object' && value !== null && 'toNumber' in value) {
-        return (value as { toNumber: () => number }).toNumber();
-      }
-      return Number(value);
-    };
-
     let balance = 0;
     for (const tx of transactions) {
       if (tx.status === 'CANCELLED') continue;
@@ -176,15 +197,7 @@ export class ContactsService {
         continue;
       }
 
-      let amount = toNum(tx.amount);
-      if (tx.conversions && tx.conversions.length > 0) {
-        const totalGifted = tx.conversions.reduce(
-          (sum, conv) => sum + toNum(conv.amount),
-          0,
-        );
-        amount = Math.max(0, amount - totalGifted);
-      }
-
+      const amount = this.effectiveTransactionAmount(tx);
       const sign = CONTACT_STANDING_SIGN[tx.type] ?? 0;
       balance += isCreator ? sign * amount : -sign * amount;
     }
@@ -317,16 +330,7 @@ export class ContactsService {
         continue;
       }
 
-      let amount = tx.amount ? Number(tx.amount) : 0;
-
-      // Subtract any GIFT conversions from the original transaction amount
-      if (tx.conversions && tx.conversions.length > 0) {
-        const totalGifted = tx.conversions.reduce(
-          (sum, conv) => sum + (conv.amount ? Number(conv.amount) : 0),
-          0,
-        );
-        amount = Math.max(0, amount - totalGifted);
-      }
+      const amount = this.effectiveTransactionAmount(tx);
 
       const sign = CONTACT_STANDING_SIGN[tx.type] ?? 0;
       balance += isCreator ? sign * amount : -sign * amount;
