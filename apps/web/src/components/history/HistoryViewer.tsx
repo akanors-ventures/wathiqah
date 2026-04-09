@@ -5,6 +5,8 @@ import {
   Ban,
   CheckCircle2,
   ChevronDown,
+  ChevronsDownUp,
+  ChevronsUpDown,
   Circle,
   Filter,
   Gift,
@@ -336,7 +338,16 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("ALL");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  // Seed expansion with UPDATE_POST_ACK entries — those are the most
+  // diff-worthy and almost always what a reviewer wants to inspect first.
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(
+    () =>
+      new Set(
+        history
+          .filter((item) => item.changeType === "UPDATE_POST_ACK" && getDiff(item).length > 0)
+          .map((item) => item.id),
+      ),
+  );
 
   const filteredHistory = useMemo(() => {
     let result = [...history];
@@ -377,6 +388,24 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      return next;
+    });
+
+  const expandableIds = useMemo(
+    () => filteredHistory.filter((item) => getDiff(item).length > 0).map((item) => item.id),
+    [filteredHistory],
+  );
+  const allExpanded =
+    expandableIds.length > 0 && expandableIds.every((id) => expandedItems.has(id));
+  const toggleExpandAll = () =>
+    setExpandedItems((prev) => {
+      if (allExpanded) {
+        const next = new Set(prev);
+        for (const id of expandableIds) next.delete(id);
+        return next;
+      }
+      const next = new Set(prev);
+      for (const id of expandableIds) next.add(id);
       return next;
     });
 
@@ -453,6 +482,20 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
               title={sortOrder === "asc" ? "Oldest first" : "Newest first"}
             >
               <ArrowUpDown className="w-3.5 h-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleExpandAll}
+              disabled={expandableIds.length === 0}
+              className="h-9 w-9 rounded-lg bg-muted/30 border-border/50 shrink-0"
+              title={allExpanded ? "Collapse all changes" : "Expand all changes"}
+            >
+              {allExpanded ? (
+                <ChevronsDownUp className="w-3.5 h-3.5" />
+              ) : (
+                <ChevronsUpDown className="w-3.5 h-3.5" />
+              )}
             </Button>
           </div>
         </div>
