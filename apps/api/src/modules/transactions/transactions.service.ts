@@ -109,6 +109,78 @@ export class TransactionsService {
     private readonly exchangeRateService: ExchangeRateService,
   ) {}
 
+  /**
+   * Recomputes a parent transaction's lifecycle status based on its
+   * non-cancelled children.
+   *
+   * Applies to the three "lifecycle" parent types:
+   *  - LOAN_GIVEN / LOAN_RECEIVED — children are repayments + gift conversions
+   *  - ESCROWED — children are remittances (REMITTED)
+   *
+   * - PENDING (a.k.a. "ACTIVE"): outstanding > 0
+   * - COMPLETED (a.k.a. "SETTLED"): outstanding === 0
+   *
+   * Cancelled parents are left as-is. A parent that flips between PENDING
+   * and COMPLETED writes a TransactionHistory row so the audit trail
+   * captures the auto-transition.
+   */
+  private async recomputeParentLoanStatus(
+    prisma: Prisma.TransactionClient,
+    parentId: string,
+    userId: string,
+  ): Promise<void> {
+    const parent = await prisma.transaction.findUnique({
+      where: { id: parentId },
+      select: { id: true, amount: true, status: true, type: true },
+    });
+
+    if (!parent || !parent.amount) return;
+    if (parent.status === TransactionStatus.CANCELLED) return;
+    // Only loan and escrow parents have a "settled" lifecycle
+    if (
+      parent.type !== 'LOAN_GIVEN' &&
+      parent.type !== 'LOAN_RECEIVED' &&
+      parent.type !== 'ESCROWED'
+    ) {
+      return;
+    }
+
+    const children = await prisma.transaction.findMany({
+      where: {
+        parentId,
+        status: { not: TransactionStatus.CANCELLED },
+      },
+      select: { amount: true },
+    });
+
+    const settled = children.reduce(
+      (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+      0,
+    );
+    const parentAmount = Number(parent.amount);
+    const isFullySettled = settled >= parentAmount;
+    const nextStatus = isFullySettled
+      ? TransactionStatus.COMPLETED
+      : TransactionStatus.PENDING;
+
+    if (nextStatus === parent.status) return;
+
+    await prisma.transaction.update({
+      where: { id: parentId },
+      data: { status: nextStatus },
+    });
+
+    await prisma.transactionHistory.create({
+      data: {
+        transactionId: parentId,
+        userId,
+        changeType: isFullySettled ? 'AUTO_SETTLED' : 'AUTO_REOPENED',
+        previousState: { status: parent.status } as Prisma.InputJsonValue,
+        newState: { status: nextStatus } as Prisma.InputJsonValue,
+      },
+    });
+  }
+
   private async processWitnesses(
     transactionId: string,
     witnessUserIds: string[] | undefined,
@@ -351,6 +423,7 @@ export class TransactionsService {
       rest.type === 'REPAYMENT_MADE' || rest.type === 'REPAYMENT_RECEIVED';
     const isGiftConversion =
       rest.type === 'GIFT_GIVEN' || rest.type === 'GIFT_RECEIVED';
+    const isRemittance = rest.type === 'REMITTED';
 
     // Start a transaction to ensure all witness records are created or nothing is
     let notifications: WitnessNotification[] = [];
@@ -450,15 +523,71 @@ export class TransactionsService {
               `Repayment amount (${repayAmount}) exceeds outstanding balance (${outstanding}) on the parent loan`,
             );
           }
+        } else if (isRemittance) {
+          // Remittance must be linked to an open escrow
+          if (parentTransaction.type !== 'ESCROWED') {
+            throw new BadRequestException(
+              'REMITTED must be linked to an ESCROWED transaction',
+            );
+          }
+          if (parentTransaction.category !== AssetCategory.FUNDS) {
+            throw new BadRequestException(
+              'Remittances can only be recorded against FUNDS escrows',
+            );
+          }
+          if (!parentTransaction.contactId) {
+            throw new BadRequestException(
+              'Parent escrow must have a contact to record a remittance',
+            );
+          }
+
+          // Derive contactId/currency from parent (ignore any client-supplied values)
+          derivedContactId = parentTransaction.contactId;
+          rest.contactId = parentTransaction.contactId;
+          rest.currency =
+            parentTransaction.currency ?? rest.currency ?? undefined;
+
+          // Outstanding = parent amount - sum of existing remittance children
+          const children = await prisma.transaction.findMany({
+            where: {
+              parentId: rest.parentId,
+              status: { not: 'CANCELLED' },
+            },
+            select: { amount: true },
+          });
+          const alreadyRemitted = children.reduce(
+            (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+            0,
+          );
+          const parentAmount = parentTransaction.amount
+            ? Number(parentTransaction.amount)
+            : 0;
+          const outstanding = Math.max(0, parentAmount - alreadyRemitted);
+          const remitAmount = Number(amount ?? 0);
+
+          if (remitAmount <= 0) {
+            throw new BadRequestException(
+              'Remittance amount must be greater than zero',
+            );
+          }
+          if (remitAmount > outstanding) {
+            throw new BadRequestException(
+              `Remittance amount (${remitAmount}) exceeds outstanding balance (${outstanding}) on the parent escrow`,
+            );
+          }
         } else {
-          // Parent linkage is only supported for gifts and repayments
+          // Parent linkage is only supported for gifts, repayments, and remittances
           throw new BadRequestException(
-            'parentId is only valid for gift conversions or repayments',
+            'parentId is only valid for gift conversions, repayments, or remittances',
           );
         }
       } else if (isRepayment) {
         throw new BadRequestException(
           'Repayments must be linked to a parent loan via parentId',
+        );
+      } else if (isRemittance) {
+        throw new BadRequestException(
+          'Remittances must be linked to a parent escrow via parentId',
         );
       }
 
@@ -479,6 +608,17 @@ export class TransactionsService {
         }
       }
 
+      // Lifecycle parent types start as PENDING (outstanding obligation).
+      // The schema default is COMPLETED, which is correct for one-shot
+      // transactions but wrong for parents that expect children to settle
+      // them. Children themselves (repayments / remittances) keep the
+      // default COMPLETED — they're standalone settled events.
+      const isLifecycleParent =
+        !rest.parentId &&
+        (rest.type === 'LOAN_GIVEN' ||
+          rest.type === 'LOAN_RECEIVED' ||
+          rest.type === 'ESCROWED');
+
       const transaction = await prisma.transaction.create({
         data: {
           category,
@@ -487,39 +627,56 @@ export class TransactionsService {
           quantity: category === AssetCategory.ITEM ? quantity : null,
           createdById: userId,
           ...rest,
+          ...(isLifecycleParent ? { status: TransactionStatus.PENDING } : {}),
         },
       });
 
-      // Log parent-history entry for conversions and repayments
+      // Log parent-history entry for conversions, repayments, and remittances
       if (rest.parentId && parentTransaction) {
         const parentAmountNum = parentTransaction.amount
           ? Number(parentTransaction.amount)
           : 0;
         const thisAmountNum = Number(amount ?? 0);
+        let changeType: string;
+        let newState: Prisma.InputJsonValue;
+        if (isRepayment) {
+          changeType = 'REPAYMENT_RECORDED';
+          newState = {
+            repaymentId: transaction.id,
+            repaymentAmount: amount,
+            repaymentType: rest.type,
+          };
+        } else if (isRemittance) {
+          changeType = 'REMITTANCE_RECORDED';
+          newState = {
+            remittanceId: transaction.id,
+            remittanceAmount: amount,
+          };
+        } else {
+          changeType = 'PARTIAL_CONVERSION_TO_GIFT';
+          newState = {
+            conversionId: transaction.id,
+            giftAmount: amount,
+            remainingAmount: parentAmountNum - thisAmountNum,
+          };
+        }
         await prisma.transactionHistory.create({
           data: {
             transactionId: rest.parentId,
             userId,
-            changeType: isRepayment
-              ? 'REPAYMENT_RECORDED'
-              : 'PARTIAL_CONVERSION_TO_GIFT',
+            changeType,
             previousState: {
               amount: parentTransaction.amount,
               type: parentTransaction.type,
             },
-            newState: isRepayment
-              ? {
-                  repaymentId: transaction.id,
-                  repaymentAmount: amount,
-                  repaymentType: rest.type,
-                }
-              : {
-                  conversionId: transaction.id,
-                  giftAmount: amount,
-                  remainingAmount: parentAmountNum - thisAmountNum,
-                },
+            newState,
           },
         });
+      }
+
+      // Auto-flip parent status when a repayment or remittance settles it
+      if (rest.parentId && (isRepayment || isRemittance)) {
+        await this.recomputeParentLoanStatus(prisma, rest.parentId, userId);
       }
 
       notifications = await this.processWitnesses(
@@ -1420,6 +1577,31 @@ export class TransactionsService {
           );
         }
 
+        // Re-evaluate the parent's settled status when a child's amount
+        // changes, OR when this transaction is itself a loan whose face
+        // amount was edited (the outstanding balance shifts).
+        const amountChanged = changes.amount !== undefined;
+        if (amountChanged) {
+          if (transaction.parentId) {
+            await this.recomputeParentLoanStatus(
+              prisma as Prisma.TransactionClient,
+              transaction.parentId,
+              userId,
+            );
+          }
+          if (
+            transaction.type === 'LOAN_GIVEN' ||
+            transaction.type === 'LOAN_RECEIVED' ||
+            transaction.type === 'ESCROWED'
+          ) {
+            await this.recomputeParentLoanStatus(
+              prisma as Prisma.TransactionClient,
+              id,
+              userId,
+            );
+          }
+        }
+
         return updated;
       },
     );
@@ -1438,32 +1620,52 @@ export class TransactionsService {
 
     // If there are no witnesses, we can safely hard-delete
     if (transaction.witnesses.length === 0) {
-      return this.prisma.transaction.delete({
-        where: { id },
+      const deleted = await this.prisma.$transaction(async (prisma) => {
+        const removed = await prisma.transaction.delete({ where: { id } });
+        if (transaction.parentId) {
+          await this.recomputeParentLoanStatus(
+            prisma as Prisma.TransactionClient,
+            transaction.parentId,
+            userId,
+          );
+        }
+        return removed;
       });
+      return deleted;
     }
 
     // If there are witnesses, we mark as CANCELLED to preserve accountability
     // and notify witnesses.
-    const [cancelledTransaction] = await this.prisma.$transaction([
-      this.prisma.transaction.update({
-        where: { id },
-        data: { status: TransactionStatus.CANCELLED },
-      }),
-      this.prisma.transactionHistory.create({
-        data: {
-          transactionId: id,
-          userId,
-          changeType: 'CANCELLED',
-          previousState: {
-            status: transaction.status,
-          } as Prisma.InputJsonValue,
-          newState: {
-            status: TransactionStatus.CANCELLED,
-          } as Prisma.InputJsonValue,
-        },
-      }),
-    ]);
+    const cancelledTransaction = await this.prisma.$transaction(
+      async (prisma) => {
+        const updated = await prisma.transaction.update({
+          where: { id },
+          data: { status: TransactionStatus.CANCELLED },
+        });
+        await prisma.transactionHistory.create({
+          data: {
+            transactionId: id,
+            userId,
+            changeType: 'CANCELLED',
+            previousState: {
+              status: transaction.status,
+            } as Prisma.InputJsonValue,
+            newState: {
+              status: TransactionStatus.CANCELLED,
+            } as Prisma.InputJsonValue,
+          },
+        });
+        // Cancelling a child repayment can re-open the parent loan
+        if (transaction.parentId) {
+          await this.recomputeParentLoanStatus(
+            prisma as Prisma.TransactionClient,
+            transaction.parentId,
+            userId,
+          );
+        }
+        return updated;
+      },
+    );
 
     // Notify acknowledged witnesses
     const acknowledgedWitnesses = transaction.witnesses.filter(
