@@ -36,7 +36,6 @@ function getStatusLine(witness: Witness): string {
       return actionedAt ? `Declined ${actionedAt}` : "Declined";
     case WitnessStatus.Modified:
       return actionedAt ? `Reset to modified ${actionedAt}` : "Reset to modified";
-    case WitnessStatus.Pending:
     default:
       return invitedAt ? `Invited ${invitedAt} · awaiting response` : "Awaiting response";
   }
