@@ -9,7 +9,9 @@ export function useTransaction(id: string) {
 
   const [updateTransactionMutation, { loading: updating }] = useMutation(UPDATE_TRANSACTION, {
     onCompleted: () => refetch(),
-    refetchQueries: ["TotalBalance"],
+    // Refetch by query name so every active observer (dashboard, contact page,
+    // shared-ledger view) re-runs with its own filter variables.
+    refetchQueries: ["TotalBalance", "Transactions", "MyContactTransactions"],
   });
 
   const updateTransaction = async (input: UpdateTransactionInput) => {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import type { TransactionType, TransactionStatus } from "@/types/__generated__/graphql";
+import { useEffect, useState } from "react";
+import type { TransactionStatus, TransactionType } from "@/types/__generated__/graphql";
 
 interface DateRange {
   from: string | null;
@@ -27,8 +27,8 @@ export function useSharedHistoryFilters() {
       ...(search && { search }),
       ...(types.length > 0 && { types }),
       ...(status !== "ALL" && { status: status as TransactionStatus }),
-      ...(dateRange.from && { startDate: new Date(dateRange.from) }),
-      ...(dateRange.to && { endDate: new Date(dateRange.to) }),
+      ...(dateRange.from && { startDate: new Date(dateRange.from).toISOString() }),
+      ...(dateRange.to && { endDate: new Date(dateRange.to).toISOString() }),
       page,
       limit,
     },
