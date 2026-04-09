@@ -1,11 +1,20 @@
+import { useMutation } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Loader2, Plus } from "lucide-react";
+import { useId, useMemo, useState } from "react";
 import { type Resolver, useForm } from "react-hook-form";
-import { useMemo, useState, useId } from "react";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,6 +24,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { BrandLoader } from "@/components/ui/page-loader";
 import {
   Select,
   SelectContent,
@@ -24,28 +35,17 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
+import { useAmountInput } from "@/hooks/useAmountInput";
 import { useProjects } from "@/hooks/useProjects";
-import { useMutation } from "@apollo/client/react";
 import {
+  GET_MY_PROJECTS,
+  GET_PROJECT,
   LOG_PROJECT_TRANSACTION,
   UPDATE_PROJECT_TRANSACTION,
-  GET_PROJECT,
-  GET_MY_PROJECTS,
 } from "@/lib/apollo/queries/projects";
-import { ProjectTransactionType, type GetMyProjectsQuery } from "@/types/__generated__/graphql";
 import { cn } from "@/lib/utils";
-import { BrandLoader } from "@/components/ui/page-loader";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { useAmountInput } from "@/hooks/useAmountInput";
+import { ProjectTransactionType } from "@/types/__generated__/graphql";
 
 const formSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
@@ -133,8 +133,7 @@ export function ProjectTransactionForm({
   // but here we just log a transaction.
 
   const selectedProject = useMemo(
-    () =>
-      (projects as GetMyProjectsQuery["myProjects"]).find((p) => p.id === form.watch("projectId")),
+    () => projects.find((p) => p.id === form.watch("projectId")),
     [projects, form.watch],
   );
   const currencyCode = selectedProject?.currency || "NGN";
@@ -270,22 +269,19 @@ export function ProjectTransactionForm({
                       <div className="flex items-center justify-center p-2">
                         <BrandLoader size="sm" />
                       </div>
-                    ) : (projects as GetMyProjectsQuery["myProjects"]).length === 0 &&
-                      !newlyCreatedProject ? (
+                    ) : projects.length === 0 && !newlyCreatedProject ? (
                       <div className="p-2 text-sm text-muted-foreground text-center">
                         No projects found
                       </div>
                     ) : (
                       <>
                         {newlyCreatedProject &&
-                          !(projects as GetMyProjectsQuery["myProjects"]).find(
-                            (p) => p.id === newlyCreatedProject.id,
-                          ) && (
+                          !projects.find((p) => p.id === newlyCreatedProject.id) && (
                             <SelectItem key={newlyCreatedProject.id} value={newlyCreatedProject.id}>
                               {newlyCreatedProject.name}
                             </SelectItem>
                           )}
-                        {(projects as GetMyProjectsQuery["myProjects"]).map((project) => (
+                        {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
                             {project.name}
                           </SelectItem>

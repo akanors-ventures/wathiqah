@@ -9,10 +9,10 @@ import {
   Package,
   UserCircle,
 } from "lucide-react";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/formatters";
 import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import { AssetCategory } from "@/types/__generated__/graphql";
 
@@ -148,25 +148,20 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
 
       <div className="text-right shrink-0 flex items-center gap-2 sm:gap-3 lg:gap-5 relative z-10 ml-2 lg:ml-4">
         <div className="flex flex-col items-end">
-          <div
-            className={cn(
-              "text-base sm:text-xl lg:text-2xl font-black tracking-tighter",
-              theme.textClass,
-            )}
-          >
-            {tx.category === AssetCategory.Item ? (
+          {tx.category === AssetCategory.Item ? (
+            <div className="text-base sm:text-xl lg:text-2xl font-black tracking-tighter">
               <span className="text-[8px] sm:text-[10px] lg:text-[11px] font-bold opacity-60">
                 Item
               </span>
-            ) : (
-              <>
-                <span className="text-xs sm:text-sm lg:text-base mr-0.5 opacity-70 font-medium">
-                  {theme.sign}
-                </span>
-                {formatCurrency(tx.amount || 0, tx.currency)}
-              </>
-            )}
-          </div>
+            </div>
+          ) : (
+            <TransactionAmount
+              type={tx.type}
+              amount={tx.amount ?? 0}
+              currency={tx.currency}
+              className="text-base sm:text-xl lg:text-2xl font-black tracking-tighter"
+            />
+          )}
           <div className="text-[8px] sm:text-[10px] lg:text-[11px] font-bold capitalize tracking-tight opacity-40 mt-0.5">
             {tx.category.toLowerCase()}
           </div>
@@ -182,7 +177,7 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
       <div
         className={cn(
           "absolute -right-20 -bottom-20 w-40 h-40 rounded-full blur-[80px] opacity-0 group-hover:opacity-10 transition-opacity duration-700",
-          theme.bg,
+          theme.bgClass,
         )}
       ></div>
     </>

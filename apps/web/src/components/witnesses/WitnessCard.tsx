@@ -11,8 +11,10 @@ import {
 } from "@/types/__generated__/graphql";
 import { WitnessStatusBadge } from "./WitnessStatusBadge";
 
+type WitnessRequest = NonNullable<MyWitnessRequestsQuery["myWitnessRequests"]>["items"][number];
+
 interface WitnessCardProps {
-  request: MyWitnessRequestsQuery["myWitnessRequests"][0];
+  request: WitnessRequest;
   onAcknowledge: (id: string) => void;
   onDecline: (id: string) => void;
   isLoading?: boolean;

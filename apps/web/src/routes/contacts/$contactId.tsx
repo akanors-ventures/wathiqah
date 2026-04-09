@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   ChevronRight,
   Clock,
+  CornerDownRight,
   Download,
   Filter,
   Package,
@@ -16,6 +17,8 @@ import {
   UserCircle,
   UserPlus,
 } from "lucide-react";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
+import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
@@ -44,9 +47,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
-import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
+import { groupTransactionActivity } from "@/lib/utils/groupTransactionActivity";
 import { AssetCategory, type Transaction } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -110,6 +112,7 @@ function ContactDetailsPage() {
 
   const contact = contactData.contact;
   const transactions = (txData?.transactions.items as Transaction[]) || [];
+  const activityRows = groupTransactionActivity(transactions);
   const summary = txData?.transactions.summary;
 
   const exportToCSV = (items: Transaction[], contactName: string) => {
@@ -360,13 +363,15 @@ function ContactDetailsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {transactions.map((tx) => {
+                    {activityRows.map(({ tx, depth, isOrphan }) => {
                       const isCreator = user?.id === tx.createdBy?.id;
-                      const theme = getTransactionTheme(tx.type);
+                      const isChild = depth === 1;
                       return (
                         <TableRow
                           key={tx.id}
-                          className="group hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/30 last:border-0"
+                          className={`group transition-colors cursor-pointer border-b border-border/30 last:border-0 ${
+                            isChild ? "bg-muted/20 hover:bg-muted/40" : "hover:bg-muted/50"
+                          }`}
                           onClick={() =>
                             navigate({
                               to: "/transactions/$id",
@@ -374,20 +379,26 @@ function ContactDetailsPage() {
                             })
                           }
                         >
-                          <TableCell className="pl-6 font-medium text-xs text-muted-foreground/80">
-                            {format(new Date(tx.date as string), "MMM d, yyyy")}
+                          <TableCell
+                            className={`font-medium text-xs text-muted-foreground/80 ${
+                              isChild ? "pl-12" : "pl-6"
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              {isChild && (
+                                <CornerDownRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                              )}
+                              {format(new Date(tx.date as string), "MMM d, yyyy")}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-1.5">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[10px] font-bold px-2 py-0.5",
-                                  theme.badgeClass,
-                                )}
-                              >
-                                {tx.type.toLowerCase().replace(/_/g, " ")}
-                              </Badge>
+                              <TransactionTypeBadge type={tx.type} />
+                              {isOrphan && (
+                                <span className="text-[9px] font-bold text-muted-foreground/70 italic">
+                                  ↳ for earlier transaction
+                                </span>
+                              )}
                               {!isCreator && (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
                                   <UserCircle className="w-2.5 h-2.5" />
@@ -408,21 +419,18 @@ function ContactDetailsPage() {
                               tx.description || "-"
                             )}
                           </TableCell>
-                          <TableCell
-                            className={cn(
-                              "text-right font-bold text-sm",
-                              tx.category === AssetCategory.Item
-                                ? "text-muted-foreground font-normal italic text-xs"
-                                : theme.textClass,
-                            )}
-                          >
+                          <TableCell className="text-right">
                             {tx.category === AssetCategory.Item ? (
-                              "Physical Item"
+                              <span className="text-muted-foreground font-normal italic text-xs">
+                                Physical Item
+                              </span>
                             ) : (
-                              <>
-                                {theme.sign}
-                                {formatCurrency(tx.amount, tx.currency || "NGN")}
-                              </>
+                              <TransactionAmount
+                                type={tx.type}
+                                amount={tx.amount}
+                                currency={tx.currency}
+                                className="text-sm"
+                              />
                             )}
                           </TableCell>
                           <TableCell className="pr-6">
@@ -437,13 +445,17 @@ function ContactDetailsPage() {
 
               {/* Mobile View */}
               <div className="md:hidden space-y-3 p-4">
-                {transactions.map((tx) => {
+                {activityRows.map(({ tx, depth, isOrphan }) => {
                   const isCreator = user?.id === tx.createdBy?.id;
-                  const theme = getTransactionTheme(tx.type);
+                  const isChild = depth === 1;
                   return (
                     <Card
                       key={tx.id}
-                      className="overflow-hidden border-border/50 hover:border-primary/30 transition-all active:scale-[0.98]"
+                      className={`overflow-hidden hover:border-primary/30 transition-all active:scale-[0.98] ${
+                        isChild
+                          ? "ml-6 border-l-2 border-l-primary/30 border-border/30 bg-muted/20"
+                          : "border-border/50"
+                      }`}
                       onClick={() =>
                         navigate({
                           to: "/transactions/$id",
@@ -454,19 +466,17 @@ function ContactDetailsPage() {
                       <div className="p-4 space-y-3">
                         <div className="flex justify-between items-start">
                           <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                              {isChild && <CornerDownRight className="h-2.5 w-2.5" />}
                               {format(new Date(tx.date as string), "MMM d, yyyy")}
                             </p>
                             <div className="flex flex-col gap-1">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[10px] font-bold px-2 py-0.5 w-fit",
-                                  theme.badgeClass,
-                                )}
-                              >
-                                {tx.type.toLowerCase().replace(/_/g, " ")}
-                              </Badge>
+                              <TransactionTypeBadge type={tx.type} className="w-fit" />
+                              {isOrphan && (
+                                <span className="text-[9px] font-bold text-muted-foreground/70 italic">
+                                  ↳ for earlier transaction
+                                </span>
+                              )}
                               {!isCreator && (
                                 <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
                                   <UserCircle className="w-2 h-2" />
@@ -481,10 +491,12 @@ function ContactDetailsPage() {
                                 Physical Item
                               </div>
                             ) : (
-                              <div className={cn("font-bold text-sm", theme.textClass)}>
-                                {theme.sign}
-                                {formatCurrency(tx.amount, tx.currency || "NGN")}
-                              </div>
+                              <TransactionAmount
+                                type={tx.type}
+                                amount={tx.amount}
+                                currency={tx.currency}
+                                className="text-sm"
+                              />
                             )}
                           </div>
                         </div>
