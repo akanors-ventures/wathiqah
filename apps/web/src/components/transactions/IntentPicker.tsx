@@ -154,7 +154,6 @@ export function IntentPicker({ value, onChange }: IntentPickerProps) {
   // control on the page sets a different type). IMPORTANT: only listen to
   // `value` changes — including `intent` here would clobber the user's local
   // intent click before they pick a direction.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: see comment above
   useEffect(() => {
     const next = TYPE_TO_INTENT[value];
     if (next) setIntent(next);
