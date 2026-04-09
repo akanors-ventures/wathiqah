@@ -1,8 +1,10 @@
 import { type MyWitnessRequestsQuery, WitnessStatus } from "@/types/__generated__/graphql";
 import { WitnessCard } from "./WitnessCard";
 
+type WitnessRequest = NonNullable<MyWitnessRequestsQuery["myWitnessRequests"]>["items"][number];
+
 interface WitnessListProps {
-  requests: MyWitnessRequestsQuery["myWitnessRequests"];
+  requests: WitnessRequest[];
   activeTab: "pending" | "history";
   onAction: (params: { witnessId?: string; token?: string }, status: WitnessStatus) => void;
   isLoading?: boolean;

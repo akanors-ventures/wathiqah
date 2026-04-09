@@ -65,7 +65,7 @@ export function SharedHistoryInterstitial() {
   const { data, loading } = useQuery(GET_MY_CONTACT_TRANSACTIONS);
   const [markSeenMutation] = useMutation(MARK_SHARED_HISTORY_SEEN_MUTATION);
 
-  const transactions = data?.myContactTransactions ?? [];
+  const transactions = data?.myContactTransactions?.items ?? [];
 
   // When the query resolves with zero pre-existing transactions, silently mark
   // the flag as seen so the parent re-renders with the standard Dashboard.

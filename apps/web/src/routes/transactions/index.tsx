@@ -15,9 +15,10 @@ import {
 import { useState } from "react";
 import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
 import { ItemsList } from "@/components/items/ItemsList";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { TransactionCharts } from "@/components/transactions/TransactionCharts";
+import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
-import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,21 +48,8 @@ import { useItems } from "@/hooks/useItems";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
-
-function getTypeBadgeClass(type: string): string {
-  return getTransactionTheme(type).badgeClass;
-}
-
-function getTypeAmountClass(type: string): string {
-  return getTransactionTheme(type).textClass;
-}
-
-function isPositiveType(type: string): boolean {
-  return getTransactionTheme(type).isIncoming;
-}
 
 export const Route = createFileRoute("/transactions/")({
   component: TransactionsPage,
@@ -405,9 +393,7 @@ function TransactionsPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className={getTypeBadgeClass(tx.type)}>
-                                {tx.type.toLowerCase().replace(/_/g, " ")}
-                              </Badge>
+                              <TransactionTypeBadge type={tx.type} />
                             </TableCell>
                             <TableCell
                               className="max-w-[200px] truncate"
@@ -449,20 +435,17 @@ function TransactionsPage() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell
-                              className={`text-right font-bold ${
-                                tx.category === AssetCategory.Item
-                                  ? "text-muted-foreground font-normal italic text-xs"
-                                  : getTypeAmountClass(tx.type)
-                              }`}
-                            >
+                            <TableCell className="text-right">
                               {tx.category === AssetCategory.Item ? (
-                                "Physical Item"
+                                <span className="text-muted-foreground font-normal italic text-xs">
+                                  Physical Item
+                                </span>
                               ) : (
-                                <>
-                                  {isPositiveType(tx.type) ? "+" : "-"}
-                                  {formatCurrency(tx.amount, tx.currency)}
-                                </>
+                                <TransactionAmount
+                                  type={tx.type}
+                                  amount={tx.amount}
+                                  currency={tx.currency}
+                                />
                               )}
                             </TableCell>
                             <TableCell>
@@ -531,9 +514,7 @@ function TransactionsPage() {
                             )}
                           </div>
                         </div>
-                        <Badge variant="outline" className={getTypeBadgeClass(tx.type)}>
-                          {tx.type.toLowerCase().replace(/_/g, " ")}
-                        </Badge>
+                        <TransactionTypeBadge type={tx.type} />
                       </div>
 
                       <div className="flex justify-between items-end mt-4">
@@ -551,20 +532,17 @@ function TransactionsPage() {
                             </p>
                           )}
                         </div>
-                        <div
-                          className={`font-bold whitespace-nowrap ${
-                            tx.category === AssetCategory.Item
-                              ? "text-muted-foreground font-normal italic text-xs"
-                              : getTypeAmountClass(tx.type)
-                          }`}
-                        >
+                        <div className="whitespace-nowrap">
                           {tx.category === AssetCategory.Item ? (
-                            "Physical Item"
+                            <span className="text-muted-foreground font-normal italic text-xs">
+                              Physical Item
+                            </span>
                           ) : (
-                            <>
-                              {isPositiveType(tx.type) ? "+" : "-"}
-                              {formatCurrency(tx.amount, tx.currency)}
-                            </>
+                            <TransactionAmount
+                              type={tx.type}
+                              amount={tx.amount}
+                              currency={tx.currency}
+                            />
                           )}
                         </div>
                       </div>
