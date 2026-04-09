@@ -48,6 +48,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
       amount
       category
       type
+      status
       currency
       date
       description
@@ -117,12 +118,14 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
         amount
         category
         type
+        status
         currency
         date
         description
         itemName
         quantity
         createdAt
+        parentId
         createdBy {
           id
           name
@@ -138,6 +141,9 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
           status
         }
       }
+      total
+      page
+      limit
       summary {
         totalLoanGiven
         totalLoanReceived
@@ -169,12 +175,14 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
         amount
         category
         type
+        status
         currency
         date
         description
         itemName
         quantity
         createdAt
+        parentId
         createdBy {
           id
           name
