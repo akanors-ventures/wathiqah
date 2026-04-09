@@ -105,6 +105,14 @@ export class ContactsService {
               type: true,
               amount: true,
               status: true,
+              parentId: true,
+              conversions: {
+                where: {
+                  type: { in: ['GIFT_GIVEN', 'GIFT_RECEIVED'] },
+                  status: { not: 'CANCELLED' },
+                },
+                select: { amount: true },
+              },
             },
           },
         },
@@ -138,18 +146,45 @@ export class ContactsService {
   }
 
   private computeContactBalance(
-    transactions: Array<{ type: string; amount: unknown; status: string }>,
+    transactions: Array<{
+      type: string;
+      amount: unknown;
+      status: string;
+      parentId?: string | null;
+      conversions?: Array<{ amount: unknown }>;
+    }>,
     isCreator = true,
   ): number {
+    const toNum = (value: unknown): number => {
+      if (value == null) return 0;
+      if (typeof value === 'object' && value !== null && 'toNumber' in value) {
+        return (value as { toNumber: () => number }).toNumber();
+      }
+      return Number(value);
+    };
+
     let balance = 0;
     for (const tx of transactions) {
       if (tx.status === 'CANCELLED') continue;
-      const amount =
-        typeof tx.amount === 'object' &&
-        tx.amount !== null &&
-        'toNumber' in tx.amount
-          ? (tx.amount as { toNumber: () => number }).toNumber()
-          : Number(tx.amount);
+
+      // Skip gift conversion children — their effect is applied by reducing
+      // the parent loan's effective amount below.
+      if (
+        (tx.type === 'GIFT_GIVEN' || tx.type === 'GIFT_RECEIVED') &&
+        tx.parentId
+      ) {
+        continue;
+      }
+
+      let amount = toNum(tx.amount);
+      if (tx.conversions && tx.conversions.length > 0) {
+        const totalGifted = tx.conversions.reduce(
+          (sum, conv) => sum + toNum(conv.amount),
+          0,
+        );
+        amount = Math.max(0, amount - totalGifted);
+      }
+
       const sign = CONTACT_STANDING_SIGN[tx.type] ?? 0;
       balance += isCreator ? sign * amount : -sign * amount;
     }
@@ -256,8 +291,12 @@ export class ContactsService {
         parentId: true,
         createdById: true,
         conversions: {
+          // Load BOTH gift conversion sides: a LOAN_GIVEN parent gets reduced by
+          // GIFT_GIVEN conversions, and a LOAN_RECEIVED parent gets reduced by
+          // GIFT_RECEIVED conversions. Only non-cancelled conversions count.
           where: {
-            type: 'GIFT_GIVEN',
+            type: { in: ['GIFT_GIVEN', 'GIFT_RECEIVED'] },
+            status: { not: 'CANCELLED' },
           },
           select: {
             amount: true,
