@@ -148,9 +148,34 @@ describe('TransactionsService - create()', () => {
   });
 
   it('does NOT send contact notification at creation time for a REPAYMENT_MADE transaction', async () => {
-    mockPrismaService.transaction.create.mockResolvedValue({
+    // REPAYMENT_MADE must be linked to a parent LOAN_RECEIVED via parentId.
+    // Stub the parent lookup so the validation in create() passes. Use the
+    // *Once variants so the queued values are consumed and don't bleed into
+    // later tests in this suite.
+    const parentLoan = {
+      ...mockTransaction,
+      id: 'parent-loan-1',
+      type: TransactionType.LOAN_RECEIVED,
+      contactId: CONTACT_ID,
+      category: AssetCategory.FUNDS,
+      amount: 5000, // Number — recompute reads via Number(parent.amount)
+      currency: 'NGN',
+      status: 'PENDING' as const,
+    };
+    mockPrismaService.transaction.findUnique
+      .mockResolvedValueOnce(parentLoan) // create() validation lookup
+      .mockResolvedValueOnce(parentLoan) // recomputeParentLoanStatus lookup
+      .mockResolvedValueOnce(null); // processWitnesses lookup (early-returns on null)
+    // findMany is called twice (validation children check + recompute);
+    // an empty array is harmless for any other test that may call findMany.
+    mockPrismaService.transaction.findMany = jest.fn().mockResolvedValue([]);
+    mockPrismaService.transaction.update = jest
+      .fn()
+      .mockResolvedValue(parentLoan);
+    mockPrismaService.transaction.create.mockResolvedValueOnce({
       ...mockTransaction,
       type: TransactionType.REPAYMENT_MADE,
+      parentId: parentLoan.id,
     });
 
     await service.create(
@@ -160,6 +185,7 @@ describe('TransactionsService - create()', () => {
         amount: 2000,
         currency: 'NGN',
         contactId: CONTACT_ID,
+        parentId: parentLoan.id,
         date: TX_DATE,
       },
       CREATOR_ID,
