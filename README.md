@@ -25,36 +25,43 @@ For full documentation, please visit the [**Documentation Hub**](./docs/README.m
 - **Categories**:
   - **FUNDS**: For monetary transactions (Cash, Bank transfers). Includes **Project Transactions** (Income/Expenses) for business/project tracking. Quantity and Item Name are excluded from UI and audit logs for this category. Supports **multi-currency** (NGN, USD, EUR, GBP, CAD, AED, SAR) with NGN as default.
   - **PHYSICAL ITEMS**: For lending/borrowing physical objects (e.g., Tools, Books). Uses Quantity and Item Name.
-- **Color Coding Logic**:
-  - **RECEIVED (Red)**: Marked as Red because it represents a liability/debt. It is better to avoid owing people.
-  - **GIVEN (Blue)**: Represented as Blue because it represents an asset/credit. Giving out is viewed more favorably than receiving debt.
-  - **RETURNED**: Represents the resolution of a transaction (repayments). Relies on `returnDirection` for UI representation.
-    - **To Me (Emerald)**: Positive action (money coming back).
-    - **To Contact (Blue)**: Neutral/Resolution (paying back debt).
-  - **GIFT**: Non-balance affecting transactions. Relies on `returnDirection` for UI representation.
-    - **Received (Purple)**: Gift obtained from a contact (`TO_ME`).
-    - **Given (Pink)**: Gift given to a contact (`TO_CONTACT`).
+- **Transaction Types & Color Coding**:
+
+  | Type | Meaning | Color |
+  |------|---------|-------|
+  | `LOAN_GIVEN` | I lent money/item out | Blue |
+  | `LOAN_RECEIVED` | I borrowed money/item | Rose |
+  | `REPAYMENT_MADE` | I repaid a debt | Emerald |
+  | `REPAYMENT_RECEIVED` | Contact repaid me | Emerald |
+  | `GIFT_GIVEN` | Gift I gave (no obligation) | Pink |
+  | `GIFT_RECEIVED` | Gift I received (no obligation) | Purple |
+  | `ADVANCE_PAID` | Advance I paid out | Orange |
+  | `ADVANCE_RECEIVED` | Advance I received | Purple |
+  | `DEPOSIT_PAID` | Deposit I paid | Orange |
+  | `DEPOSIT_RECEIVED` | Deposit I received | Purple |
+  | `ESCROWED` | Cash I'm holding in trust | Emerald |
+  | `REMITTED` | Cash I disbursed on their behalf | Orange |
+  | `EXPENSE` | Personal spending _(legacy, read-only)_ | Red |
+  | `INCOME` | Personal earnings _(legacy, read-only)_ | Green |
+
 - **Transaction Conversion Logic**:
-  - Transactions can be converted to **GIFT** type (e.g., when a debt is forgiven).
+  - Loan transactions can be converted to **GIFT** type (e.g., when a debt is forgiven).
   - **Mapping Rule**:
-    - Parent `GIVEN` (I lent) → Gift `TO_CONTACT` (I gifted it out/forgave debt).
-    - Parent `RECEIVED` (I borrowed) → Gift `TO_ME` (Contact gifted it to me/forgave my debt).
+    - `LOAN_GIVEN` (I lent) → `GIFT_GIVEN` (I forgave / gifted it out).
+    - `LOAN_RECEIVED` (I borrowed) → `GIFT_RECEIVED` (Contact forgave my debt).
 - **Shared Ledger & Perspective Flipping**:
   - **Visibility**: If a transaction's contact is a registered user (`linkedUserId`), the transaction is visible to both the creator and the contact.
-  - **Perspective Logic**: When a user views a transaction they didn't create (recorded on them by a contact), the system "flips" the perspective:
-    - `GIVEN` (Asset for creator) → `RECEIVED` (Liability for you).
-    - `RECEIVED` (Liability for creator) → `GIVEN` (Asset for you).
-    - `RETURNED TO ME` → `RETURNED TO CONTACT`.
-    - `GIFT RECEIVED` → `GIFT GIVEN`.
+  - **Perspective Logic**: When a user views a transaction they didn't create, the system "flips" the perspective:
+    - `LOAN_GIVEN` ↔ `LOAN_RECEIVED`
+    - `REPAYMENT_MADE` ↔ `REPAYMENT_RECEIVED`
+    - `GIFT_GIVEN` ↔ `GIFT_RECEIVED`
+    - `ADVANCE_PAID` ↔ `ADVANCE_RECEIVED`
+    - `DEPOSIT_PAID` ↔ `DEPOSIT_RECEIVED`
+    - `ESCROWED` ↔ `REMITTED`
   - **Identification**: These transactions are marked with a **SHARED** badge in the UI.
 - **Balance Logic**:
-  - **Cash Position (Dashboard)**: Uses Liquidity logic.
-    - **Net Balance** = (Total Inflow - Total Outflow) calculated over **All Time**.
-    - **Period Analysis**: Inflow and Outflow metrics can be filtered by **Month**, **Year**, or **All Time** to track current performance without affecting the global Net Balance.
-    - **Total Inflow** = Income (Personal + Project) + Received (Debt) + ReturnedToMe + GiftReceived.
-    - **Total Outflow** = Expense (Personal + Project) + Given (Credit) + ReturnedToContact + GiftGiven.
-    - A negative balance indicates a cash deficit (spending/lending more than received). Includes flipped shared transactions and project transactions for accurate liquidity.
-  - **Relationship Standing (Contact View)**: Uses Net Debt logic. `Standing = Assets (Given) - Liabilities (Received)`. A positive standing means the contact owes you. Includes flipped shared transactions for accurate standing.
+  - **Contact Standing (Contact View)**: Net obligation between you and the contact. Positive = contact owes you; negative = you owe the contact. Computed from all 12 types (GIFT types excluded — no ongoing obligation).
+  - **Cash Position (Dashboard)**: Deferred to the PersonalEntry follow-up plan once EXPENSE/INCOME have their own model.
 
 ---
 
@@ -273,7 +280,7 @@ mutation CreateTransaction {
       contactId: "1"
       amount: 100.50
       currency: "USD"
-      type: GIVEN
+      type: LOAN_GIVEN
       date: "2026-01-21"
       description: "Loan payment"
       witnessUserIds: ["user-123", "user-456"] # Existing users

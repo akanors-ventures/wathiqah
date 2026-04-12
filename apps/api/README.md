@@ -30,6 +30,7 @@ cp .env.example .env
 ```
 
 Key variables:
+
 - `DATABASE_URL`: PostgreSQL connection string
 - `JWT_SECRET`: Secret for signing tokens
 - `MAILTRAP_TOKEN` / `SENDGRID_API_KEY`: For email delivery
@@ -74,6 +75,7 @@ pnpm start:prod
 The GraphQL Playground will be available at `http://localhost:3001/api/graphql`.
 
 CORS
+
 - Allowed origins include `https://wathiqah.akanors.com` and `https://dev.akanors.com` by default. Update as needed in `main.ts`.
 
 ## 📂 Modules
@@ -81,7 +83,7 @@ CORS
 - **Auth**: User authentication (Signup, Login, Password Reset).
 - **Users**: User profile management.
 - **Contacts**: Manage contacts and their balances.
-- **Transactions**: Record financial/item transactions (Given, Received, Collected).
+- **Transactions**: Record financial/item transactions across 12 self-describing types (e.g., `LOAN_GIVEN`, `LOAN_RECEIVED`, `REPAYMENT_MADE`, `GIFT_GIVEN`, `ESCROWED`, etc.).
 - **Witnesses**: Manage transaction witnesses and invitations.
 - **Promises**: Track personal commitments and due dates.
 - **Shared Access**: Grant read-only access to profiles/transactions.
