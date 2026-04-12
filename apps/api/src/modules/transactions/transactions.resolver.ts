@@ -1,4 +1,14 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ID,
+  ResolveField,
+  Parent,
+  Float,
+} from '@nestjs/graphql';
+import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
 import { AddWitnessInput } from './dto/add-witness.input';
@@ -22,7 +32,42 @@ import { FeatureLimitInterceptor } from '../subscription/interceptors/feature-li
 @Resolver(() => Transaction)
 @UseGuards(GqlAuthGuard)
 export class TransactionsResolver {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(
+    private readonly transactionsService: TransactionsService,
+    private readonly prisma: PrismaService,
+  ) {}
+
+  /**
+   * For lifecycle parent transactions (loans + escrows), the unsettled
+   * balance = parent.amount − Σ (non-cancelled child amounts).
+   * Returns null for non-lifecycle or itemised transactions.
+   */
+  @ResolveField(() => Float, { nullable: true })
+  async remainingAmount(
+    @Parent() transaction: Transaction,
+  ): Promise<number | null> {
+    if (
+      transaction.type !== 'LOAN_GIVEN' &&
+      transaction.type !== 'LOAN_RECEIVED' &&
+      transaction.type !== 'ESCROWED'
+    ) {
+      return null;
+    }
+    if (!transaction.amount) return null;
+
+    const children = await this.prisma.transaction.findMany({
+      where: {
+        parentId: transaction.id,
+        status: { not: 'CANCELLED' },
+      },
+      select: { amount: true },
+    });
+    const settled = children.reduce(
+      (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+      0,
+    );
+    return Math.max(0, Number(transaction.amount) - settled);
+  }
 
   @Query(() => TransactionsSummary, { name: 'totalBalance' })
   async getTotalBalance(

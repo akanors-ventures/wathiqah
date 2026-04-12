@@ -5,9 +5,9 @@ import {
   ChevronDown,
   FileSpreadsheet,
   Image as ImageIcon,
+  Lock,
   PieChart as PieChartIcon,
   Table as TableIcon,
-  Lock,
 } from "lucide-react";
 import Papa from "papaparse";
 import { useId, useMemo, useRef, useState } from "react";
@@ -44,9 +44,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSubscription } from "@/hooks/useSubscription";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useTransactionsGroupedByContact } from "@/hooks/useTransactionsGrouped";
-import { useSubscription } from "@/hooks/useSubscription";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
   type FilterTransactionInput,
@@ -84,23 +84,28 @@ export function TransactionCharts() {
     if (!totalSummary) return [];
     return [
       {
-        name: "Income",
-        value: totalSummary.totalIncome,
-        fill: "#10b981",
-        gradientId: "colorIncome",
+        name: "Loan Given",
+        value: totalSummary.totalLoanGiven,
+        fill: "#3b82f6",
+        gradientId: "colorLoanGiven",
       },
       {
-        name: "Expense",
-        value: totalSummary.totalExpense,
-        fill: "#ef4444",
-        gradientId: "colorExpense",
-      },
-      { name: "Given", value: totalSummary.totalGiven, fill: "#3b82f6", gradientId: "colorGiven" },
-      {
-        name: "Received",
-        value: totalSummary.totalReceived,
+        name: "Loan Received",
+        value: totalSummary.totalLoanReceived,
         fill: "#f43f5e",
-        gradientId: "colorReceived",
+        gradientId: "colorLoanReceived",
+      },
+      {
+        name: "Repayment Made",
+        value: totalSummary.totalRepaymentMade,
+        fill: "#3b82f6",
+        gradientId: "colorRepaymentMade",
+      },
+      {
+        name: "Repayment Received",
+        value: totalSummary.totalRepaymentReceived,
+        fill: "#f43f5e",
+        gradientId: "colorRepaymentReceived",
       },
       {
         name: "Gift Given",
@@ -115,16 +120,40 @@ export function TransactionCharts() {
         gradientId: "colorGiftReceived",
       },
       {
-        name: "Returned (Me)",
-        value: totalSummary.totalReturnedToMe,
-        fill: "#10b981",
-        gradientId: "colorRetMe",
+        name: "Advance Paid",
+        value: totalSummary.totalAdvancePaid,
+        fill: "#f97316",
+        gradientId: "colorAdvancePaid",
       },
       {
-        name: "Returned (Other)",
-        value: totalSummary.totalReturnedToOther,
-        fill: "#3b82f6",
-        gradientId: "colorRetOther",
+        name: "Advance Received",
+        value: totalSummary.totalAdvanceReceived,
+        fill: "#8b5cf6",
+        gradientId: "colorAdvanceReceived",
+      },
+      {
+        name: "Deposit Paid",
+        value: totalSummary.totalDepositPaid,
+        fill: "#f97316",
+        gradientId: "colorDepositPaid",
+      },
+      {
+        name: "Deposit Received",
+        value: totalSummary.totalDepositReceived,
+        fill: "#8b5cf6",
+        gradientId: "colorDepositReceived",
+      },
+      {
+        name: "Escrowed",
+        value: totalSummary.totalEscrowed,
+        fill: "#10b981",
+        gradientId: "colorEscrowed",
+      },
+      {
+        name: "Remitted",
+        value: totalSummary.totalRemitted,
+        fill: "#f97316",
+        gradientId: "colorRemitted",
       },
     ]
       .filter((item) => item.value > 0)
@@ -145,8 +174,8 @@ export function TransactionCharts() {
       .map((d) => ({
         name: d.contact?.name || "Unknown",
         net: d.summary.netBalance,
-        given: d.summary.totalGiven,
-        received: d.summary.totalReceived,
+        given: d.summary.totalLoanGiven,
+        received: d.summary.totalLoanReceived,
       }))
       .sort((a, b) => Math.abs(b.net) - Math.abs(a.net))
       .slice(0, 10); // Top 10 contacts

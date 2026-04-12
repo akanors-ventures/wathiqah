@@ -96,9 +96,16 @@ export class WitnessesService {
     if (status === WitnessStatus.ACKNOWLEDGED) {
       const { transaction } = result;
       const qualifyingTypes: TransactionType[] = [
-        TransactionType.GIVEN,
-        TransactionType.RECEIVED,
-        TransactionType.RETURNED,
+        TransactionType.LOAN_GIVEN,
+        TransactionType.LOAN_RECEIVED,
+        TransactionType.REPAYMENT_MADE,
+        TransactionType.REPAYMENT_RECEIVED,
+        TransactionType.ADVANCE_PAID,
+        TransactionType.ADVANCE_RECEIVED,
+        TransactionType.DEPOSIT_PAID,
+        TransactionType.DEPOSIT_RECEIVED,
+        TransactionType.ESCROWED,
+        TransactionType.REMITTED,
       ];
 
       const hasContact =

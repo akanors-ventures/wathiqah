@@ -1,10 +1,5 @@
 import { useMemo } from "react";
-import {
-  AssetCategory,
-  ReturnDirection,
-  type Transaction,
-  TransactionType,
-} from "@/types/__generated__/graphql";
+import { AssetCategory, type Transaction, TransactionType } from "@/types/__generated__/graphql";
 import { useAuth } from "./use-auth";
 import { useTransactions } from "./useTransactions";
 
@@ -62,35 +57,44 @@ export function useItems() {
           item.lastUpdated = tx.date as string;
         }
 
-        // Calculate balance with perspective flipping
+        // Calculate balance with perspective flipping.
+        // From the creator's view: LOAN_GIVEN = lent out, LOAN_RECEIVED = borrowed.
+        // REPAYMENT_RECEIVED = item came back, REPAYMENT_MADE = I returned it.
+        // GIFT_GIVEN = gave away (reduces lent or net), GIFT_RECEIVED = received.
         const qty = tx.quantity || 1;
 
         if (isCreator) {
-          if (tx.type === TransactionType.Given) {
+          if (tx.type === TransactionType.LoanGiven) {
             item.quantity += qty;
-          } else if (tx.type === TransactionType.Received) {
+          } else if (tx.type === TransactionType.LoanReceived) {
             item.quantity -= qty;
-          } else if (tx.type === TransactionType.Returned || tx.type === TransactionType.Gift) {
-            const dir = tx.returnDirection;
-            if (dir === ReturnDirection.ToMe) {
-              item.quantity -= qty;
-            } else if (dir === ReturnDirection.ToContact) {
-              item.quantity += qty;
-            }
+          } else if (
+            tx.type === TransactionType.RepaymentReceived ||
+            tx.type === TransactionType.GiftGiven
+          ) {
+            item.quantity -= qty; // item came back / I gave it as gift
+          } else if (
+            tx.type === TransactionType.RepaymentMade ||
+            tx.type === TransactionType.GiftReceived
+          ) {
+            item.quantity += qty; // I returned it / I received it as gift
           }
         } else {
           // Perspective flipping for shared transactions
-          if (tx.type === TransactionType.Given) {
-            item.quantity -= qty; // They gave it to me -> I received
-          } else if (tx.type === TransactionType.Received) {
-            item.quantity += qty; // They received it from me -> I gave
-          } else if (tx.type === TransactionType.Returned || tx.type === TransactionType.Gift) {
-            const dir = tx.returnDirection;
-            if (dir === ReturnDirection.ToMe) {
-              item.quantity += qty; // They got it back -> I returned to contact
-            } else if (dir === ReturnDirection.ToContact) {
-              item.quantity -= qty; // They returned to me -> I got it back
-            }
+          if (tx.type === TransactionType.LoanGiven) {
+            item.quantity -= qty; // They lent to me -> I borrowed
+          } else if (tx.type === TransactionType.LoanReceived) {
+            item.quantity += qty; // They borrowed from me -> I lent
+          } else if (
+            tx.type === TransactionType.RepaymentReceived ||
+            tx.type === TransactionType.GiftGiven
+          ) {
+            item.quantity += qty; // They got back / gave away -> I returned it to them
+          } else if (
+            tx.type === TransactionType.RepaymentMade ||
+            tx.type === TransactionType.GiftReceived
+          ) {
+            item.quantity -= qty; // They returned / received gift -> they gave back to me
           }
         }
       });

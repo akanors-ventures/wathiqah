@@ -49,7 +49,6 @@ export type TransactionMinAggregateOutputType = {
   contactId: string | null
   createdById: string | null
   status: $Enums.TransactionStatus | null
-  returnDirection: $Enums.ReturnDirection | null
   parentId: string | null
   currency: string | null
 }
@@ -67,7 +66,6 @@ export type TransactionMaxAggregateOutputType = {
   contactId: string | null
   createdById: string | null
   status: $Enums.TransactionStatus | null
-  returnDirection: $Enums.ReturnDirection | null
   parentId: string | null
   currency: string | null
 }
@@ -85,7 +83,6 @@ export type TransactionCountAggregateOutputType = {
   contactId: number
   createdById: number
   status: number
-  returnDirection: number
   parentId: number
   currency: number
   _all: number
@@ -115,7 +112,6 @@ export type TransactionMinAggregateInputType = {
   contactId?: true
   createdById?: true
   status?: true
-  returnDirection?: true
   parentId?: true
   currency?: true
 }
@@ -133,7 +129,6 @@ export type TransactionMaxAggregateInputType = {
   contactId?: true
   createdById?: true
   status?: true
-  returnDirection?: true
   parentId?: true
   currency?: true
 }
@@ -151,7 +146,6 @@ export type TransactionCountAggregateInputType = {
   contactId?: true
   createdById?: true
   status?: true
-  returnDirection?: true
   parentId?: true
   currency?: true
   _all?: true
@@ -256,7 +250,6 @@ export type TransactionGroupByOutputType = {
   contactId: string | null
   createdById: string
   status: $Enums.TransactionStatus
-  returnDirection: $Enums.ReturnDirection | null
   parentId: string | null
   currency: string
   _count: TransactionCountAggregateOutputType | null
@@ -297,7 +290,6 @@ export type TransactionWhereInput = {
   contactId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdById?: Prisma.StringFilter<"Transaction"> | string
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
-  returnDirection?: Prisma.EnumReturnDirectionNullableFilter<"Transaction"> | $Enums.ReturnDirection | null
   parentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   currency?: Prisma.StringFilter<"Transaction"> | string
   history?: Prisma.TransactionHistoryListRelationFilter
@@ -321,7 +313,6 @@ export type TransactionOrderByWithRelationInput = {
   contactId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  returnDirection?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
   history?: Prisma.TransactionHistoryOrderByRelationAggregateInput
@@ -348,7 +339,6 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   contactId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdById?: Prisma.StringFilter<"Transaction"> | string
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
-  returnDirection?: Prisma.EnumReturnDirectionNullableFilter<"Transaction"> | $Enums.ReturnDirection | null
   parentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   currency?: Prisma.StringFilter<"Transaction"> | string
   history?: Prisma.TransactionHistoryListRelationFilter
@@ -372,7 +362,6 @@ export type TransactionOrderByWithAggregationInput = {
   contactId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  returnDirection?: Prisma.SortOrderInput | Prisma.SortOrder
   parentId?: Prisma.SortOrderInput | Prisma.SortOrder
   currency?: Prisma.SortOrder
   _count?: Prisma.TransactionCountOrderByAggregateInput
@@ -398,7 +387,6 @@ export type TransactionScalarWhereWithAggregatesInput = {
   contactId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   createdById?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   status?: Prisma.EnumTransactionStatusWithAggregatesFilter<"Transaction"> | $Enums.TransactionStatus
-  returnDirection?: Prisma.EnumReturnDirectionNullableWithAggregatesFilter<"Transaction"> | $Enums.ReturnDirection | null
   parentId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   currency?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
 }
@@ -414,7 +402,6 @@ export type TransactionCreateInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryCreateNestedManyWithoutTransactionInput
   contact?: Prisma.ContactCreateNestedOneWithoutTransactionsInput
@@ -437,7 +424,6 @@ export type TransactionUncheckedCreateInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
   history?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutTransactionInput
@@ -456,7 +442,6 @@ export type TransactionUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUpdateManyWithoutTransactionNestedInput
   contact?: Prisma.ContactUpdateOneWithoutTransactionsNestedInput
@@ -479,7 +464,6 @@ export type TransactionUncheckedUpdateInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutTransactionNestedInput
@@ -500,7 +484,6 @@ export type TransactionCreateManyInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
 }
@@ -516,7 +499,6 @@ export type TransactionUpdateManyMutationInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -533,7 +515,6 @@ export type TransactionUncheckedUpdateManyInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -566,7 +547,6 @@ export type TransactionCountOrderByAggregateInput = {
   contactId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  returnDirection?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   currency?: Prisma.SortOrder
 }
@@ -589,7 +569,6 @@ export type TransactionMaxOrderByAggregateInput = {
   contactId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  returnDirection?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   currency?: Prisma.SortOrder
 }
@@ -607,7 +586,6 @@ export type TransactionMinOrderByAggregateInput = {
   contactId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  returnDirection?: Prisma.SortOrder
   parentId?: Prisma.SortOrder
   currency?: Prisma.SortOrder
 }
@@ -754,10 +732,6 @@ export type EnumTransactionStatusFieldUpdateOperationsInput = {
   set?: $Enums.TransactionStatus
 }
 
-export type NullableEnumReturnDirectionFieldUpdateOperationsInput = {
-  set?: $Enums.ReturnDirection | null
-}
-
 export type TransactionUpdateOneWithoutConversionsNestedInput = {
   create?: Prisma.XOR<Prisma.TransactionCreateWithoutConversionsInput, Prisma.TransactionUncheckedCreateWithoutConversionsInput>
   connectOrCreate?: Prisma.TransactionCreateOrConnectWithoutConversionsInput
@@ -837,7 +811,6 @@ export type TransactionCreateWithoutCreatedByInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryCreateNestedManyWithoutTransactionInput
   contact?: Prisma.ContactCreateNestedOneWithoutTransactionsInput
@@ -858,7 +831,6 @@ export type TransactionUncheckedCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   contactId?: string | null
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
   history?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutTransactionInput
@@ -908,7 +880,6 @@ export type TransactionScalarWhereInput = {
   contactId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdById?: Prisma.StringFilter<"Transaction"> | string
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
-  returnDirection?: Prisma.EnumReturnDirectionNullableFilter<"Transaction"> | $Enums.ReturnDirection | null
   parentId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   currency?: Prisma.StringFilter<"Transaction"> | string
 }
@@ -924,7 +895,6 @@ export type TransactionCreateWithoutContactInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryCreateNestedManyWithoutTransactionInput
   createdBy: Prisma.UserCreateNestedOneWithoutTransactionsInput
@@ -945,7 +915,6 @@ export type TransactionUncheckedCreateWithoutContactInput = {
   createdAt?: Date | string
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
   history?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutTransactionInput
@@ -990,7 +959,6 @@ export type TransactionCreateWithoutConversionsInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryCreateNestedManyWithoutTransactionInput
   contact?: Prisma.ContactCreateNestedOneWithoutTransactionsInput
@@ -1012,7 +980,6 @@ export type TransactionUncheckedCreateWithoutConversionsInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
   history?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutTransactionInput
@@ -1035,7 +1002,6 @@ export type TransactionCreateWithoutParentInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryCreateNestedManyWithoutTransactionInput
   contact?: Prisma.ContactCreateNestedOneWithoutTransactionsInput
@@ -1057,7 +1023,6 @@ export type TransactionUncheckedCreateWithoutParentInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutTransactionInput
   conversions?: Prisma.TransactionUncheckedCreateNestedManyWithoutParentInput
@@ -1096,7 +1061,6 @@ export type TransactionUpdateWithoutConversionsInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUpdateManyWithoutTransactionNestedInput
   contact?: Prisma.ContactUpdateOneWithoutTransactionsNestedInput
@@ -1118,7 +1082,6 @@ export type TransactionUncheckedUpdateWithoutConversionsInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutTransactionNestedInput
@@ -1152,7 +1115,6 @@ export type TransactionCreateWithoutHistoryInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   contact?: Prisma.ContactCreateNestedOneWithoutTransactionsInput
   createdBy: Prisma.UserCreateNestedOneWithoutTransactionsInput
@@ -1174,7 +1136,6 @@ export type TransactionUncheckedCreateWithoutHistoryInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
   conversions?: Prisma.TransactionUncheckedCreateNestedManyWithoutParentInput
@@ -1208,7 +1169,6 @@ export type TransactionUpdateWithoutHistoryInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   contact?: Prisma.ContactUpdateOneWithoutTransactionsNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
@@ -1230,7 +1190,6 @@ export type TransactionUncheckedUpdateWithoutHistoryInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   conversions?: Prisma.TransactionUncheckedUpdateManyWithoutParentNestedInput
@@ -1248,7 +1207,6 @@ export type TransactionCreateWithoutWitnessesInput = {
   description?: string | null
   createdAt?: Date | string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
   history?: Prisma.TransactionHistoryCreateNestedManyWithoutTransactionInput
   contact?: Prisma.ContactCreateNestedOneWithoutTransactionsInput
@@ -1270,7 +1228,6 @@ export type TransactionUncheckedCreateWithoutWitnessesInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
   history?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutTransactionInput
@@ -1304,7 +1261,6 @@ export type TransactionUpdateWithoutWitnessesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUpdateManyWithoutTransactionNestedInput
   contact?: Prisma.ContactUpdateOneWithoutTransactionsNestedInput
@@ -1326,7 +1282,6 @@ export type TransactionUncheckedUpdateWithoutWitnessesInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutTransactionNestedInput
@@ -1345,7 +1300,6 @@ export type TransactionCreateManyCreatedByInput = {
   createdAt?: Date | string
   contactId?: string | null
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
 }
@@ -1361,7 +1315,6 @@ export type TransactionUpdateWithoutCreatedByInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUpdateManyWithoutTransactionNestedInput
   contact?: Prisma.ContactUpdateOneWithoutTransactionsNestedInput
@@ -1382,7 +1335,6 @@ export type TransactionUncheckedUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutTransactionNestedInput
@@ -1402,7 +1354,6 @@ export type TransactionUncheckedUpdateManyWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1419,7 +1370,6 @@ export type TransactionCreateManyContactInput = {
   createdAt?: Date | string
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   parentId?: string | null
   currency?: string
 }
@@ -1435,7 +1385,6 @@ export type TransactionUpdateWithoutContactInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUpdateManyWithoutTransactionNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutTransactionsNestedInput
@@ -1456,7 +1405,6 @@ export type TransactionUncheckedUpdateWithoutContactInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutTransactionNestedInput
@@ -1476,7 +1424,6 @@ export type TransactionUncheckedUpdateManyWithoutContactInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1494,7 +1441,6 @@ export type TransactionCreateManyParentInput = {
   contactId?: string | null
   createdById: string
   status?: $Enums.TransactionStatus
-  returnDirection?: $Enums.ReturnDirection | null
   currency?: string
 }
 
@@ -1509,7 +1455,6 @@ export type TransactionUpdateWithoutParentInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUpdateManyWithoutTransactionNestedInput
   contact?: Prisma.ContactUpdateOneWithoutTransactionsNestedInput
@@ -1531,7 +1476,6 @@ export type TransactionUncheckedUpdateWithoutParentInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
   history?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutTransactionNestedInput
   conversions?: Prisma.TransactionUncheckedUpdateManyWithoutParentNestedInput
@@ -1551,7 +1495,6 @@ export type TransactionUncheckedUpdateManyWithoutParentInput = {
   contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  returnDirection?: Prisma.NullableEnumReturnDirectionFieldUpdateOperationsInput | $Enums.ReturnDirection | null
   currency?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1617,7 +1560,6 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   contactId?: boolean
   createdById?: boolean
   status?: boolean
-  returnDirection?: boolean
   parentId?: boolean
   currency?: boolean
   history?: boolean | Prisma.Transaction$historyArgs<ExtArgs>
@@ -1642,7 +1584,6 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   contactId?: boolean
   createdById?: boolean
   status?: boolean
-  returnDirection?: boolean
   parentId?: boolean
   currency?: boolean
   contact?: boolean | Prisma.Transaction$contactArgs<ExtArgs>
@@ -1663,7 +1604,6 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   contactId?: boolean
   createdById?: boolean
   status?: boolean
-  returnDirection?: boolean
   parentId?: boolean
   currency?: boolean
   contact?: boolean | Prisma.Transaction$contactArgs<ExtArgs>
@@ -1684,12 +1624,11 @@ export type TransactionSelectScalar = {
   contactId?: boolean
   createdById?: boolean
   status?: boolean
-  returnDirection?: boolean
   parentId?: boolean
   currency?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "category" | "amount" | "itemName" | "quantity" | "type" | "date" | "description" | "createdAt" | "contactId" | "createdById" | "status" | "returnDirection" | "parentId" | "currency", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "category" | "amount" | "itemName" | "quantity" | "type" | "date" | "description" | "createdAt" | "contactId" | "createdById" | "status" | "parentId" | "currency", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   history?: boolean | Prisma.Transaction$historyArgs<ExtArgs>
   contact?: boolean | Prisma.Transaction$contactArgs<ExtArgs>
@@ -1733,7 +1672,6 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     contactId: string | null
     createdById: string
     status: $Enums.TransactionStatus
-    returnDirection: $Enums.ReturnDirection | null
     parentId: string | null
     currency: string
   }, ExtArgs["result"]["transaction"]>
@@ -2177,7 +2115,6 @@ export interface TransactionFieldRefs {
   readonly contactId: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdById: Prisma.FieldRef<"Transaction", 'String'>
   readonly status: Prisma.FieldRef<"Transaction", 'TransactionStatus'>
-  readonly returnDirection: Prisma.FieldRef<"Transaction", 'ReturnDirection'>
   readonly parentId: Prisma.FieldRef<"Transaction", 'String'>
   readonly currency: Prisma.FieldRef<"Transaction", 'String'>
 }

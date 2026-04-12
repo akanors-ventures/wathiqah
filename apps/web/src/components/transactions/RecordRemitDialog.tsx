@@ -27,44 +27,37 @@ import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory, TransactionType } from "@/types/__generated__/graphql";
 
-interface RecordReturnDialogProps {
+interface RecordRemitDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Original loan transaction being (partially) returned. */
+  /** Original ESCROWED transaction being (partially) remitted. */
   transaction: {
     id: string;
-    type: TransactionType;
     amount: number | null | undefined;
     currency: string | null | undefined;
     contactId: string;
     contactName: string;
-    /** Amount still outstanding (parent amount minus already-recorded repayments/conversions). */
+    /** Amount still outstanding (parent amount minus already-recorded remittances). */
     remainingAmount: number;
   };
   onSuccess?: () => void;
 }
 
 /**
- * Quick-action dialog to record a repayment against an existing LOAN_GIVEN or LOAN_RECEIVED
- * transaction. Creates a NEW REPAYMENT_RECEIVED or REPAYMENT_MADE transaction linked to the
- * parent loan via parentId. The original transaction is kept intact so the full audit trail
- * is preserved, and repayments are capped at the outstanding balance.
+ * Quick-action dialog to record a remittance against an existing ESCROWED
+ * transaction. Creates a new REMITTED transaction linked to the parent
+ * escrow via parentId. The original escrow record is preserved so the full
+ * audit trail is retained, and remittances are capped at the outstanding
+ * balance. The parent's status auto-flips to COMPLETED once fully remitted.
  */
-export function RecordReturnDialog({
+export function RecordRemitDialog({
   open,
   onOpenChange,
   transaction,
   onSuccess,
-}: RecordReturnDialogProps) {
+}: RecordRemitDialogProps) {
   const { createTransaction, creating } = useTransactions();
-  const [amountKey, setAmountKey] = useState(0); // reset key for the amount input
-
-  // LOAN_GIVEN → contact repays → REPAYMENT_RECEIVED
-  // LOAN_RECEIVED → I repay → REPAYMENT_MADE
-  const repayType =
-    transaction.type === TransactionType.LoanGiven
-      ? TransactionType.RepaymentReceived
-      : TransactionType.RepaymentMade;
+  const [amountKey, setAmountKey] = useState(0);
 
   const currencyCode = transaction.currency ?? "NGN";
   const remaining = transaction.remainingAmount;
@@ -77,10 +70,10 @@ export function RecordReturnDialog({
     date: z.string().min(1, "Date is required"),
   });
 
-  type RecordReturnFormValues = z.infer<typeof formSchema>;
+  type RecordRemitFormValues = z.infer<typeof formSchema>;
 
-  const form = useForm<RecordReturnFormValues>({
-    resolver: zodResolver(formSchema) as Resolver<RecordReturnFormValues>,
+  const form = useForm<RecordRemitFormValues>({
+    resolver: zodResolver(formSchema) as Resolver<RecordRemitFormValues>,
     defaultValues: {
       amount: remaining,
       date: format(new Date(), "yyyy-MM-dd"),
@@ -88,30 +81,28 @@ export function RecordReturnDialog({
   });
 
   const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
-    // key prop on the parent ensures this resets when dialog reopens
     initialValue: remaining,
     currencyCode,
     onChange: (value) =>
       form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
   });
 
-  async function onSubmit(values: RecordReturnFormValues) {
+  async function onSubmit(values: RecordRemitFormValues) {
     try {
       await createTransaction({
-        type: repayType,
+        type: TransactionType.Remitted,
         category: AssetCategory.Funds,
         amount: values.amount,
         currency: currencyCode,
-        // Backend derives contactId from parent loan — we still pass contactId for schemas
-        // that require it, but the server will override it from the parent.
+        // Backend derives contactId from parent escrow — we still pass it
+        // for schemas that require it; the server will override if needed.
         contactId: transaction.contactId,
         parentId: transaction.id,
         date: new Date(values.date).toISOString(),
       });
-      toast.success("Repayment recorded successfully");
+      toast.success("Remittance recorded successfully");
       onSuccess?.();
       onOpenChange(false);
-      // Reset so dialog is clean on next open
       form.reset({
         amount: remaining,
         date: format(new Date(), "yyyy-MM-dd"),
@@ -119,7 +110,7 @@ export function RecordReturnDialog({
       setAmountKey((k) => k + 1);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to record repayment");
+      toast.error("Failed to record remittance");
     }
   }
 
@@ -127,13 +118,13 @@ export function RecordReturnDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Record Repayment</DialogTitle>
+          <DialogTitle>Record Remittance</DialogTitle>
           <DialogDescription>
-            Record a partial or full repayment against this loan. Outstanding balance:{" "}
+            Record a partial or full remittance against this escrow. Outstanding balance:{" "}
             <span className="font-semibold text-foreground">
               {formatCurrency(remaining, currencyCode)}
             </span>
-            . The original loan record is preserved.
+            . The original escrow record is preserved.
           </DialogDescription>
         </DialogHeader>
 
@@ -145,7 +136,7 @@ export function RecordReturnDialog({
               name="amount"
               render={() => (
                 <FormItem>
-                  <FormLabel>Amount Repaid</FormLabel>
+                  <FormLabel>Amount Remitted</FormLabel>
                   <FormControl>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium text-muted-foreground min-w-[3rem]">
@@ -192,7 +183,7 @@ export function RecordReturnDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={creating}>
-                {creating ? "Recording..." : "Record Repayment"}
+                {creating ? "Recording..." : "Record Remittance"}
               </Button>
             </DialogFooter>
           </form>

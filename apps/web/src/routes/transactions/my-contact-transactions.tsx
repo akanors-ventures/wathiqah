@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Filter, Info, Package, Search } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
+import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,6 @@ import {
 import { useMyContactTransactions } from "@/hooks/useMyContactTransactions";
 import { useSharedHistoryFilters } from "@/hooks/useSharedHistoryFilters";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -90,10 +90,18 @@ function MyContactTransactionsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ALL">All Types</SelectItem>
-            <SelectItem value="GIVEN">Given</SelectItem>
-            <SelectItem value="RECEIVED">Received</SelectItem>
-            <SelectItem value="RETURNED">Returned</SelectItem>
-            <SelectItem value="GIFT">Gift</SelectItem>
+            <SelectItem value="LOAN_GIVEN">Loan Given</SelectItem>
+            <SelectItem value="LOAN_RECEIVED">Loan Received</SelectItem>
+            <SelectItem value="REPAYMENT_MADE">Repayment Made</SelectItem>
+            <SelectItem value="REPAYMENT_RECEIVED">Repayment Received</SelectItem>
+            <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
+            <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
+            <SelectItem value="ADVANCE_PAID">Advance Paid</SelectItem>
+            <SelectItem value="ADVANCE_RECEIVED">Advance Received</SelectItem>
+            <SelectItem value="DEPOSIT_PAID">Deposit Paid</SelectItem>
+            <SelectItem value="DEPOSIT_RECEIVED">Deposit Received</SelectItem>
+            <SelectItem value="ESCROWED">Escrowed</SelectItem>
+            <SelectItem value="REMITTED">Remitted</SelectItem>
           </SelectContent>
         </Select>
         <DateRangePicker value={dateRange} onChange={setDateRange} />
@@ -182,37 +190,7 @@ function MyContactTransactionsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="py-4">
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "text-[10px] font-bold px-2 py-0.5",
-                              tx.type === "GIVEN"
-                                ? "text-blue-600 border-blue-200 bg-blue-50"
-                                : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600 border-red-200 bg-red-50"
-                                  : tx.type === "RETURNED"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                      : "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "INCOME"
-                                      ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                      : tx.type === "GIFT"
-                                        ? tx.returnDirection === "TO_ME"
-                                          ? "text-purple-600 border-purple-200 bg-purple-50"
-                                          : "text-pink-600 border-pink-200 bg-pink-50"
-                                        : "text-gray-600 border-gray-200 bg-gray-50",
-                            )}
-                          >
-                            {tx.type === "RETURNED"
-                              ? tx.returnDirection === "TO_ME"
-                                ? "RETURNED TO ME"
-                                : "RETURNED TO CONTACT"
-                              : tx.type === "GIFT"
-                                ? tx.returnDirection === "TO_ME"
-                                  ? "GIFT RECEIVED"
-                                  : "GIFT GIVEN"
-                                : tx.type}
-                          </Badge>
+                          <TransactionTypeBadge type={tx.type} />
                         </TableCell>
                         <TableCell className="py-4 max-w-[200px]">
                           <div className="text-sm text-muted-foreground truncate font-medium">
@@ -221,34 +199,12 @@ function MyContactTransactionsPage() {
                         </TableCell>
                         <TableCell className="text-right py-4">
                           {tx.category === AssetCategory.Funds ? (
-                            <span
-                              className={cn(
-                                "text-sm font-bold",
-                                tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600"
-                                  : tx.type === "GIVEN"
-                                    ? "text-blue-600"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-green-600"
-                                        : "text-blue-600"
-                                      : tx.type === "INCOME"
-                                        ? "text-green-600"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600"
-                                            : "text-pink-600"
-                                          : "text-foreground",
-                              )}
-                            >
-                              {tx.type === "GIVEN" ||
-                              (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                              tx.type === "INCOME" ||
-                              (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                                ? "+"
-                                : "-"}
-                              {formatCurrency(tx.amount || 0, tx.currency)}
-                            </span>
+                            <TransactionAmount
+                              type={tx.type}
+                              amount={tx.amount}
+                              currency={tx.currency}
+                              className="text-sm"
+                            />
                           ) : (
                             <div className="flex items-center justify-end gap-1.5 font-bold text-sm text-foreground">
                               <Package size={14} className="text-muted-foreground opacity-50" />
@@ -312,37 +268,7 @@ function MyContactTransactionsPage() {
                             {tx.createdBy?.email}
                           </div>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-[10px] font-bold px-2 py-0.5",
-                            tx.type === "GIVEN"
-                              ? "text-blue-600 border-blue-200 bg-blue-50"
-                              : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                ? "text-red-600 border-red-200 bg-red-50"
-                                : tx.type === "RETURNED"
-                                  ? tx.returnDirection === "TO_ME"
-                                    ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                    : "text-blue-600 border-blue-200 bg-blue-50"
-                                  : tx.type === "INCOME"
-                                    ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                    : tx.type === "GIFT"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-purple-600 border-purple-200 bg-purple-50"
-                                        : "text-pink-600 border-pink-200 bg-pink-50"
-                                      : "text-gray-600 border-gray-200 bg-gray-50",
-                          )}
-                        >
-                          {tx.type === "RETURNED"
-                            ? tx.returnDirection === "TO_ME"
-                              ? "RETURNED TO ME"
-                              : "RETURNED TO CONTACT"
-                            : tx.type === "GIFT"
-                              ? tx.returnDirection === "TO_ME"
-                                ? "GIFT RECEIVED"
-                                : "GIFT GIVEN"
-                              : tx.type}
-                        </Badge>
+                        <TransactionTypeBadge type={tx.type} />
                       </div>
 
                       <div className="flex justify-between items-end pt-2 border-t border-border/30">
@@ -353,34 +279,12 @@ function MyContactTransactionsPage() {
                         </div>
                         <div className="shrink-0">
                           {tx.category === AssetCategory.Funds ? (
-                            <span
-                              className={cn(
-                                "text-sm font-bold",
-                                tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                  ? "text-red-600"
-                                  : tx.type === "GIVEN"
-                                    ? "text-blue-600"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-green-600"
-                                        : "text-blue-600"
-                                      : tx.type === "INCOME"
-                                        ? "text-green-600"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600"
-                                            : "text-pink-600"
-                                          : "text-foreground",
-                              )}
-                            >
-                              {tx.type === "GIVEN" ||
-                              (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                              tx.type === "INCOME" ||
-                              (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                                ? "+"
-                                : "-"}
-                              {formatCurrency(tx.amount || 0, tx.currency)}
-                            </span>
+                            <TransactionAmount
+                              type={tx.type}
+                              amount={tx.amount}
+                              currency={tx.currency}
+                              className="text-sm"
+                            />
                           ) : (
                             <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
                               <Package size={14} className="text-muted-foreground opacity-50" />

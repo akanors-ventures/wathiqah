@@ -1,8 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { endOfMonth, endOfYear, format, startOfMonth, startOfYear } from "date-fns";
-import { CalendarClock, CreditCard, FileCheck, Users, CalendarDays } from "lucide-react";
+import { CalendarClock, CalendarDays, CreditCard, FileCheck, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
@@ -21,8 +20,9 @@ import { useContacts } from "@/hooks/useContacts";
 import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
-import { ProjectsWidget } from "./ProjectsWidget";
+import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
 import { OnboardingChecklist } from "./OnboardingChecklist";
+import { ProjectsWidget } from "./ProjectsWidget";
 import { StatsCard } from "./StatsCard";
 
 type Period = "ALL" | "MONTH" | "YEAR";
@@ -83,16 +83,20 @@ export function Dashboard() {
 
   // Use period data for Inflow/Outflow
   const periodIncome =
-    (periodBalanceData?.totalIncome || 0) +
-    (periodBalanceData?.totalReceived || 0) +
-    (periodBalanceData?.totalReturnedToMe || 0) +
-    (periodBalanceData?.totalGiftReceived || 0);
+    (periodBalanceData?.totalLoanReceived || 0) +
+    (periodBalanceData?.totalRepaymentReceived || 0) +
+    (periodBalanceData?.totalGiftReceived || 0) +
+    (periodBalanceData?.totalAdvanceReceived || 0) +
+    (periodBalanceData?.totalDepositReceived || 0) +
+    (periodBalanceData?.totalEscrowed || 0);
 
   const periodExpense =
-    (periodBalanceData?.totalExpense || 0) +
-    (periodBalanceData?.totalGiven || 0) +
-    (periodBalanceData?.totalReturnedToOther || 0) +
-    (periodBalanceData?.totalGiftGiven || 0);
+    (periodBalanceData?.totalLoanGiven || 0) +
+    (periodBalanceData?.totalRepaymentMade || 0) +
+    (periodBalanceData?.totalGiftGiven || 0) +
+    (periodBalanceData?.totalAdvancePaid || 0) +
+    (periodBalanceData?.totalDepositPaid || 0) +
+    (periodBalanceData?.totalRemitted || 0);
 
   const balanceCurrency = totalBalanceData?.currency || "NGN";
   const isDebtByRule = totalBalance < 0;

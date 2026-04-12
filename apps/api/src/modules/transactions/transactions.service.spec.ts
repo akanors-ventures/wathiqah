@@ -116,7 +116,7 @@ describe('TransactionsService - Pagination', () => {
   const makeTransaction = (id: string) => ({
     id,
     amount: { toNumber: () => 100 },
-    type: TransactionType.GIVEN,
+    type: TransactionType.LOAN_GIVEN,
     category: AssetCategory.FUNDS,
     status: TransactionStatus.COMPLETED,
     currency: 'NGN',
@@ -138,7 +138,6 @@ describe('TransactionsService - Pagination', () => {
       email: 'alice@test.com',
     },
     witnesses: [],
-    returnDirection: null,
     itemName: null,
     quantity: null,
     parentId: null,

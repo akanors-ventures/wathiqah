@@ -8,52 +8,50 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
+import { useAuth } from "@/hooks/use-auth";
 import { ME_QUERY } from "@/lib/apollo/queries/auth";
 import { GET_MY_CONTACT_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
 import { MARK_SHARED_HISTORY_SEEN_MUTATION } from "@/lib/apollo/queries/users";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
-import { useAuth } from "@/hooks/use-auth";
 
 /** Maximum number of transaction previews shown on the interstitial. */
 const MAX_PREVIEW_TRANSACTIONS = 4;
 
-function getTypeLabel(type: string, returnDirection: string | null | undefined): string {
-  if (type === "RETURNED") {
-    return returnDirection === "TO_ME" ? "RETURNED TO ME" : "RETURNED TO CONTACT";
-  }
-  if (type === "GIFT") {
-    return returnDirection === "TO_ME" ? "GIFT RECEIVED" : "GIFT GIVEN";
-  }
-  return type;
+function getTypeLabel(type: string): string {
+  return type.toLowerCase().replace(/_/g, " ");
 }
 
 /**
  * Returns Tailwind class names for a transaction type badge.
- * Color convention (from CLAUDE.md):
- *   GIVEN → Blue | RECEIVED/EXPENSE → Red | INCOME/RETURNED TO ME → Emerald
- *   RETURNED TO CONTACT → Blue | GIFT RECEIVED → Purple | GIFT GIVEN → Pink
+ * Color convention:
+ *   LOAN_GIVEN, REPAYMENT_MADE → Blue
+ *   LOAN_RECEIVED, REPAYMENT_RECEIVED → Rose/Red
+ *   ESCROWED → Emerald
+ *   GIFT_RECEIVED, ADVANCE_RECEIVED, DEPOSIT_RECEIVED → Purple
+ *   GIFT_GIVEN → Pink
+ *   ADVANCE_PAID, DEPOSIT_PAID, REMITTED → Orange
+ *   Legacy INCOME → Emerald | EXPENSE → Rose
  */
-function getTypeBadgeClass(type: string, returnDirection: string | null | undefined): string {
-  if (type === "GIVEN") {
+function getTypeBadgeClass(type: string): string {
+  if (type === "LOAN_GIVEN" || type === "REPAYMENT_MADE") {
     return "text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-400";
   }
-  if (type === "RECEIVED" || type === "EXPENSE") {
+  if (type === "LOAN_RECEIVED" || type === "REPAYMENT_RECEIVED" || type === "EXPENSE") {
     return "text-red-600 border-red-200 bg-red-50 dark:bg-red-950/40 dark:border-red-800 dark:text-red-400";
   }
-  if (type === "INCOME") {
+  if (type === "ESCROWED" || type === "INCOME") {
     return "text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-400";
   }
-  if (type === "RETURNED") {
-    return returnDirection === "TO_ME"
-      ? "text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-400"
-      : "text-blue-600 border-blue-200 bg-blue-50 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-400";
+  if (type === "GIFT_RECEIVED" || type === "ADVANCE_RECEIVED" || type === "DEPOSIT_RECEIVED") {
+    return "text-purple-600 border-purple-200 bg-purple-50 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-400";
   }
-  if (type === "GIFT") {
-    return returnDirection === "TO_ME"
-      ? "text-purple-600 border-purple-200 bg-purple-50 dark:bg-purple-950/40 dark:border-purple-800 dark:text-purple-400"
-      : "text-pink-600 border-pink-200 bg-pink-50 dark:bg-pink-950/40 dark:border-pink-800 dark:text-pink-400";
+  if (type === "GIFT_GIVEN") {
+    return "text-pink-600 border-pink-200 bg-pink-50 dark:bg-pink-950/40 dark:border-pink-800 dark:text-pink-400";
+  }
+  if (type === "ADVANCE_PAID" || type === "DEPOSIT_PAID" || type === "REMITTED") {
+    return "text-orange-600 border-orange-200 bg-orange-50 dark:bg-orange-950/40 dark:border-orange-800 dark:text-orange-400";
   }
   return "text-gray-600 border-gray-200 bg-gray-50";
 }
@@ -67,7 +65,7 @@ export function SharedHistoryInterstitial() {
   const { data, loading } = useQuery(GET_MY_CONTACT_TRANSACTIONS);
   const [markSeenMutation] = useMutation(MARK_SHARED_HISTORY_SEEN_MUTATION);
 
-  const transactions = data?.myContactTransactions ?? [];
+  const transactions = data?.myContactTransactions?.items ?? [];
 
   // When the query resolves with zero pre-existing transactions, silently mark
   // the flag as seen so the parent re-renders with the standard Dashboard.
@@ -202,10 +200,10 @@ export function SharedHistoryInterstitial() {
                         variant="outline"
                         className={cn(
                           "text-[10px] font-bold px-2 py-0.5 shrink-0",
-                          getTypeBadgeClass(tx.type, tx.returnDirection),
+                          getTypeBadgeClass(tx.type),
                         )}
                       >
-                        {getTypeLabel(tx.type, tx.returnDirection)}
+                        {getTypeLabel(tx.type)}
                       </Badge>
                       <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
                         {format(new Date(tx.date as string), "MMM d, yyyy")}
