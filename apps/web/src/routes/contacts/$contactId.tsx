@@ -2,10 +2,7 @@ import { useMutation, useQuery } from "@apollo/client/react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
-  ArrowDownLeft,
   ArrowLeft,
-  ArrowRightLeft,
-  ArrowUpRight,
   ChevronRight,
   Clock,
   CornerDownRight,
@@ -17,11 +14,11 @@ import {
   UserCircle,
   UserPlus,
 } from "lucide-react";
+import { ContactSummaryCards } from "@/components/contacts/ContactSummaryCards";
 import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Badge } from "@/components/ui/badge";
-import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -205,67 +202,7 @@ function ContactDetailsPage() {
       </div>
 
       {/* Summary Cards */}
-      {summary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Net Balance with Contact</CardTitle>
-              <div className="h-4 w-4 text-muted-foreground">💰</div>
-            </CardHeader>
-            <CardContent>
-              <BalanceIndicator
-                amount={contact.balance}
-                currency="NGN"
-                className="text-2xl px-3 py-1 h-auto"
-              />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Loaned Out</CardTitle>
-              <ArrowUpRight className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(summary.totalLoanGiven, "NGN")}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Borrowed</CardTitle>
-              <ArrowDownLeft className="h-4 w-4 text-rose-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-rose-600">
-                {formatCurrency(summary.totalLoanReceived, "NGN")}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Repayments Received</CardTitle>
-              <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">
-                {formatCurrency(summary.totalRepaymentReceived, "NGN")}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Repayments Made</CardTitle>
-              <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">
-                {formatCurrency(summary.totalRepaymentMade, "NGN")}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {summary && <ContactSummaryCards summary={summary} contactBalance={contact.balance} />}
 
       {/* Transactions Table */}
       <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
