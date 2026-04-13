@@ -4,6 +4,7 @@ import {
   ArrowUpRight,
   ChevronDown,
   ChevronRight,
+  Scale,
 } from "lucide-react";
 import { useState } from "react";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
@@ -54,7 +55,7 @@ export function ContactSummaryCards({ summary, contactBalance }: ContactSummaryC
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Net Balance with Contact</CardTitle>
-            <div className="h-4 w-4 text-muted-foreground">💰</div>
+            <Scale className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <BalanceIndicator
@@ -71,7 +72,7 @@ export function ContactSummaryCards({ summary, contactBalance }: ContactSummaryC
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
-              {formatCurrency(summary.totalLoanGiven, "NGN")}
+              {formatCurrency(summary.totalLoanGiven, summary.currency)}
             </div>
           </CardContent>
         </Card>
@@ -82,7 +83,7 @@ export function ContactSummaryCards({ summary, contactBalance }: ContactSummaryC
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-rose-600">
-              {formatCurrency(summary.totalLoanReceived, "NGN")}
+              {formatCurrency(summary.totalLoanReceived, summary.currency)}
             </div>
           </CardContent>
         </Card>
@@ -97,7 +98,7 @@ export function ContactSummaryCards({ summary, contactBalance }: ContactSummaryC
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">
-              {formatCurrency(summary.totalRepaymentReceived, "NGN")}
+              {formatCurrency(summary.totalRepaymentReceived, summary.currency)}
             </div>
           </CardContent>
         </Card>
@@ -108,7 +109,7 @@ export function ContactSummaryCards({ summary, contactBalance }: ContactSummaryC
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">
-              {formatCurrency(summary.totalRepaymentMade, "NGN")}
+              {formatCurrency(summary.totalRepaymentMade, summary.currency)}
             </div>
           </CardContent>
         </Card>
@@ -135,7 +136,7 @@ export function ContactSummaryCards({ summary, contactBalance }: ContactSummaryC
                   <div key={flow.label} className="space-y-1">
                     <p className="text-xs font-medium text-muted-foreground">{flow.label}</p>
                     <p className={`text-base font-bold ${flow.colorClass}`}>
-                      {formatCurrency(flow.value, "NGN")}
+                      {formatCurrency(flow.value, summary.currency)}
                     </p>
                   </div>
                 ))}
