@@ -86,6 +86,7 @@ function ContactDetailsPage() {
         contactId,
       },
     },
+    fetchPolicy: "cache-and-network",
   });
 
   const [inviteContact] = useMutation(INVITE_CONTACT, {
