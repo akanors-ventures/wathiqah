@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { useForm, type Resolver } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -25,34 +25,35 @@ import { useContacts } from "@/hooks/useContacts";
 import {
   AssetCategory,
   type CreateTransactionInput,
-  ReturnDirection,
   TransactionType,
 } from "@/types/__generated__/graphql";
 
-const formSchema = z
-  .object({
-    itemName: z.string().min(2, "Item name is required"),
-    quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
-    type: z.enum(["LENT", "BORROWED", "RETURNED", "GIFT"]),
-    returnDirection: z.enum([ReturnDirection.ToMe, ReturnDirection.ToContact]).optional(),
-    contactId: z.string().min(1, "Contact is required"),
-    date: z.string(), // Use string for native date input
-    description: z.string().optional(),
-  })
-  .refine(
-    (data) => {
-      if ((data.type === "RETURNED" || data.type === "GIFT") && !data.returnDirection) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Direction is required for this transaction type",
-      path: ["returnDirection"],
-    },
-  );
+const formSchema = z.object({
+  itemName: z.string().min(2, "Item name is required"),
+  quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
+  type: z.enum([
+    "LENT",
+    "BORROWED",
+    "RETURNED_TO_ME",
+    "RETURNED_TO_CONTACT",
+    "GIFT_GIVEN",
+    "GIFT_RECEIVED",
+  ]),
+  contactId: z.string().min(1, "Contact is required"),
+  date: z.string(),
+  description: z.string().optional(),
+});
 
 type FormValues = z.infer<typeof formSchema>;
+
+const ACTION_TYPE_MAP: Record<FormValues["type"], TransactionType> = {
+  LENT: TransactionType.LoanGiven,
+  BORROWED: TransactionType.LoanReceived,
+  RETURNED_TO_ME: TransactionType.RepaymentReceived,
+  RETURNED_TO_CONTACT: TransactionType.RepaymentMade,
+  GIFT_GIVEN: TransactionType.GiftGiven,
+  GIFT_RECEIVED: TransactionType.GiftReceived,
+};
 
 interface ItemFormProps {
   onSubmit: (values: CreateTransactionInput) => Promise<void>;
@@ -75,28 +76,13 @@ export function ItemForm({ onSubmit, defaultValues, isLoading }: ItemFormProps) 
     },
   });
 
-  const type = form.watch("type");
-
   const handleSubmit = async (values: FormValues) => {
-    // Map action types to API types
-    let apiType: TransactionType;
-    if (values.type === "LENT") {
-      apiType = TransactionType.Given;
-    } else if (values.type === "BORROWED") {
-      apiType = TransactionType.Received;
-    } else if (values.type === "RETURNED") {
-      apiType = TransactionType.Returned;
-    } else {
-      apiType = TransactionType.Gift;
-    }
-
     const apiValues: CreateTransactionInput = {
       category: AssetCategory.Item,
-      type: apiType,
-      returnDirection: values.returnDirection,
+      type: ACTION_TYPE_MAP[values.type],
       itemName: values.itemName,
       quantity: values.quantity,
-      date: new Date(values.date).toISOString(), // Convert string to ISO string
+      date: new Date(values.date).toISOString(),
       contactId: values.contactId || undefined,
       description: values.description,
     };
@@ -122,8 +108,10 @@ export function ItemForm({ onSubmit, defaultValues, isLoading }: ItemFormProps) 
                   <SelectContent>
                     <SelectItem value="LENT">Lend Item (Give)</SelectItem>
                     <SelectItem value="BORROWED">Borrow Item (Receive)</SelectItem>
-                    <SelectItem value="RETURNED">Return/Repay Item</SelectItem>
-                    <SelectItem value="GIFT">Gift Item</SelectItem>
+                    <SelectItem value="RETURNED_TO_ME">Returned to Me</SelectItem>
+                    <SelectItem value="RETURNED_TO_CONTACT">Returned to Contact</SelectItem>
+                    <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
+                    <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -156,34 +144,6 @@ export function ItemForm({ onSubmit, defaultValues, isLoading }: ItemFormProps) 
             )}
           />
         </div>
-
-        {(type === "RETURNED" || type === "GIFT") && (
-          <FormField
-            control={form.control}
-            name="returnDirection"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Direction</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select direction" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value={ReturnDirection.ToMe}>
-                      To Me (Contact provided it)
-                    </SelectItem>
-                    <SelectItem value={ReturnDirection.ToContact}>
-                      To Contact (I provided it)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
 
         <div className="grid gap-4 md:grid-cols-2">
           <FormField

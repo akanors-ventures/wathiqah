@@ -190,7 +190,6 @@ export const TransactionScalarFieldEnum = {
   contactId: 'contactId',
   createdById: 'createdById',
   status: 'status',
-  returnDirection: 'returnDirection',
   parentId: 'parentId',
   currency: 'currency'
 } as const

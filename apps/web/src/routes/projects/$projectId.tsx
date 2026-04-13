@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { format } from "date-fns";
 import {
   ArrowDownCircle,
   ArrowLeft,
@@ -16,8 +17,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
@@ -41,7 +42,6 @@ import { useProject } from "@/hooks/useProjects";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { ProjectTransactionType } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
-import { format } from "date-fns";
 
 export const Route = createFileRoute("/projects/$projectId")({
   component: ProjectDetailsPage,
@@ -54,8 +54,8 @@ function ProjectDetailsPage() {
   const [txFilter, setTxFilter] = useState<{
     type?: ProjectTransactionType;
     category?: string;
-    startDate?: Date;
-    endDate?: Date;
+    startDate?: string;
+    endDate?: string;
     page: number;
     limit: number;
   }>({ page: 1, limit: 25 });
@@ -221,14 +221,14 @@ function ProjectDetailsPage() {
             />
             <DateRangePicker
               value={{
-                from: txFilter.startDate ? txFilter.startDate.toISOString().split("T")[0] : null,
-                to: txFilter.endDate ? txFilter.endDate.toISOString().split("T")[0] : null,
+                from: txFilter.startDate ? txFilter.startDate.split("T")[0] : null,
+                to: txFilter.endDate ? txFilter.endDate.split("T")[0] : null,
               }}
               onChange={(range) =>
                 setTxFilter((f) => ({
                   ...f,
-                  startDate: range.from ? new Date(range.from) : undefined,
-                  endDate: range.to ? new Date(range.to) : undefined,
+                  startDate: range.from ? new Date(range.from).toISOString() : undefined,
+                  endDate: range.to ? new Date(range.to).toISOString() : undefined,
                   page: 1,
                 }))
               }

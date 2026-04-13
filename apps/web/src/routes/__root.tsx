@@ -87,11 +87,13 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           }}
         />
       </head>
-      <body className="flex flex-col min-h-screen" suppressHydrationWarning>
+      <body className="flex flex-col min-h-screen overflow-x-hidden" suppressHydrationWarning>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <AuthProvider>
             <Header />
-            <main className="flex-1 flex flex-col">{children}</main>
+            <main className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden">
+              {children}
+            </main>
             <Toaster />
             <TanStackDevtools
               config={{

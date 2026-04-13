@@ -1,18 +1,20 @@
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowUpRight, CalendarDays, Mail } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CalendarDays, Mail, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
+  AssetCategory,
   type MyWitnessRequestsQuery,
   WitnessStatus,
-  AssetCategory,
 } from "@/types/__generated__/graphql";
 import { WitnessStatusBadge } from "./WitnessStatusBadge";
 
+type WitnessRequest = NonNullable<MyWitnessRequestsQuery["myWitnessRequests"]>["items"][number];
+
 interface WitnessCardProps {
-  request: MyWitnessRequestsQuery["myWitnessRequests"][0];
+  request: WitnessRequest;
   onAcknowledge: (id: string) => void;
   onDecline: (id: string) => void;
   isLoading?: boolean;
@@ -24,10 +26,13 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
   if (!transaction || !transaction.createdBy) return null;
 
   const isPositive =
-    transaction.type === "GIVEN" ||
-    (transaction.type === "RETURNED" && transaction.returnDirection === "TO_ME") ||
-    transaction.type === "INCOME" ||
-    (transaction.type === "GIFT" && transaction.returnDirection === "TO_ME");
+    transaction.type === "LOAN_RECEIVED" ||
+    transaction.type === "REPAYMENT_RECEIVED" ||
+    transaction.type === "GIFT_RECEIVED" ||
+    transaction.type === "ADVANCE_RECEIVED" ||
+    transaction.type === "DEPOSIT_RECEIVED" ||
+    transaction.type === "ESCROWED" ||
+    transaction.type === "INCOME";
 
   const isPending = status === WitnessStatus.Pending || status === WitnessStatus.Modified;
 
@@ -92,7 +97,7 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
         <div className="p-3 bg-muted/30 rounded-lg border border-border/20 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-70 flex items-center gap-1.5">
-              <CalendarDays className="w-3 h-3" /> Date
+              <Wallet className="w-3 h-3" /> Amount
             </span>
             <div
               className={cn(
@@ -116,7 +121,7 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
           <div className="flex items-center justify-between border-t border-border/10 pt-2">
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
               <CalendarDays className="w-3 h-3 opacity-50" />
-              {format(new Date(invitedAt as string), "MMM d, yyyy")}
+              {format(new Date(transaction.date as string), "MMM d, yyyy")}
             </div>
             {transaction.description && (
               <span className="text-xs text-muted-foreground italic truncate max-w-[150px] opacity-80">

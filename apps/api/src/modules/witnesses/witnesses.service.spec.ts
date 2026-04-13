@@ -30,7 +30,7 @@ function makeUpdatedWitness(overrides: Record<string, unknown> = {}) {
     user: { firstName: 'Alhaji', lastName: 'Sule' },
     transaction: {
       id: 'tx-1',
-      type: TransactionType.GIVEN,
+      type: TransactionType.LOAN_GIVEN,
       amount: { toNumber: () => 50000 },
       currency: 'NGN',
       createdById: 'creator-1',
@@ -165,7 +165,7 @@ describe('WitnessesService — acknowledge()', () => {
     service = module.get(WitnessesService);
   });
 
-  it('sends contact notification on first ACKNOWLEDGED witness for GIVEN transaction with phone', async () => {
+  it('sends contact notification on first ACKNOWLEDGED witness for LOAN_GIVEN transaction with phone', async () => {
     prisma.witness.findUnique.mockResolvedValue(makeWitness());
     prisma.witness.update.mockResolvedValue(makeUpdatedWitness());
     prisma.transactionHistory.create.mockResolvedValue({});
@@ -179,7 +179,7 @@ describe('WitnessesService — acknowledge()', () => {
 
     expect(notificationService.sendContactNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        transactionType: 'GIVEN',
+        transactionType: 'LOAN_GIVEN',
         witnessDisplayName: 'Alhaji Sule',
         creatorDisplayName: 'Musa Ibrahim',
         contactPhoneNumber: '+2348012345678',
@@ -223,7 +223,7 @@ describe('WitnessesService — acknowledge()', () => {
       makeUpdatedWitness({
         transaction: {
           id: 'tx-1',
-          type: TransactionType.GIVEN,
+          type: TransactionType.LOAN_GIVEN,
           amount: { toNumber: () => 50000 },
           currency: 'NGN',
           createdById: 'creator-1',
@@ -249,13 +249,13 @@ describe('WitnessesService — acknowledge()', () => {
     expect(notificationService.sendContactNotification).not.toHaveBeenCalled();
   });
 
-  it('does not send contact notification for GIFT transaction type', async () => {
+  it('does not send contact notification for GIFT_GIVEN transaction type', async () => {
     prisma.witness.findUnique.mockResolvedValue(makeWitness());
     prisma.witness.update.mockResolvedValue(
       makeUpdatedWitness({
         transaction: {
           id: 'tx-1',
-          type: TransactionType.GIFT,
+          type: TransactionType.GIFT_GIVEN,
           amount: { toNumber: () => 5000 },
           currency: 'NGN',
           createdById: 'creator-1',
@@ -287,7 +287,7 @@ describe('WitnessesService — acknowledge()', () => {
       makeUpdatedWitness({
         transaction: {
           id: 'tx-1',
-          type: TransactionType.GIVEN,
+          type: TransactionType.LOAN_GIVEN,
           amount: { toNumber: () => 50000 },
           currency: 'NGN',
           createdById: 'creator-1',
@@ -314,7 +314,7 @@ describe('WitnessesService — acknowledge()', () => {
       makeUpdatedWitness({
         transaction: {
           id: 'tx-1',
-          type: TransactionType.RECEIVED,
+          type: TransactionType.LOAN_RECEIVED,
           amount: { toNumber: () => 20000 },
           currency: 'NGN',
           createdById: 'creator-1',
@@ -339,7 +339,7 @@ describe('WitnessesService — acknowledge()', () => {
 
     expect(notificationService.sendContactNotification).toHaveBeenCalledWith(
       expect.objectContaining({
-        transactionType: 'RECEIVED',
+        transactionType: 'LOAN_RECEIVED',
         contactEmail: 'aminu@example.com',
         contactPhoneNumber: null,
       }),

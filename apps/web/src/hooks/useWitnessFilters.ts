@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface DateRange {
   from: string | null;
@@ -22,8 +22,8 @@ export function useWitnessFilters() {
   const variables = {
     filter: {
       ...(search && { search }),
-      ...(dateRange.from && { startDate: new Date(dateRange.from) }),
-      ...(dateRange.to && { endDate: new Date(dateRange.to) }),
+      ...(dateRange.from && { startDate: new Date(dateRange.from).toISOString() }),
+      ...(dateRange.to && { endDate: new Date(dateRange.to).toISOString() }),
       page,
       limit,
     },

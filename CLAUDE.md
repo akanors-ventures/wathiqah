@@ -91,26 +91,43 @@ All code should use the `AssetCategory` enum instead of hardcoded strings:
 
 ### Transaction Types & Color Coding
 
-| Type | Meaning | Color |
-|------|---------|-------|
-| `GIVEN` | I lent/gave (Asset) | Blue |
-| `RECEIVED` | I borrowed/owe (Liability) | Red |
-| `RETURNED TO ME` | Money coming back | Emerald |
-| `RETURNED TO CONTACT` | Paying back debt | Blue |
-| `GIFT RECEIVED` | Gift from contact (purple) | Purple |
-| `GIFT GIVEN` | Gift to contact (pink) | Pink |
+12 self-describing formal types replace the old ambiguous ones:
+
+| Type | Meaning | Color | Contact-standing sign |
+|------|---------|-------|-----------------------|
+| `LOAN_GIVEN` | I lent money out | Blue | + (contact owes me) |
+| `LOAN_RECEIVED` | I borrowed money | Rose | − (I owe contact) |
+| `REPAYMENT_MADE` | I repaid a debt (cash out, debt-clearing) | Emerald | + (reduces my debt) |
+| `REPAYMENT_RECEIVED` | Contact repaid me (cash in, debt-clearing) | Emerald | − (reduces their debt) |
+| `GIFT_GIVEN` | Gift I gave | Pink | _(no obligation)_ |
+| `GIFT_RECEIVED` | Gift I received | Purple | _(no obligation)_ |
+| `ADVANCE_PAID` | Advance I paid out | Orange | + (contact owes goods/money) |
+| `ADVANCE_RECEIVED` | Advance I received | Purple | − (I owe goods/service) |
+| `DEPOSIT_PAID` | Deposit I paid | Orange | + (contact owes it back) |
+| `DEPOSIT_RECEIVED` | Deposit I received | Purple | − (I owe it back) |
+| `ESCROWED` | Cash I'm holding | Emerald | − (I owe disbursement) |
+| `REMITTED` | Cash I disbursed | Orange | + (I paid on their behalf) |
+| `EXPENSE` | Personal expense _(legacy, read-only)_ | — | — |
+| `INCOME` | Personal income _(legacy, read-only)_ | — | — |
 
 **Note**: Use `AssetCategory.FUNDS` and `AssetCategory.ITEM` when referencing categories in code.
 
-**TransactionType enum actual values**: `GIVEN`, `RECEIVED`, `RETURNED`, `GIFT`, `EXPENSE`, `INCOME`
-- `RETURNED` covers both directions via the `ReturnDirection` field (`TO_ME` / `TO_CONTACT`) — there are no `RETURNED_TO_ME` or `RETURNED_TO_CONTACT` enum values
+**TransactionType enum active values**: the 12 types above. `EXPENSE`/`INCOME` remain in the DB enum for existing rows but new creation is blocked via `@IsNotIn` guard — a follow-up PersonalEntry plan will migrate them.
+
 - `Transaction.amount` is `Decimal?` — always use `.toNumber()` with a null guard (e.g. `?.toNumber() ?? 0`)
+- There is no `returnDirection` field. Direction is encoded in the type name itself.
 
 ### Shared Ledger & Perspective Flipping
 
 When a transaction's contact is a registered user (`linkedUserId`):
 - The transaction is visible to both parties
-- Perspectives flip: `GIVEN` ↔ `RECEIVED`, `RETURNED TO ME` ↔ `RETURNED TO CONTACT`
+- Perspectives flip via `PERSPECTIVE_FLIP_MAP` in `transactions.service.ts`:
+  - `LOAN_GIVEN ↔ LOAN_RECEIVED`
+  - `REPAYMENT_MADE ↔ REPAYMENT_RECEIVED`
+  - `GIFT_GIVEN ↔ GIFT_RECEIVED`
+  - `ADVANCE_PAID ↔ ADVANCE_RECEIVED`
+  - `DEPOSIT_PAID ↔ DEPOSIT_RECEIVED`
+  - `ESCROWED ↔ REMITTED`
 
 ### Witness System
 
@@ -121,8 +138,10 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 ### Balance Logic
 
-- **Cash Position (Dashboard)**: `Balance = (Income + Received + ReturnedToMe + GiftReceived) - (Expense + Given + ReturnedToContact + GiftGiven)`
-- **Relationship Standing (Contact View)**: `Standing = Assets (Given) - Liabilities (Received)`
+- **Net Balance (contact-obligation)**: Computed by `computeNetBalance()` in `transactions.service.ts` using all 12 new types. EXPENSE/INCOME are excluded from this computation. Formula: `(LOAN_RECEIVED − LOAN_GIVEN) + (REPAYMENT_RECEIVED − REPAYMENT_MADE) + (GIFT_RECEIVED − GIFT_GIVEN) + (ADVANCE_RECEIVED − ADVANCE_PAID) + (DEPOSIT_RECEIVED − DEPOSIT_PAID) + (ESCROWED − REMITTED)`
+- **Contact Standing**: Computed via `CONTACT_STANDING_SIGN` in `contacts.service.ts`. GIFT types are excluded (no ongoing obligation). Positive = contact owes me, negative = I owe contact.
+- **Cash Position (Dashboard)**: Deferred to the PersonalEntry follow-up plan (see `docs/pending/personal-entry-plan.md`) once EXPENSE/INCOME have their own model.
+- **Project Balance**: `project.balance` = `totalIncome − totalExpenses` — `totalIncome`/`totalExpenses` are `@ResolveField` on `Project`, unrelated to transaction types above.
 
 ### GraphQL Schema Generation
 
@@ -158,6 +177,19 @@ When a transaction's contact is a registered user (`linkedUserId`):
 - **After editing any migration SQL manually**, run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum` — CI will fail with a checksum mismatch otherwise
 - **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted
 - Atlas requires `atlas login` (browser-based); token expires periodically
+
+#### Removing PostgreSQL enum values
+
+PostgreSQL does not support `ALTER TYPE ... DROP VALUE`. Atlas will error with "reordering enum value is not supported" if you try to auto-generate a migration that removes enum values. The correct approach:
+1. Write the migration SQL manually (see `20260403120000.sql` as a reference)
+2. `CREATE TYPE foo_new AS ENUM (...)` with only the desired values
+3. `ALTER TABLE ... ALTER COLUMN type TYPE foo_new USING type::text::foo_new`
+4. `DROP TYPE foo_old; ALTER TYPE foo_new RENAME TO foo_old;`
+5. Run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum`
+
+#### PostgreSQL column naming
+
+Prisma uses **camelCase** column names by default (without `@map`). When writing raw SQL in migrations, use the Prisma field name directly: `"returnDirection"` not `"return_direction"`, `"previousState"` not `"previous_state"`. Check the initial migration SQL (`20260224181022.sql`) if unsure.
 
 #### Diagnosing schema drift
 If the app crashes with `column X does not exist` or `relation X does not exist` despite Atlas reporting all migrations applied:

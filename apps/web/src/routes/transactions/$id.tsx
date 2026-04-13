@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   CalendarDays,
+  CheckCircle2,
   Edit2,
   FileText,
   Gift,
@@ -17,7 +18,9 @@ import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
+import { RecordRemitDialog } from "@/components/transactions/RecordRemitDialog";
 import { RecordReturnDialog } from "@/components/transactions/RecordReturnDialog";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { TransactionWitnessList } from "@/components/transactions/TransactionWitnessList";
 import {
   AlertDialog,
@@ -30,8 +33,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { PageLoader } from "@/components/ui/page-loader";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { useTransaction } from "@/hooks/useTransaction";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRemoveWitness, useResendWitnessInvitation } from "@/hooks/useWitnesses";
@@ -51,6 +54,7 @@ function TransactionDetailPage() {
   const [isConvertGiftOpen, setIsConvertGiftOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isRecordReturnOpen, setIsRecordReturnOpen] = useState(false);
+  const [isRecordRemitOpen, setIsRecordRemitOpen] = useState(false);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [removingWitnessId, setRemovingWitnessId] = useState<string | null>(null);
@@ -118,30 +122,44 @@ function TransactionDetailPage() {
   }
 
   const currentTransaction = transaction;
-  const conversions = currentTransaction.conversions ?? [];
+  const allChildren = (currentTransaction.conversions ?? []).filter(
+    (c): c is NonNullable<typeof c> => c !== null && c.status !== "CANCELLED",
+  );
+  const giftConversions = allChildren.filter(
+    (c) => c.type === TransactionType.GiftGiven || c.type === TransactionType.GiftReceived,
+  );
+  const repayments = allChildren.filter(
+    (c) => c.type === TransactionType.RepaymentMade || c.type === TransactionType.RepaymentReceived,
+  );
+  const remittances = allChildren.filter((c) => c.type === TransactionType.Remitted);
   const witnesses = currentTransaction.witnesses ?? [];
   const history = currentTransaction.history ?? [];
 
   const canConvertToGift =
     currentTransaction.category === AssetCategory.Funds &&
-    (currentTransaction.type === TransactionType.Given ||
-      currentTransaction.type === TransactionType.Received);
+    (currentTransaction.type === TransactionType.LoanGiven ||
+      currentTransaction.type === TransactionType.LoanReceived);
 
   const canRecordReturn =
     currentTransaction.category === AssetCategory.Funds &&
-    (currentTransaction.type === TransactionType.Given ||
-      currentTransaction.type === TransactionType.Received) &&
+    (currentTransaction.type === TransactionType.LoanGiven ||
+      currentTransaction.type === TransactionType.LoanReceived) &&
     !!currentTransaction.contact;
 
-  const totalConverted = conversions.reduce(
-    (sum, conversion) => sum + (conversion?.amount || 0),
-    0,
-  );
+  const canRecordRemit =
+    currentTransaction.category === AssetCategory.Funds &&
+    currentTransaction.type === TransactionType.Escrowed &&
+    !!currentTransaction.contact;
 
-  const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalConverted);
+  const totalGifted = giftConversions.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalRepaid = repayments.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalRemitted = remittances.reduce((sum, c) => sum + (c.amount || 0), 0);
+  const totalSettled = totalGifted + totalRepaid + totalRemitted;
+
+  const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalSettled);
 
   return (
-    <div className="container mx-auto max-w-3xl p-4 py-8 overflow-x-hidden">
+    <div className="container mx-auto max-w-3xl p-4 py-8">
       <div className="mb-6">
         <Link
           to="/"
@@ -155,27 +173,29 @@ function TransactionDetailPage() {
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white leading-tight">
-                {currentTransaction.type === TransactionType.Given
-                  ? "Given to"
-                  : currentTransaction.type === TransactionType.Received
-                    ? "Received from"
-                    : currentTransaction.type === TransactionType.Returned
-                      ? currentTransaction.returnDirection === "TO_ME"
-                        ? "Returned to me by"
-                        : "Returned to"
-                      : currentTransaction.type === TransactionType.Gift
-                        ? currentTransaction.returnDirection === "TO_ME"
-                          ? "Gift received from"
-                          : "Gift given to"
-                        : currentTransaction.type === TransactionType.Income
-                          ? "Income from"
-                          : currentTransaction.type === TransactionType.Expense
-                            ? "Expense to"
-                            : "Collected from"}{" "}
+                <span className="capitalize">
+                  {currentTransaction.type.toLowerCase().replace(/_/g, " ")}
+                </span>{" "}
+                {"—"}{" "}
                 <span className="inline-flex items-center gap-2 flex-wrap">
                   {currentTransaction.contact?.name || "Personal"}
                   {currentTransaction.contact?.isSupporter && (
                     <SupporterBadge className="h-5 px-1.5" />
+                  )}
+                  {currentTransaction.status === "COMPLETED" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {currentTransaction.type === TransactionType.LoanGiven ||
+                      currentTransaction.type === TransactionType.LoanReceived ||
+                      currentTransaction.type === TransactionType.Escrowed
+                        ? "Settled"
+                        : "Completed"}
+                    </span>
+                  )}
+                  {currentTransaction.status === "CANCELLED" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                      Cancelled
+                    </span>
                   )}
                 </span>
               </h1>
@@ -189,37 +209,31 @@ function TransactionDetailPage() {
             <div className="text-right flex-shrink-0">
               {currentTransaction.category === AssetCategory.Funds &&
                 currentTransaction.amount !== null && (
-                  <div
-                    className={`text-xl sm:text-2xl font-bold ${
-                      currentTransaction.type === "GIVEN"
-                        ? "text-blue-600 dark:text-blue-400"
-                        : currentTransaction.type === "RETURNED"
-                          ? currentTransaction.returnDirection === "TO_ME"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : "text-blue-600 dark:text-blue-400"
-                          : currentTransaction.type === "INCOME"
-                            ? "text-emerald-600 dark:text-emerald-400"
-                            : currentTransaction.type === "GIFT"
-                              ? currentTransaction.returnDirection === "TO_ME"
-                                ? "text-purple-600 dark:text-purple-400"
-                                : "text-pink-600 dark:text-pink-400"
-                              : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {currentTransaction.type === "GIVEN" ||
-                    (currentTransaction.type === "RETURNED" &&
-                      currentTransaction.returnDirection === "TO_ME") ||
-                    currentTransaction.type === "INCOME" ||
-                    (currentTransaction.type === "GIFT" &&
-                      currentTransaction.returnDirection === "TO_ME")
-                      ? "+"
-                      : "-"}
-                    {formatCurrency(currentTransaction.amount, currentTransaction.currency)}
-                  </div>
+                  <TransactionAmount
+                    type={currentTransaction.type}
+                    amount={currentTransaction.amount}
+                    currency={currentTransaction.currency}
+                    className="text-xl sm:text-2xl"
+                  />
                 )}
-              {totalConverted > 0 && (
+              {totalGifted > 0 && (
                 <div className="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 mt-0.5">
-                  Gift: {formatCurrency(totalConverted, currentTransaction.currency)}
+                  Gifted: {formatCurrency(totalGifted, currentTransaction.currency)}
+                </div>
+              )}
+              {totalRepaid > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  Repaid: {formatCurrency(totalRepaid, currentTransaction.currency)}
+                </div>
+              )}
+              {totalRemitted > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  Remitted: {formatCurrency(totalRemitted, currentTransaction.currency)}
+                </div>
+              )}
+              {(canConvertToGift || canRecordReturn || canRecordRemit) && totalSettled > 0 && (
+                <div className="text-xs sm:text-sm font-medium text-muted-foreground mt-0.5">
+                  Remaining: {formatCurrency(remainingAmount, currentTransaction.currency)}
                 </div>
               )}
               {currentTransaction.category === AssetCategory.Item &&
@@ -233,7 +247,7 @@ function TransactionDetailPage() {
 
           {/* Row 2: all actions in one wrapping row */}
           <div className="flex flex-wrap gap-2">
-            {canRecordReturn && (
+            {canRecordReturn && remainingAmount > 0 && (
               <Button
                 variant="outline"
                 size="sm"
@@ -242,6 +256,17 @@ function TransactionDetailPage() {
               >
                 <ArrowRightLeft size={14} />
                 Record Return
+              </Button>
+            )}
+            {canRecordRemit && remainingAmount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
+                onClick={() => setIsRecordRemitOpen(true)}
+              >
+                <ArrowRightLeft size={14} />
+                Record Remittance
               </Button>
             )}
             {canConvertToGift && remainingAmount > 0 && (
@@ -288,7 +313,44 @@ function TransactionDetailPage() {
           <div className="space-y-4">
             {currentTransaction.parentId && (
               <div className="rounded-lg bg-neutral-50 p-3 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                This transaction is a conversion from another transaction.
+                {currentTransaction.type === TransactionType.RepaymentMade ||
+                currentTransaction.type === TransactionType.RepaymentReceived ? (
+                  <>
+                    This is a repayment linked to{" "}
+                    <Link
+                      to="/transactions/$id"
+                      params={{ id: currentTransaction.parentId }}
+                      className="text-emerald-600 hover:underline font-medium"
+                    >
+                      the original loan
+                    </Link>
+                    .
+                  </>
+                ) : currentTransaction.type === TransactionType.Remitted ? (
+                  <>
+                    This is a remittance linked to{" "}
+                    <Link
+                      to="/transactions/$id"
+                      params={{ id: currentTransaction.parentId }}
+                      className="text-emerald-600 hover:underline font-medium"
+                    >
+                      the original escrow
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>
+                    This transaction is a gift converted from{" "}
+                    <Link
+                      to="/transactions/$id"
+                      params={{ id: currentTransaction.parentId }}
+                      className="text-emerald-600 hover:underline font-medium"
+                    >
+                      another transaction
+                    </Link>
+                    .
+                  </>
+                )}
               </div>
             )}
 
@@ -313,44 +375,103 @@ function TransactionDetailPage() {
                 </div>
               </div>
             )}
-
-            {currentTransaction.returnDirection && (
-              <div>
-                <span className="block text-sm font-medium text-neutral-500">Return Direction</span>
-                <p className="mt-1 text-neutral-900 dark:text-neutral-100">
-                  {currentTransaction.returnDirection === "TO_ME" ? "To Me" : "To Contact"}
-                </p>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Conversions Section if applicable */}
-        {conversions.length > 0 && (
+        {/* Gift Conversions */}
+        {giftConversions.length > 0 && (
           <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
             <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
               <Gift size={20} className="text-orange-600" />
               Gift Conversions
             </h3>
             <div className="space-y-3">
-              {conversions.map((conversion) => (
+              {giftConversions.map((conversion) => (
                 <div
-                  key={conversion?.id}
+                  key={conversion.id}
                   className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800"
                 >
                   <div>
                     <p className="text-sm font-medium">
-                      {format(new Date(conversion?.date as string), "MMM d, yyyy")}
+                      {format(new Date(conversion.date as string), "MMM d, yyyy")}
                     </p>
                     <p className="text-xs text-neutral-500">Gifted back</p>
                   </div>
                   <div className="font-semibold text-orange-600">
                     {formatCurrency(
-                      conversion?.amount || 0,
-                      conversion?.currency || currentTransaction.currency,
+                      conversion.amount || 0,
+                      conversion.currency || currentTransaction.currency,
                     )}
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Repayments */}
+        {repayments.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
+              <ArrowRightLeft size={20} className="text-emerald-600" />
+              Repayments
+            </h3>
+            <div className="space-y-3">
+              {repayments.map((repayment) => (
+                <Link
+                  key={repayment.id}
+                  to="/transactions/$id"
+                  params={{ id: repayment.id }}
+                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {format(new Date(repayment.date as string), "MMM d, yyyy")}
+                    </p>
+                    <p className="text-xs text-neutral-500 capitalize">
+                      {repayment.type.toLowerCase().replace(/_/g, " ")}
+                    </p>
+                  </div>
+                  <div className="font-semibold text-emerald-600">
+                    {formatCurrency(
+                      repayment.amount || 0,
+                      repayment.currency || currentTransaction.currency,
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Remittances */}
+        {remittances.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
+              <ArrowRightLeft size={20} className="text-emerald-600" />
+              Remittances
+            </h3>
+            <div className="space-y-3">
+              {remittances.map((remittance) => (
+                <Link
+                  key={remittance.id}
+                  to="/transactions/$id"
+                  params={{ id: remittance.id }}
+                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20 transition-colors"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {format(new Date(remittance.date as string), "MMM d, yyyy")}
+                    </p>
+                    <p className="text-xs text-neutral-500">Remitted</p>
+                  </div>
+                  <div className="font-semibold text-emerald-600">
+                    {formatCurrency(
+                      remittance.amount || 0,
+                      remittance.currency || currentTransaction.currency,
+                    )}
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -382,7 +503,7 @@ function TransactionDetailPage() {
           onOpenChange={setIsEditOpen}
         />
 
-        {canRecordReturn && currentTransaction.contact && (
+        {canRecordReturn && currentTransaction.contact && remainingAmount > 0 && (
           <RecordReturnDialog
             open={isRecordReturnOpen}
             onOpenChange={setIsRecordReturnOpen}
@@ -393,6 +514,23 @@ function TransactionDetailPage() {
               currency: currentTransaction.currency,
               contactId: currentTransaction.contact.id,
               contactName: currentTransaction.contact.name,
+              remainingAmount,
+            }}
+            onSuccess={refetch}
+          />
+        )}
+
+        {canRecordRemit && currentTransaction.contact && remainingAmount > 0 && (
+          <RecordRemitDialog
+            open={isRecordRemitOpen}
+            onOpenChange={setIsRecordRemitOpen}
+            transaction={{
+              id: currentTransaction.id,
+              amount: currentTransaction.amount,
+              currency: currentTransaction.currency,
+              contactId: currentTransaction.contact.id,
+              contactName: currentTransaction.contact.name,
+              remainingAmount,
             }}
             onSuccess={refetch}
           />

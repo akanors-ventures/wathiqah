@@ -6,10 +6,10 @@ import type {
   GetWitnessInvitationQueryVariables,
   MyWitnessRequestsQuery,
   MyWitnessRequestsQueryVariables,
-  ResendWitnessInvitationMutation,
-  ResendWitnessInvitationMutationVariables,
   RemoveWitnessMutation,
   RemoveWitnessMutationVariables,
+  ResendWitnessInvitationMutation,
+  ResendWitnessInvitationMutationVariables,
 } from "@/types/__generated__/graphql";
 
 export const MY_WITNESS_REQUESTS: TypedDocumentNode<
@@ -32,7 +32,6 @@ export const MY_WITNESS_REQUESTS: TypedDocumentNode<
           itemName
           description
           date
-          returnDirection
           createdBy {
             name
             email
@@ -108,7 +107,6 @@ export const GET_WITNESS_INVITATION: TypedDocumentNode<
         itemName
         description
         date
-        returnDirection
         createdBy {
           name
           isSupporter

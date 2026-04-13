@@ -21,6 +21,20 @@ import {
   ContactBalanceStanding,
 } from './dto/filter-contact.input';
 
+/** + = contact owes me, − = I owe contact. GIFT excluded (no ongoing obligation). */
+const CONTACT_STANDING_SIGN: Partial<Record<string, 1 | -1>> = {
+  LOAN_GIVEN: 1,
+  REPAYMENT_MADE: 1,
+  ADVANCE_PAID: 1,
+  DEPOSIT_PAID: 1,
+  REMITTED: 1,
+  LOAN_RECEIVED: -1,
+  REPAYMENT_RECEIVED: -1,
+  ADVANCE_RECEIVED: -1,
+  DEPOSIT_RECEIVED: -1,
+  ESCROWED: -1,
+};
+
 @Injectable()
 export class ContactsService {
   constructor(
@@ -91,7 +105,14 @@ export class ContactsService {
               type: true,
               amount: true,
               status: true,
-              returnDirection: true,
+              parentId: true,
+              conversions: {
+                where: {
+                  type: { in: ['GIFT_GIVEN', 'GIFT_RECEIVED'] },
+                  status: { not: 'CANCELLED' },
+                },
+                select: { amount: true },
+              },
             },
           },
         },
@@ -124,29 +145,61 @@ export class ContactsService {
     return { items, total, page, limit };
   }
 
+  /**
+   * Returns the effective principal of a transaction for balance math:
+   * the raw amount minus any non-cancelled gift conversions (clamped at 0).
+   * Shared by `computeContactBalance` (list view) and `getBalance`
+   * (single contact) so both code paths stay in lockstep.
+   */
+  private effectiveTransactionAmount(tx: {
+    amount: unknown;
+    conversions?: Array<{ amount: unknown }>;
+  }): number {
+    const toNum = (value: unknown): number => {
+      if (value == null) return 0;
+      if (typeof value === 'object' && value !== null && 'toNumber' in value) {
+        return (value as { toNumber: () => number }).toNumber();
+      }
+      return Number(value);
+    };
+
+    let amount = toNum(tx.amount);
+    if (tx.conversions && tx.conversions.length > 0) {
+      const totalGifted = tx.conversions.reduce(
+        (sum, conv) => sum + toNum(conv.amount),
+        0,
+      );
+      amount = Math.max(0, amount - totalGifted);
+    }
+    return amount;
+  }
+
   private computeContactBalance(
     transactions: Array<{
       type: string;
       amount: unknown;
       status: string;
-      returnDirection: string | null;
+      parentId?: string | null;
+      conversions?: Array<{ amount: unknown }>;
     }>,
+    isCreator = true,
   ): number {
     let balance = 0;
     for (const tx of transactions) {
       if (tx.status === 'CANCELLED') continue;
-      const amount =
-        typeof tx.amount === 'object' &&
-        tx.amount !== null &&
-        'toNumber' in tx.amount
-          ? (tx.amount as { toNumber: () => number }).toNumber()
-          : Number(tx.amount);
-      if (tx.type === 'GIVEN') balance += amount;
-      else if (tx.type === 'RECEIVED') balance -= amount;
-      else if (tx.type === 'RETURNED') {
-        if (tx.returnDirection === 'TO_ME') balance -= amount;
-        else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
+
+      // Skip gift conversion children — their effect is applied by reducing
+      // the parent loan's effective amount below.
+      if (
+        (tx.type === 'GIFT_GIVEN' || tx.type === 'GIFT_RECEIVED') &&
+        tx.parentId
+      ) {
+        continue;
       }
+
+      const amount = this.effectiveTransactionAmount(tx);
+      const sign = CONTACT_STANDING_SIGN[tx.type] ?? 0;
+      balance += isCreator ? sign * amount : -sign * amount;
     }
     return balance;
   }
@@ -248,12 +301,15 @@ export class ContactsService {
         id: true,
         type: true,
         amount: true,
-        returnDirection: true,
         parentId: true,
         createdById: true,
         conversions: {
+          // Load BOTH gift conversion sides: a LOAN_GIVEN parent gets reduced by
+          // GIFT_GIVEN conversions, and a LOAN_RECEIVED parent gets reduced by
+          // GIFT_RECEIVED conversions. Only non-cancelled conversions count.
           where: {
-            type: 'GIFT',
+            type: { in: ['GIFT_GIVEN', 'GIFT_RECEIVED'] },
+            status: { not: 'CANCELLED' },
           },
           select: {
             amount: true,
@@ -266,41 +322,18 @@ export class ContactsService {
     for (const tx of transactions) {
       const isCreator = tx.createdById === userId;
 
-      // If this is a GIFT transaction that has a parent, it's a conversion.
-      if (tx.type === 'GIFT' && tx.parentId) {
+      // If this is a GIFT_GIVEN/GIFT_RECEIVED transaction that has a parent, it's a conversion.
+      if (
+        (tx.type === 'GIFT_GIVEN' || tx.type === 'GIFT_RECEIVED') &&
+        tx.parentId
+      ) {
         continue;
       }
 
-      let amount = tx.amount ? Number(tx.amount) : 0;
+      const amount = this.effectiveTransactionAmount(tx);
 
-      // Subtract any GIFT conversions from the original transaction amount
-      if (tx.conversions && tx.conversions.length > 0) {
-        const totalGifted = tx.conversions.reduce(
-          (sum, conv) => sum + (conv.amount ? Number(conv.amount) : 0),
-          0,
-        );
-        amount = Math.max(0, amount - totalGifted);
-      }
-
-      if (isCreator) {
-        if (tx.type === 'GIVEN') balance += amount;
-        else if (tx.type === 'RECEIVED') balance -= amount;
-        else if (tx.type === 'RETURNED') {
-          if (tx.returnDirection === 'TO_ME') balance -= amount;
-          else if (tx.returnDirection === 'TO_CONTACT') balance += amount;
-        }
-      } else {
-        // Perspective flipping for shared transactions
-        if (tx.type === 'GIVEN')
-          balance -= amount; // They gave to me -> I received
-        else if (tx.type === 'RECEIVED')
-          balance += amount; // They received from me -> I gave
-        else if (tx.type === 'RETURNED') {
-          if (tx.returnDirection === 'TO_ME')
-            balance += amount; // They got it back -> I returned to contact
-          else if (tx.returnDirection === 'TO_CONTACT') balance -= amount; // They returned to me -> I got it back
-        }
-      }
+      const sign = CONTACT_STANDING_SIGN[tx.type] ?? 0;
+      balance += isCreator ? sign * amount : -sign * amount;
     }
 
     return balance;

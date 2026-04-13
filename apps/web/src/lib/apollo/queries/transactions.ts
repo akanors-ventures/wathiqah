@@ -23,15 +23,18 @@ export const GET_TOTAL_BALANCE: TypedDocumentNode<TotalBalanceQuery, TotalBalanc
   gql`
   query TotalBalance($currency: String, $filter: FilterTransactionInput) {
     totalBalance(currency: $currency, filter: $filter) {
-      totalGiven
-      totalReceived
-      totalReturned
-      totalReturnedToMe
-      totalReturnedToOther
-      totalIncome
-      totalExpense
+      totalLoanGiven
+      totalLoanReceived
+      totalRepaymentMade
+      totalRepaymentReceived
       totalGiftGiven
       totalGiftReceived
+      totalAdvancePaid
+      totalAdvanceReceived
+      totalDepositPaid
+      totalDepositReceived
+      totalEscrowed
+      totalRemitted
       netBalance
       currency
     }
@@ -45,12 +48,12 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
       amount
       category
       type
+      status
       currency
       date
       description
       itemName
       quantity
-      returnDirection
       createdAt
       parentId
       conversions {
@@ -59,6 +62,7 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
         type
         currency
         date
+        status
       }
       contact {
         id
@@ -114,13 +118,14 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
         amount
         category
         type
+        status
         currency
         date
         description
         itemName
         quantity
-        returnDirection
         createdAt
+        parentId
         createdBy {
           id
           name
@@ -136,16 +141,22 @@ export const GET_TRANSACTIONS: TypedDocumentNode<TransactionsQuery, Transactions
           status
         }
       }
+      total
+      page
+      limit
       summary {
-        totalGiven
-        totalReceived
-        totalReturned
-        totalReturnedToMe
-        totalReturnedToOther
-        totalIncome
-        totalExpense
+        totalLoanGiven
+        totalLoanReceived
+        totalRepaymentMade
+        totalRepaymentReceived
         totalGiftGiven
         totalGiftReceived
+        totalAdvancePaid
+        totalAdvanceReceived
+        totalDepositPaid
+        totalDepositReceived
+        totalEscrowed
+        totalRemitted
         netBalance
         currency
       }
@@ -164,13 +175,14 @@ export const GET_MY_CONTACT_TRANSACTIONS: TypedDocumentNode<
         amount
         category
         type
+        status
         currency
         date
         description
         itemName
         quantity
-        returnDirection
         createdAt
+        parentId
         createdBy {
           id
           name
@@ -214,15 +226,18 @@ export const GET_TRANSACTIONS_GROUPED_BY_CONTACT: TypedDocumentNode<
         isSupporter
       }
       summary {
-        totalGiven
-        totalReceived
-        totalReturned
-        totalReturnedToMe
-        totalReturnedToOther
-        totalIncome
-        totalExpense
+        totalLoanGiven
+        totalLoanReceived
+        totalRepaymentMade
+        totalRepaymentReceived
         totalGiftGiven
         totalGiftReceived
+        totalAdvancePaid
+        totalAdvanceReceived
+        totalDepositPaid
+        totalDepositReceived
+        totalEscrowed
+        totalRemitted
         netBalance
         currency
       }
@@ -281,7 +296,6 @@ export const UPDATE_TRANSACTION: TypedDocumentNode<
       description
       itemName
       quantity
-      returnDirection
       contact {
         id
         name

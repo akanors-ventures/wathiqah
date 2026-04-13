@@ -14,7 +14,6 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
-  ReturnDirection,
   Prisma,
   Witness,
   ProjectTransactionType,
@@ -31,6 +30,39 @@ import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
+
+/** Perspective-flip pairs for shared-ledger view. */
+const PERSPECTIVE_FLIP_MAP: Partial<Record<string, string>> = {
+  LOAN_GIVEN: 'LOAN_RECEIVED',
+  LOAN_RECEIVED: 'LOAN_GIVEN',
+  REPAYMENT_MADE: 'REPAYMENT_RECEIVED',
+  REPAYMENT_RECEIVED: 'REPAYMENT_MADE',
+  GIFT_GIVEN: 'GIFT_RECEIVED',
+  GIFT_RECEIVED: 'GIFT_GIVEN',
+  ADVANCE_PAID: 'ADVANCE_RECEIVED',
+  ADVANCE_RECEIVED: 'ADVANCE_PAID',
+  DEPOSIT_PAID: 'DEPOSIT_RECEIVED',
+  DEPOSIT_RECEIVED: 'DEPOSIT_PAID',
+  ESCROWED: 'REMITTED',
+  REMITTED: 'ESCROWED',
+};
+
+function computeNetBalance(summary: TransactionSummary): number {
+  return (
+    summary.totalLoanReceived -
+    summary.totalLoanGiven +
+    summary.totalRepaymentReceived -
+    summary.totalRepaymentMade +
+    summary.totalGiftReceived -
+    summary.totalGiftGiven +
+    summary.totalAdvanceReceived -
+    summary.totalAdvancePaid +
+    summary.totalDepositReceived -
+    summary.totalDepositPaid +
+    summary.totalEscrowed -
+    summary.totalRemitted
+  );
+}
 
 export interface WitnessNotification {
   witnessId: string;
@@ -51,15 +83,18 @@ export interface WitnessNotification {
 }
 
 export interface TransactionSummary {
-  totalGiven: number;
-  totalReceived: number;
-  totalReturned: number;
-  totalReturnedToMe: number;
-  totalReturnedToOther: number;
-  totalExpense: number;
-  totalIncome: number;
+  totalLoanGiven: number;
+  totalLoanReceived: number;
+  totalRepaymentMade: number;
+  totalRepaymentReceived: number;
   totalGiftGiven: number;
   totalGiftReceived: number;
+  totalAdvancePaid: number;
+  totalAdvanceReceived: number;
+  totalDepositPaid: number;
+  totalDepositReceived: number;
+  totalEscrowed: number;
+  totalRemitted: number;
   netBalance?: number;
   currency: string;
 }
@@ -73,6 +108,78 @@ export class TransactionsService {
     private readonly notificationService: NotificationService,
     private readonly exchangeRateService: ExchangeRateService,
   ) {}
+
+  /**
+   * Recomputes a parent transaction's lifecycle status based on its
+   * non-cancelled children.
+   *
+   * Applies to the three "lifecycle" parent types:
+   *  - LOAN_GIVEN / LOAN_RECEIVED — children are repayments + gift conversions
+   *  - ESCROWED — children are remittances (REMITTED)
+   *
+   * - PENDING (a.k.a. "ACTIVE"): outstanding > 0
+   * - COMPLETED (a.k.a. "SETTLED"): outstanding === 0
+   *
+   * Cancelled parents are left as-is. A parent that flips between PENDING
+   * and COMPLETED writes a TransactionHistory row so the audit trail
+   * captures the auto-transition.
+   */
+  private async recomputeParentLoanStatus(
+    prisma: Prisma.TransactionClient,
+    parentId: string,
+    userId: string,
+  ): Promise<void> {
+    const parent = await prisma.transaction.findUnique({
+      where: { id: parentId },
+      select: { id: true, amount: true, status: true, type: true },
+    });
+
+    if (!parent || !parent.amount) return;
+    if (parent.status === TransactionStatus.CANCELLED) return;
+    // Only loan and escrow parents have a "settled" lifecycle
+    if (
+      parent.type !== 'LOAN_GIVEN' &&
+      parent.type !== 'LOAN_RECEIVED' &&
+      parent.type !== 'ESCROWED'
+    ) {
+      return;
+    }
+
+    const children = await prisma.transaction.findMany({
+      where: {
+        parentId,
+        status: { not: TransactionStatus.CANCELLED },
+      },
+      select: { amount: true },
+    });
+
+    const settled = children.reduce(
+      (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+      0,
+    );
+    const parentAmount = Number(parent.amount);
+    const isFullySettled = settled >= parentAmount;
+    const nextStatus = isFullySettled
+      ? TransactionStatus.COMPLETED
+      : TransactionStatus.PENDING;
+
+    if (nextStatus === parent.status) return;
+
+    await prisma.transaction.update({
+      where: { id: parentId },
+      data: { status: nextStatus },
+    });
+
+    await prisma.transactionHistory.create({
+      data: {
+        transactionId: parentId,
+        userId,
+        changeType: isFullySettled ? 'AUTO_SETTLED' : 'AUTO_REOPENED',
+        previousState: { status: parent.status } as Prisma.InputJsonValue,
+        newState: { status: nextStatus } as Prisma.InputJsonValue,
+      },
+    });
+  }
 
   private async processWitnesses(
     transactionId: string,
@@ -312,11 +419,20 @@ export class TransactionsService {
       );
     }
 
+    const isRepayment =
+      rest.type === 'REPAYMENT_MADE' || rest.type === 'REPAYMENT_RECEIVED';
+    const isGiftConversion =
+      rest.type === 'GIFT_GIVEN' || rest.type === 'GIFT_RECEIVED';
+    const isRemittance = rest.type === 'REMITTED';
+
     // Start a transaction to ensure all witness records are created or nothing is
     let notifications: WitnessNotification[] = [];
     const transaction = await this.prisma.$transaction(async (prisma) => {
-      let parentTransaction = null;
-      // If this is a GIFT conversion, validate parent existence and ownership
+      let parentTransaction: Awaited<
+        ReturnType<typeof prisma.transaction.findUnique>
+      > = null;
+      let derivedContactId: string | undefined;
+
       if (rest.parentId) {
         parentTransaction = await prisma.transaction.findUnique({
           where: { id: rest.parentId },
@@ -330,33 +446,153 @@ export class TransactionsService {
 
         if (parentTransaction.createdById !== userId) {
           throw new ForbiddenException(
-            'Cannot convert a transaction you do not own',
+            'Cannot link to a transaction you do not own',
           );
         }
 
-        if (
-          parentTransaction.type !== 'GIVEN' &&
-          parentTransaction.type !== 'RECEIVED'
-        ) {
-          throw new BadRequestException(
-            'Only GIVEN or RECEIVED transactions can be converted to GIFT',
-          );
-        }
+        if (isGiftConversion) {
+          // Gift conversion must attach to an open loan
+          if (
+            parentTransaction.type !== 'LOAN_GIVEN' &&
+            parentTransaction.type !== 'LOAN_RECEIVED'
+          ) {
+            throw new BadRequestException(
+              'Only LOAN_GIVEN or LOAN_RECEIVED transactions can be converted to a gift',
+            );
+          }
+          if (
+            amount &&
+            parentTransaction.amount &&
+            Number(amount) > Number(parentTransaction.amount)
+          ) {
+            throw new BadRequestException(
+              'Gift conversion amount cannot exceed parent transaction amount',
+            );
+          }
+        } else if (isRepayment) {
+          // Repayment must be linked to a matching loan
+          const expectedParentType =
+            rest.type === 'REPAYMENT_RECEIVED' ? 'LOAN_GIVEN' : 'LOAN_RECEIVED';
+          if (parentTransaction.type !== expectedParentType) {
+            throw new BadRequestException(
+              `${rest.type} must be linked to a ${expectedParentType} transaction`,
+            );
+          }
+          if (parentTransaction.category !== AssetCategory.FUNDS) {
+            throw new BadRequestException(
+              'Repayments can only be recorded against FUNDS loans',
+            );
+          }
+          if (!parentTransaction.contactId) {
+            throw new BadRequestException(
+              'Parent loan must have a contact to record a repayment',
+            );
+          }
 
-        // Validate amount doesn't exceed parent amount
-        if (
-          amount &&
-          parentTransaction.amount &&
-          Number(amount) > Number(parentTransaction.amount)
-        ) {
+          // Derive contactId/currency from parent (ignore any client-supplied values)
+          derivedContactId = parentTransaction.contactId;
+          rest.contactId = parentTransaction.contactId;
+          rest.currency =
+            parentTransaction.currency ?? rest.currency ?? undefined;
+
+          // Outstanding = parent amount - (sum of existing repayment children + sum of gift conversions)
+          const children = await prisma.transaction.findMany({
+            where: {
+              parentId: rest.parentId,
+              status: { not: 'CANCELLED' },
+            },
+            select: { amount: true, type: true },
+          });
+          const alreadySettled = children.reduce(
+            (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+            0,
+          );
+          const parentAmount = parentTransaction.amount
+            ? Number(parentTransaction.amount)
+            : 0;
+          const outstanding = Math.max(0, parentAmount - alreadySettled);
+          const repayAmount = Number(amount ?? 0);
+
+          if (repayAmount <= 0) {
+            throw new BadRequestException(
+              'Repayment amount must be greater than zero',
+            );
+          }
+          if (repayAmount > outstanding) {
+            throw new BadRequestException(
+              `Repayment amount (${repayAmount}) exceeds outstanding balance (${outstanding}) on the parent loan`,
+            );
+          }
+        } else if (isRemittance) {
+          // Remittance must be linked to an open escrow
+          if (parentTransaction.type !== 'ESCROWED') {
+            throw new BadRequestException(
+              'REMITTED must be linked to an ESCROWED transaction',
+            );
+          }
+          if (parentTransaction.category !== AssetCategory.FUNDS) {
+            throw new BadRequestException(
+              'Remittances can only be recorded against FUNDS escrows',
+            );
+          }
+          if (!parentTransaction.contactId) {
+            throw new BadRequestException(
+              'Parent escrow must have a contact to record a remittance',
+            );
+          }
+
+          // Derive contactId/currency from parent (ignore any client-supplied values)
+          derivedContactId = parentTransaction.contactId;
+          rest.contactId = parentTransaction.contactId;
+          rest.currency =
+            parentTransaction.currency ?? rest.currency ?? undefined;
+
+          // Outstanding = parent amount - sum of existing remittance children
+          const children = await prisma.transaction.findMany({
+            where: {
+              parentId: rest.parentId,
+              status: { not: 'CANCELLED' },
+            },
+            select: { amount: true },
+          });
+          const alreadyRemitted = children.reduce(
+            (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+            0,
+          );
+          const parentAmount = parentTransaction.amount
+            ? Number(parentTransaction.amount)
+            : 0;
+          const outstanding = Math.max(0, parentAmount - alreadyRemitted);
+          const remitAmount = Number(amount ?? 0);
+
+          if (remitAmount <= 0) {
+            throw new BadRequestException(
+              'Remittance amount must be greater than zero',
+            );
+          }
+          if (remitAmount > outstanding) {
+            throw new BadRequestException(
+              `Remittance amount (${remitAmount}) exceeds outstanding balance (${outstanding}) on the parent escrow`,
+            );
+          }
+        } else {
+          // Parent linkage is only supported for gifts, repayments, and remittances
           throw new BadRequestException(
-            'Gift conversion amount cannot exceed parent transaction amount',
+            'parentId is only valid for gift conversions, repayments, or remittances',
           );
         }
+      } else if (isRepayment) {
+        throw new BadRequestException(
+          'Repayments must be linked to a parent loan via parentId',
+        );
+      } else if (isRemittance) {
+        throw new BadRequestException(
+          'Remittances must be linked to a parent escrow via parentId',
+        );
       }
 
-      // Validate contactId if provided
-      if (rest.contactId) {
+      // Validate contactId if provided (skipped when derived from parent above)
+      if (rest.contactId && !derivedContactId) {
         const contact = await prisma.contact.findUnique({
           where: { id: rest.contactId },
         });
@@ -372,6 +608,17 @@ export class TransactionsService {
         }
       }
 
+      // Lifecycle parent types start as PENDING (outstanding obligation).
+      // The schema default is COMPLETED, which is correct for one-shot
+      // transactions but wrong for parents that expect children to settle
+      // them. Children themselves (repayments / remittances) keep the
+      // default COMPLETED — they're standalone settled events.
+      const isLifecycleParent =
+        !rest.parentId &&
+        (rest.type === 'LOAN_GIVEN' ||
+          rest.type === 'LOAN_RECEIVED' ||
+          rest.type === 'ESCROWED');
+
       const transaction = await prisma.transaction.create({
         data: {
           category,
@@ -380,29 +627,56 @@ export class TransactionsService {
           quantity: category === AssetCategory.ITEM ? quantity : null,
           createdById: userId,
           ...rest,
+          ...(isLifecycleParent ? { status: TransactionStatus.PENDING } : {}),
         },
       });
 
-      // If it's a conversion, log it in the parent's history as well
+      // Log parent-history entry for conversions, repayments, and remittances
       if (rest.parentId && parentTransaction) {
+        const parentAmountNum = parentTransaction.amount
+          ? Number(parentTransaction.amount)
+          : 0;
+        const thisAmountNum = Number(amount ?? 0);
+        let changeType: string;
+        let newState: Prisma.InputJsonValue;
+        if (isRepayment) {
+          changeType = 'REPAYMENT_RECORDED';
+          newState = {
+            repaymentId: transaction.id,
+            repaymentAmount: amount,
+            repaymentType: rest.type,
+          };
+        } else if (isRemittance) {
+          changeType = 'REMITTANCE_RECORDED';
+          newState = {
+            remittanceId: transaction.id,
+            remittanceAmount: amount,
+          };
+        } else {
+          changeType = 'PARTIAL_CONVERSION_TO_GIFT';
+          newState = {
+            conversionId: transaction.id,
+            giftAmount: amount,
+            remainingAmount: parentAmountNum - thisAmountNum,
+          };
+        }
         await prisma.transactionHistory.create({
           data: {
             transactionId: rest.parentId,
             userId,
-            changeType: 'PARTIAL_CONVERSION_TO_GIFT',
+            changeType,
             previousState: {
               amount: parentTransaction.amount,
               type: parentTransaction.type,
             },
-            newState: {
-              conversionId: transaction.id,
-              giftAmount: amount,
-              remainingAmount: parentTransaction.amount
-                ? Number(parentTransaction.amount) - Number(amount)
-                : 0,
-            },
+            newState,
           },
         });
+      }
+
+      // Auto-flip parent status when a repayment or remittance settles it
+      if (rest.parentId && (isRepayment || isRemittance)) {
+        await this.recomputeParentLoanStatus(prisma, rest.parentId, userId);
       }
 
       notifications = await this.processWitnesses(
@@ -467,15 +741,8 @@ export class TransactionsService {
   private flipStatePerspective(state: Record<string, unknown> | null) {
     if (!state) return null;
     const flipped = { ...state };
-    if (state.type === TransactionType.GIVEN) {
-      flipped.type = TransactionType.RECEIVED;
-    } else if (state.type === TransactionType.RECEIVED) {
-      flipped.type = TransactionType.GIVEN;
-    }
-    if (state.returnDirection === 'TO_ME') {
-      flipped.returnDirection = 'TO_CONTACT';
-    } else if (state.returnDirection === 'TO_CONTACT') {
-      flipped.returnDirection = 'TO_ME';
+    if (typeof state.type === 'string' && PERSPECTIVE_FLIP_MAP[state.type]) {
+      flipped.type = PERSPECTIVE_FLIP_MAP[state.type];
     }
     return flipped;
   }
@@ -484,7 +751,6 @@ export class TransactionsService {
     T extends {
       createdById: string;
       type: TransactionType;
-      returnDirection?: ReturnDirection | null;
       history?: {
         previousState: unknown;
         newState: unknown;
@@ -524,20 +790,10 @@ export class TransactionsService {
       transformed.contact = virtualContact;
     }
 
-    if (transaction.type === TransactionType.GIVEN) {
-      transformed.type = TransactionType.RECEIVED;
-    } else if (transaction.type === TransactionType.RECEIVED) {
-      transformed.type = TransactionType.GIVEN;
-    } else if (transaction.type === TransactionType.RETURNED) {
-      transformed.returnDirection =
-        transaction.returnDirection === ReturnDirection.TO_ME
-          ? ReturnDirection.TO_CONTACT
-          : ReturnDirection.TO_ME;
-    } else if (transaction.type === TransactionType.GIFT) {
-      transformed.returnDirection =
-        transaction.returnDirection === ReturnDirection.TO_ME
-          ? ReturnDirection.TO_CONTACT
-          : ReturnDirection.TO_ME;
+    if (PERSPECTIVE_FLIP_MAP[transaction.type]) {
+      transformed.type = PERSPECTIVE_FLIP_MAP[
+        transaction.type
+      ] as TransactionType;
     }
 
     // Flip history entries if present
@@ -740,7 +996,6 @@ export class TransactionsService {
         isSupporter: false,
       },
       witnesses: [],
-      returnDirection: null,
       itemName: null,
       quantity: null,
       parentId: null,
@@ -787,7 +1042,7 @@ export class TransactionsService {
   ) {
     // 1. Aggregations for transactions created by the user
     const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'returnDirection', 'currency'],
+      by: ['type', 'currency'],
       where: { ...where, createdById: userId },
       _sum: {
         amount: true,
@@ -796,7 +1051,7 @@ export class TransactionsService {
 
     // 2. Aggregations for transactions where user is the contact (flip required)
     const contactAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'returnDirection', 'currency'],
+      by: ['type', 'currency'],
       where: {
         ...where,
         createdById: { not: userId },
@@ -807,49 +1062,19 @@ export class TransactionsService {
       },
     });
 
-    // 3. Aggregations for project transactions
-    // First, get all projects for the user to determine their currency
-    const projects = await this.prisma.project.findMany({
-      where: { userId },
-      select: { id: true, currency: true },
-    });
-
-    const projectCurrencyMap = new Map<string, string>();
-    projects.forEach((p) => projectCurrencyMap.set(p.id, p.currency));
-
-    const projectWhere: Prisma.ProjectTransactionWhereInput = {
-      projectId: { in: projects.map((p) => p.id) },
-    };
-
-    // Map relevant filters from TransactionWhereInput to ProjectTransactionWhereInput
-    if (where.date) {
-      projectWhere.date = where.date as Prisma.DateTimeFilter;
-    }
-    // Amount filter is tricky because Transaction amount is Decimal/Float but ProjectTransaction is Decimal.
-    // Assuming structure is compatible or we need to cast.
-    // Prisma filters usually use standard structure { gte, lte, etc. }
-    if (where.amount) {
-      projectWhere.amount = where.amount as Prisma.DecimalFilter;
-    }
-
-    const projectAggregations = await this.prisma.projectTransaction.groupBy({
-      by: ['projectId', 'type'],
-      where: projectWhere,
-      _sum: {
-        amount: true,
-      },
-    });
-
-    const summary = {
-      totalGiven: 0,
-      totalReceived: 0,
-      totalReturned: 0,
-      totalReturnedToMe: 0,
-      totalReturnedToOther: 0,
-      totalExpense: 0,
-      totalIncome: 0,
+    const summary: TransactionSummary = {
+      totalLoanGiven: 0,
+      totalLoanReceived: 0,
+      totalRepaymentMade: 0,
+      totalRepaymentReceived: 0,
       totalGiftGiven: 0,
       totalGiftReceived: 0,
+      totalAdvancePaid: 0,
+      totalAdvanceReceived: 0,
+      totalDepositPaid: 0,
+      totalDepositReceived: 0,
+      totalEscrowed: 0,
+      totalRemitted: 0,
       netBalance: 0,
       currency: targetCurrency,
     };
@@ -865,12 +1090,7 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      this.updateSummaryWithTransaction(
-        summary,
-        agg.type,
-        agg.returnDirection,
-        convertedAmount,
-      );
+      this.updateSummaryWithTransaction(summary, agg.type, convertedAmount);
     }
 
     // Process contact transactions (with flip)
@@ -884,59 +1104,12 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      // Flip type and returnDirection for perspective
-      let flippedType = agg.type;
-      let flippedReturnDirection = agg.returnDirection;
-
-      if (agg.type === TransactionType.GIVEN) {
-        flippedType = TransactionType.RECEIVED;
-      } else if (agg.type === TransactionType.RECEIVED) {
-        flippedType = TransactionType.GIVEN;
-      } else if (agg.type === TransactionType.RETURNED) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      } else if (agg.type === TransactionType.GIFT) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      }
-
-      this.updateSummaryWithTransaction(
-        summary,
-        flippedType,
-        flippedReturnDirection,
-        convertedAmount,
-      );
+      const flippedType = (PERSPECTIVE_FLIP_MAP[agg.type] ??
+        agg.type) as TransactionType;
+      this.updateSummaryWithTransaction(summary, flippedType, convertedAmount);
     }
 
-    // Process project transactions
-    for (const agg of projectAggregations) {
-      const amount = Number(agg._sum.amount) || 0;
-      if (amount === 0) continue;
-
-      const currency = projectCurrencyMap.get(agg.projectId) || 'NGN';
-
-      const convertedAmount = await this.exchangeRateService.convert(
-        amount,
-        currency,
-        targetCurrency,
-      );
-
-      if (agg.type === ProjectTransactionType.INCOME) {
-        summary.totalIncome += convertedAmount;
-      } else if (agg.type === ProjectTransactionType.EXPENSE) {
-        summary.totalExpense += convertedAmount;
-      }
-    }
-
-    summary.netBalance =
-      summary.totalIncome -
-      summary.totalExpense +
-      summary.totalReceived -
-      summary.totalGiven +
-      summary.totalReturnedToMe -
-      summary.totalReturnedToOther +
-      summary.totalGiftReceived -
-      summary.totalGiftGiven;
+    summary.netBalance = computeNetBalance(summary);
 
     return summary;
   }
@@ -944,31 +1117,25 @@ export class TransactionsService {
   private updateSummaryWithTransaction(
     summary: TransactionSummary,
     type: TransactionType,
-    returnDirection: string,
     amount: number,
   ) {
-    if (type === 'GIVEN') {
-      summary.totalGiven += amount;
-    } else if (type === 'RECEIVED') {
-      summary.totalReceived += amount;
-    } else if (type === 'RETURNED') {
-      summary.totalReturned += amount;
-      if (returnDirection === 'TO_ME') {
-        summary.totalReturnedToMe += amount;
-      } else {
-        summary.totalReturnedToOther += amount;
-      }
-    } else if (type === 'EXPENSE') {
-      summary.totalExpense += amount;
-    } else if (type === 'INCOME') {
-      summary.totalIncome += amount;
-    } else if (type === 'GIFT') {
-      if (returnDirection === 'TO_ME') {
-        summary.totalGiftReceived += amount;
-      } else {
-        summary.totalGiftGiven += amount;
-      }
-    }
+    const fieldMap: Partial<Record<string, keyof TransactionSummary>> = {
+      LOAN_GIVEN: 'totalLoanGiven',
+      LOAN_RECEIVED: 'totalLoanReceived',
+      REPAYMENT_MADE: 'totalRepaymentMade',
+      REPAYMENT_RECEIVED: 'totalRepaymentReceived',
+      GIFT_GIVEN: 'totalGiftGiven',
+      GIFT_RECEIVED: 'totalGiftReceived',
+      ADVANCE_PAID: 'totalAdvancePaid',
+      ADVANCE_RECEIVED: 'totalAdvanceReceived',
+      DEPOSIT_PAID: 'totalDepositPaid',
+      DEPOSIT_RECEIVED: 'totalDepositReceived',
+      ESCROWED: 'totalEscrowed',
+      REMITTED: 'totalRemitted',
+      // EXPENSE and INCOME deliberately omitted — legacy rows ignored in summaries
+    };
+    const field = fieldMap[type];
+    if (field) (summary[field] as number) += amount;
   }
 
   async groupByContact(userId: string, filter?: FilterTransactionInput) {
@@ -1010,7 +1177,7 @@ export class TransactionsService {
 
     // 1. Aggregations for transactions created by the user
     const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['contactId', 'type', 'returnDirection', 'currency'],
+      by: ['contactId', 'type', 'currency'],
       where: {
         ...baseWhere,
         createdById: userId,
@@ -1023,7 +1190,7 @@ export class TransactionsService {
 
     // 2. Aggregations for transactions where user is the contact (flip required)
     const sharedAggregations = await this.prisma.transaction.groupBy({
-      by: ['createdById', 'type', 'returnDirection', 'currency'],
+      by: ['createdById', 'type', 'currency'],
       where: {
         ...baseWhere,
         createdById: { not: userId },
@@ -1049,15 +1216,18 @@ export class TransactionsService {
     const groupedByContact = new Map<string | null, TransactionSummary>();
 
     const getInitialSummary = (): TransactionSummary => ({
-      totalGiven: 0,
-      totalReceived: 0,
-      totalReturned: 0,
-      totalReturnedToMe: 0,
-      totalReturnedToOther: 0,
-      totalExpense: 0,
-      totalIncome: 0,
+      totalLoanGiven: 0,
+      totalLoanReceived: 0,
+      totalRepaymentMade: 0,
+      totalRepaymentReceived: 0,
       totalGiftGiven: 0,
       totalGiftReceived: 0,
+      totalAdvancePaid: 0,
+      totalAdvanceReceived: 0,
+      totalDepositPaid: 0,
+      totalDepositReceived: 0,
+      totalEscrowed: 0,
+      totalRemitted: 0,
       netBalance: 0,
       currency: targetCurrency,
     });
@@ -1079,12 +1249,7 @@ export class TransactionsService {
         targetCurrency,
       );
 
-      this.updateSummaryWithTransaction(
-        summary,
-        agg.type,
-        agg.returnDirection,
-        convertedAmount,
-      );
+      this.updateSummaryWithTransaction(summary, agg.type, convertedAmount);
     }
 
     // Process shared transactions (with flip)
@@ -1110,41 +1275,15 @@ export class TransactionsService {
       );
 
       // Flip perspective
-      let flippedType = agg.type;
-      let flippedReturnDirection = agg.returnDirection;
-
-      if (agg.type === TransactionType.GIVEN) {
-        flippedType = TransactionType.RECEIVED;
-      } else if (agg.type === TransactionType.RECEIVED) {
-        flippedType = TransactionType.GIVEN;
-      } else if (agg.type === TransactionType.RETURNED) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      } else if (agg.type === TransactionType.GIFT) {
-        flippedReturnDirection =
-          agg.returnDirection === 'TO_ME' ? 'TO_CONTACT' : 'TO_ME';
-      }
-
-      this.updateSummaryWithTransaction(
-        summary,
-        flippedType,
-        flippedReturnDirection,
-        convertedAmount,
-      );
+      const flippedType = (PERSPECTIVE_FLIP_MAP[agg.type] ??
+        agg.type) as TransactionType;
+      this.updateSummaryWithTransaction(summary, flippedType, convertedAmount);
     }
 
     // Calculate net balance for each contact and format result
     const result = Array.from(groupedByContact.entries()).map(
       ([contactId, summary]) => {
-        summary.netBalance =
-          summary.totalIncome -
-          summary.totalExpense +
-          summary.totalReceived -
-          summary.totalGiven +
-          summary.totalReturnedToMe -
-          summary.totalReturnedToOther +
-          summary.totalGiftReceived -
-          summary.totalGiftGiven;
+        summary.netBalance = computeNetBalance(summary);
 
         return {
           contact: contactId ? contactMap.get(contactId) : null,
@@ -1222,7 +1361,6 @@ export class TransactionsService {
       itemName: transaction.itemName,
       quantity: transaction.quantity,
       type: transaction.type,
-      returnDirection: transaction.returnDirection,
       date: transaction.date,
       description: transaction.description,
       contactId: transaction.contactId,
@@ -1302,15 +1440,6 @@ export class TransactionsService {
     if (rest.type && rest.type !== transaction.type) {
       changes.type = rest.type;
       changeDescriptions.push(`Type changed to ${rest.type}`);
-    }
-    if (
-      rest.returnDirection !== undefined &&
-      rest.returnDirection !== transaction.returnDirection
-    ) {
-      changes.returnDirection = rest.returnDirection ?? null;
-      changeDescriptions.push(
-        `Return direction changed to ${rest.returnDirection ?? 'none'}`,
-      );
     }
     if (rest.contactId && rest.contactId !== transaction.contactId) {
       changes.contactId = rest.contactId;
@@ -1401,35 +1530,6 @@ export class TransactionsService {
       }
     }
 
-    // Determine the effective type and returnDirection after this update
-    const effectiveType = rest.type ?? transaction.type;
-    const needsReturnDirection =
-      (effectiveType === TransactionType.RETURNED ||
-        effectiveType === TransactionType.GIFT) &&
-      !!transaction.contactId;
-
-    // Compute the resolved returnDirection to write:
-    // - If type no longer needs a direction, clear it.
-    // - If type requires a direction, use the provided value or fall back to the
-    //   existing DB value (so partial updates that only change amount etc. don't
-    //   accidentally wipe a valid direction).
-    const {
-      returnDirection: inputReturnDirection,
-      ...restWithoutReturnDirection
-    } = rest;
-    let resolvedReturnDirection: ReturnDirection | null;
-    if (!needsReturnDirection) {
-      resolvedReturnDirection = null;
-    } else {
-      resolvedReturnDirection =
-        inputReturnDirection ?? transaction.returnDirection ?? null;
-      if (!resolvedReturnDirection) {
-        throw new BadRequestException(
-          'returnDirection is required when type is RETURNED or GIFT',
-        );
-      }
-    }
-
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
         const updated = await prisma.transaction.update({
@@ -1454,8 +1554,7 @@ export class TransactionsService {
                 : category === AssetCategory.FUNDS
                   ? null
                   : quantity,
-            ...restWithoutReturnDirection,
-            returnDirection: resolvedReturnDirection,
+            ...rest,
           },
         });
 
@@ -1478,6 +1577,31 @@ export class TransactionsService {
           );
         }
 
+        // Re-evaluate the parent's settled status when a child's amount
+        // changes, OR when this transaction is itself a loan whose face
+        // amount was edited (the outstanding balance shifts).
+        const amountChanged = changes.amount !== undefined;
+        if (amountChanged) {
+          if (transaction.parentId) {
+            await this.recomputeParentLoanStatus(
+              prisma as Prisma.TransactionClient,
+              transaction.parentId,
+              userId,
+            );
+          }
+          if (
+            transaction.type === 'LOAN_GIVEN' ||
+            transaction.type === 'LOAN_RECEIVED' ||
+            transaction.type === 'ESCROWED'
+          ) {
+            await this.recomputeParentLoanStatus(
+              prisma as Prisma.TransactionClient,
+              id,
+              userId,
+            );
+          }
+        }
+
         return updated;
       },
     );
@@ -1496,32 +1620,52 @@ export class TransactionsService {
 
     // If there are no witnesses, we can safely hard-delete
     if (transaction.witnesses.length === 0) {
-      return this.prisma.transaction.delete({
-        where: { id },
+      const deleted = await this.prisma.$transaction(async (prisma) => {
+        const removed = await prisma.transaction.delete({ where: { id } });
+        if (transaction.parentId) {
+          await this.recomputeParentLoanStatus(
+            prisma as Prisma.TransactionClient,
+            transaction.parentId,
+            userId,
+          );
+        }
+        return removed;
       });
+      return deleted;
     }
 
     // If there are witnesses, we mark as CANCELLED to preserve accountability
     // and notify witnesses.
-    const [cancelledTransaction] = await this.prisma.$transaction([
-      this.prisma.transaction.update({
-        where: { id },
-        data: { status: TransactionStatus.CANCELLED },
-      }),
-      this.prisma.transactionHistory.create({
-        data: {
-          transactionId: id,
-          userId,
-          changeType: 'CANCELLED',
-          previousState: {
-            status: transaction.status,
-          } as Prisma.InputJsonValue,
-          newState: {
-            status: TransactionStatus.CANCELLED,
-          } as Prisma.InputJsonValue,
-        },
-      }),
-    ]);
+    const cancelledTransaction = await this.prisma.$transaction(
+      async (prisma) => {
+        const updated = await prisma.transaction.update({
+          where: { id },
+          data: { status: TransactionStatus.CANCELLED },
+        });
+        await prisma.transactionHistory.create({
+          data: {
+            transactionId: id,
+            userId,
+            changeType: 'CANCELLED',
+            previousState: {
+              status: transaction.status,
+            } as Prisma.InputJsonValue,
+            newState: {
+              status: TransactionStatus.CANCELLED,
+            } as Prisma.InputJsonValue,
+          },
+        });
+        // Cancelling a child repayment can re-open the parent loan
+        if (transaction.parentId) {
+          await this.recomputeParentLoanStatus(
+            prisma as Prisma.TransactionClient,
+            transaction.parentId,
+            userId,
+          );
+        }
+        return updated;
+      },
+    );
 
     // Notify acknowledged witnesses
     const acknowledgedWitnesses = transaction.witnesses.filter(

@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   ChevronRight,
   Clock,
+  CornerDownRight,
   Download,
   Filter,
   Package,
@@ -16,6 +17,8 @@ import {
   UserCircle,
   UserPlus,
 } from "lucide-react";
+import { TransactionAmount } from "@/components/transactions/TransactionAmount";
+import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Badge } from "@/components/ui/badge";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
@@ -44,8 +47,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
-import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { groupTransactionActivity } from "@/lib/utils/groupTransactionActivity";
 import { AssetCategory, type Transaction } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -109,6 +112,7 @@ function ContactDetailsPage() {
 
   const contact = contactData.contact;
   const transactions = (txData?.transactions.items as Transaction[]) || [];
+  const activityRows = groupTransactionActivity(transactions);
   const summary = txData?.transactions.summary;
 
   const exportToCSV = (items: Transaction[], contactName: string) => {
@@ -202,7 +206,7 @@ function ContactDetailsPage() {
 
       {/* Summary Cards */}
       {summary && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Net Balance with Contact</CardTitle>
@@ -218,34 +222,45 @@ function ContactDetailsPage() {
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Given</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Loaned Out</CardTitle>
               <ArrowUpRight className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {formatCurrency(summary.totalGiven, "NGN")}
+                {formatCurrency(summary.totalLoanGiven, "NGN")}
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Received</CardTitle>
-              <ArrowDownLeft className="h-4 w-4 text-red-500" />
+              <CardTitle className="text-sm font-medium">Total Borrowed</CardTitle>
+              <ArrowDownLeft className="h-4 w-4 text-rose-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {formatCurrency(summary.totalReceived, "NGN")}
+              <div className="text-2xl font-bold text-rose-600">
+                {formatCurrency(summary.totalLoanReceived, "NGN")}
               </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Returned</CardTitle>
+              <CardTitle className="text-sm font-medium">Repayments Received</CardTitle>
               <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-emerald-600">
-                {formatCurrency(summary.totalReturned, "NGN")}
+                {formatCurrency(summary.totalRepaymentReceived, "NGN")}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Repayments Made</CardTitle>
+              <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-emerald-600">
+                {formatCurrency(summary.totalRepaymentMade, "NGN")}
               </div>
             </CardContent>
           </Card>
@@ -282,10 +297,18 @@ function ContactDetailsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="GIVEN">Given</SelectItem>
-                <SelectItem value="RECEIVED">Received</SelectItem>
-                <SelectItem value="RETURNED">Returned</SelectItem>
-                <SelectItem value="GIFT">Gift</SelectItem>
+                <SelectItem value="LOAN_GIVEN">Loan Given</SelectItem>
+                <SelectItem value="LOAN_RECEIVED">Loan Received</SelectItem>
+                <SelectItem value="REPAYMENT_MADE">Repayment Made</SelectItem>
+                <SelectItem value="REPAYMENT_RECEIVED">Repayment Received</SelectItem>
+                <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
+                <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
+                <SelectItem value="ADVANCE_PAID">Advance Paid</SelectItem>
+                <SelectItem value="ADVANCE_RECEIVED">Advance Received</SelectItem>
+                <SelectItem value="DEPOSIT_PAID">Deposit Paid</SelectItem>
+                <SelectItem value="DEPOSIT_RECEIVED">Deposit Received</SelectItem>
+                <SelectItem value="ESCROWED">Escrowed</SelectItem>
+                <SelectItem value="REMITTED">Remitted</SelectItem>
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
@@ -340,12 +363,15 @@ function ContactDetailsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {transactions.map((tx) => {
+                    {activityRows.map(({ tx, depth, isOrphan }) => {
                       const isCreator = user?.id === tx.createdBy?.id;
+                      const isChild = depth === 1;
                       return (
                         <TableRow
                           key={tx.id}
-                          className="group hover:bg-muted/50 transition-colors cursor-pointer border-b border-border/30 last:border-0"
+                          className={`group transition-colors cursor-pointer border-b border-border/30 last:border-0 ${
+                            isChild ? "bg-muted/20 hover:bg-muted/40" : "hover:bg-muted/50"
+                          }`}
                           onClick={() =>
                             navigate({
                               to: "/transactions/$id",
@@ -353,42 +379,26 @@ function ContactDetailsPage() {
                             })
                           }
                         >
-                          <TableCell className="pl-6 font-medium text-xs text-muted-foreground/80">
-                            {format(new Date(tx.date as string), "MMM d, yyyy")}
+                          <TableCell
+                            className={`font-medium text-xs text-muted-foreground/80 ${
+                              isChild ? "pl-12" : "pl-6"
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              {isChild && (
+                                <CornerDownRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                              )}
+                              {format(new Date(tx.date as string), "MMM d, yyyy")}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-1.5">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[10px] font-bold px-2 py-0.5",
-                                  tx.type === "GIVEN"
-                                    ? "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                      ? "text-red-600 border-red-200 bg-red-50"
-                                      : tx.type === "RETURNED"
-                                        ? tx.returnDirection === "TO_ME"
-                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                          : "text-blue-600 border-blue-200 bg-blue-50"
-                                        : tx.type === "INCOME"
-                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                          : tx.type === "GIFT"
-                                            ? tx.returnDirection === "TO_ME"
-                                              ? "text-purple-600 border-purple-200 bg-purple-50"
-                                              : "text-pink-600 border-pink-200 bg-pink-50"
-                                            : "text-gray-600 border-gray-200 bg-gray-50",
-                                )}
-                              >
-                                {tx.type === "RETURNED"
-                                  ? tx.returnDirection === "TO_ME"
-                                    ? "RETURNED TO ME"
-                                    : "RETURNED TO CONTACT"
-                                  : tx.type === "GIFT"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "GIFT RECEIVED"
-                                      : "GIFT GIVEN"
-                                    : tx.type}
-                              </Badge>
+                              <TransactionTypeBadge type={tx.type} />
+                              {isOrphan && (
+                                <span className="text-[9px] font-bold text-muted-foreground/70 italic">
+                                  ↳ for earlier transaction
+                                </span>
+                              )}
                               {!isCreator && (
                                 <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
                                   <UserCircle className="w-2.5 h-2.5" />
@@ -409,40 +419,18 @@ function ContactDetailsPage() {
                               tx.description || "-"
                             )}
                           </TableCell>
-                          <TableCell
-                            className={cn(
-                              "text-right font-bold text-sm",
-                              tx.category === AssetCategory.Item
-                                ? "text-muted-foreground font-normal italic text-xs"
-                                : tx.type === "GIVEN"
-                                  ? "text-blue-600"
-                                  : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                    ? "text-red-600"
-                                    : tx.type === "RETURNED"
-                                      ? tx.returnDirection === "TO_ME"
-                                        ? "text-emerald-600"
-                                        : "text-blue-600"
-                                      : tx.type === "INCOME"
-                                        ? "text-emerald-600"
-                                        : tx.type === "GIFT"
-                                          ? tx.returnDirection === "TO_ME"
-                                            ? "text-purple-600"
-                                            : "text-pink-600"
-                                          : "text-emerald-600",
-                            )}
-                          >
+                          <TableCell className="text-right">
                             {tx.category === AssetCategory.Item ? (
-                              "Physical Item"
+                              <span className="text-muted-foreground font-normal italic text-xs">
+                                Physical Item
+                              </span>
                             ) : (
-                              <>
-                                {tx.type === "GIVEN" ||
-                                (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                                tx.type === "INCOME" ||
-                                (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                                  ? "+"
-                                  : "-"}
-                                {formatCurrency(tx.amount, tx.currency || "NGN")}
-                              </>
+                              <TransactionAmount
+                                type={tx.type}
+                                amount={tx.amount}
+                                currency={tx.currency}
+                                className="text-sm"
+                              />
                             )}
                           </TableCell>
                           <TableCell className="pr-6">
@@ -457,12 +445,17 @@ function ContactDetailsPage() {
 
               {/* Mobile View */}
               <div className="md:hidden space-y-3 p-4">
-                {transactions.map((tx) => {
+                {activityRows.map(({ tx, depth, isOrphan }) => {
                   const isCreator = user?.id === tx.createdBy?.id;
+                  const isChild = depth === 1;
                   return (
                     <Card
                       key={tx.id}
-                      className="overflow-hidden border-border/50 hover:border-primary/30 transition-all active:scale-[0.98]"
+                      className={`overflow-hidden hover:border-primary/30 transition-all active:scale-[0.98] ${
+                        isChild
+                          ? "ml-6 border-l-2 border-l-primary/30 border-border/30 bg-muted/20"
+                          : "border-border/50"
+                      }`}
                       onClick={() =>
                         navigate({
                           to: "/transactions/$id",
@@ -473,41 +466,17 @@ function ContactDetailsPage() {
                       <div className="p-4 space-y-3">
                         <div className="flex justify-between items-start">
                           <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                              {isChild && <CornerDownRight className="h-2.5 w-2.5" />}
                               {format(new Date(tx.date as string), "MMM d, yyyy")}
                             </p>
                             <div className="flex flex-col gap-1">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[10px] font-bold px-2 py-0.5 w-fit",
-                                  tx.type === "GIVEN"
-                                    ? "text-blue-600 border-blue-200 bg-blue-50"
-                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                      ? "text-red-600 border-red-200 bg-red-50"
-                                      : tx.type === "RETURNED"
-                                        ? tx.returnDirection === "TO_ME"
-                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                          : "text-blue-600 border-blue-200 bg-blue-50"
-                                        : tx.type === "INCOME"
-                                          ? "text-emerald-600 border-emerald-200 bg-emerald-50"
-                                          : tx.type === "GIFT"
-                                            ? tx.returnDirection === "TO_ME"
-                                              ? "text-purple-600 border-purple-200 bg-purple-50"
-                                              : "text-pink-600 border-pink-200 bg-pink-50"
-                                            : "text-gray-600 border-gray-200 bg-gray-50",
-                                )}
-                              >
-                                {tx.type === "RETURNED"
-                                  ? tx.returnDirection === "TO_ME"
-                                    ? "RETURNED TO ME"
-                                    : "RETURNED TO CONTACT"
-                                  : tx.type === "GIFT"
-                                    ? tx.returnDirection === "TO_ME"
-                                      ? "GIFT RECEIVED"
-                                      : "GIFT GIVEN"
-                                    : tx.type}
-                              </Badge>
+                              <TransactionTypeBadge type={tx.type} className="w-fit" />
+                              {isOrphan && (
+                                <span className="text-[9px] font-bold text-muted-foreground/70 italic">
+                                  ↳ for earlier transaction
+                                </span>
+                              )}
                               {!isCreator && (
                                 <span className="flex items-center gap-1 text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
                                   <UserCircle className="w-2 h-2" />
@@ -522,34 +491,12 @@ function ContactDetailsPage() {
                                 Physical Item
                               </div>
                             ) : (
-                              <div
-                                className={cn(
-                                  "font-bold text-sm",
-                                  tx.type === "GIVEN"
-                                    ? "text-blue-600"
-                                    : tx.type === "RECEIVED" || tx.type === "EXPENSE"
-                                      ? "text-red-600"
-                                      : tx.type === "RETURNED"
-                                        ? tx.returnDirection === "TO_ME"
-                                          ? "text-emerald-600"
-                                          : "text-blue-600"
-                                        : tx.type === "INCOME"
-                                          ? "text-emerald-600"
-                                          : tx.type === "GIFT"
-                                            ? tx.returnDirection === "TO_ME"
-                                              ? "text-purple-600"
-                                              : "text-pink-600"
-                                            : "text-emerald-600",
-                                )}
-                              >
-                                {tx.type === "GIVEN" ||
-                                (tx.type === "RETURNED" && tx.returnDirection === "TO_ME") ||
-                                tx.type === "INCOME" ||
-                                (tx.type === "GIFT" && tx.returnDirection === "TO_ME")
-                                  ? "+"
-                                  : "-"}
-                                {formatCurrency(tx.amount, tx.currency || "NGN")}
-                              </div>
+                              <TransactionAmount
+                                type={tx.type}
+                                amount={tx.amount}
+                                currency={tx.currency}
+                                className="text-sm"
+                              />
                             )}
                           </div>
                         </div>
