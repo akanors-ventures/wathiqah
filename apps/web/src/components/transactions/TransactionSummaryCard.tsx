@@ -1,0 +1,288 @@
+import { useQuery } from "@apollo/client/react";
+import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
+import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Calendar, Gift, Layers } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BalanceIndicator } from "@/components/ui/balance-indicator";
+import { Card, CardContent } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { GET_TOTAL_BALANCE } from "@/lib/apollo/queries/transactions";
+import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/formatters";
+
+type Period = "THIS_MONTH" | "LAST_MONTH" | "LAST_3_MONTHS" | "CUSTOM";
+type CustomRange = { from: string | null; to: string | null };
+
+function periodToFilter(period: Period, custom: CustomRange) {
+  const now = new Date();
+  switch (period) {
+    case "THIS_MONTH":
+      return { startDate: startOfMonth(now).toISOString(), endDate: endOfMonth(now).toISOString() };
+    case "LAST_MONTH": {
+      const prev = subMonths(now, 1);
+      return {
+        startDate: startOfMonth(prev).toISOString(),
+        endDate: endOfMonth(prev).toISOString(),
+      };
+    }
+    case "LAST_3_MONTHS":
+      return {
+        startDate: startOfMonth(subMonths(now, 2)).toISOString(),
+        endDate: endOfMonth(now).toISOString(),
+      };
+    case "CUSTOM":
+      return {
+        startDate: custom.from ? new Date(custom.from).toISOString() : undefined,
+        endDate: custom.to ? new Date(custom.to).toISOString() : undefined,
+      };
+  }
+}
+
+function formatPeriodLabel(period: Period, custom: CustomRange): string {
+  const now = new Date();
+  switch (period) {
+    case "THIS_MONTH":
+      return format(now, "MMMM yyyy");
+    case "LAST_MONTH":
+      return format(subMonths(now, 1), "MMMM yyyy");
+    case "LAST_3_MONTHS": {
+      const start = subMonths(now, 2);
+      return `${format(start, "MMM")}–${format(now, "MMM yyyy")}`;
+    }
+    case "CUSTOM":
+      if (custom.from && custom.to) {
+        return `${format(new Date(custom.from), "d MMM")}–${format(new Date(custom.to), "d MMM yyyy")}`;
+      }
+      return "Select range";
+  }
+}
+
+interface StatCellProps {
+  label: string;
+  value: number;
+  currency: string;
+  colorClass: string;
+  bgClass: string;
+  borderClass: string;
+  icon: React.ReactNode;
+}
+
+function StatCell({
+  label,
+  value,
+  currency,
+  colorClass,
+  bgClass,
+  borderClass,
+  icon,
+}: StatCellProps) {
+  return (
+    <div className={cn("flex flex-col gap-2 p-3.5 rounded-2xl border", bgClass, borderClass)}>
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {label}
+        </span>
+        <span className={cn("opacity-70", colorClass)}>{icon}</span>
+      </div>
+      <span className={cn("text-base font-bold tabular-nums", colorClass)}>
+        {formatCurrency(value, currency)}
+      </span>
+    </div>
+  );
+}
+
+function StatCellSkeleton() {
+  return (
+    <div className="flex flex-col gap-2 p-3.5 rounded-2xl border border-border/50 bg-muted/20">
+      <Skeleton className="h-3 w-16" />
+      <Skeleton className="h-5 w-24" />
+    </div>
+  );
+}
+
+export function TransactionSummaryCard() {
+  const [period, setPeriod] = useState<Period>("THIS_MONTH");
+  const [customRange, setCustomRange] = useState<CustomRange>({ from: null, to: null });
+
+  const periodFilter = useMemo(() => periodToFilter(period, customRange), [period, customRange]);
+  const skipCustom = period === "CUSTOM" && (!customRange.from || !customRange.to);
+
+  const { data: allTimeData, loading: allTimeLoading } = useQuery(GET_TOTAL_BALANCE, {
+    fetchPolicy: "cache-and-network",
+  });
+
+  const { data: periodData, loading: periodLoading } = useQuery(GET_TOTAL_BALANCE, {
+    variables: { filter: periodFilter },
+    fetchPolicy: "cache-and-network",
+    skip: skipCustom,
+  });
+
+  const allTime = allTimeData?.totalBalance;
+  const period_ = periodData?.totalBalance;
+  const currency = allTime?.currency ?? period_?.currency ?? "NGN";
+
+  const otherFlowsTotal =
+    (period_?.totalGiftGiven ?? 0) +
+    (period_?.totalGiftReceived ?? 0) +
+    (period_?.totalAdvancePaid ?? 0) +
+    (period_?.totalAdvanceReceived ?? 0) +
+    (period_?.totalDepositPaid ?? 0) +
+    (period_?.totalDepositReceived ?? 0) +
+    (period_?.totalEscrowed ?? 0) +
+    (period_?.totalRemitted ?? 0);
+
+  return (
+    <Card className="overflow-hidden border-border/60">
+      {/* All-time net balance */}
+      <div className="relative px-5 pt-5 pb-4 bg-muted/30 border-b border-border/40">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1.5 min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              All-time net balance
+            </p>
+            {allTimeLoading && !allTime ? (
+              <Skeleton className="h-8 w-40 rounded-full" />
+            ) : allTime ? (
+              <BalanceIndicator
+                amount={allTime.netBalance}
+                currency={allTime.currency}
+                className="text-xl px-3.5 py-1.5 h-auto"
+              />
+            ) : null}
+          </div>
+          <div className="shrink-0 p-2.5 rounded-xl bg-primary/10 text-primary">
+            <Layers className="w-4 h-4" />
+          </div>
+        </div>
+        <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
+      </div>
+
+      {/* Period breakdown */}
+      <CardContent className="p-5 space-y-4">
+        {/* Period selector */}
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Calendar className="w-3.5 h-3.5 shrink-0" />
+            <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+              <SelectTrigger className="h-8 w-[160px] text-xs font-semibold border-border/60">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="THIS_MONTH" className="text-xs">
+                  This Month
+                </SelectItem>
+                <SelectItem value="LAST_MONTH" className="text-xs">
+                  Last Month
+                </SelectItem>
+                <SelectItem value="LAST_3_MONTHS" className="text-xs">
+                  Last 3 Months
+                </SelectItem>
+                <SelectItem value="CUSTOM" className="text-xs">
+                  Custom Range
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <span className="text-xs font-medium text-muted-foreground ml-auto">
+            {formatPeriodLabel(period, customRange)}
+          </span>
+        </div>
+
+        {period === "CUSTOM" && <DateRangePicker value={customRange} onChange={setCustomRange} />}
+
+        {/* Stats grid */}
+        {skipCustom ? (
+          <p className="text-xs text-muted-foreground text-center py-4">
+            Select a start and end date to view stats.
+          </p>
+        ) : periodLoading && !period_ ? (
+          <div className="grid grid-cols-2 gap-2.5">
+            {(["sk-lg", "sk-lr", "sk-rm", "sk-rr"] as const).map((k) => (
+              <StatCellSkeleton key={k} />
+            ))}
+          </div>
+        ) : period_ ? (
+          <div className="space-y-3">
+            {/* Loans */}
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-0.5">
+                Loans
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <StatCell
+                  label="Given"
+                  value={period_.totalLoanGiven}
+                  currency={currency}
+                  colorClass="text-blue-600 dark:text-blue-400"
+                  bgClass="bg-blue-500/[0.06]"
+                  borderClass="border-blue-500/20"
+                  icon={<ArrowUpRight className="w-3.5 h-3.5" />}
+                />
+                <StatCell
+                  label="Received"
+                  value={period_.totalLoanReceived}
+                  currency={currency}
+                  colorClass="text-rose-600 dark:text-rose-400"
+                  bgClass="bg-rose-500/[0.06]"
+                  borderClass="border-rose-500/20"
+                  icon={<ArrowDownLeft className="w-3.5 h-3.5" />}
+                />
+              </div>
+            </div>
+
+            {/* Repayments */}
+            <div className="space-y-1.5">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-0.5">
+                Repayments
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <StatCell
+                  label="Made"
+                  value={period_.totalRepaymentMade}
+                  currency={currency}
+                  colorClass="text-emerald-600 dark:text-emerald-400"
+                  bgClass="bg-emerald-500/[0.06]"
+                  borderClass="border-emerald-500/20"
+                  icon={<ArrowRightLeft className="w-3.5 h-3.5" />}
+                />
+                <StatCell
+                  label="Received"
+                  value={period_.totalRepaymentReceived}
+                  currency={currency}
+                  colorClass="text-emerald-600 dark:text-emerald-400"
+                  bgClass="bg-emerald-500/[0.06]"
+                  borderClass="border-emerald-500/20"
+                  icon={<ArrowRightLeft className="w-3.5 h-3.5" />}
+                />
+              </div>
+            </div>
+
+            {/* Other flows summary */}
+            {otherFlowsTotal > 0 && (
+              <div className="flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-border/40 bg-muted/20">
+                <div className="p-1.5 rounded-lg bg-muted text-muted-foreground">
+                  <Gift className="w-3.5 h-3.5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Other flows
+                  </p>
+                  <p className="text-xs font-semibold text-foreground tabular-nums">
+                    {formatCurrency(otherFlowsTotal, currency)} across gifts, advances & deposits
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
