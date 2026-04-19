@@ -1,10 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
-  ArrowDownLeft,
   ArrowRight,
   ArrowRightLeft,
-  ArrowUpRight,
   Download,
   Filter,
   Package,
@@ -13,15 +11,14 @@ import {
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
-import { LedgerPhilosophy } from "@/components/dashboard/LedgerPhilosophy";
 import { ItemsList } from "@/components/items/ItemsList";
 import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { TransactionCharts } from "@/components/transactions/TransactionCharts";
+import { TransactionSummaryCard } from "@/components/transactions/TransactionSummaryCard";
 import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
-import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
@@ -47,7 +44,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useItems } from "@/hooks/useItems";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { useTransactions } from "@/hooks/useTransactions";
-import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -81,7 +77,7 @@ function TransactionsPage() {
     setLimit,
     variables,
   } = useTransactionFilters();
-  const { transactions, loading, summary, total } = useTransactions(variables.filter);
+  const { transactions, loading, total } = useTransactions(variables.filter);
   const { items, loading: loadingItems, refetch: refetchItems } = useItems();
 
   const filteredTransactions = transactions;
@@ -166,8 +162,6 @@ function TransactionsPage() {
         </div>
       </div>
 
-      <LedgerPhilosophy />
-
       <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b lg:border-none lg:bg-transparent lg:static lg:p-0 flex justify-center">
         <TabsList className="grid w-full max-w-[500px] grid-cols-3 h-12 p-1.5 bg-muted/50 shadow-sm lg:shadow-none">
           <TabsTrigger value="funds" className="flex items-center gap-2 py-2">
@@ -186,63 +180,8 @@ function TransactionsPage() {
 
       <div className="space-y-4">
         <TabsContent value="funds" className="space-y-4">
-          {/* Summary Cards */}
-          {summary && (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Net Balance</CardTitle>
-                  <div className="h-4 w-4 text-muted-foreground">💰</div>
-                </CardHeader>
-                <CardContent>
-                  <BalanceIndicator
-                    amount={summary.netBalance}
-                    currency={summary.currency}
-                    className="text-2xl px-3 py-1 h-auto"
-                  />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Loan Given</CardTitle>
-                  <ArrowUpRight className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {formatCurrency(summary.totalLoanGiven, summary.currency)}
-                  </div>
-                  <p className="text-xs text-muted-foreground">You lent out</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Loan Received</CardTitle>
-                  <ArrowDownLeft className="h-4 w-4 text-red-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-600">
-                    {formatCurrency(summary.totalLoanReceived, summary.currency)}
-                  </div>
-                  <p className="text-xs text-muted-foreground">You borrowed</p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Repayments</CardTitle>
-                  <ArrowRightLeft className="h-4 w-4 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-emerald-600">
-                    {formatCurrency(
-                      (summary.totalRepaymentMade ?? 0) + (summary.totalRepaymentReceived ?? 0),
-                      summary.currency,
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Repayments</p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+          {/* Interactive Summary Card */}
+          <TransactionSummaryCard />
 
           {/* Filters */}
           <div className="flex flex-col gap-3 bg-card p-4 rounded-lg border">
