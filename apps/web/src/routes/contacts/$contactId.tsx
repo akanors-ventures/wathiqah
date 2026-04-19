@@ -44,7 +44,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTransactionFilters } from "@/hooks/useTransactionFilters";
 import { GET_CONTACT, GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import { GET_TRANSACTIONS } from "@/lib/apollo/queries/transactions";
-import { formatCurrency } from "@/lib/utils/formatters";
 import { groupTransactionActivity } from "@/lib/utils/groupTransactionActivity";
 import { AssetCategory, type Transaction } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
