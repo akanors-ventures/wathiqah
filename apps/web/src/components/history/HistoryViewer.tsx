@@ -82,6 +82,7 @@ const HIDDEN_FIELDS = new Set([
   "repaymentId",
   "conversionId",
   "createdById",
+  "remittanceId",
 ]);
 
 /* ------------------------------------------------------------------ */
@@ -574,7 +575,7 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
                       </p>
                     </div>
 
-                    {hasDiff && (
+                    {hasDiff ? (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -589,7 +590,11 @@ export function HistoryViewer({ history }: HistoryViewerProps) {
                           )}
                         />
                       </Button>
-                    )}
+                    ) : item.changeType === "UPDATE" || item.changeType === "UPDATE_POST_ACK" ? (
+                      <span className="self-start sm:self-center text-[10px] text-muted-foreground/50 italic shrink-0">
+                        No field changes
+                      </span>
+                    ) : null}
                   </div>
 
                   {/* Post-acknowledgement notice */}
