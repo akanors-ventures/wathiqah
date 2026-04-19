@@ -302,7 +302,7 @@ function TransactionDetailPage() {
         </div>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid grid-cols-1 gap-6 min-w-0">
         {/* Transaction Details Card */}
         <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">

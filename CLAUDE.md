@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## General Rules
+
+- Do NOT add pagination, extra features, or refactors beyond what was explicitly requested. Keep changes minimal and scoped to the ask.
+
+## Git Workflow
+
+- Always target `dev` branch for PRs and merges — use `gh pr create --base dev`. Never target `main` unless explicitly told.
+- Never delete git worktree directories directly. Use `git worktree remove <path>` from outside the worktree to avoid breaking the shell session.
+
+## Configuration Changes
+
+- Before modifying any config (lefthook, Atlas, CI, lint-staged), read the existing config files first. Never assume defaults.
+
 ## Quick Start
 
 ### Common Commands
