@@ -19,7 +19,6 @@ import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeB
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
@@ -69,7 +68,6 @@ function TransactionsPage() {
     setStatus,
     currency,
     setCurrency,
-    dateRange,
     setDateRange,
     page,
     setPage,
@@ -181,7 +179,7 @@ function TransactionsPage() {
       <div className="space-y-4">
         <TabsContent value="funds" className="space-y-4">
           {/* Interactive Summary Card */}
-          <TransactionSummaryCard />
+          <TransactionSummaryCard onPeriodFilterChange={setDateRange} />
 
           {/* Filters */}
           <div className="flex flex-col gap-3 bg-card p-4 rounded-lg border">
@@ -254,7 +252,6 @@ function TransactionsPage() {
                 </Select>
               </div>
             </div>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
 
           {/* Transactions Table */}

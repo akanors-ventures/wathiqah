@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { X } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,23 +42,23 @@ export function DateRangePicker({ value, onChange }: DateRangePickerProps) {
 
   return (
     <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-1 min-w-[120px]">
           <Label className="text-xs text-muted-foreground shrink-0">From</Label>
           <Input
             type="date"
             value={value.from ?? ""}
             onChange={(e) => handleFromChange(e.target.value)}
-            className="h-8 w-36 text-xs"
+            className="h-8 flex-1 min-w-0 text-xs"
           />
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 flex-1 min-w-[120px]">
           <Label className="text-xs text-muted-foreground shrink-0">To</Label>
           <Input
             type="date"
             value={value.to ?? ""}
             onChange={(e) => handleToChange(e.target.value)}
-            className="h-8 w-36 text-xs"
+            className="h-8 flex-1 min-w-0 text-xs"
           />
         </div>
         {(value.from || value.to) && (

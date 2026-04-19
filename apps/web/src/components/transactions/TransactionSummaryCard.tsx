@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client/react";
 import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
 import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Calendar, Gift, Layers } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Card, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -107,7 +107,11 @@ function StatCellSkeleton() {
   );
 }
 
-export function TransactionSummaryCard() {
+interface TransactionSummaryCardProps {
+  onPeriodFilterChange?: (range: { from: string | null; to: string | null }) => void;
+}
+
+export function TransactionSummaryCard({ onPeriodFilterChange }: TransactionSummaryCardProps) {
   const [period, setPeriod] = useState<Period>("THIS_MONTH");
   const [customRange, setCustomRange] = useState<CustomRange>({ from: null, to: null });
 
@@ -123,6 +127,36 @@ export function TransactionSummaryCard() {
     fetchPolicy: "cache-and-network",
     skip: skipCustom,
   });
+
+  useEffect(() => {
+    if (!onPeriodFilterChange) return;
+    if (period === "CUSTOM" && (!customRange.from || !customRange.to)) {
+      onPeriodFilterChange({ from: null, to: null });
+      return;
+    }
+    if (period === "CUSTOM") {
+      onPeriodFilterChange({ from: customRange.from, to: customRange.to });
+      return;
+    }
+    const now = new Date();
+    if (period === "THIS_MONTH") {
+      onPeriodFilterChange({
+        from: format(startOfMonth(now), "yyyy-MM-dd"),
+        to: format(endOfMonth(now), "yyyy-MM-dd"),
+      });
+    } else if (period === "LAST_MONTH") {
+      const prev = subMonths(now, 1);
+      onPeriodFilterChange({
+        from: format(startOfMonth(prev), "yyyy-MM-dd"),
+        to: format(endOfMonth(prev), "yyyy-MM-dd"),
+      });
+    } else if (period === "LAST_3_MONTHS") {
+      onPeriodFilterChange({
+        from: format(startOfMonth(subMonths(now, 2)), "yyyy-MM-dd"),
+        to: format(endOfMonth(now), "yyyy-MM-dd"),
+      });
+    }
+  }, [period, customRange, onPeriodFilterChange]);
 
   const allTime = allTimeData?.totalBalance;
   const period_ = periodData?.totalBalance;
