@@ -1,7 +1,14 @@
 import { useQuery } from "@apollo/client/react";
 import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
-import { ArrowDownLeft, ArrowRightLeft, ArrowUpRight, Calendar, Gift, Layers } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  ArrowDownLeft,
+  ArrowRightLeft,
+  ArrowUpRight,
+  Calendar,
+  ChevronDown,
+  Layers,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Card, CardContent } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -24,7 +31,10 @@ function periodToFilter(period: Period, custom: CustomRange) {
   const now = new Date();
   switch (period) {
     case "THIS_MONTH":
-      return { startDate: startOfMonth(now).toISOString(), endDate: endOfMonth(now).toISOString() };
+      return {
+        startDate: startOfMonth(now).toISOString(),
+        endDate: endOfMonth(now).toISOString(),
+      };
     case "LAST_MONTH": {
       const prev = subMonths(now, 1);
       return {
@@ -107,9 +117,17 @@ function StatCellSkeleton() {
   );
 }
 
-export function TransactionSummaryCard() {
+interface TransactionSummaryCardProps {
+  onPeriodFilterChange?: (range: { from: string | null; to: string | null }) => void;
+}
+
+export function TransactionSummaryCard({ onPeriodFilterChange }: TransactionSummaryCardProps) {
   const [period, setPeriod] = useState<Period>("THIS_MONTH");
-  const [customRange, setCustomRange] = useState<CustomRange>({ from: null, to: null });
+  const [customRange, setCustomRange] = useState<CustomRange>({
+    from: null,
+    to: null,
+  });
+  const [otherFlowsOpen, setOtherFlowsOpen] = useState(false);
 
   const periodFilter = useMemo(() => periodToFilter(period, customRange), [period, customRange]);
   const skipCustom = period === "CUSTOM" && (!customRange.from || !customRange.to);
@@ -124,19 +142,85 @@ export function TransactionSummaryCard() {
     skip: skipCustom,
   });
 
+  useEffect(() => {
+    if (!onPeriodFilterChange) return;
+    if (period === "CUSTOM" && (!customRange.from || !customRange.to)) {
+      onPeriodFilterChange({ from: null, to: null });
+      return;
+    }
+    if (period === "CUSTOM") {
+      onPeriodFilterChange({ from: customRange.from, to: customRange.to });
+      return;
+    }
+    const now = new Date();
+    if (period === "THIS_MONTH") {
+      onPeriodFilterChange({
+        from: format(startOfMonth(now), "yyyy-MM-dd"),
+        to: format(endOfMonth(now), "yyyy-MM-dd"),
+      });
+    } else if (period === "LAST_MONTH") {
+      const prev = subMonths(now, 1);
+      onPeriodFilterChange({
+        from: format(startOfMonth(prev), "yyyy-MM-dd"),
+        to: format(endOfMonth(prev), "yyyy-MM-dd"),
+      });
+    } else if (period === "LAST_3_MONTHS") {
+      onPeriodFilterChange({
+        from: format(startOfMonth(subMonths(now, 2)), "yyyy-MM-dd"),
+        to: format(endOfMonth(now), "yyyy-MM-dd"),
+      });
+    }
+  }, [period, customRange, onPeriodFilterChange]);
+
   const allTime = allTimeData?.totalBalance;
   const period_ = periodData?.totalBalance;
   const currency = allTime?.currency ?? period_?.currency ?? "NGN";
 
-  const otherFlowsTotal =
-    (period_?.totalGiftGiven ?? 0) +
-    (period_?.totalGiftReceived ?? 0) +
-    (period_?.totalAdvancePaid ?? 0) +
-    (period_?.totalAdvanceReceived ?? 0) +
-    (period_?.totalDepositPaid ?? 0) +
-    (period_?.totalDepositReceived ?? 0) +
-    (period_?.totalEscrowed ?? 0) +
-    (period_?.totalRemitted ?? 0);
+  const otherFlows = period_
+    ? [
+        {
+          label: "Gift Given",
+          value: period_.totalGiftGiven,
+          colorClass: "text-pink-600 dark:text-pink-400",
+        },
+        {
+          label: "Gift Received",
+          value: period_.totalGiftReceived,
+          colorClass: "text-purple-600 dark:text-purple-400",
+        },
+        {
+          label: "Advance Paid",
+          value: period_.totalAdvancePaid,
+          colorClass: "text-orange-600 dark:text-orange-400",
+        },
+        {
+          label: "Advance Received",
+          value: period_.totalAdvanceReceived,
+          colorClass: "text-purple-600 dark:text-purple-400",
+        },
+        {
+          label: "Deposit Paid",
+          value: period_.totalDepositPaid,
+          colorClass: "text-orange-600 dark:text-orange-400",
+        },
+        {
+          label: "Deposit Received",
+          value: period_.totalDepositReceived,
+          colorClass: "text-purple-600 dark:text-purple-400",
+        },
+        {
+          label: "Escrowed",
+          value: period_.totalEscrowed,
+          colorClass: "text-teal-600 dark:text-teal-400",
+        },
+        {
+          label: "Remitted",
+          value: period_.totalRemitted,
+          colorClass: "text-orange-600 dark:text-orange-400",
+        },
+      ].filter((f) => f.value > 0)
+    : [];
+  const otherFlowsTotal = otherFlows.reduce((sum, f) => sum + f.value, 0);
 
   return (
     <Card className="overflow-hidden border-border/60">
@@ -264,20 +348,43 @@ export function TransactionSummaryCard() {
               </div>
             </div>
 
-            {/* Other flows summary */}
+            {/* Other flows — collapsible */}
             {otherFlowsTotal > 0 && (
-              <div className="flex items-center gap-3 px-3.5 py-3 rounded-2xl border border-border/40 bg-muted/20">
-                <div className="p-1.5 rounded-lg bg-muted text-muted-foreground">
-                  <Gift className="w-3.5 h-3.5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                    Other flows
-                  </p>
-                  <p className="text-xs font-semibold text-foreground tabular-nums">
-                    {formatCurrency(otherFlowsTotal, currency)} across gifts, advances & deposits
-                  </p>
-                </div>
+              <div className="rounded-2xl border border-border/40 overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 px-3.5 py-3 bg-muted/20 hover:bg-muted/30 transition-colors"
+                  onClick={() => setOtherFlowsOpen((prev) => !prev)}
+                >
+                  <div className="flex-1 min-w-0 text-left">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      Other flows
+                    </p>
+                    <p className="text-xs font-semibold text-foreground tabular-nums">
+                      {formatCurrency(otherFlowsTotal, currency)}
+                    </p>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform duration-200",
+                      otherFlowsOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+                {otherFlowsOpen && (
+                  <div className="px-3.5 py-3 border-t border-border/30 grid grid-cols-2 gap-x-4 gap-y-3">
+                    {otherFlows.map((flow) => (
+                      <div key={flow.label} className="space-y-0.5">
+                        <p className="text-[10px] font-medium text-muted-foreground">
+                          {flow.label}
+                        </p>
+                        <p className={cn("text-sm font-bold tabular-nums", flow.colorClass)}>
+                          {formatCurrency(flow.value, currency)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

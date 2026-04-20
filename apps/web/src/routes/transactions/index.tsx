@@ -19,7 +19,6 @@ import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeB
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
@@ -69,7 +68,6 @@ function TransactionsPage() {
     setStatus,
     currency,
     setCurrency,
-    dateRange,
     setDateRange,
     page,
     setPage,
@@ -181,7 +179,7 @@ function TransactionsPage() {
       <div className="space-y-4">
         <TabsContent value="funds" className="space-y-4">
           {/* Interactive Summary Card */}
-          <TransactionSummaryCard />
+          <TransactionSummaryCard onPeriodFilterChange={setDateRange} />
 
           {/* Filters */}
           <div className="flex flex-col gap-3 bg-card p-4 rounded-lg border">
@@ -254,7 +252,6 @@ function TransactionsPage() {
                 </Select>
               </div>
             </div>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
 
           {/* Transactions Table */}
@@ -301,7 +298,10 @@ function TransactionsPage() {
                             key={tx.id}
                             className="cursor-pointer hover:bg-muted/50 transition-colors group"
                             onClick={() =>
-                              navigate({ to: "/transactions/$id", params: { id: tx.id } })
+                              navigate({
+                                to: "/transactions/$id",
+                                params: { id: tx.id },
+                              })
                             }
                           >
                             <TableCell className="font-medium">
@@ -431,7 +431,12 @@ function TransactionsPage() {
                   <Card
                     key={tx.id}
                     className="active:scale-[0.98] transition-transform cursor-pointer"
-                    onClick={() => navigate({ to: "/transactions/$id", params: { id: tx.id } })}
+                    onClick={() =>
+                      navigate({
+                        to: "/transactions/$id",
+                        params: { id: tx.id },
+                      })
+                    }
                   >
                     <CardContent className="p-4">
                       <div className="flex justify-between items-start mb-2">

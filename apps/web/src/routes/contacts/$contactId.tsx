@@ -21,7 +21,6 @@ import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHe
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
 import {
@@ -61,7 +60,6 @@ function ContactDetailsPage() {
     setTypes,
     status,
     setStatus,
-    dateRange,
     setDateRange,
     page,
     setPage,
@@ -202,7 +200,12 @@ function ContactDetailsPage() {
       </div>
 
       {/* Summary Cards */}
-      {summary && <ContactSummaryCards summary={summary} contactBalance={contact.balance} />}
+      <ContactSummaryCards
+        summary={summary}
+        contactBalance={contact.balance}
+        loading={txLoading}
+        onPeriodFilterChange={setDateRange}
+      />
 
       {/* Transactions Table */}
       <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
@@ -259,7 +262,6 @@ function ContactDetailsPage() {
                 <SelectItem value="CANCELLED">Cancelled</SelectItem>
               </SelectContent>
             </Select>
-            <DateRangePicker value={dateRange} onChange={setDateRange} />
           </div>
         </CardHeader>
         <CardContent className="p-0">
