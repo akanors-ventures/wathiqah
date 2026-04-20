@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useAmountInput } from "@/hooks/useAmountInput";
 import { useTransactions } from "@/hooks/useTransactions";
 import { formatCurrency } from "@/lib/utils/formatters";
@@ -68,6 +69,7 @@ export function RecordRemitDialog({
       .min(0.01, "Amount must be greater than 0")
       .max(remaining, `Amount cannot exceed outstanding balance (${remaining})`),
     date: z.string().min(1, "Date is required"),
+    description: z.string().optional(),
   });
 
   type RecordRemitFormValues = z.infer<typeof formSchema>;
@@ -77,6 +79,7 @@ export function RecordRemitDialog({
     defaultValues: {
       amount: remaining,
       date: format(new Date(), "yyyy-MM-dd"),
+      description: "",
     },
   });
 
@@ -99,6 +102,7 @@ export function RecordRemitDialog({
         contactId: transaction.contactId,
         parentId: transaction.id,
         date: new Date(values.date).toISOString(),
+        description: values.description || undefined,
       });
       toast.success("Remittance recorded successfully");
       onSuccess?.();
@@ -106,6 +110,7 @@ export function RecordRemitDialog({
       form.reset({
         amount: remaining,
         date: format(new Date(), "yyyy-MM-dd"),
+        description: "",
       });
       setAmountKey((k) => k + 1);
     } catch (err) {
@@ -167,6 +172,24 @@ export function RecordRemitDialog({
                   <FormLabel>Date</FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Description{" "}
+                    <span className="text-muted-foreground font-normal">(optional)</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Add a note about this remittance" rows={2} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
