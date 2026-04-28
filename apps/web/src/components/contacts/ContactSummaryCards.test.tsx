@@ -1,6 +1,6 @@
 // apps/web/src/components/contacts/ContactSummaryCards.test.tsx
 import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { TransactionsSummary } from "@/types/__generated__/graphql";
 import { ContactSummaryCards } from "./ContactSummaryCards";
 
@@ -24,42 +24,60 @@ const baseSummary: TransactionsSummary = {
 
 describe("ContactSummaryCards", () => {
   it("always renders primary stats", () => {
-    render(<ContactSummaryCards summary={baseSummary} contactBalance={450000} />);
-    expect(screen.getByText("Total Loaned Out")).toBeInTheDocument();
-    expect(screen.getByText("Total Borrowed")).toBeInTheDocument();
-    expect(screen.getByText("Repayments Received")).toBeInTheDocument();
-    expect(screen.getByText("Repayments Made")).toBeInTheDocument();
+    render(
+      <ContactSummaryCards
+        summary={baseSummary}
+        contactBalance={450000}
+        onPeriodFilterChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Loans")).toBeInTheDocument();
+    expect(screen.getByText("Repayments")).toBeInTheDocument();
     expect(screen.getByText("Net Balance with Contact")).toBeInTheDocument();
   });
 
   it("hides Other Flows panel when all secondary values are zero", () => {
-    render(<ContactSummaryCards summary={baseSummary} contactBalance={0} />);
-    expect(screen.queryByText("Other Flows")).not.toBeInTheDocument();
+    render(
+      <ContactSummaryCards
+        summary={baseSummary}
+        contactBalance={0}
+        onPeriodFilterChange={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText("Other flows")).not.toBeInTheDocument();
   });
 
   it("shows Other Flows panel when at least one secondary value is non-zero", () => {
     const summary = { ...baseSummary, totalAdvancePaid: 300000 };
-    render(<ContactSummaryCards summary={summary} contactBalance={0} />);
-    expect(screen.getByText("Other Flows")).toBeInTheDocument();
+    render(
+      <ContactSummaryCards summary={summary} contactBalance={0} onPeriodFilterChange={vi.fn()} />,
+    );
+    expect(screen.getByText("Other flows")).toBeInTheDocument();
   });
 
   it("Other Flows panel is collapsed by default", () => {
     const summary = { ...baseSummary, totalAdvancePaid: 300000 };
-    render(<ContactSummaryCards summary={summary} contactBalance={0} />);
+    render(
+      <ContactSummaryCards summary={summary} contactBalance={0} onPeriodFilterChange={vi.fn()} />,
+    );
     expect(screen.queryByText("Advance Paid")).not.toBeInTheDocument();
   });
 
   it("expands Other Flows on click", () => {
     const summary = { ...baseSummary, totalAdvancePaid: 300000 };
-    render(<ContactSummaryCards summary={summary} contactBalance={0} />);
-    fireEvent.click(screen.getByText("Other Flows"));
+    render(
+      <ContactSummaryCards summary={summary} contactBalance={0} onPeriodFilterChange={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByText("Other flows"));
     expect(screen.getByText("Advance Paid")).toBeInTheDocument();
   });
 
   it("only renders non-zero cards inside Other Flows", () => {
     const summary = { ...baseSummary, totalAdvancePaid: 300000, totalGiftGiven: 0 };
-    render(<ContactSummaryCards summary={summary} contactBalance={0} />);
-    fireEvent.click(screen.getByText("Other Flows"));
+    render(
+      <ContactSummaryCards summary={summary} contactBalance={0} onPeriodFilterChange={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByText("Other flows"));
     expect(screen.getByText("Advance Paid")).toBeInTheDocument();
     expect(screen.queryByText("Gift Given")).not.toBeInTheDocument();
   });
