@@ -55,7 +55,7 @@ export function Dashboard() {
     return undefined;
   }, [period]);
 
-  const { transactions, loading: loadingTx } = useTransactions({ limit: 6 });
+  const { transactions, loading: loadingTx } = useTransactions({ limit: 6, ...(dateFilter ?? {}) });
   const { contacts, loading: loadingContacts } = useContacts();
 
   // 1. Total Balance (Always All Time)
@@ -161,39 +161,41 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Use Case Focused Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatsCard
-          title="Total Balance"
-          variant="primary"
-          extra={
-            <Select
-              value={selectedCurrency || balanceCurrency}
-              onValueChange={(v) => setSelectedCurrency(v)}
-            >
-              <SelectTrigger className="h-7 w-[70px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0 flex-shrink-0">
-                <SelectValue placeholder="NGN" />
-              </SelectTrigger>
-              <SelectContent>
-                {currencies.map((c) => (
-                  <SelectItem key={c} value={c} className="text-xs">
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          }
-          value={
-            <BalanceIndicator
-              amount={totalBalance}
-              currency={balanceCurrency}
-              overrideColor={isDebtByRule ? "red" : "green"}
-              className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
-            />
-          }
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-          description="Your current cash position (All Time)"
-        />
+      {/* Financial Stats */}
+      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
+        <div className="col-span-2 sm:col-span-1">
+          <StatsCard
+            title="Total Balance"
+            variant="primary"
+            extra={
+              <Select
+                value={selectedCurrency || balanceCurrency}
+                onValueChange={(v) => setSelectedCurrency(v)}
+              >
+                <SelectTrigger className="h-7 w-[70px] text-[10px] font-medium border-none bg-muted/50 hover:bg-muted transition-colors focus:ring-0 flex-shrink-0">
+                  <SelectValue placeholder="NGN" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c} value={c} className="text-xs">
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            }
+            value={
+              <BalanceIndicator
+                amount={totalBalance}
+                currency={balanceCurrency}
+                overrideColor={isDebtByRule ? "red" : "green"}
+                className="text-xl sm:text-2xl h-auto px-2 py-0 border-0 bg-transparent"
+              />
+            }
+            icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+            description="Your current cash position (All Time)"
+          />
+        </div>
         <StatsCard
           title={`Inflow (${getPeriodLabel()})`}
           value={
@@ -201,7 +203,7 @@ export function Dashboard() {
               amount={periodIncome}
               currency={balanceCurrency}
               overrideColor="green"
-              className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
+              className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
             />
           }
           icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
@@ -214,28 +216,32 @@ export function Dashboard() {
               amount={periodExpense}
               currency={balanceCurrency}
               overrideColor="red"
-              className="text-2xl h-auto px-2 py-0 border-0 bg-transparent"
+              className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
             />
           }
           icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
           description="Spending & given funds"
         />
+      </div>
+
+      {/* Activity Stats */}
+      <div className="grid gap-3 grid-cols-3">
         <StatsCard
-          title="Active Promises"
+          title="Promises"
           value={activePromises.toString()}
           icon={<CalendarClock className="h-4 w-4 text-muted-foreground" />}
-          description="Pending commitments to keep"
+          description="Pending commitments"
           link="/promises"
         />
         <StatsCard
-          title="Pending Verifications"
+          title="Witnesses"
           value={pendingWitnessRequests.toString()}
           icon={<FileCheck className="h-4 w-4 text-muted-foreground" />}
-          description="Witness requests to review"
+          description="Pending requests"
           link="/witnesses"
         />
         <StatsCard
-          title="Relationships"
+          title="Contacts"
           value={totalContacts.toString()}
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
           description="Active connections"
@@ -249,7 +255,7 @@ export function Dashboard() {
         </div>
 
         {/* Quick Actions / Recent Promises */}
-        <Card className="lg:col-span-3 h-full rounded-[20px] sm:rounded-[24px] border-border/50 overflow-hidden group/promises transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+        <Card className="lg:col-span-3 h-full rounded-[32px] border-border/50 overflow-hidden group/promises transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
           <CardHeader className="pb-3 sm:pb-4 p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm sm:text-base font-bold capitalize tracking-tight text-muted-foreground group-hover/promises:text-primary transition-colors">
@@ -318,24 +324,24 @@ export function Dashboard() {
       </div>
 
       {/* Recent Activity - Full Width at Bottom */}
-      <Card className="rounded-[24px] border-border/50 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-        <CardHeader className="flex flex-row items-center justify-between pb-4 sm:pb-6 p-4 sm:p-6">
-          <div>
-            <CardTitle className="text-lg sm:text-xl font-bold tracking-tight capitalize">
+      <Card className="rounded-[32px] border-border/50 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
+        <CardHeader className="flex flex-row items-start justify-between gap-4 pb-4 sm:pb-6 p-4 sm:p-6">
+          <div className="min-w-0">
+            <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
               Recent activity
             </CardTitle>
             <p className="text-[10px] sm:text-xs text-muted-foreground font-medium mt-1">
-              Your latest financial interactions across the platform.
+              Your latest financial interactions.
             </p>
           </div>
           <Button
             variant="outline"
             size="sm"
             asChild
-            className="rounded-md font-bold capitalize tracking-tight text-[10px] sm:text-[11px] h-8 sm:h-9 px-4 sm:px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
+            className="shrink-0 rounded-md font-bold capitalize tracking-tight text-[10px] sm:text-[11px] h-8 sm:h-9 px-4 sm:px-5 border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all"
           >
             <Link to="/transactions" search={{ tab: "funds" }}>
-              View all history
+              View all
             </Link>
           </Button>
         </CardHeader>

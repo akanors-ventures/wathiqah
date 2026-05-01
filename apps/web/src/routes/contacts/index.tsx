@@ -1,6 +1,7 @@
 import { useMutation } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Filter, Plus, Search, User } from "lucide-react";
+import { useState } from "react";
 import { ContactCard } from "@/components/contacts/ContactCard";
 import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import {
@@ -14,8 +15,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { PageLoader } from "@/components/ui/page-loader";
+import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
@@ -30,7 +32,6 @@ import { useItems } from "@/hooks/useItems";
 import { GET_CONTACTS, INVITE_CONTACT } from "@/lib/apollo/queries/contacts";
 import type { GetContactsQuery } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
-import { useState } from "react";
 
 export const Route = createFileRoute("/contacts/")({
   component: ContactsPage,
@@ -93,11 +94,13 @@ function ContactsPage() {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-5xl py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Contacts</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Contacts
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             Manage your personal and professional connections.
           </p>
         </div>
@@ -110,87 +113,99 @@ function ContactsPage() {
         </Button>
       </div>
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name, email, or phone..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 h-10 bg-background"
-          />
-        </div>
-        <Select
-          value={balanceStanding}
-          onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}
-        >
-          <SelectTrigger className="sm:w-[200px]">
-            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Balance Standing" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Contacts</SelectItem>
-            <SelectItem value="OWED_TO_ME">They Owe Me</SelectItem>
-            <SelectItem value="I_OWE">I Owe Them</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {loading ? (
-        <PageLoader />
-      ) : error ? (
-        <div className="p-8 text-center text-red-500 border border-red-200 bg-red-50 rounded-lg">
-          Error loading contacts: {error.message}
-        </div>
-      ) : contacts.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-border rounded-xl bg-muted/50">
-          <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-4">
-            <User className="w-6 h-6 text-muted-foreground" />
+      <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
+        <CardHeader className="p-6 border-b border-border/30 space-y-4">
+          <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
+            Contacts
+          </CardTitle>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, or phone..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 h-10 bg-background"
+              />
+            </div>
+            <Select
+              value={balanceStanding}
+              onValueChange={(v) => setBalanceStanding(v as typeof balanceStanding)}
+            >
+              <SelectTrigger className="sm:w-[200px]">
+                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Balance Standing" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Contacts</SelectItem>
+                <SelectItem value="OWED_TO_ME">They Owe Me</SelectItem>
+                <SelectItem value="I_OWE">I Owe Them</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <h3 className="text-lg font-medium text-foreground">No contacts found</h3>
-          <p className="text-muted-foreground mt-1 mb-6">
-            {search || balanceStanding !== "ALL"
-              ? "Try adjusting your filters."
-              : "Get started by adding your first contact."}
-          </p>
-          {!search && balanceStanding === "ALL" && (
-            <Button onClick={() => setIsFormOpen(true)} variant="outline">
-              Create Contact
-            </Button>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <BrandLoader size="sm" />
+            </div>
+          ) : error ? (
+            <div className="p-8 text-center text-destructive">
+              Error loading contacts: {error.message}
+            </div>
+          ) : contacts.length === 0 ? (
+            <div className="text-center py-20">
+              <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4 opacity-20">
+                <User className="w-8 h-8" />
+              </div>
+              <p className="font-bold text-sm">No contacts found.</p>
+              <p className="text-muted-foreground text-sm mt-1 mb-6">
+                {search || balanceStanding !== "ALL"
+                  ? "Try adjusting your filters."
+                  : "Get started by adding your first contact."}
+              </p>
+              {!search && balanceStanding === "ALL" && (
+                <Button onClick={() => setIsFormOpen(true)} variant="outline">
+                  Create Contact
+                </Button>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="p-4 sm:p-6 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {contacts.map((contact) => {
+                  const contactItems = items.filter((item) => item.contactId === contact.id);
+                  const lentCount = contactItems.filter((i) => i.status === "LENT").length;
+                  const borrowedCount = contactItems.filter((i) => i.status === "BORROWED").length;
+
+                  return (
+                    <ContactCard
+                      key={contact.id}
+                      contact={{
+                        ...contact,
+                        lentCount,
+                        borrowedCount,
+                      }}
+                      onEdit={handleEdit}
+                      onDelete={(c) => setDeletingContact(c as ContactItem)}
+                      onInvite={handleInvite}
+                      compact
+                    />
+                  );
+                })}
+              </div>
+              <Pagination
+                total={total}
+                page={page}
+                limit={limit}
+                onPageChange={setPage}
+                onLimitChange={setLimit}
+              />
+            </>
           )}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {contacts.map((contact) => {
-              const contactItems = items.filter((item) => item.contactId === contact.id);
-              const lentCount = contactItems.filter((i) => i.status === "LENT").length;
-              const borrowedCount = contactItems.filter((i) => i.status === "BORROWED").length;
-
-              return (
-                <ContactCard
-                  key={contact.id}
-                  contact={{
-                    ...contact,
-                    lentCount,
-                    borrowedCount,
-                  }}
-                  onEdit={handleEdit}
-                  onDelete={(c) => setDeletingContact(c as ContactItem)}
-                  onInvite={handleInvite}
-                />
-              );
-            })}
-          </div>
-          <Pagination
-            total={total}
-            page={page}
-            limit={limit}
-            onPageChange={setPage}
-            onLimitChange={setLimit}
-          />
-        </>
-      )}
+        </CardContent>
+      </Card>
 
       <ContactFormDialog isOpen={isFormOpen} onClose={handleCloseForm} contact={editingContact} />
 

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CheckCircle2, Circle, UserPlus, Wallet, Users } from "lucide-react";
+import { CheckCircle2, Circle, UserPlus, Users, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -48,14 +48,14 @@ export function OnboardingChecklist({
   return (
     <Card className="border-primary/20 bg-primary/5 overflow-hidden">
       <CardHeader className="pb-4">
-        <div className="flex justify-between items-center">
-          <div>
+        <div className="flex justify-between items-start gap-3">
+          <div className="min-w-0">
             <CardTitle className="text-lg font-bold">Getting Started</CardTitle>
             <p className="text-sm text-muted-foreground font-medium mt-1">
               Complete these steps to set up your ledger.
             </p>
           </div>
-          <div className="text-xs font-bold bg-background px-3 py-1 rounded-full border border-border shadow-sm">
+          <div className="shrink-0 text-xs font-bold bg-background px-3 py-1 rounded-full border border-border shadow-sm whitespace-nowrap">
             {completedCount}/{steps.length} Completed
           </div>
         </div>
@@ -71,7 +71,7 @@ export function OnboardingChecklist({
           <div
             key={step.id}
             className={cn(
-              "flex items-center gap-4 p-3 rounded-xl border transition-all duration-300",
+              "flex flex-wrap items-center gap-3 p-3 rounded-xl border transition-all duration-300",
               step.completed
                 ? "bg-background/40 border-border/40 opacity-70"
                 : "bg-background border-border shadow-sm hover:border-primary/30",
@@ -89,7 +89,7 @@ export function OnboardingChecklist({
                 <Circle className="w-6 h-6 text-muted-foreground/30" />
               )}
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-[100px]">
               <h4
                 className={cn(
                   "font-bold text-sm",
@@ -100,10 +100,15 @@ export function OnboardingChecklist({
               >
                 {step.title}
               </h4>
-              <p className="text-xs text-muted-foreground truncate">{step.description}</p>
+              <p className="text-xs text-muted-foreground">{step.description}</p>
             </div>
             {!step.completed && (
-              <Button size="sm" variant="outline" className="h-8 text-xs font-bold" asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs font-bold shrink-0"
+                asChild
+              >
                 <Link to={step.action.to}>{step.action.label}</Link>
               </Button>
             )}

@@ -223,7 +223,7 @@ export function TransactionSummaryCard({ onPeriodFilterChange }: TransactionSumm
   const otherFlowsTotal = otherFlows.reduce((sum, f) => sum + f.value, 0);
 
   return (
-    <Card className="overflow-hidden border-border/60">
+    <Card className="rounded-[32px] overflow-hidden border-border/60 shadow-sm">
       {/* All-time net balance */}
       <div className="relative px-5 pt-5 pb-4 bg-muted/30 border-b border-border/40">
         <div className="flex items-start justify-between gap-4">
