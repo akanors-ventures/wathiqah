@@ -7,6 +7,7 @@ interface StatsCardProps {
   value: string | React.ReactNode;
   icon: React.ReactNode;
   description: string;
+  descriptionSlot?: React.ReactNode;
   link?: string;
   extra?: React.ReactNode;
   className?: string;
@@ -18,6 +19,7 @@ export function StatsCard({
   value,
   icon,
   description,
+  descriptionSlot,
   link,
   extra,
   className,
@@ -72,6 +74,7 @@ export function StatsCard({
         <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium opacity-70 group-hover:text-foreground/70 transition-colors">
           {description}
         </p>
+        {descriptionSlot}
       </CardContent>
 
       {/* Decorative background element */}
