@@ -1,7 +1,7 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowRight, Filter, Plus, Search } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Filter, FolderKanban, Plus, Search } from "lucide-react";
+import { ProjectCard } from "@/components/projects/ProjectCard";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { useProjectFilters } from "@/hooks/useProjectFilters";
 import { useProjects } from "@/hooks/useProjects";
-import { formatCurrency } from "@/lib/utils/formatters";
 import type { ProjectFieldsFragment } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -40,16 +39,20 @@ function ProjectsPage() {
 
   const { projects, total, loading } = useProjects(variables.filter);
 
-  const navigate = useNavigate();
-
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-          <p className="text-muted-foreground">Manage your project funds and expenses.</p>
+          <h1 className="text-3xl font-black tracking-tight">Projects</h1>
+          <p className="text-sm text-muted-foreground font-medium opacity-70">
+            Manage your project funds and expenses.
+          </p>
         </div>
-        <Button asChild>
+        <Button
+          asChild
+          className="shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-transform"
+        >
           <Link to="/projects/new">
             <Plus className="w-4 h-4 mr-2" /> New Project
           </Link>
@@ -94,14 +97,20 @@ function ProjectsPage() {
         </Select>
       </div>
 
+      {/* Content */}
       {loading ? (
         <div className="flex justify-center py-10">
           <BrandLoader size="md" />
         </div>
       ) : projects.length === 0 ? (
-        <div className="text-center py-20 bg-muted/30 rounded-lg border border-dashed">
-          <h3 className="text-lg font-medium">No projects found</h3>
-          <p className="text-muted-foreground mb-4">
+        <div className="rounded-[24px] border border-dashed border-border/40 py-20 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-14 h-14 bg-primary/5 rounded-full flex items-center justify-center">
+              <FolderKanban className="w-7 h-7 text-primary/40" />
+            </div>
+          </div>
+          <h3 className="text-lg font-semibold tracking-tight">No projects found</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-5">
             {search || status !== "ALL" || balanceStanding !== "ALL"
               ? "Try adjusting your filters."
               : "Create a project to start tracking funds."}
@@ -114,42 +123,9 @@ function ProjectsPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project: ProjectFieldsFragment) => (
-              <Card
-                key={project.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() =>
-                  navigate({ to: "/projects/$projectId", params: { projectId: project.id } })
-                }
-              >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{project.name}</CardTitle>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {formatCurrency(project.balance, project.currency)}
-                  </div>
-                  {project.budget && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatCurrency(
-                        project.budget - (project.totalExpenses ?? 0),
-                        project.currency,
-                      )}{" "}
-                      remaining of {formatCurrency(project.budget, project.currency)}
-                    </p>
-                  )}
-                  <div className="mt-4 h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary"
-                      style={{
-                        width: `${Math.min((project.budget ? (project.totalExpenses ?? 0) / project.budget : 0) * 100, 100)}%`,
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <ProjectCard key={project.id} project={project} />
             ))}
           </div>
           <Pagination
