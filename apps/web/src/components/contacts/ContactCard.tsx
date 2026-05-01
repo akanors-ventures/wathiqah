@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, MoreVertical, Wallet } from "lucide-react";
+import { MoreVertical, Wallet } from "lucide-react";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,178 +41,146 @@ export function ContactCard<T extends ContactSummary>({
   onInvite,
   className,
   showActions = true,
-  compact = false,
 }: ContactCardProps<T>) {
+  const initial = (contact.name ?? "?").charAt(0).toUpperCase();
+
   return (
     <div
       className={cn(
-        "group relative bg-card border border-border/50 rounded-3xl transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/40 overflow-hidden flex flex-col",
-        compact ? "p-3" : "p-5",
+        "group relative bg-card border border-border/50 rounded-[20px] p-4 transition-all duration-500",
+        "hover:shadow-[0_12px_40px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 hover:border-primary/30",
         className,
       )}
     >
-      <div className="flex flex-col relative flex-1 justify-between">
-        <div className="flex justify-between items-start">
-          <div className={cn("flex items-center min-w-0", compact ? "gap-2" : "gap-4")}>
-            <div className="relative shrink-0">
-              <div
-                className={cn(
-                  "rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500",
-                  compact ? "w-9 h-9 text-base" : "w-11 h-11 text-lg",
-                )}
-              >
-                {contact.name?.charAt(0)?.toUpperCase() ?? "?"}
-              </div>
-              <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-background border border-border/50 shadow-md">
-                <div
-                  className={cn(
-                    "w-2.5 h-2.5 rounded-full ring-2 ring-background shadow-inner",
-                    contact.balance >= 0 ? "bg-emerald-500" : "bg-rose-500",
-                  )}
-                />
-              </div>
-            </div>
-            <div className="min-w-0">
-              <Link
-                to="/contacts/$contactId"
-                params={{ contactId: contact.id }}
-                className="block group/name"
-              >
-                <h3
-                  className={cn(
-                    "font-bold text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-1.5 tracking-tight",
-                    compact ? "text-sm" : "text-lg",
-                  )}
-                >
-                  {contact.name ?? "Unnamed"}
-                  {contact.isSupporter && <SupporterBadge className="h-4 px-1 text-[9px]" />}
-                  <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all duration-300 text-primary/60 shrink-0" />
-                </h3>
-              </Link>
-              <p className="text-[11px] text-muted-foreground truncate opacity-70">
-                {contact.email || contact.phoneNumber || "No contact info"}
-              </p>
-              {(contact.lentCount ?? 0) > 0 || (contact.borrowedCount ?? 0) > 0 ? (
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                  {(contact.lentCount ?? 0) > 0 && (
-                    <div className="bg-blue-500/10 text-blue-600 border border-blue-500/20 text-[9px] px-1.5 py-0.5 rounded-lg font-bold">
-                      Lent: {contact.lentCount}
-                    </div>
-                  )}
-                  {(contact.borrowedCount ?? 0) > 0 && (
-                    <div className="bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[9px] px-1.5 py-0.5 rounded-lg font-bold">
-                      Borrowed: {contact.borrowedCount}
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
+      {/* Top row: avatar + name/info + menu */}
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black text-lg shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500">
+            {initial}
           </div>
-
-          {showActions && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl transition-all shrink-0",
-                    compact ? "h-7 w-7" : "h-8 w-8",
-                  )}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-52 p-1.5 rounded-2xl border-border/40 shadow-2xl backdrop-blur-xl bg-background/95"
-              >
-                <DropdownMenuItem
-                  asChild
-                  className="rounded-xl py-2.5 cursor-pointer focus:bg-primary/5 px-4"
-                >
-                  <Link
-                    to="/contacts/$contactId"
-                    params={{ contactId: contact.id }}
-                    className="flex items-center w-full"
-                  >
-                    <span className="font-bold text-sm">View Profile</span>
-                  </Link>
-                </DropdownMenuItem>
-                {onEdit && (
-                  <DropdownMenuItem
-                    onClick={() => onEdit(contact)}
-                    className="rounded-xl py-2.5 cursor-pointer focus:bg-primary/5 px-4"
-                  >
-                    <span className="font-bold text-sm">Edit Contact</span>
-                  </DropdownMenuItem>
-                )}
-                {onDelete && (
-                  <>
-                    <div className="h-px bg-border/50 my-1 mx-2" />
-                    <DropdownMenuItem
-                      onClick={() => onDelete(contact)}
-                      className="rounded-xl py-2.5 cursor-pointer text-rose-600 focus:text-rose-600 focus:bg-rose-50 px-4"
-                    >
-                      <span className="font-bold text-sm">Delete Contact</span>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-
-        <div
-          className={cn(
-            "flex",
-            compact ? "flex-col gap-2 items-start" : "flex-row items-center justify-between gap-4",
-          )}
-        >
-          <div className="flex flex-col">
-            <p className="text-[10px] text-muted-foreground font-bold mb-0.5 flex items-center gap-1.5 opacity-60">
-              <Wallet className="w-3 h-3 text-primary/60" /> Standing
-            </p>
-            <BalanceIndicator
-              amount={contact.balance}
-              currency="NGN"
-              className="text-base font-bold py-0 px-0 h-auto shadow-none border-none bg-transparent dark:bg-transparent w-fit"
+          <div className="absolute -bottom-0.5 -right-0.5 p-0.5 rounded-full bg-card border border-border/50 shadow-sm">
+            <div
+              className={cn(
+                "w-2.5 h-2.5 rounded-full ring-2 ring-card",
+                contact.balance >= 0 ? "bg-emerald-500" : "bg-rose-500",
+              )}
             />
           </div>
-          <div className="flex items-center">
-            {contact.isOnPlatform ? (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/5 border border-emerald-500/10">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-bold text-emerald-600">On Platform</span>
-              </div>
-            ) : contact.hasPendingInvitation ? (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/5 border border-amber-500/10">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                  <span className="text-[10px] font-bold text-amber-600">Invited</span>
-                </div>
-                {onInvite && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onInvite(contact.id)}
-                    className="h-7 px-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all"
-                  >
-                    Resend
-                  </Button>
-                )}
-              </div>
-            ) : onInvite && contact.email ? (
+        </div>
+
+        {/* Name + contact info */}
+        <div className="flex-1 min-w-0">
+          <Link to="/contacts/$contactId" params={{ contactId: contact.id }} className="block">
+            <h3 className="font-bold text-foreground truncate text-[15px] leading-tight hover:text-primary transition-colors flex items-center gap-1.5">
+              {contact.name ?? "Unnamed"}
+              {contact.isSupporter && <SupporterBadge className="h-4 px-1 text-[9px]" />}
+            </h3>
+          </Link>
+          <p className="text-[12px] text-muted-foreground truncate mt-0.5 opacity-70">
+            {contact.email || contact.phoneNumber || "No contact info"}
+          </p>
+        </div>
+
+        {/* Three-dot menu */}
+        {showActions && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onInvite(contact.id)}
-                className="h-8 rounded-md text-[11px] font-bold border-primary/20 hover:bg-primary hover:text-primary-foreground transition-all px-4"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl shrink-0 transition-all"
               >
-                Invite
+                <MoreVertical className="h-4 w-4" />
               </Button>
-            ) : null}
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-52 p-1.5 rounded-2xl border-border/40 shadow-2xl backdrop-blur-xl bg-background/95"
+            >
+              <DropdownMenuItem
+                asChild
+                className="rounded-xl py-2.5 cursor-pointer focus:bg-primary/5 px-4"
+              >
+                <Link
+                  to="/contacts/$contactId"
+                  params={{ contactId: contact.id }}
+                  className="flex items-center w-full"
+                >
+                  <span className="font-bold text-sm">View Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              {onEdit && (
+                <DropdownMenuItem
+                  onClick={() => onEdit(contact)}
+                  className="rounded-xl py-2.5 cursor-pointer focus:bg-primary/5 px-4"
+                >
+                  <span className="font-bold text-sm">Edit Contact</span>
+                </DropdownMenuItem>
+              )}
+              {onDelete && (
+                <>
+                  <div className="h-px bg-border/50 my-1 mx-2" />
+                  <DropdownMenuItem
+                    onClick={() => onDelete(contact)}
+                    className="rounded-xl py-2.5 cursor-pointer text-rose-600 focus:text-rose-600 focus:bg-rose-50 px-4"
+                  >
+                    <span className="font-bold text-sm">Delete Contact</span>
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
+
+      {/* Bottom row: Standing label + amount, and invite/platform badge */}
+      <div className="flex items-end justify-between mt-3 pt-3 border-t border-border/30">
+        <div>
+          <p className="text-[10px] text-muted-foreground font-bold mb-1 flex items-center gap-1 uppercase tracking-wider opacity-60">
+            <Wallet className="w-3 h-3" />
+            Standing
+          </p>
+          <BalanceIndicator
+            amount={contact.balance}
+            currency="NGN"
+            className="text-lg font-black py-0 px-0 h-auto shadow-none border-none bg-transparent dark:bg-transparent w-fit"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          {contact.isOnPlatform ? (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/5 border border-emerald-500/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-[10px] font-bold text-emerald-600">On Platform</span>
+            </div>
+          ) : contact.hasPendingInvitation ? (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/5 border border-amber-500/10">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span className="text-[10px] font-bold text-amber-600">Invited</span>
+              </div>
+              {onInvite && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onInvite(contact.id)}
+                  className="h-7 px-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all"
+                >
+                  Resend
+                </Button>
+              )}
+            </div>
+          ) : onInvite && contact.email ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onInvite(contact.id)}
+              className="h-8 rounded-xl text-[11px] font-bold px-4 border-border/60 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all"
+            >
+              Invite
+            </Button>
+          ) : null}
         </div>
       </div>
     </div>

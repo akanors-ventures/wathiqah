@@ -154,7 +154,7 @@ function ProjectDetailsPage() {
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="space-y-4">
         <StatsCard
           variant="primary"
           title="Current Balance"
@@ -162,46 +162,50 @@ function ProjectDetailsPage() {
           icon={<Wallet className="h-4 w-4" />}
           description="Net funds available"
         />
-        <StatsCard
-          title="Total Income"
-          value={
-            <span className="text-emerald-600">
-              {formatCurrency(totalIncome, project.currency)}
-            </span>
-          }
-          icon={<TrendingUp className="h-4 w-4" />}
-          description="Funds received"
-        />
-        <StatsCard
-          title="Total Expenses"
-          value={
-            <span className="text-rose-600">{formatCurrency(totalExpenses, project.currency)}</span>
-          }
-          icon={<TrendingDown className="h-4 w-4" />}
-          description="Funds spent"
-        />
-        {project.budget ? (
+        <div className="grid gap-4 md:grid-cols-3">
           <StatsCard
-            title="Budget Remaining"
+            title="Total Income"
             value={
-              <span
-                className={budgetRemaining != null && budgetRemaining < 0 ? "text-rose-600" : ""}
-              >
-                {formatCurrency(budgetRemaining ?? 0, project.currency)}
+              <span className="text-emerald-600">
+                {formatCurrency(totalIncome, project.currency)}
               </span>
             }
-            icon={<Target className="h-4 w-4" />}
-            description={`${Math.round(budgetUtilization)}% of ${formatCurrency(project.budget, project.currency)} used`}
-            descriptionSlot={<Progress value={budgetUtilization} className="h-1.5 mt-2" />}
+            icon={<TrendingUp className="h-4 w-4" />}
+            description="Funds received"
           />
-        ) : (
           <StatsCard
-            title="Budget"
-            value={<span className="text-muted-foreground">—</span>}
-            icon={<Target className="h-4 w-4" />}
-            description="No budget set"
+            title="Total Expenses"
+            value={
+              <span className="text-rose-600">
+                {formatCurrency(totalExpenses, project.currency)}
+              </span>
+            }
+            icon={<TrendingDown className="h-4 w-4" />}
+            description="Funds spent"
           />
-        )}
+          {project.budget ? (
+            <StatsCard
+              title="Budget Remaining"
+              value={
+                <span
+                  className={budgetRemaining != null && budgetRemaining < 0 ? "text-rose-600" : ""}
+                >
+                  {formatCurrency(budgetRemaining ?? 0, project.currency)}
+                </span>
+              }
+              icon={<Target className="h-4 w-4" />}
+              description={`${Math.round(budgetUtilization)}% of ${formatCurrency(project.budget, project.currency)} used`}
+              descriptionSlot={<Progress value={budgetUtilization} className="h-1.5 mt-2" />}
+            />
+          ) : (
+            <StatsCard
+              title="Budget"
+              value={<span className="text-muted-foreground">—</span>}
+              icon={<Target className="h-4 w-4" />}
+              description="No budget set"
+            />
+          )}
+        </div>
       </div>
 
       {/* Transaction History */}

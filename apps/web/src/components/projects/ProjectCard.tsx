@@ -42,11 +42,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
           "transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/30",
         )}
       >
-        {/* Top row: status badge */}
-        <div className="flex items-start justify-end mb-4">
+        {/* Name + status badge on same line */}
+        <div className="flex items-center gap-2 mb-1">
+          <h3 className="flex-1 min-w-0 text-base font-bold tracking-tight leading-tight truncate">
+            {project.name}
+          </h3>
           <span
             className={cn(
-              "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border",
+              "shrink-0 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border",
               getStatusBadgeClass(project.status),
             )}
           >
@@ -54,20 +57,14 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </span>
         </div>
 
-        {/* Name + description */}
-        <div className="mb-4">
-          <h3 className="text-base font-bold tracking-tight leading-tight truncate">
-            {project.name}
-          </h3>
-          {project.description && (
-            <p className="text-[11px] text-muted-foreground opacity-70 truncate mt-0.5">
-              {project.description}
-            </p>
-          )}
-        </div>
+        {project.description && (
+          <p className="text-[11px] text-muted-foreground opacity-70 truncate mb-2">
+            {project.description}
+          </p>
+        )}
 
         {/* Mini-stat cells */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-3 mt-3">
           <div className="bg-muted/40 rounded-[10px] p-2.5">
             <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-0.5">
               Balance
@@ -114,7 +111,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         {/* Budget row */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-1">
           <div className="flex-1 min-w-0">
             {project.budget ? (
               <>
