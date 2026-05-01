@@ -74,7 +74,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             </p>
             <p
               className={cn(
-                "text-sm font-black tracking-tight",
+                "text-sm font-black tracking-tight whitespace-nowrap",
                 balance < 0
                   ? "text-rose-600"
                   : balance > 0
@@ -91,7 +91,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             </p>
             <p
               className={cn(
-                "text-sm font-black tracking-tight",
+                "text-sm font-black tracking-tight whitespace-nowrap",
                 totalIncome > 0 ? "text-emerald-600" : "text-foreground",
               )}
             >
@@ -104,7 +104,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             </p>
             <p
               className={cn(
-                "text-sm font-black tracking-tight",
+                "text-sm font-black tracking-tight whitespace-nowrap",
                 totalExpenses > 0 ? "text-rose-600" : "text-foreground",
               )}
             >
