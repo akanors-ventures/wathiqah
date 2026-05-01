@@ -40,7 +40,7 @@ export function StatsCard({
           <div className="flex items-center gap-2 min-w-0">
             <CardTitle
               className={cn(
-                "text-[10px] sm:text-[11px] font-bold transition-colors whitespace-nowrap uppercase tracking-wider truncate",
+                "text-[10px] sm:text-[11px] font-bold transition-colors uppercase tracking-wider line-clamp-2 leading-tight break-words",
                 isPrimary ? "text-primary/60" : "text-muted-foreground group-hover:text-primary",
               )}
             >
