@@ -173,7 +173,7 @@ function ContactsPage() {
             </div>
           ) : (
             <>
-              <div className="p-4 sm:p-6 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {contacts.map((contact) => {
                   const contactItems = items.filter((item) => item.contactId === contact.id);
                   const lentCount = contactItems.filter((i) => i.status === "LENT").length;
