@@ -8,6 +8,7 @@ import {
   Package,
   Plus,
   Search,
+  SlidersHorizontal,
   UserCircle,
 } from "lucide-react";
 import { useState } from "react";
@@ -18,7 +19,7 @@ import { TransactionSummaryCard } from "@/components/transactions/TransactionSum
 import { TransactionTypeBadge } from "@/components/transactions/TransactionTypeBadge";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
@@ -81,7 +82,6 @@ function TransactionsPage() {
   const filteredTransactions = transactions;
 
   const handleExport = () => {
-    // Simple CSV export implementation
     if (activeTab === "funds") {
       const headers = ["Date", "Type", "Contact", "Description", "Amount", "Status"];
       const csvContent = [
@@ -142,13 +142,6 @@ function TransactionsPage() {
           </p>
         </div>
         <div className="flex gap-3 w-full lg:w-auto shrink-0 relative z-10">
-          <Button
-            variant="outline"
-            onClick={handleExport}
-            className="flex-1 h-12 sm:h-10 lg:flex-none lg:w-auto"
-          >
-            <Download className="w-4 h-4 mr-2" /> Export
-          </Button>
           <Button asChild className="flex-1 h-12 sm:h-10 lg:flex-none lg:w-auto">
             <Link
               to={activeTab === "funds" ? "/transactions/new" : "/items/new"}
@@ -181,104 +174,132 @@ function TransactionsPage() {
           {/* Interactive Summary Card */}
           <TransactionSummaryCard onPeriodFilterChange={setDateRange} />
 
-          {/* Filters */}
-          <div className="flex flex-col gap-3 bg-card p-4 rounded-lg border">
-            <div className="flex flex-col sm:flex-row gap-3 items-center">
-              <div className="relative flex-1 w-full">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by description or contact..."
-                  className="pl-8 w-full"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
-                <Select
-                  value={types[0] ?? "ALL"}
-                  onValueChange={(v) => setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])}
+          {/* Transactions Table Card */}
+          <Card className="rounded-[32px] border-border/50 overflow-hidden shadow-sm">
+            <CardHeader className="p-6 border-b border-border/30 space-y-4">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
+                  Transaction History
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-[10px] font-bold uppercase tracking-wider"
+                  onClick={handleExport}
                 >
-                  <SelectTrigger className="flex-1 sm:w-[150px]">
-                    <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Filter Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Types</SelectItem>
-                    <SelectItem value="LOAN_GIVEN">Loan Given</SelectItem>
-                    <SelectItem value="LOAN_RECEIVED">Loan Received</SelectItem>
-                    <SelectItem value="REPAYMENT_MADE">Repayment Made</SelectItem>
-                    <SelectItem value="REPAYMENT_RECEIVED">Repayment Received</SelectItem>
-                    <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
-                    <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
-                    <SelectItem value="ADVANCE_PAID">Advance Paid</SelectItem>
-                    <SelectItem value="ADVANCE_RECEIVED">Advance Received</SelectItem>
-                    <SelectItem value="DEPOSIT_PAID">Deposit Paid</SelectItem>
-                    <SelectItem value="DEPOSIT_RECEIVED">Deposit Received</SelectItem>
-                    <SelectItem value="ESCROWED">Escrowed</SelectItem>
-                    <SelectItem value="REMITTED">Remitted</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
-                  <SelectTrigger className="flex-1 sm:w-[150px]">
-                    <Package className="w-4 h-4 mr-2 text-muted-foreground" />
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Status</SelectItem>
-                    <SelectItem value="COMPLETED">Completed</SelectItem>
-                    <SelectItem value="PENDING">Pending</SelectItem>
-                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select value={currency} onValueChange={setCurrency}>
-                  <SelectTrigger className="flex-1 sm:w-[150px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground font-medium">$</span>
-                      <SelectValue placeholder="Currency" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ALL">All Currencies</SelectItem>
-                    <SelectItem value="NGN">NGN (₦)</SelectItem>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="CAD">CAD ($)</SelectItem>
-                    <SelectItem value="AED">AED (د.إ)</SelectItem>
-                    <SelectItem value="SAR">SAR (ر.س)</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Download className="mr-2 h-3.5 w-3.5" />
+                  Export
+                </Button>
               </div>
-            </div>
-          </div>
 
-          {/* Transactions Table */}
-          <div className="hidden md:block">
-            <Card>
-              <CardContent className="p-0">
+              {/* Filters */}
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by description or contact..."
+                    className="pl-8 w-full"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+                  <Select
+                    value={types[0] ?? "ALL"}
+                    onValueChange={(v) =>
+                      setTypes(v === "ALL" ? [] : [v as (typeof types)[number]])
+                    }
+                  >
+                    <SelectTrigger className="flex-1 sm:w-[150px]">
+                      <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                      <SelectValue placeholder="Filter Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Types</SelectItem>
+                      <SelectItem value="LOAN_GIVEN">Loan Given</SelectItem>
+                      <SelectItem value="LOAN_RECEIVED">Loan Received</SelectItem>
+                      <SelectItem value="REPAYMENT_MADE">Repayment Made</SelectItem>
+                      <SelectItem value="REPAYMENT_RECEIVED">Repayment Received</SelectItem>
+                      <SelectItem value="GIFT_GIVEN">Gift Given</SelectItem>
+                      <SelectItem value="GIFT_RECEIVED">Gift Received</SelectItem>
+                      <SelectItem value="ADVANCE_PAID">Advance Paid</SelectItem>
+                      <SelectItem value="ADVANCE_RECEIVED">Advance Received</SelectItem>
+                      <SelectItem value="DEPOSIT_PAID">Deposit Paid</SelectItem>
+                      <SelectItem value="DEPOSIT_RECEIVED">Deposit Received</SelectItem>
+                      <SelectItem value="ESCROWED">Escrowed</SelectItem>
+                      <SelectItem value="REMITTED">Remitted</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+                    <SelectTrigger className="flex-1 sm:w-[150px]">
+                      <SlidersHorizontal className="w-4 h-4 mr-2 text-muted-foreground" />
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Status</SelectItem>
+                      <SelectItem value="COMPLETED">Completed</SelectItem>
+                      <SelectItem value="PENDING">Pending</SelectItem>
+                      <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger className="flex-1 sm:w-[150px]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground font-medium">$</span>
+                        <SelectValue placeholder="Currency" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">All Currencies</SelectItem>
+                      <SelectItem value="NGN">NGN (₦)</SelectItem>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="CAD">CAD ($)</SelectItem>
+                      <SelectItem value="AED">AED (د.إ)</SelectItem>
+                      <SelectItem value="SAR">SAR (ر.س)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              {/* Desktop Table */}
+              <div className="hidden md:block">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Contact</TableHead>
-                      <TableHead>
+                    <TableRow className="bg-muted/30 border-b border-border/30">
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12 pl-6">
+                        Date
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                        Contact
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
                         <div className="flex items-center gap-1">
                           Type
                           <TransactionTypeHelp />
                         </div>
                       </TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Witnesses</TableHead>
-                      <TableHead className="text-right">Amount / Item</TableHead>
-                      <TableHead></TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                        Description
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12">
+                        Witnesses
+                      </TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 h-12 text-right">
+                        Amount / Item
+                      </TableHead>
+                      <TableHead className="w-10" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {loading ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10">
+                        <TableCell colSpan={7} className="py-20">
                           <div className="flex justify-center">
                             <BrandLoader size="sm" />
                           </div>
@@ -286,8 +307,15 @@ function TransactionsPage() {
                       </TableRow>
                     ) : filteredTransactions.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                          No transactions found matching your criteria.
+                        <TableCell colSpan={7} className="py-20">
+                          <div className="text-center">
+                            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 opacity-20">
+                              <ArrowRightLeft className="w-8 h-8" />
+                            </div>
+                            <p className="font-bold text-sm">
+                              No transactions found matching your criteria.
+                            </p>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ) : (
@@ -296,7 +324,7 @@ function TransactionsPage() {
                         return (
                           <TableRow
                             key={tx.id}
-                            className="cursor-pointer hover:bg-muted/50 transition-colors group"
+                            className="cursor-pointer hover:bg-muted/50 transition-colors group border-b border-border/30 last:border-0"
                             onClick={() =>
                               navigate({
                                 to: "/transactions/$id",
@@ -304,7 +332,7 @@ function TransactionsPage() {
                               })
                             }
                           >
-                            <TableCell className="font-medium">
+                            <TableCell className="font-medium text-xs text-muted-foreground/80 pl-6">
                               {format(new Date(tx.date as string), "MMM d, yyyy")}
                             </TableCell>
                             <TableCell>
@@ -335,7 +363,7 @@ function TransactionsPage() {
                               <TransactionTypeBadge type={tx.type} />
                             </TableCell>
                             <TableCell
-                              className="max-w-[200px] truncate"
+                              className="max-w-[200px] truncate text-xs text-muted-foreground/90"
                               title={tx.description || undefined}
                             >
                               {tx.category === AssetCategory.Item ? (
@@ -387,7 +415,7 @@ function TransactionsPage() {
                                 />
                               )}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="pr-6">
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -402,125 +430,130 @@ function TransactionsPage() {
                     )}
                   </TableBody>
                 </Table>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Pagination
-            total={total}
-            page={page}
-            limit={limit}
-            onPageChange={setPage}
-            onLimitChange={setLimit}
-          />
-
-          {/* Mobile Transactions List */}
-          <div className="md:hidden space-y-4">
-            {loading ? (
-              <div className="flex justify-center py-10">
-                <BrandLoader size="sm" />
               </div>
-            ) : filteredTransactions.length === 0 ? (
-              <div className="text-center py-10 text-muted-foreground bg-card rounded-lg border">
-                No transactions found matching your criteria.
-              </div>
-            ) : (
-              filteredTransactions.map((tx) => {
-                const isCreator = user?.id === tx.createdBy?.id;
-                return (
-                  <Card
-                    key={tx.id}
-                    className="active:scale-[0.98] transition-transform cursor-pointer"
-                    onClick={() =>
-                      navigate({
-                        to: "/transactions/$id",
-                        params: { id: tx.id },
-                      })
-                    }
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(tx.date as string), "MMM d, yyyy")}
-                          </p>
-                          <div className="flex flex-col gap-1">
-                            <p className="font-semibold text-foreground">
-                              {isCreator
-                                ? tx.contact?.name || <span className="italic">Personal</span>
-                                : tx.createdBy?.name}
-                            </p>
-                            {!isCreator && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
-                                <UserCircle className="w-2.5 h-2.5" />
-                                SHARED
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <TransactionTypeBadge type={tx.type} />
-                      </div>
 
-                      <div className="flex justify-between items-end mt-4">
-                        <div className="flex-1 min-w-0 mr-4">
-                          {tx.category === AssetCategory.Item ? (
-                            <div className="flex items-center gap-1.5 text-sm font-medium">
-                              <Package className="h-3.5 w-3.5 text-muted-foreground" />
-                              <span className="truncate">
-                                {tx.quantity}x {tx.itemName}
-                              </span>
+              {/* Mobile List */}
+              <div className="md:hidden space-y-3 p-4">
+                {loading ? (
+                  <div className="flex justify-center py-10">
+                    <BrandLoader size="sm" />
+                  </div>
+                ) : filteredTransactions.length === 0 ? (
+                  <div className="text-center py-20">
+                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 opacity-20">
+                      <ArrowRightLeft className="w-8 h-8" />
+                    </div>
+                    <p className="font-bold text-sm">
+                      No transactions found matching your criteria.
+                    </p>
+                  </div>
+                ) : (
+                  filteredTransactions.map((tx) => {
+                    const isCreator = user?.id === tx.createdBy?.id;
+                    return (
+                      <Card
+                        key={tx.id}
+                        className="overflow-hidden hover:border-primary/30 transition-all active:scale-[0.98] border-border/50 cursor-pointer"
+                        onClick={() =>
+                          navigate({
+                            to: "/transactions/$id",
+                            params: { id: tx.id },
+                          })
+                        }
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="space-y-1">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                {format(new Date(tx.date as string), "MMM d, yyyy")}
+                              </p>
+                              <div className="flex flex-col gap-1">
+                                <p className="font-semibold text-foreground">
+                                  {isCreator
+                                    ? tx.contact?.name || <span className="italic">Personal</span>
+                                    : tx.createdBy?.name}
+                                </p>
+                                {!isCreator && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-1.5 py-0.5 rounded border border-amber-100 dark:border-amber-900/30 w-fit">
+                                    <UserCircle className="w-2.5 h-2.5" />
+                                    SHARED
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground truncate">
-                              {tx.description || "No description"}
-                            </p>
-                          )}
-                        </div>
-                        <div className="whitespace-nowrap">
-                          {tx.category === AssetCategory.Item ? (
-                            <span className="text-muted-foreground font-normal italic text-xs">
-                              Physical Item
-                            </span>
-                          ) : (
-                            <TransactionAmount
-                              type={tx.type}
-                              amount={tx.amount}
-                              currency={tx.currency}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      {tx.witnesses && tx.witnesses.length > 0 && (
-                        <div className="mt-3 pt-3 border-t flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Witnesses</span>
-                          <div className="flex -space-x-1.5">
-                            {tx.witnesses
-                              .filter((w) => w !== null)
-                              .map((w) => (
-                                <div
-                                  key={w.id}
-                                  className={`w-5 h-5 rounded-full border-2 border-background flex items-center justify-center text-[8px] text-white ${
-                                    w.status === "ACKNOWLEDGED"
-                                      ? "bg-green-500"
-                                      : w.status === "DECLINED"
-                                        ? "bg-red-500"
-                                        : "bg-yellow-500"
-                                  }`}
-                                  title={`Status: ${w.status}`}
-                                >
-                                  {w.status[0]}
-                                </div>
-                              ))}
+                            <TransactionTypeBadge type={tx.type} />
                           </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })
-            )}
-          </div>
+
+                          <div className="flex justify-between items-end mt-4">
+                            <div className="flex-1 min-w-0 mr-4">
+                              {tx.category === AssetCategory.Item ? (
+                                <div className="flex items-center gap-1.5 text-sm font-medium">
+                                  <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                                  <span className="truncate">
+                                    {tx.quantity}x {tx.itemName}
+                                  </span>
+                                </div>
+                              ) : (
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {tx.description || "No description"}
+                                </p>
+                              )}
+                            </div>
+                            <div className="whitespace-nowrap">
+                              {tx.category === AssetCategory.Item ? (
+                                <span className="text-muted-foreground font-normal italic text-xs">
+                                  Physical Item
+                                </span>
+                              ) : (
+                                <TransactionAmount
+                                  type={tx.type}
+                                  amount={tx.amount}
+                                  currency={tx.currency}
+                                />
+                              )}
+                            </div>
+                          </div>
+
+                          {tx.witnesses && tx.witnesses.length > 0 && (
+                            <div className="mt-3 pt-3 border-t flex items-center justify-between">
+                              <span className="text-xs text-muted-foreground">Witnesses</span>
+                              <div className="flex -space-x-1.5">
+                                {tx.witnesses
+                                  .filter((w) => w !== null)
+                                  .map((w) => (
+                                    <div
+                                      key={w.id}
+                                      className={`w-5 h-5 rounded-full border-2 border-background flex items-center justify-center text-[8px] text-white ${
+                                        w.status === "ACKNOWLEDGED"
+                                          ? "bg-green-500"
+                                          : w.status === "DECLINED"
+                                            ? "bg-red-500"
+                                            : "bg-yellow-500"
+                                      }`}
+                                      title={`Status: ${w.status}`}
+                                    >
+                                      {w.status[0]}
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                )}
+              </div>
+
+              <Pagination
+                total={total}
+                page={page}
+                limit={limit}
+                onPageChange={setPage}
+                onLimitChange={setLimit}
+              />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="items">

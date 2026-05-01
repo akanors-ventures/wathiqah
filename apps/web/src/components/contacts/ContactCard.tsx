@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, MoreVertical, Wallet } from "lucide-react";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
 import { Button } from "@/components/ui/button";
-import { SupporterBadge } from "@/components/ui/supporter-badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { cn } from "@/lib/utils";
 
 export interface ContactSummary {
@@ -31,6 +31,7 @@ interface ContactCardProps<T extends ContactSummary = ContactSummary> {
   onInvite?: (id: string) => void;
   className?: string;
   showActions?: boolean;
+  compact?: boolean;
 }
 
 export function ContactCard<T extends ContactSummary>({
@@ -40,19 +41,26 @@ export function ContactCard<T extends ContactSummary>({
   onInvite,
   className,
   showActions = true,
+  compact = false,
 }: ContactCardProps<T>) {
   return (
     <div
       className={cn(
-        "group relative bg-card border border-border/50 rounded-3xl transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/40 overflow-hidden flex flex-col p-5",
+        "group relative bg-card border border-border/50 rounded-3xl transition-all duration-500 hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/40 overflow-hidden flex flex-col",
+        compact ? "p-3" : "p-5",
         className,
       )}
     >
-      <div className="flex flex-col relative flex-1 gap-5">
+      <div className="flex flex-col relative flex-1 justify-between">
         <div className="flex justify-between items-start">
-          <div className="flex gap-4 items-center min-w-0">
+          <div className={cn("flex items-center min-w-0", compact ? "gap-2" : "gap-4")}>
             <div className="relative shrink-0">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black text-lg shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500">
+              <div
+                className={cn(
+                  "rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/60 flex items-center justify-center text-primary-foreground font-black shadow-lg shadow-primary/20 group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500",
+                  compact ? "w-9 h-9 text-base" : "w-11 h-11 text-lg",
+                )}
+              >
                 {contact.name?.charAt(0)?.toUpperCase() ?? "?"}
               </div>
               <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-background border border-border/50 shadow-md">
@@ -70,24 +78,29 @@ export function ContactCard<T extends ContactSummary>({
                 params={{ contactId: contact.id }}
                 className="block group/name"
               >
-                <h3 className="font-bold text-lg text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-2 tracking-tight">
+                <h3
+                  className={cn(
+                    "font-bold text-foreground truncate group-hover/name:text-primary transition-colors flex items-center gap-1.5 tracking-tight",
+                    compact ? "text-sm" : "text-lg",
+                  )}
+                >
                   {contact.name ?? "Unnamed"}
                   {contact.isSupporter && <SupporterBadge className="h-4 px-1 text-[9px]" />}
-                  <ArrowRight className="w-4 h-4 opacity-0 -translate-x-3 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all duration-300 text-primary/60" />
+                  <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover/name:opacity-100 group-hover/name:translate-x-0 transition-all duration-300 text-primary/60 shrink-0" />
                 </h3>
               </Link>
               <p className="text-[11px] text-muted-foreground truncate opacity-70">
                 {contact.email || contact.phoneNumber || "No contact info"}
               </p>
               {(contact.lentCount ?? 0) > 0 || (contact.borrowedCount ?? 0) > 0 ? (
-                <div className="flex flex-wrap gap-1.5 mt-2">
+                <div className="flex flex-wrap gap-1 mt-1.5">
                   {(contact.lentCount ?? 0) > 0 && (
-                    <div className="bg-blue-500/10 text-blue-600 border border-blue-500/20 text-[9px] px-2 py-0.5 rounded-lg font-bold">
+                    <div className="bg-blue-500/10 text-blue-600 border border-blue-500/20 text-[9px] px-1.5 py-0.5 rounded-lg font-bold">
                       Lent: {contact.lentCount}
                     </div>
                   )}
                   {(contact.borrowedCount ?? 0) > 0 && (
-                    <div className="bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[9px] px-2 py-0.5 rounded-lg font-bold">
+                    <div className="bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[9px] px-1.5 py-0.5 rounded-lg font-bold">
                       Borrowed: {contact.borrowedCount}
                     </div>
                   )}
@@ -102,9 +115,12 @@ export function ContactCard<T extends ContactSummary>({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl transition-all"
+                  className={cn(
+                    "text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl transition-all shrink-0",
+                    compact ? "h-7 w-7" : "h-8 w-8",
+                  )}
                 >
-                  <MoreVertical className="h-5 w-5" />
+                  <MoreVertical className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -147,7 +163,12 @@ export function ContactCard<T extends ContactSummary>({
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-4 mt-auto">
+        <div
+          className={cn(
+            "flex",
+            compact ? "flex-col gap-2 items-start" : "flex-row items-center justify-between gap-4",
+          )}
+        >
           <div className="flex flex-col">
             <p className="text-[10px] text-muted-foreground font-bold mb-0.5 flex items-center gap-1.5 opacity-60">
               <Wallet className="w-3 h-3 text-primary/60" /> Standing
