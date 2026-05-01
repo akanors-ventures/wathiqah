@@ -22,13 +22,6 @@ interface ProjectCardProps {
 }
 
 export function ProjectCard({ project }: ProjectCardProps) {
-  const initials = project.name
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
   const totalExpenses = project.totalExpenses ?? 0;
   const totalIncome = project.totalIncome ?? 0;
   const balance = project.balance ?? 0;
@@ -49,11 +42,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
           "transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/30",
         )}
       >
-        {/* Top row: avatar + status badge */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="w-11 h-11 rounded-[14px] bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-sm font-black text-white shadow-lg shrink-0">
-            {initials}
-          </div>
+        {/* Top row: status badge */}
+        <div className="flex items-start justify-end mb-4">
           <span
             className={cn(
               "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border",
