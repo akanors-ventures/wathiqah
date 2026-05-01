@@ -1,20 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
-import {
-  ArrowDownCircle,
-  ArrowLeft,
-  ArrowUpCircle,
-  Clock,
-  Filter,
-  Target,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
+import { ArrowDownCircle, ArrowLeft, ArrowUpCircle, Filter, Target, Wallet } from "lucide-react";
 import { useState } from "react";
+import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
+import type { ProjectTransactionCardTransaction } from "@/components/projects/ProjectTransactionCard";
+import { ProjectTransactionCard } from "@/components/projects/ProjectTransactionCard";
 import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
@@ -29,15 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useProject } from "@/hooks/useProjects";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { ProjectTransactionType } from "@/types/__generated__/graphql";
@@ -51,6 +32,7 @@ export const Route = createFileRoute("/projects/$projectId")({
 function ProjectDetailsPage() {
   const { projectId } = Route.useParams();
   const navigate = useNavigate();
+
   const [txFilter, setTxFilter] = useState<{
     type?: ProjectTransactionType;
     category?: string;
@@ -60,8 +42,19 @@ function ProjectDetailsPage() {
     limit: number;
   }>({ page: 1, limit: 25 });
 
-  const { project, transactions, transactionsTotal, transactionsPage, transactionsLimit, loading } =
-    useProject(projectId, txFilter);
+  const [editingTx, setEditingTx] = useState<ProjectTransactionCardTransaction | null>(null);
+  const [editTxOpen, setEditTxOpen] = useState(false);
+
+  const {
+    project,
+    transactions,
+    transactionsTotal,
+    transactionsPage,
+    transactionsLimit,
+    loading,
+    updateProject,
+    updating,
+  } = useProject(projectId, txFilter);
 
   if (loading) {
     return (
@@ -91,19 +84,46 @@ function ProjectDetailsPage() {
     : 0;
   const budgetRemaining = project.budget ? project.budget - totalExpenses : null;
 
+  const handleEditTx = (tx: ProjectTransactionCardTransaction) => {
+    setEditingTx(tx);
+    setEditTxOpen(true);
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/projects" })}>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-4 min-w-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={() => navigate({ to: "/projects" })}
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">{project.name}</h1>
-            {project.description && <p className="text-muted-foreground">{project.description}</p>}
+          <div className="min-w-0">
+            <h1 className="text-3xl font-bold tracking-tight truncate">{project.name}</h1>
+            {project.description && (
+              <p className="text-muted-foreground mt-0.5 truncate">{project.description}</p>
+            )}
           </div>
         </div>
-        <ProjectTransactionDialog projectId={projectId} />
+        <div className="flex items-center gap-2 shrink-0">
+          <EditProjectDialog
+            project={{
+              id: project.id,
+              name: project.name,
+              description: project.description,
+              budget: project.budget,
+              currency: project.currency,
+              status: project.status,
+            }}
+            onUpdate={updateProject}
+            updating={updating}
+          />
+          <ProjectTransactionDialog projectId={projectId} />
+        </div>
       </div>
 
       {/* Analytics Cards */}
@@ -182,195 +202,116 @@ function ProjectDetailsPage() {
         )}
       </div>
 
-      {/* Transactions Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
-          <div className="flex flex-wrap gap-2 pt-2 items-center">
-            <Select
-              value={txFilter.type ?? "ALL"}
-              onValueChange={(v) =>
-                setTxFilter((f) => ({
-                  ...f,
-                  type: v === "ALL" ? undefined : (v as ProjectTransactionType),
-                  page: 1,
-                }))
-              }
-            >
-              <SelectTrigger className="sm:w-[150px]">
-                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Types</SelectItem>
-                <SelectItem value="INCOME">Income</SelectItem>
-                <SelectItem value="EXPENSE">Expense</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              placeholder="Category..."
-              value={txFilter.category ?? ""}
-              onChange={(e) =>
-                setTxFilter((f) => ({
-                  ...f,
-                  category: e.target.value || undefined,
-                  page: 1,
-                }))
-              }
-              className="sm:w-[160px] h-9"
-            />
-            <DateRangePicker
-              value={{
-                from: txFilter.startDate ? txFilter.startDate.split("T")[0] : null,
-                to: txFilter.endDate ? txFilter.endDate.split("T")[0] : null,
-              }}
-              onChange={(range) =>
-                setTxFilter((f) => ({
-                  ...f,
-                  startDate: range.from ? new Date(range.from).toISOString() : undefined,
-                  endDate: range.to ? new Date(range.to).toISOString() : undefined,
-                  page: 1,
-                }))
-              }
-            />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {transactions.length === 0 ? (
-            <div className="text-center py-10 text-muted-foreground">
-              No transactions yet. Start by logging an income or expense.
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Witnesses</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="w-16" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {transactions.map((tx) => (
-                  <TableRow key={tx.id}>
-                    <TableCell className="font-medium">
-                      {format(new Date(tx.date), "MMM d, yyyy")}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          tx.type === "INCOME"
-                            ? "text-green-600 border-green-200 bg-green-50"
-                            : "text-red-600 border-red-200 bg-red-50"
-                        }
-                      >
-                        {tx.type === "INCOME" ? (
-                          <TrendingUp className="w-3 h-3 mr-1" />
-                        ) : (
-                          <TrendingDown className="w-3 h-3 mr-1" />
-                        )}
-                        {tx.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{tx.category || "-"}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      {tx.description || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <TooltipProvider>
-                        <div className="flex items-center gap-1">
-                          {tx.witnesses && tx.witnesses.length > 0 ? (
-                            <div className="flex -space-x-2 overflow-hidden">
-                              {tx.witnesses.map((w) => (
-                                <Tooltip key={w.id}>
-                                  <TooltipTrigger asChild>
-                                    <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-background cursor-help">
-                                      <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-                                        {w.user?.firstName?.[0]}
-                                        {w.user?.lastName?.[0]}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="text-xs">
-                                      {w.user?.firstName} {w.user?.lastName}
-                                    </p>
-                                    <p className="text-[10px] text-muted-foreground capitalize">
-                                      {w.status.toLowerCase()}
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">-</span>
-                          )}
-                          {tx.history && tx.history.length > 0 && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="ml-1 cursor-help">
-                                  <Clock className="w-3.5 h-3.5 text-muted-foreground/60" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-[260px]">
-                                <p className="text-xs font-semibold mb-1">Edit History</p>
-                                {tx.history.slice(0, 5).map((h) => (
-                                  <div
-                                    key={h.id}
-                                    className="text-[10px] text-muted-foreground mb-0.5"
-                                  >
-                                    <span className="text-foreground">{h.changeType}</span>
-                                    {" · "}
-                                    {format(new Date(h.createdAt), "MMM d, h:mm a")}
-                                  </div>
-                                ))}
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      </TooltipProvider>
-                    </TableCell>
-                    <TableCell
-                      className={`text-right font-bold ${
-                        tx.type === "INCOME" ? "text-green-600" : "text-red-600"
-                      }`}
-                    >
-                      <span className="whitespace-nowrap">
-                        {tx.type === "INCOME" ? "+" : "-"}
-                        {formatCurrency(tx.amount, project.currency)}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <ProjectTransactionDialog
-                        projectId={projectId}
-                        editTransaction={{
-                          id: tx.id,
-                          amount: tx.amount,
-                          type: tx.type,
-                          category: tx.category,
-                          description: tx.description,
-                          date: tx.date,
-                        }}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-          <Pagination
-            total={transactionsTotal}
-            page={transactionsPage}
-            limit={transactionsLimit}
-            onPageChange={(p) => setTxFilter((f) => ({ ...f, page: p }))}
-            onLimitChange={(l) => setTxFilter((f) => ({ ...f, limit: l, page: 1 }))}
+      {/* Transaction History */}
+      <div className="space-y-4">
+        {/* Section header + filters */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <h2 className="text-xl font-semibold tracking-tight flex-1 min-w-[140px]">
+            Transaction History
+          </h2>
+          <Select
+            value={txFilter.type ?? "ALL"}
+            onValueChange={(v) =>
+              setTxFilter((f) => ({
+                ...f,
+                type: v === "ALL" ? undefined : (v as ProjectTransactionType),
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger className="sm:w-[150px]">
+              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">All Types</SelectItem>
+              <SelectItem value="INCOME">Income</SelectItem>
+              <SelectItem value="EXPENSE">Expense</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input
+            placeholder="Category…"
+            value={txFilter.category ?? ""}
+            onChange={(e) =>
+              setTxFilter((f) => ({
+                ...f,
+                category: e.target.value || undefined,
+                page: 1,
+              }))
+            }
+            className="sm:w-[160px] h-9"
           />
-        </CardContent>
-      </Card>
+          <DateRangePicker
+            value={{
+              from: txFilter.startDate ? txFilter.startDate.split("T")[0] : null,
+              to: txFilter.endDate ? txFilter.endDate.split("T")[0] : null,
+            }}
+            onChange={(range) =>
+              setTxFilter((f) => ({
+                ...f,
+                startDate: range.from ? new Date(range.from).toISOString() : undefined,
+                endDate: range.to ? new Date(range.to).toISOString() : undefined,
+                page: 1,
+              }))
+            }
+          />
+        </div>
+
+        {/* Card grid */}
+        {transactions.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground rounded-[24px] border border-dashed border-border/40">
+            No transactions yet. Start by logging an income or expense.
+          </div>
+        ) : (
+          <div className="grid gap-3 lg:grid-cols-2">
+            {transactions.map((tx) => (
+              <ProjectTransactionCard
+                key={tx.id}
+                transaction={{
+                  id: tx.id,
+                  type: tx.type,
+                  amount: tx.amount,
+                  category: tx.category,
+                  description: tx.description,
+                  date: tx.date,
+                  witnesses: tx.witnesses,
+                  history: tx.history,
+                }}
+                currency={project.currency}
+                onEdit={handleEditTx}
+              />
+            ))}
+          </div>
+        )}
+
+        <Pagination
+          total={transactionsTotal}
+          page={transactionsPage}
+          limit={transactionsLimit}
+          onPageChange={(p) => setTxFilter((f) => ({ ...f, page: p }))}
+          onLimitChange={(l) => setTxFilter((f) => ({ ...f, limit: l, page: 1 }))}
+        />
+      </div>
+
+      {/* Controlled edit dialog triggered by card pencil button */}
+      {editingTx && (
+        <ProjectTransactionDialog
+          projectId={projectId}
+          editTransaction={{
+            id: editingTx.id,
+            amount: editingTx.amount ?? 0,
+            type: editingTx.type as ProjectTransactionType,
+            category: editingTx.category,
+            description: editingTx.description,
+            date: editingTx.date as string,
+          }}
+          open={editTxOpen}
+          onOpenChange={(v) => {
+            setEditTxOpen(v);
+            if (!v) setEditingTx(null);
+          }}
+        />
+      )}
     </div>
   );
 }
