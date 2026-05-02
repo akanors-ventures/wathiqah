@@ -205,7 +205,7 @@ export function BalanceSummaryCard({
       <div className="flex items-center gap-2 text-muted-foreground">
         <Calendar className="w-3.5 h-3.5 shrink-0" />
         <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-          <SelectTrigger className="h-8 w-[160px] text-xs font-semibold border-border/60">
+          <SelectTrigger className="h-9 w-[160px] text-xs font-semibold border-border/60">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -372,7 +372,7 @@ export function BalanceSummaryCard({
                 <div className="rounded-2xl border border-border/40 overflow-hidden">
                   <button
                     type="button"
-                    className="w-full flex items-center gap-3 px-3.5 py-3 bg-muted/20 hover:bg-muted/30 transition-colors"
+                    className="w-full flex items-center gap-3 px-3.5 py-3 bg-muted/20 hover:bg-muted/30 active:bg-muted/40 transition-colors"
                     onClick={() => setOtherFlowsOpen((prev) => !prev)}
                   >
                     <div className="flex-1 min-w-0 text-left">

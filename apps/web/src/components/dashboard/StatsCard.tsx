@@ -12,6 +12,7 @@ interface StatsCardProps {
   extra?: React.ReactNode;
   className?: string;
   variant?: "default" | "primary";
+  compact?: boolean;
 }
 
 export function StatsCard({
@@ -24,25 +25,34 @@ export function StatsCard({
   extra,
   className,
   variant = "default",
+  compact = false,
 }: StatsCardProps) {
   const isPrimary = variant === "primary";
 
   const content = (
     <Card
       className={cn(
-        "group relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 rounded-[20px] sm:rounded-[24px]",
+        "group relative overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 active:scale-[0.98] rounded-[20px] sm:rounded-[24px]",
         isPrimary
           ? "bg-primary/5 border-primary/10 hover:border-primary/30"
           : "bg-card border-border/50 hover:border-primary/40",
         className,
       )}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1.5 sm:pb-2 relative z-10 p-4 sm:p-5">
+      <CardHeader
+        className={cn(
+          "flex flex-row items-center justify-between space-y-0 relative z-10",
+          compact ? "pb-1 p-3 sm:p-4" : "pb-1.5 sm:pb-2 p-4 sm:p-5",
+        )}
+      >
         <div className="flex flex-col gap-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 min-w-0">
             <CardTitle
               className={cn(
-                "text-[10px] sm:text-[11px] font-bold transition-colors uppercase tracking-wider line-clamp-2 leading-tight break-words",
+                "font-bold transition-colors uppercase leading-tight",
+                compact
+                  ? "text-[9px] tracking-wide truncate"
+                  : "text-[10px] sm:text-[11px] tracking-wider line-clamp-2 break-words",
                 isPrimary ? "text-primary/60" : "text-muted-foreground group-hover:text-primary",
               )}
             >
@@ -53,7 +63,8 @@ export function StatsCard({
         </div>
         <div
           className={cn(
-            "p-2 sm:p-2.5 rounded-lg sm:rounded-xl transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:-rotate-6",
+            "rounded-lg transition-all duration-500 shadow-sm group-hover:shadow-lg group-hover:-rotate-6 shrink-0",
+            compact ? "p-1.5" : "p-2 sm:p-2.5 sm:rounded-xl",
             isPrimary
               ? "bg-primary text-primary-foreground group-hover:shadow-primary/20"
               : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground group-hover:shadow-primary/20",
@@ -62,16 +73,22 @@ export function StatsCard({
           {icon}
         </div>
       </CardHeader>
-      <CardContent className="relative z-10 pt-0 p-4 sm:p-5">
+      <CardContent className={cn("relative z-10 pt-0", compact ? "p-3 sm:p-4" : "p-4 sm:p-5")}>
         <div
           className={cn(
-            "text-xl sm:text-2xl font-black tracking-tight mb-1 group-hover:scale-[1.02] transition-transform origin-left duration-500",
+            "font-black tracking-tight mb-1 group-hover:scale-[1.02] transition-transform origin-left duration-500",
+            compact ? "text-lg sm:text-xl" : "text-xl sm:text-2xl",
             isPrimary ? "text-primary" : "text-foreground",
           )}
         >
           {value}
         </div>
-        <p className="text-[10px] sm:text-[11px] text-muted-foreground font-medium opacity-70 group-hover:text-foreground/70 transition-colors">
+        <p
+          className={cn(
+            "text-muted-foreground font-medium opacity-70 group-hover:text-foreground/70 transition-colors",
+            compact ? "text-[9px] line-clamp-1" : "text-[10px] sm:text-[11px]",
+          )}
+        >
           {description}
         </p>
         {descriptionSlot}

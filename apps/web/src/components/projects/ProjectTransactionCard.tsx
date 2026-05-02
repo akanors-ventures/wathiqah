@@ -178,7 +178,7 @@ export function ProjectTransactionCard({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 active:bg-muted"
             onClick={() => onEdit(tx)}
             aria-label="Edit transaction"
           >

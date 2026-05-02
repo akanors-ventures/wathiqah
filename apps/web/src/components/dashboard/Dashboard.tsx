@@ -227,6 +227,7 @@ export function Dashboard() {
       {/* Activity Stats */}
       <div className="grid gap-3 grid-cols-3">
         <StatsCard
+          compact
           title="Promises"
           value={activePromises.toString()}
           icon={<CalendarClock className="h-4 w-4 text-muted-foreground" />}
@@ -234,6 +235,7 @@ export function Dashboard() {
           link="/promises"
         />
         <StatsCard
+          compact
           title="Witnesses"
           value={pendingWitnessRequests.toString()}
           icon={<FileCheck className="h-4 w-4 text-muted-foreground" />}
@@ -241,6 +243,7 @@ export function Dashboard() {
           link="/witnesses"
         />
         <StatsCard
+          compact
           title="Contacts"
           value={totalContacts.toString()}
           icon={<Users className="h-4 w-4 text-muted-foreground" />}
