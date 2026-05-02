@@ -65,14 +65,14 @@ function StatCell({
   icon,
 }: StatCellProps) {
   return (
-    <div className={cn("flex flex-col gap-2 p-3.5 rounded-2xl border", bgClass, borderClass)}>
+    <div className={cn("flex flex-col gap-2 p-3 rounded-2xl border", bgClass, borderClass)}>
       <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground leading-tight">
           {label}
         </span>
         <span className={cn("opacity-70", colorClass)}>{icon}</span>
       </div>
-      <span className={cn("text-base font-bold tabular-nums", colorClass)}>
+      <span className={cn("text-sm font-bold tabular-nums", colorClass)}>
         {formatCurrency(value, currency)}
       </span>
     </div>
@@ -81,9 +81,9 @@ function StatCell({
 
 function StatCellSkeleton() {
   return (
-    <div className="flex flex-col gap-2 p-3.5 rounded-2xl border border-border/50 bg-muted/20">
+    <div className="flex flex-col gap-2 p-3 rounded-2xl border border-border/50 bg-muted/20">
       <Skeleton className="h-3 w-16" />
-      <Skeleton className="h-5 w-24" />
+      <Skeleton className="h-4 w-24" />
     </div>
   );
 }
@@ -183,82 +183,136 @@ export function ContactSummaryCards({
     : [];
   const otherFlowsTotal = otherFlows.reduce((sum, f) => sum + f.value, 0);
 
+  const periodSelector = (
+    <div className="flex items-center gap-2.5 flex-wrap">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <Calendar className="w-3.5 h-3.5 shrink-0" />
+        <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+          <SelectTrigger className="h-8 w-[160px] text-xs font-semibold border-border/60">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="THIS_MONTH" className="text-xs">
+              This Month
+            </SelectItem>
+            <SelectItem value="LAST_MONTH" className="text-xs">
+              Last Month
+            </SelectItem>
+            <SelectItem value="LAST_3_MONTHS" className="text-xs">
+              Last 3 Months
+            </SelectItem>
+            <SelectItem value="CUSTOM" className="text-xs">
+              Custom Range
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <span className="text-xs font-medium text-muted-foreground ml-auto">
+        {formatPeriodLabel(period, customRange)}
+      </span>
+    </div>
+  );
+
   return (
     <Card className="rounded-[32px] overflow-hidden border-border/60 shadow-sm">
-      {/* All-time net balance */}
-      <div className="relative px-5 pt-5 pb-4 bg-muted/30 border-b border-border/40">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1.5 min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Net Balance with Contact
-            </p>
-            <BalanceIndicator
-              amount={contactBalance}
-              currency={currency}
-              className="text-xl px-3.5 py-1.5 h-auto"
-            />
-          </div>
-          <div className="shrink-0 p-2.5 rounded-xl bg-primary/10 text-primary">
-            <Scale className="w-4 h-4" />
-          </div>
-        </div>
-        <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
-      </div>
-
-      {/* Period breakdown */}
-      <CardContent className="p-5 space-y-4">
-        {/* Period selector */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Calendar className="w-3.5 h-3.5 shrink-0" />
-            <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-              <SelectTrigger className="h-8 w-[160px] text-xs font-semibold border-border/60">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="THIS_MONTH" className="text-xs">
-                  This Month
-                </SelectItem>
-                <SelectItem value="LAST_MONTH" className="text-xs">
-                  Last Month
-                </SelectItem>
-                <SelectItem value="LAST_3_MONTHS" className="text-xs">
-                  Last 3 Months
-                </SelectItem>
-                <SelectItem value="CUSTOM" className="text-xs">
-                  Custom Range
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <span className="text-xs font-medium text-muted-foreground ml-auto">
-            {formatPeriodLabel(period, customRange)}
-          </span>
-        </div>
-
-        {period === "CUSTOM" && <DateRangePicker value={customRange} onChange={setCustomRange} />}
-
-        {/* Stats */}
-        {skipCustom ? (
-          <p className="text-xs text-muted-foreground text-center py-4">
-            Select a start and end date to view stats.
-          </p>
-        ) : loading && !summary ? (
-          <div className="grid grid-cols-2 gap-2.5">
-            {(["sk-lg", "sk-lr", "sk-rm", "sk-rr"] as const).map((k) => (
-              <StatCellSkeleton key={k} />
-            ))}
-          </div>
-        ) : summary ? (
-          <div className="space-y-3">
-            {/* Loans */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-0.5">
-                Loans
+      {/* Desktop: side-by-side. Mobile: stacked. */}
+      <div className="lg:flex lg:items-stretch lg:divide-x lg:divide-border/40">
+        {/* Left panel: Net balance with contact */}
+        <div className="relative px-5 pt-5 pb-5 bg-muted/30 border-b border-border/40 lg:border-b-0 lg:w-[230px] lg:shrink-0 lg:flex lg:flex-col lg:justify-center lg:gap-2">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1.5 min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                Net Balance with Contact
               </p>
-              <div className="grid grid-cols-2 gap-2">
+              <BalanceIndicator
+                amount={contactBalance}
+                currency={currency}
+                className="text-xl px-3.5 py-1.5 h-auto"
+              />
+            </div>
+            <div className="shrink-0 p-2.5 rounded-xl bg-primary/10 text-primary">
+              <Scale className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-primary/5 blur-2xl pointer-events-none" />
+        </div>
+
+        {/* Right panel: Period selector + stats */}
+        <CardContent className="p-5 space-y-3 flex-1 min-w-0">
+          {periodSelector}
+
+          {period === "CUSTOM" && <DateRangePicker value={customRange} onChange={setCustomRange} />}
+
+          {skipCustom ? (
+            <p className="text-xs text-muted-foreground text-center py-4">
+              Select a start and end date to view stats.
+            </p>
+          ) : loading && !summary ? (
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+              {[0, 1, 2, 3].map((k) => (
+                <StatCellSkeleton key={k} />
+              ))}
+            </div>
+          ) : summary ? (
+            <div className="space-y-3">
+              {/* Mobile: grouped with section labels */}
+              <div className="lg:hidden space-y-3">
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-0.5">
+                    Loans
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <StatCell
+                      label="Given"
+                      value={summary.totalLoanGiven}
+                      currency={currency}
+                      colorClass="text-blue-600 dark:text-blue-400"
+                      bgClass="bg-blue-500/[0.06]"
+                      borderClass="border-blue-500/20"
+                      icon={<ArrowUpRight className="w-3.5 h-3.5" />}
+                    />
+                    <StatCell
+                      label="Received"
+                      value={summary.totalLoanReceived}
+                      currency={currency}
+                      colorClass="text-rose-600 dark:text-rose-400"
+                      bgClass="bg-rose-500/[0.06]"
+                      borderClass="border-rose-500/20"
+                      icon={<ArrowDownLeft className="w-3.5 h-3.5" />}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-0.5">
+                    Repayments
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <StatCell
+                      label="Made"
+                      value={summary.totalRepaymentMade}
+                      currency={currency}
+                      colorClass="text-emerald-600 dark:text-emerald-400"
+                      bgClass="bg-emerald-500/[0.06]"
+                      borderClass="border-emerald-500/20"
+                      icon={<ArrowRightLeft className="w-3.5 h-3.5" />}
+                    />
+                    <StatCell
+                      label="Received"
+                      value={summary.totalRepaymentReceived}
+                      currency={currency}
+                      colorClass="text-emerald-600 dark:text-emerald-400"
+                      bgClass="bg-emerald-500/[0.06]"
+                      borderClass="border-emerald-500/20"
+                      icon={<ArrowRightLeft className="w-3.5 h-3.5" />}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: flat 4-column grid */}
+              <div className="hidden lg:grid lg:grid-cols-4 gap-2">
                 <StatCell
-                  label="Given"
+                  label="Loans Given"
                   value={summary.totalLoanGiven}
                   currency={currency}
                   colorClass="text-blue-600 dark:text-blue-400"
@@ -267,7 +321,7 @@ export function ContactSummaryCards({
                   icon={<ArrowUpRight className="w-3.5 h-3.5" />}
                 />
                 <StatCell
-                  label="Received"
+                  label="Loans Received"
                   value={summary.totalLoanReceived}
                   currency={currency}
                   colorClass="text-rose-600 dark:text-rose-400"
@@ -275,17 +329,8 @@ export function ContactSummaryCards({
                   borderClass="border-rose-500/20"
                   icon={<ArrowDownLeft className="w-3.5 h-3.5" />}
                 />
-              </div>
-            </div>
-
-            {/* Repayments */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-0.5">
-                Repayments
-              </p>
-              <div className="grid grid-cols-2 gap-2">
                 <StatCell
-                  label="Made"
+                  label="Repayments Made"
                   value={summary.totalRepaymentMade}
                   currency={currency}
                   colorClass="text-emerald-600 dark:text-emerald-400"
@@ -294,7 +339,7 @@ export function ContactSummaryCards({
                   icon={<ArrowRightLeft className="w-3.5 h-3.5" />}
                 />
                 <StatCell
-                  label="Received"
+                  label="Repayments Received"
                   value={summary.totalRepaymentReceived}
                   currency={currency}
                   colorClass="text-emerald-600 dark:text-emerald-400"
@@ -303,50 +348,50 @@ export function ContactSummaryCards({
                   icon={<ArrowRightLeft className="w-3.5 h-3.5" />}
                 />
               </div>
-            </div>
 
-            {/* Other flows — collapsible */}
-            {otherFlowsTotal > 0 && (
-              <div className="rounded-2xl border border-border/40 overflow-hidden">
-                <button
-                  type="button"
-                  className="w-full flex items-center gap-3 px-3.5 py-3 bg-muted/20 hover:bg-muted/30 transition-colors"
-                  onClick={() => setOtherFlowsOpen((prev) => !prev)}
-                >
-                  <div className="flex-1 min-w-0 text-left">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      Other flows
-                    </p>
-                    <p className="text-xs font-semibold text-foreground tabular-nums">
-                      {formatCurrency(otherFlowsTotal, currency)}
-                    </p>
-                  </div>
-                  <ChevronDown
-                    className={cn(
-                      "w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform duration-200",
-                      otherFlowsOpen && "rotate-180",
-                    )}
-                  />
-                </button>
-                {otherFlowsOpen && (
-                  <div className="px-3.5 py-3 border-t border-border/30 grid grid-cols-2 gap-x-4 gap-y-3">
-                    {otherFlows.map((flow) => (
-                      <div key={flow.label} className="space-y-0.5">
-                        <p className="text-[10px] font-medium text-muted-foreground">
-                          {flow.label}
-                        </p>
-                        <p className={cn("text-sm font-bold tabular-nums", flow.colorClass)}>
-                          {formatCurrency(flow.value, currency)}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ) : null}
-      </CardContent>
+              {/* Other flows — collapsible (both layouts) */}
+              {otherFlowsTotal > 0 && (
+                <div className="rounded-2xl border border-border/40 overflow-hidden">
+                  <button
+                    type="button"
+                    className="w-full flex items-center gap-3 px-3.5 py-3 bg-muted/20 hover:bg-muted/30 transition-colors"
+                    onClick={() => setOtherFlowsOpen((prev) => !prev)}
+                  >
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        Other flows
+                      </p>
+                      <p className="text-xs font-semibold text-foreground tabular-nums">
+                        {formatCurrency(otherFlowsTotal, currency)}
+                      </p>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "w-3.5 h-3.5 text-muted-foreground shrink-0 transition-transform duration-200",
+                        otherFlowsOpen && "rotate-180",
+                      )}
+                    />
+                  </button>
+                  {otherFlowsOpen && (
+                    <div className="px-3.5 py-3 border-t border-border/30 grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-3">
+                      {otherFlows.map((flow) => (
+                        <div key={flow.label} className="space-y-0.5">
+                          <p className="text-[10px] font-medium text-muted-foreground">
+                            {flow.label}
+                          </p>
+                          <p className={cn("text-sm font-bold tabular-nums", flow.colorClass)}>
+                            {formatCurrency(flow.value, currency)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </CardContent>
+      </div>
     </Card>
   );
 }
