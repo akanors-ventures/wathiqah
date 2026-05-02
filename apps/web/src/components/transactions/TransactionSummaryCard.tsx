@@ -51,6 +51,9 @@ export function TransactionSummaryCard({ onPeriodFilterChange }: TransactionSumm
   const period_ = periodData?.totalBalance;
   const currency = allTime?.currency ?? period_?.currency ?? "NGN";
 
+  const displayStats = queryFilter ? period_ : allTime;
+  const displayStatsLoading = queryFilter ? periodLoading && !period_ : allTimeLoading && !allTime;
+
   return (
     <BalanceSummaryCard
       leftTitle="All-time net balance"
@@ -58,8 +61,8 @@ export function TransactionSummaryCard({ onPeriodFilterChange }: TransactionSumm
       balance={allTime?.netBalance}
       balanceCurrency={currency}
       balanceLoading={allTimeLoading && !allTime}
-      stats={period_}
-      statsLoading={periodLoading && !period_}
+      stats={displayStats}
+      statsLoading={displayStatsLoading}
       onPeriodFilterChange={handlePeriodChange}
     />
   );
