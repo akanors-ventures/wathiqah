@@ -15,12 +15,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 
-type Period = "THIS_MONTH" | "LAST_MONTH" | "LAST_3_MONTHS" | "CUSTOM";
+type Period = "ALL_TIME" | "THIS_MONTH" | "LAST_MONTH" | "LAST_3_MONTHS" | "CUSTOM";
 type CustomRange = { from: string | null; to: string | null };
 
 function formatPeriodLabel(period: Period, custom: CustomRange): string {
   const now = new Date();
   switch (period) {
+    case "ALL_TIME":
+      return "All time";
     case "THIS_MONTH":
       return format(now, "MMMM yyyy");
     case "LAST_MONTH":
@@ -126,6 +128,10 @@ export function BalanceSummaryCard({
 
   useEffect(() => {
     if (!onPeriodFilterChange) return;
+    if (period === "ALL_TIME") {
+      onPeriodFilterChange({ from: null, to: null });
+      return;
+    }
     if (period === "CUSTOM" && (!customRange.from || !customRange.to)) {
       onPeriodFilterChange({ from: null, to: null });
       return;
@@ -209,6 +215,9 @@ export function BalanceSummaryCard({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="ALL_TIME" className="text-xs">
+              All Time
+            </SelectItem>
             <SelectItem value="THIS_MONTH" className="text-xs">
               This Month
             </SelectItem>
