@@ -39,7 +39,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
       <div
         className={cn(
           "relative overflow-hidden rounded-[24px] border border-border/50 bg-card p-5",
-          "transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/30",
+          "transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-primary/30 active:scale-[0.98]",
         )}
       >
         {/* Name + status badge on same line */}

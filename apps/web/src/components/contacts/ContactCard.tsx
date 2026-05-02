@@ -48,7 +48,7 @@ export function ContactCard<T extends ContactSummary>({
     <div
       className={cn(
         "group relative bg-card border border-border/50 rounded-[20px] p-4 transition-all duration-500",
-        "hover:shadow-[0_12px_40px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 hover:border-primary/30",
+        "hover:shadow-[0_12px_40px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 hover:border-primary/30 active:scale-[0.98]",
         className,
       )}
     >
@@ -89,7 +89,7 @@ export function ContactCard<T extends ContactSummary>({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl shrink-0 transition-all"
+                className="h-10 w-10 sm:h-7 sm:w-7 text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-xl shrink-0 transition-all active:bg-muted"
               >
                 <MoreVertical className="h-4 w-4" />
               </Button>
