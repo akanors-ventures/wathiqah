@@ -158,7 +158,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error during logout mutation:", error);
     } finally {
-      await client.resetStore();
+      // Use clearStore instead of resetStore to avoid refetching active queries
+      // (e.g. Me query would get 401 again and re-trigger logout in an infinite loop)
+      await client.clearStore();
       navigate({ to: "/" });
     }
   }, [client, navigate, logoutMutation, user]);
@@ -184,7 +186,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const wasAuthenticated = user !== null && user !== undefined;
       const hasCookie = isAuthenticated();
 
-      if (hasAuthError || (wasAuthenticated && !hasCookie)) {
+      // Guard: don't call logout() if user is already null — the logout callback
+      // depends on `user` so it's recreated after setUser(null), which would
+      // re-run this effect and call logout() again unnecessarily.
+      if ((hasAuthError || (wasAuthenticated && !hasCookie)) && user !== null) {
         console.debug("[AuthContext] Unauthenticated state detected, triggering logout cleanup");
         setUser(null);
         logout();
