@@ -2,7 +2,6 @@ import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowDownLeft,
-  ArrowRight,
   ArrowUpRight,
   CalendarDays,
   FolderOpen,
@@ -62,7 +61,7 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
 
   const cardContent = (
     <>
-      <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 relative z-10">
+      <div className="flex items-center gap-3 sm:gap-4 lg:gap-5 min-w-0 flex-1 relative z-10">
         <div className="relative shrink-0">
           <div
             className={cn(
@@ -87,16 +86,18 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-col gap-1 sm:gap-1.5">
-            <h3 className="text-sm sm:text-lg lg:text-xl font-bold leading-tight truncate group-hover:text-primary transition-colors tracking-tight flex items-center gap-1.5">
-              {isProjectTransaction
-                ? tx.contact?.name || "Project"
-                : isCreator
-                  ? tx.contact?.name || "Self"
-                  : tx.createdBy?.name}
+          <div className="min-w-0 flex flex-col gap-1 sm:gap-1.5">
+            <h3 className="text-sm sm:text-base lg:text-base font-bold leading-tight group-hover:text-primary transition-colors tracking-tight flex items-center gap-1.5 min-w-0">
+              <span className="truncate min-w-0">
+                {isProjectTransaction
+                  ? tx.contact?.name || "Project"
+                  : isCreator
+                    ? tx.contact?.name || "Self"
+                    : tx.createdBy?.name}
+              </span>
               {!isProjectTransaction &&
                 (isCreator ? tx.contact?.isSupporter : tx.createdBy?.isSupporter) && (
-                  <SupporterBadge className="h-4 px-1 text-[9px]" />
+                  <SupporterBadge className="h-4 px-1 text-[9px] shrink-0" />
                 )}
             </h3>
 
@@ -146,10 +147,10 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
         </div>
       </div>
 
-      <div className="text-right shrink-0 flex items-center gap-2 sm:gap-3 lg:gap-5 relative z-10 ml-2 lg:ml-4">
+      <div className="text-right shrink-0 flex items-center gap-2 sm:gap-3 lg:gap-5 relative z-10 ml-4 sm:ml-5 lg:ml-6">
         <div className="flex flex-col items-end">
           {tx.category === AssetCategory.Item ? (
-            <div className="text-base sm:text-xl lg:text-2xl font-black tracking-tighter">
+            <div className="text-sm sm:text-base lg:text-lg font-black tracking-tighter">
               <span className="text-[8px] sm:text-[10px] lg:text-[11px] font-bold opacity-60">
                 Item
               </span>
@@ -159,18 +160,13 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
               type={tx.type}
               amount={tx.amount ?? 0}
               currency={tx.currency}
-              className="text-base sm:text-xl lg:text-2xl font-black tracking-tighter"
+              className="text-sm sm:text-base lg:text-lg font-black tracking-tighter"
             />
           )}
           <div className="text-[8px] sm:text-[10px] lg:text-[11px] font-bold capitalize tracking-tight opacity-40 mt-0.5">
             {tx.category.toLowerCase()}
           </div>
         </div>
-        {!isProjectTransaction && (
-          <div className="hidden sm:flex w-7 h-7 lg:w-9 lg:h-9 rounded-full bg-muted/50 items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500">
-            <ArrowRight className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-primary" />
-          </div>
-        )}
       </div>
 
       {/* Background Glow */}
