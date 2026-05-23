@@ -9,6 +9,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -66,6 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const isPublicOnboarding = useMemo(() => {
     const publicPaths = [
@@ -144,8 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    // If we're already clearing out, don't double-call
-    const wasAuthenticated = user !== null && user !== undefined;
+    // Read from ref so this callback doesn't need `user` as a dependency,
+    // preventing the auth useEffect from re-running on every user state change.
+    const wasAuthenticated = userRef.current !== null && userRef.current !== undefined;
 
     // Immediate UI update
     setUser(null);
@@ -163,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await client.clearStore();
       navigate({ to: "/" });
     }
-  }, [client, navigate, logoutMutation, user]);
+  }, [client, navigate, logoutMutation]);
 
   // Sync user state with query data when it changes
   useEffect(() => {
