@@ -158,16 +158,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     deleteCookie("isLoggedIn");
 
+    // Navigate BEFORE invalidating tokens: window.location.pathname becomes "/"
+    // so the Apollo errorLink sees isPublicPath = true for any errors triggered
+    // by clearStore re-firing network-only queries — preventing the refresh loop.
+    navigate({ to: "/" });
+
     try {
       // Only attempt mutation if we thought we were authenticated
       if (wasAuthenticated) await logoutMutation();
     } catch (error) {
       console.error("Error during logout mutation:", error);
     } finally {
-      // Use clearStore instead of resetStore to avoid refetching active queries
-      // (e.g. Me query would get 401 again and re-trigger logout in an infinite loop)
       await client.clearStore();
-      navigate({ to: "/" });
     }
   }, [client, navigate, logoutMutation]);
 
