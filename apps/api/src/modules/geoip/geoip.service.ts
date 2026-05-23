@@ -22,6 +22,16 @@ export class GeoIPService {
   }
 
   async lookup(ip: string): Promise<GeoIPInfo> {
+    const defaultInfo: GeoIPInfo = {
+      ip,
+      countryCode: 'US',
+      countryName: 'United States',
+      regionName: 'Unknown',
+      cityName: 'Unknown',
+      currencyCode: 'USD',
+      isVpn: false,
+    };
+
     try {
       // Check Cache first
       const cacheKey = `geoip:${ip}`;
@@ -56,30 +66,25 @@ export class GeoIPService {
 
       const info: GeoIPInfo = {
         ip,
-        countryCode: result.country_code || 'US',
-        countryName: result.country_name || 'United States',
-        regionName: result.region_name || 'Unknown',
-        cityName: result.city_name || 'Unknown',
-        currencyCode: result.currency?.code || 'USD',
+        countryCode: result.country_code,
+        countryName: result.country_name,
+        regionName: result.region_name,
+        cityName: result.city_name,
+        currencyCode: result.currency?.code,
         isVpn: !!result.is_proxy,
       };
 
       // Cache result
-      await this.cacheManager.set(cacheKey, info, this.CACHE_TTL);
+      if (info.countryCode && info.currencyCode) {
+        await this.cacheManager.set(cacheKey, info, this.CACHE_TTL);
+        return info;
+      }
 
-      return info;
+      return defaultInfo;
     } catch (error) {
       this.logger.error(`GeoIP lookup failed for IP ${ip}: ${error.message}`);
       // Safety fallback to USD/US
-      return {
-        ip,
-        countryCode: 'US',
-        countryName: 'United States',
-        regionName: 'Unknown',
-        cityName: 'Unknown',
-        currencyCode: 'USD',
-        isVpn: false,
-      };
+      return defaultInfo;
     }
   }
 }
