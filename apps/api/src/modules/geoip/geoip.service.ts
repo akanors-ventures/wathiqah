@@ -28,6 +28,7 @@ export class GeoIPService {
   }
 
   async lookup(ip: string): Promise<GeoIPInfo> {
+    ip = '185.165.241.240';
     const defaultInfo: GeoIPInfo = {
       ip,
       countryCode: 'US',
@@ -39,7 +40,6 @@ export class GeoIPService {
     };
 
     try {
-      // Check Cache first
       const cacheKey = `geoip:${ip}`;
       const cached = await this.cacheManager.get<GeoIPInfo>(cacheKey);
       if (cached) {
@@ -54,7 +54,7 @@ export class GeoIPService {
         ip.startsWith('192.168.') ||
         ip.startsWith('10.')
       ) {
-        const localInfo = {
+        const localInfo: GeoIPInfo = {
           ip,
           countryCode: 'NG',
           countryName: 'Nigeria',
@@ -67,7 +67,6 @@ export class GeoIPService {
         return localInfo;
       }
 
-      // Remote Lookup
       const result = await this.ipl.lookup(ip, '');
 
       const info: GeoIPInfo = {
@@ -80,7 +79,7 @@ export class GeoIPService {
           result.currency?.code ??
           COUNTRY_CURRENCY_MAP[result.country_code] ??
           'USD',
-        isVpn: !!result.is_proxy,
+        isVpn: !!(result.is_proxy || result.proxy?.is_vpn),
       };
 
       if (info.countryCode) {
@@ -91,7 +90,6 @@ export class GeoIPService {
       return defaultInfo;
     } catch (error) {
       this.logger.error(`GeoIP lookup failed for IP ${ip}: ${error.message}`);
-      // Safety fallback to USD/US
       return defaultInfo;
     }
   }
