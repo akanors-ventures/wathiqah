@@ -6,6 +6,12 @@ import { Configuration, IPGeolocation } from 'ip2location-io-nodejs';
 
 import { GeoIPInfo } from './entities/geoip-info.entity';
 
+const COUNTRY_CURRENCY_MAP: Record<string, string> = {
+  NG: 'NGN',
+  GB: 'GBP',
+  US: 'USD',
+};
+
 @Injectable()
 export class GeoIPService {
   private readonly logger = new Logger(GeoIPService.name);
@@ -62,7 +68,7 @@ export class GeoIPService {
       }
 
       // Remote Lookup
-      const result = await this.ipl.lookup(ip, 'en');
+      const result = await this.ipl.lookup(ip, '');
 
       const info: GeoIPInfo = {
         ip,
@@ -70,12 +76,14 @@ export class GeoIPService {
         countryName: result.country_name,
         regionName: result.region_name,
         cityName: result.city_name,
-        currencyCode: result.currency?.code,
+        currencyCode:
+          result.currency?.code ??
+          COUNTRY_CURRENCY_MAP[result.country_code] ??
+          'USD',
         isVpn: !!result.is_proxy,
       };
 
-      // Cache result
-      if (info.countryCode && info.currencyCode) {
+      if (info.countryCode) {
         await this.cacheManager.set(cacheKey, info, this.CACHE_TTL);
         return info;
       }
