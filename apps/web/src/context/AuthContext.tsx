@@ -191,19 +191,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      const wasAuthenticated = user !== null && user !== undefined;
+      const wasAuthenticated = userRef.current !== null && userRef.current !== undefined;
       const hasCookie = isAuthenticated();
 
-      // Guard: don't call logout() if user is already null — the logout callback
-      // depends on `user` so it's recreated after setUser(null), which would
-      // re-run this effect and call logout() again unnecessarily.
-      if ((hasAuthError || (wasAuthenticated && !hasCookie)) && user !== null) {
+      // Guard: use userRef instead of `user` state so this effect is NOT in the
+      // dependency array for `user`. If `user` were a dep, setUser(null) in logout
+      // would re-run this effect while data?.me is still cached, immediately
+      // restoring the user and causing the dashboard to remount — triggering
+      // clearStore to re-fire authenticated queries and creating a logout loop.
+      if ((hasAuthError || (wasAuthenticated && !hasCookie)) && userRef.current !== null) {
         console.debug("[AuthContext] Unauthenticated state detected, triggering logout cleanup");
         setUser(null);
         logout();
       }
     }
-  }, [data, loading, error, logout, user]);
+  }, [data, loading, error, logout]);
 
   const acceptInvitation = useCallback(
     async (input: AcceptInvitationInput) => {
