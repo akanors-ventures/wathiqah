@@ -27,9 +27,9 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { TierBadge } from "@/components/ui/tier-badge";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
+import { TierBadge } from "@/components/ui/tier-badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 
@@ -49,11 +49,7 @@ export default function HeaderUser() {
     return <div className="h-10 w-10 bg-muted animate-pulse rounded-full" aria-hidden="true" />;
   }
 
-  // Use a more robust check for authenticated state
-  const isCurrentlyAuthenticated =
-    typeof isAuthenticated === "function" ? isAuthenticated() : !!isAuthenticated;
-
-  if (loading || (user === undefined && isCurrentlyAuthenticated)) {
+  if (loading || (user === undefined && isAuthenticated())) {
     return (
       <div
         className="h-10 w-10 bg-muted animate-pulse rounded-full"
