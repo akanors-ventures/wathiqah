@@ -9,6 +9,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -66,6 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<User | null | undefined>(undefined);
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   const isPublicOnboarding = useMemo(() => {
     const publicPaths = [
@@ -144,13 +149,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    // If we're already clearing out, don't double-call
-    const wasAuthenticated = user !== null && user !== undefined;
+    // Read from ref so this callback doesn't need `user` as a dependency,
+    // preventing the auth useEffect from re-running on every user state change.
+    const wasAuthenticated = userRef.current !== null && userRef.current !== undefined;
 
     // Immediate UI update
     setUser(null);
 
     deleteCookie("isLoggedIn");
+
+    // Navigate BEFORE invalidating tokens: window.location.pathname becomes "/"
+    // so the Apollo errorLink sees isPublicPath = true for any errors triggered
+    // by clearStore re-firing network-only queries — preventing the refresh loop.
+    navigate({ to: "/" });
 
     try {
       // Only attempt mutation if we thought we were authenticated
@@ -158,12 +169,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error during logout mutation:", error);
     } finally {
-      // Use clearStore instead of resetStore to avoid refetching active queries
-      // (e.g. Me query would get 401 again and re-trigger logout in an infinite loop)
       await client.clearStore();
-      navigate({ to: "/" });
     }
-  }, [client, navigate, logoutMutation, user]);
+  }, [client, navigate, logoutMutation]);
 
   // Sync user state with query data when it changes
   useEffect(() => {
@@ -183,19 +191,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      const wasAuthenticated = user !== null && user !== undefined;
+      const wasAuthenticated = userRef.current !== null && userRef.current !== undefined;
       const hasCookie = isAuthenticated();
 
-      // Guard: don't call logout() if user is already null — the logout callback
-      // depends on `user` so it's recreated after setUser(null), which would
-      // re-run this effect and call logout() again unnecessarily.
-      if ((hasAuthError || (wasAuthenticated && !hasCookie)) && user !== null) {
+      // Guard: use userRef instead of `user` state so this effect is NOT in the
+      // dependency array for `user`. If `user` were a dep, setUser(null) in logout
+      // would re-run this effect while data?.me is still cached, immediately
+      // restoring the user and causing the dashboard to remount — triggering
+      // clearStore to re-fire authenticated queries and creating a logout loop.
+      if ((hasAuthError || (wasAuthenticated && !hasCookie)) && userRef.current !== null) {
         console.debug("[AuthContext] Unauthenticated state detected, triggering logout cleanup");
         setUser(null);
         logout();
       }
     }
-  }, [data, loading, error, logout, user]);
+  }, [data, loading, error, logout]);
 
   const acceptInvitation = useCallback(
     async (input: AcceptInvitationInput) => {

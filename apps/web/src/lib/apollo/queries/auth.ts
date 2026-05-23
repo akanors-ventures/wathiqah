@@ -45,7 +45,12 @@ export const LOGIN_MUTATION: TypedDocumentNode<LoginMutation, LoginMutationVaria
         id
         email
         name
+        firstName
+        lastName
+        phoneNumber
+        preferredCurrency
         isSupporter
+        hasSeenSharedHistory
       }
     }
   }
@@ -66,7 +71,12 @@ export const SIGNUP_MUTATION: TypedDocumentNode<SignupMutation, SignupMutationVa
         id
         email
         name
+        firstName
+        lastName
+        phoneNumber
+        preferredCurrency
         isSupporter
+        hasSeenSharedHistory
       }
     }
   }
@@ -84,7 +94,12 @@ export const ACCEPT_INVITATION_MUTATION: TypedDocumentNode<
         id
         email
         name
+        firstName
+        lastName
+        phoneNumber
+        preferredCurrency
         isSupporter
+        hasSeenSharedHistory
       }
     }
   }
@@ -129,7 +144,12 @@ export const VERIFY_EMAIL_MUTATION: TypedDocumentNode<
         id
         email
         name
+        firstName
+        lastName
+        phoneNumber
+        preferredCurrency
         isSupporter
+        hasSeenSharedHistory
       }
     }
   }

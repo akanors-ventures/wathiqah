@@ -20,10 +20,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 import HeaderUser from "../auth/header-user";
 
 export default function Header() {
+  const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
 
   return (
@@ -203,7 +205,7 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4 shrink-0">
-          {!isPro && !subLoading && (
+          {user && !isPro && !subLoading && (
             <Button
               asChild
               size="sm"
