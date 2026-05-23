@@ -5,7 +5,8 @@
       "name": "Backend (NestJS API)",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "api", "dev"],
-      "port": 3001
+      "port": 3001,
+      "autoPort": false
     },
     {
       "name": "Frontend (TanStack Start)",
