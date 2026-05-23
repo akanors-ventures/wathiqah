@@ -28,7 +28,6 @@ export class GeoIPService {
   }
 
   async lookup(ip: string): Promise<GeoIPInfo> {
-    ip = '185.165.241.240';
     const defaultInfo: GeoIPInfo = {
       ip,
       countryCode: 'US',
