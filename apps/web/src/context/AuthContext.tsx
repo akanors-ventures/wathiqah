@@ -149,10 +149,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    // Read from ref so this callback doesn't need `user` as a dependency,
-    // preventing the auth useEffect from re-running on every user state change.
-    const wasAuthenticated = userRef.current !== null && userRef.current !== undefined;
-
     // Immediate UI update
     setUser(null);
 
@@ -164,8 +160,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate({ to: "/" });
 
     try {
-      // Only attempt mutation if we thought we were authenticated
-      if (wasAuthenticated) await logoutMutation();
+      // Always call the server logout so clearCookies() runs with the correct
+      // cookieDomain config, clearing any domain-scoped isLoggedIn cookie that
+      // client-side deleteCookie() cannot reach. The mutation is not behind
+      // GqlAuthGuard and is safe to call without an active session.
+      await logoutMutation();
     } catch (error) {
       console.error("Error during logout mutation:", error);
     } finally {
