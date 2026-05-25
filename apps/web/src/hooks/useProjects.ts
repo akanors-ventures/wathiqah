@@ -29,6 +29,10 @@ export function useProjects(filter?: FilterProjectInput) {
     CREATE_PROJECT,
     {
       onCompleted: () => refetch(),
+      update: (cache) => {
+        cache.evict({ fieldName: "myProjects" });
+        cache.gc();
+      },
     },
   );
 

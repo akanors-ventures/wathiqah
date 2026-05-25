@@ -14,9 +14,12 @@ export function useTransactions(filter?: FilterTransactionInput) {
 
   const [createTransactionMutation, { loading: creating }] = useMutation(CREATE_TRANSACTION, {
     onCompleted: () => refetch(),
-    // Refetch by query name so every active observer (dashboard, contact page,
-    // shared-ledger view) re-runs with its own filter variables.
     refetchQueries: ["TotalBalance", "Transactions", "Transaction", "MyContactTransactions"],
+    update: (cache) => {
+      cache.evict({ fieldName: "transactions" });
+      cache.evict({ fieldName: "totalBalance" });
+      cache.gc();
+    },
   });
 
   const [removeTransactionMutation, { loading: removing }] = useMutation(REMOVE_TRANSACTION, {
