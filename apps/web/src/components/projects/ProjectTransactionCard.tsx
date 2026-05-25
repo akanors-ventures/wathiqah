@@ -62,7 +62,7 @@ export function ProjectTransactionCard({
         )}
       >
         {/* Left: icon + info */}
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 relative z-10">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 relative z-10">
           {/* Gradient icon with direction dot */}
           <div className="relative shrink-0">
             <div
