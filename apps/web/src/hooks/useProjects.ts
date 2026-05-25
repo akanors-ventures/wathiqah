@@ -1,22 +1,22 @@
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import {
+  CREATE_PROJECT,
   GET_MY_PROJECTS,
   GET_PROJECT,
-  CREATE_PROJECT,
   LOG_PROJECT_TRANSACTION,
   UPDATE_PROJECT,
 } from "@/lib/apollo/queries/projects";
 import type {
   CreateProjectInput,
+  CreateProjectMutation,
   FilterProjectInput,
   FilterProjectTransactionInput,
-  UpdateProjectInput,
-  LogProjectTransactionInput,
   GetMyProjectsQuery,
   GetProjectQuery,
-  CreateProjectMutation,
-  UpdateProjectMutation,
+  LogProjectTransactionInput,
   LogProjectTransactionMutation,
+  UpdateProjectInput,
+  UpdateProjectMutation,
 } from "@/types/__generated__/graphql";
 
 export function useProjects(filter?: FilterProjectInput) {
@@ -73,6 +73,11 @@ export function useProject(id: string, transactionFilter?: FilterProjectTransact
     LOG_PROJECT_TRANSACTION,
     {
       onCompleted: () => refetch(),
+      refetchQueries: ["GetMyProjects", "GetProject"],
+      update: (cache) => {
+        cache.evict({ fieldName: "myProjects" });
+        cache.gc();
+      },
     },
   );
 
