@@ -108,7 +108,7 @@ function ProjectDetailsPage() {
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-4 min-w-0 w-full sm:w-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -117,9 +117,11 @@ function ProjectDetailsPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-3xl font-black tracking-tight truncate">{project.name}</h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-black tracking-tight truncate min-w-0">
+                {project.name}
+              </h1>
               <span
                 className={cn(
                   "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0",
