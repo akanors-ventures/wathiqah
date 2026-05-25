@@ -105,10 +105,10 @@ function ProjectDetailsPage() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-4 min-w-0 w-full sm:w-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -117,9 +117,11 @@ function ProjectDetailsPage() {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-3xl font-black tracking-tight truncate">{project.name}</h1>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-3xl font-black tracking-tight truncate min-w-0">
+                {project.name}
+              </h1>
               <span
                 className={cn(
                   "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0",
@@ -206,7 +208,7 @@ function ProjectDetailsPage() {
 
       {/* Transaction History */}
       <Card className="rounded-[32px] border-border/50 overflow-hidden transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)]">
-        <CardHeader className="flex flex-row items-start justify-between gap-4 pb-4 p-4 sm:p-6">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 p-4 sm:p-6">
           <div>
             <CardTitle className="text-lg font-black tracking-tight uppercase opacity-60">
               Transaction History
@@ -216,7 +218,7 @@ function ProjectDetailsPage() {
             </p>
           </div>
           {/* Filters */}
-          <div className="flex flex-wrap gap-2 items-center justify-end">
+          <div className="flex flex-wrap gap-2 items-center justify-start sm:justify-end w-full sm:w-auto">
             <Select
               value={txFilter.type ?? "ALL"}
               onValueChange={(v) =>

@@ -65,13 +65,13 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
         {/* Mini-stat cells */}
         <div className="grid grid-cols-3 gap-2 mb-3 mt-3">
-          <div className="bg-muted/40 rounded-[10px] p-2.5">
-            <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-0.5">
+          <div className="bg-muted/40 rounded-[10px] p-2.5 min-w-0 overflow-hidden">
+            <p className="text-[8px] font-bold uppercase tracking-wide text-muted-foreground/60 mb-0.5 truncate">
               Balance
             </p>
             <p
               className={cn(
-                "text-sm font-black tracking-tight whitespace-nowrap",
+                "text-sm font-black tracking-tight truncate",
                 balance < 0
                   ? "text-rose-600"
                   : balance > 0
@@ -82,26 +82,26 @@ export function ProjectCard({ project }: ProjectCardProps) {
               {formatCurrency(balance, project.currency)}
             </p>
           </div>
-          <div className="bg-muted/40 rounded-[10px] p-2.5">
-            <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-0.5">
+          <div className="bg-muted/40 rounded-[10px] p-2.5 min-w-0 overflow-hidden">
+            <p className="text-[8px] font-bold uppercase tracking-wide text-muted-foreground/60 mb-0.5 truncate">
               Income
             </p>
             <p
               className={cn(
-                "text-sm font-black tracking-tight whitespace-nowrap",
+                "text-sm font-black tracking-tight truncate",
                 totalIncome > 0 ? "text-emerald-600" : "text-foreground",
               )}
             >
               {formatCurrency(totalIncome, project.currency)}
             </p>
           </div>
-          <div className="bg-muted/40 rounded-[10px] p-2.5">
-            <p className="text-[8px] font-bold uppercase tracking-wider text-muted-foreground/60 mb-0.5">
+          <div className="bg-muted/40 rounded-[10px] p-2.5 min-w-0 overflow-hidden">
+            <p className="text-[8px] font-bold uppercase tracking-wide text-muted-foreground/60 mb-0.5 truncate">
               Expenses
             </p>
             <p
               className={cn(
-                "text-sm font-black tracking-tight whitespace-nowrap",
+                "text-sm font-black tracking-tight truncate",
                 totalExpenses > 0 ? "text-rose-600" : "text-foreground",
               )}
             >

@@ -42,7 +42,7 @@ function ProjectsPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-black tracking-tight">Projects</h1>
           <p className="text-sm text-muted-foreground font-medium opacity-70">
