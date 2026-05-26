@@ -98,6 +98,119 @@ describe('AuthService — generateTokens', () => {
   });
 });
 
+describe('AuthService — verifyEmail', () => {
+  let service: AuthService;
+  let mockPrisma: {
+    user: { update: jest.Mock };
+    contact: { updateMany: jest.Mock };
+    $transaction: jest.Mock;
+  };
+  let mockCache: { get: jest.Mock; set: jest.Mock; del: jest.Mock };
+  let mockUsersService: {
+    findOne: jest.Mock;
+    updateRefreshToken: jest.Mock;
+    toEntity: jest.Mock;
+  };
+  let mockJwt: { signAsync: jest.Mock };
+
+  const userId = 'user-123';
+  const token = 'raw-token';
+  const user = {
+    id: userId,
+    email: 'a@b.com',
+    firstName: 'Alice',
+    isEmailVerified: false,
+    refreshTokenHash: null,
+    passwordHash: 'hash',
+  };
+
+  beforeEach(async () => {
+    mockCache = {
+      get: jest.fn(),
+      set: jest.fn(),
+      del: jest.fn(),
+    };
+    mockPrisma = {
+      user: {
+        update: jest.fn().mockResolvedValue({ ...user, isEmailVerified: true }),
+      },
+      contact: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      $transaction: jest.fn(
+        (cb: (prisma: typeof mockPrisma) => Promise<void>) => cb(mockPrisma),
+      ),
+    };
+    mockUsersService = {
+      findOne: jest.fn().mockResolvedValue(user),
+      updateRefreshToken: jest.fn(),
+      toEntity: jest.fn((u: unknown) => u),
+    };
+    mockJwt = {
+      signAsync: jest.fn().mockResolvedValue('tok'),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: JwtService, useValue: mockJwt },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn((key: string) => {
+              const map: Record<string, string> = {
+                'auth.jwt.expiration': '15m',
+                'auth.jwt.refreshExpiration': '7d',
+              };
+              if (!(key in map))
+                throw new Error(`Config key not mocked: ${key}`);
+              return map[key];
+            }),
+          },
+        },
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: CACHE_MANAGER, useValue: mockCache },
+        { provide: NotificationService, useValue: {} },
+      ],
+    }).compile();
+
+    service = module.get(AuthService);
+  });
+
+  it('commits DB writes before issuing tokens', async () => {
+    // verifyEmail uses hashToken() internally — mock Redis to return userId
+    // regardless of what key is used (the first get call is for verify: key)
+    mockCache.get
+      .mockResolvedValueOnce(userId) // verify:{hash} → userId
+      .mockResolvedValueOnce(null); // verified:{hash} → null (not yet verified)
+
+    const callOrder: string[] = [];
+    mockPrisma.user.update.mockImplementation(() => {
+      callOrder.push('user.update');
+      return Promise.resolve({ ...user, isEmailVerified: true });
+    });
+    mockPrisma.contact.updateMany.mockImplementation(() => {
+      callOrder.push('contact.updateMany');
+      return Promise.resolve({ count: 0 });
+    });
+    mockJwt.signAsync.mockImplementation(() => {
+      callOrder.push('signAsync');
+      return Promise.resolve('tok');
+    });
+
+    await service.verifyEmail(token);
+
+    const updateIdx = callOrder.indexOf('user.update');
+    const contactIdx = callOrder.indexOf('contact.updateMany');
+    const signIdx = callOrder.indexOf('signAsync');
+
+    expect(updateIdx).toBeGreaterThanOrEqual(0);
+    expect(contactIdx).toBeGreaterThanOrEqual(0);
+    expect(signIdx).toBeGreaterThanOrEqual(0);
+    expect(updateIdx).toBeLessThan(signIdx);
+    expect(contactIdx).toBeLessThan(signIdx);
+  });
+});
+
 // --- auth.resolver cookie maxAge ---
 
 describe('AuthResolver — setCookies maxAge from config', () => {

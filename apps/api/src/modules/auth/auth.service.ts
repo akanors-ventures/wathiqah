@@ -484,42 +484,40 @@ export class AuthService {
     }
 
     if (user.isEmailVerified) {
-      // Clear verification token if it somehow still exists
       await this.cacheManager.del(redisKey);
-      // Ensure we have the verified record
-      await this.cacheManager.set(verifiedKey, user.id, ms('24h'));
+      await this.cacheManager.set(
+        verifiedKey,
+        user.id,
+        ms('24h' as ms.StringValue),
+      );
       throw new ConflictException('Account already verified');
     }
 
-    // Generate tokens
+    // Commit DB writes atomically before issuing tokens.
+    // If either fails, no tokens are issued and the verification link remains valid.
+    await this.prisma.$transaction(async (prisma) => {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isEmailVerified: true },
+      });
+      await prisma.contact.updateMany({
+        where: { email: user.email, linkedUserId: null },
+        data: { linkedUserId: user.id },
+      });
+    });
+
+    // Consume the verification token only after DB writes succeed.
+    await this.cacheManager.del(redisKey);
+    await this.cacheManager.set(
+      verifiedKey,
+      user.id,
+      ms('24h' as ms.StringValue),
+    );
+
     const { accessToken, refreshToken } = await this.generateTokens(
       user.id,
       user.email,
     );
-
-    // Clear verification token
-    await this.cacheManager.del(redisKey);
-
-    // Store a temporary record that this token was used to verify an account
-    // This allows us to show a better message if the user clicks the link again
-    await this.cacheManager.set(verifiedKey, user.id, ms('24h'));
-
-    // Update user status
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { isEmailVerified: true },
-    });
-
-    // Link existing contacts
-    await this.prisma.contact.updateMany({
-      where: {
-        email: user.email,
-        linkedUserId: null,
-      },
-      data: {
-        linkedUserId: user.id,
-      },
-    });
 
     return {
       accessToken,
