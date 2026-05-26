@@ -340,8 +340,10 @@ describe('AuthService — changePassword', () => {
   });
 
   it('clears the refresh token after password update', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const bcryptMocked = jest.requireMock('bcrypt') as any;
+    const bcryptMocked = jest.requireMock('bcrypt') as unknown as {
+      compare: jest.Mock;
+      hash: jest.Mock;
+    };
     bcryptMocked.compare.mockResolvedValueOnce(true);
     bcryptMocked.hash.mockResolvedValueOnce('new-hash');
 
