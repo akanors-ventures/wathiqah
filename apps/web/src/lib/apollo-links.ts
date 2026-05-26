@@ -125,7 +125,7 @@ export const errorLink = (uri: string) =>
           });
         }
 
-        if (code === "INTERNAL_SERVER_ERROR") {
+        if (!skipRefresh && code === "INTERNAL_SERVER_ERROR") {
           toast.error("A server error occurred. Please try again later.");
         } else if (!skipRefresh && code !== "UNAUTHENTICATED" && code !== "UNAUTHORIZED") {
           toast.error(message || "An error occurred");
