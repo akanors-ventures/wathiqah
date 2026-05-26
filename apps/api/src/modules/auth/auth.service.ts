@@ -459,6 +459,10 @@ export class AuthService {
 
     await this.usersService.updatePassword(userId, passwordHash);
 
+    // Invalidate all existing sessions so a compromised old password
+    // cannot be used to refresh tokens.
+    await this.usersService.updateRefreshToken(userId, null);
+
     return true;
   }
 
