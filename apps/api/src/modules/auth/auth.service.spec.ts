@@ -33,17 +33,32 @@ describe('AuthService — generateTokens', () => {
                 'auth.jwt.expiration': '15m',
                 'auth.jwt.refreshExpiration': '7d',
               };
+              if (!(key in map))
+                throw new Error(`Config key not mocked: ${key}`);
               return map[key];
             }),
           },
         },
         {
           provide: UsersService,
-          useValue: { updateRefreshToken: jest.fn(), findOne: jest.fn(), toEntity: jest.fn() },
+          useValue: {
+            updateRefreshToken: jest.fn(),
+            findOne: jest.fn(),
+            toEntity: jest.fn(),
+          },
         },
         { provide: PrismaService, useValue: {} },
-        { provide: CACHE_MANAGER, useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() } },
-        { provide: NotificationService, useValue: { sendVerificationEmail: jest.fn(), sendPasswordResetEmail: jest.fn() } },
+        {
+          provide: CACHE_MANAGER,
+          useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() },
+        },
+        {
+          provide: NotificationService,
+          useValue: {
+            sendVerificationEmail: jest.fn(),
+            sendPasswordResetEmail: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -52,7 +67,13 @@ describe('AuthService — generateTokens', () => {
   });
 
   it('passes string expiry to jwtService.signAsync for access token', async () => {
-    await (service as any).generateTokens(userId, email);
+    const svc = service as unknown as {
+      generateTokens: (
+        userId: string,
+        email: string,
+      ) => Promise<{ accessToken: string; refreshToken: string }>;
+    };
+    await svc.generateTokens(userId, email);
 
     const [, accessOptions] = (jwtService.signAsync as jest.Mock).mock.calls[0];
     expect(typeof accessOptions.expiresIn).toBe('string');
@@ -60,9 +81,16 @@ describe('AuthService — generateTokens', () => {
   });
 
   it('passes string expiry to jwtService.signAsync for refresh token', async () => {
-    await (service as any).generateTokens(userId, email);
+    const svc = service as unknown as {
+      generateTokens: (
+        userId: string,
+        email: string,
+      ) => Promise<{ accessToken: string; refreshToken: string }>;
+    };
+    await svc.generateTokens(userId, email);
 
-    const [, refreshOptions] = (jwtService.signAsync as jest.Mock).mock.calls[1];
+    const [, refreshOptions] = (jwtService.signAsync as jest.Mock).mock
+      .calls[1];
     expect(typeof refreshOptions.expiresIn).toBe('string');
     expect(refreshOptions.expiresIn).toBe('7d');
   });
