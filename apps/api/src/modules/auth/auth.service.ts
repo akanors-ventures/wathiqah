@@ -31,6 +31,8 @@ import { User } from 'src/generated/prisma/client';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly accessExpiry: string;
+  private readonly refreshExpiry: string;
 
   constructor(
     private usersService: UsersService,
@@ -39,32 +41,20 @@ export class AuthService {
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) {
+    this.accessExpiry = this.configService.getOrThrow<string>('auth.jwt.expiration');
+    this.refreshExpiry = this.configService.getOrThrow<string>('auth.jwt.refreshExpiration');
+  }
 
   private async generateTokens(userId: string, email: string) {
-    const accessExpiry = ms(
-      this.configService.getOrThrow<string>(
-        'auth.jwt.expiration',
-      ) as ms.StringValue,
-    );
-    const refreshExpiry = ms(
-      this.configService.getOrThrow<string>(
-        'auth.jwt.refreshExpiration',
-      ) as ms.StringValue,
-    );
-
     const accessToken = await this.jwtService.signAsync(
       { sub: userId, email },
-      {
-        expiresIn: accessExpiry,
-      },
+      { expiresIn: this.accessExpiry },
     );
 
     const refreshToken = await this.jwtService.signAsync(
       { sub: userId, email },
-      {
-        expiresIn: refreshExpiry,
-      },
+      { expiresIn: this.refreshExpiry },
     );
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
