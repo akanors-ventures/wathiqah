@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { UsersService } from '../users/users.service';
@@ -271,6 +272,82 @@ describe('AuthResolver — setCookies maxAge from config', () => {
     expect(rtCall).toBeDefined();
     expect((rtCall![2] as Record<string, unknown>).maxAge).toBe(
       7 * 24 * 60 * 60 * 1000,
+    );
+  });
+});
+
+describe('AuthService — changePassword', () => {
+  let service: AuthService;
+  let mockUsersService: {
+    findOne: jest.Mock;
+    updatePassword: jest.Mock;
+    updateRefreshToken: jest.Mock;
+    toEntity: jest.Mock;
+  };
+
+  const userId = 'user-xyz';
+  const mockUser = {
+    id: userId,
+    email: 'x@y.com',
+    passwordHash: 'existing-hash',
+  };
+
+  beforeEach(async () => {
+    mockUsersService = {
+      findOne: jest.fn().mockResolvedValue(mockUser),
+      updatePassword: jest.fn().mockResolvedValue(mockUser),
+      updateRefreshToken: jest.fn().mockResolvedValue(undefined),
+      toEntity: jest.fn((u: unknown) => u),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        {
+          provide: JwtService,
+          useValue: { signAsync: jest.fn().mockResolvedValue('tok') },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn((key: string) => {
+              const map: Record<string, string> = {
+                'auth.jwt.expiration': '15m',
+                'auth.jwt.refreshExpiration': '7d',
+              };
+              if (!(key in map))
+                throw new Error(`Config key not mocked: ${key}`);
+              return map[key];
+            }),
+          },
+        },
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: PrismaService, useValue: {} },
+        {
+          provide: CACHE_MANAGER,
+          useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() },
+        },
+        { provide: NotificationService, useValue: {} },
+      ],
+    }).compile();
+
+    service = module.get(AuthService);
+  });
+
+  it('clears the refresh token after password update', async () => {
+    jest
+      .spyOn(bcrypt, 'compare')
+      .mockResolvedValueOnce(true as unknown as never);
+    jest.spyOn(bcrypt, 'hash').mockResolvedValueOnce('new-hash' as never);
+
+    await service.changePassword(userId, {
+      currentPassword: 'oldpass',
+      newPassword: 'newpass123',
+    });
+
+    expect(mockUsersService.updateRefreshToken).toHaveBeenCalledWith(
+      userId,
+      null,
     );
   });
 });
