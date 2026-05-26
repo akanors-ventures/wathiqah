@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import type { StringValue } from 'ms';
 
 @Module({
   imports: [
@@ -22,7 +23,9 @@ import { NotificationsModule } from '../notifications/notifications.module';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('auth.jwt.secret'),
         signOptions: {
-          expiresIn: configService.getOrThrow<string>('auth.jwt.expiration'),
+          expiresIn: configService.getOrThrow<string>(
+            'auth.jwt.expiration',
+          ) as StringValue,
         },
       }),
     }),
