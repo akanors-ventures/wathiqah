@@ -10,7 +10,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Always target `dev` branch for PRs and merges — use `gh pr create --base dev`. Never target `main` unless explicitly told.
 - Never delete git worktree directories directly. Use `git worktree remove <path>` from outside the worktree to avoid breaking the shell session.
-- Worktree and branch names must reflect the implementation — rename auto-generated names (e.g. `trusting-goodall-d34d2e`) to something descriptive (e.g. `fawaz/fix-auth-security`) before creating any PR.
 
 ## Testing
 
