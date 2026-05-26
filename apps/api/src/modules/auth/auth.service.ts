@@ -380,9 +380,10 @@ export class AuthService {
       return true;
     }
 
-    // If user is already verified, we can just return true
+    // If user is already verified, return false to allow callers to show
+    // a more helpful message ("account already verified, go log in")
     if (user.isEmailVerified) {
-      return true;
+      return false;
     }
 
     // Generate verification token

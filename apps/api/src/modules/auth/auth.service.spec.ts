@@ -358,3 +358,86 @@ describe('AuthService — changePassword', () => {
     );
   });
 });
+
+describe('AuthService — resendVerificationEmail', () => {
+  let service: AuthService;
+  let mockUsersService: {
+    findByEmail: jest.Mock;
+  };
+  let mockNotification: {
+    sendVerificationEmail: jest.Mock;
+  };
+
+  beforeEach(async () => {
+    mockUsersService = {
+      findByEmail: jest.fn(),
+    };
+    mockNotification = {
+      sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: JwtService, useValue: { signAsync: jest.fn() } },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn((key: string) => {
+              const map: Record<string, string> = {
+                'auth.jwt.expiration': '15m',
+                'auth.jwt.refreshExpiration': '7d',
+                'auth.inviteTokenExpiry': '7d',
+              };
+              if (!(key in map))
+                throw new Error(`Config key not mocked: ${key}`);
+              return map[key];
+            }),
+          },
+        },
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: PrismaService, useValue: {} },
+        {
+          provide: CACHE_MANAGER,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn().mockResolvedValue(undefined),
+            del: jest.fn(),
+          },
+        },
+        { provide: NotificationService, useValue: mockNotification },
+      ],
+    }).compile();
+
+    service = module.get(AuthService);
+  });
+
+  it('returns false when user is already verified', async () => {
+    mockUsersService.findByEmail.mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.com',
+      firstName: 'Alice',
+      isEmailVerified: true,
+    });
+
+    const result = await service.resendVerificationEmail('a@b.com');
+    expect(result).toBe(false);
+  });
+
+  it('returns true and queues email when user is unverified', async () => {
+    mockUsersService.findByEmail.mockResolvedValue({
+      id: 'u2',
+      email: 'b@c.com',
+      firstName: 'Bob',
+      isEmailVerified: false,
+    });
+
+    const result = await service.resendVerificationEmail('b@c.com');
+    expect(result).toBe(true);
+    expect(mockNotification.sendVerificationEmail).toHaveBeenCalledWith(
+      'b@c.com',
+      'Bob',
+      expect.any(String),
+    );
+  });
+});
