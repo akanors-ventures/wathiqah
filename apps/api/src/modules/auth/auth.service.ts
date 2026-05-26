@@ -430,6 +430,10 @@ export class AuthService {
 
     await this.usersService.updatePassword(userId, passwordHash);
 
+    // Invalidate all existing sessions to prevent use of old refresh tokens
+    // after a password reset.
+    await this.usersService.updateRefreshToken(userId, null);
+
     // Invalidate token
     await this.cacheManager.del(redisKey);
 

@@ -70,7 +70,9 @@ export const errorLink = (uri: string) =>
         (isPublicPath(currentPath) && operationName === "Me");
 
       error.errors.forEach(({ extensions, message, locations, path }) => {
-        console.log(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
+        console.debug(
+          `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+        );
         const code = extensions?.code;
 
         if (
@@ -135,7 +137,7 @@ export const errorLink = (uri: string) =>
       }
     } else if (CombinedProtocolErrors.is(error)) {
       error.errors.forEach(({ message, extensions }) => {
-        console.log(
+        console.debug(
           `[Protocol error]: Message: ${message}, Extensions: ${JSON.stringify(extensions)}`,
         );
       });
