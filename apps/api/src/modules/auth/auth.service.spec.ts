@@ -441,3 +441,72 @@ describe('AuthService — resendVerificationEmail', () => {
     );
   });
 });
+
+describe('AuthService — resetPassword', () => {
+  let service: AuthService;
+  let mockUsersService: {
+    updatePassword: jest.Mock;
+    updateRefreshToken: jest.Mock;
+  };
+  let mockCache: { get: jest.Mock; del: jest.Mock; set: jest.Mock };
+
+  beforeEach(async () => {
+    mockUsersService = {
+      updatePassword: jest.fn().mockResolvedValue(undefined),
+      updateRefreshToken: jest.fn().mockResolvedValue(undefined),
+    };
+    mockCache = {
+      get: jest.fn().mockResolvedValue('user-id-1'),
+      del: jest.fn().mockResolvedValue(undefined),
+      set: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: JwtService, useValue: { signAsync: jest.fn() } },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn((key: string) => {
+              const map: Record<string, string> = {
+                'auth.jwt.expiration': '15m',
+                'auth.jwt.refreshExpiration': '7d',
+              };
+              if (!(key in map))
+                throw new Error(`Config key not mocked: ${key}`);
+              return map[key];
+            }),
+          },
+        },
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: PrismaService, useValue: {} },
+        { provide: CACHE_MANAGER, useValue: mockCache },
+        { provide: NotificationService, useValue: {} },
+      ],
+    }).compile();
+
+    service = module.get(AuthService);
+  });
+
+  it('invalidates existing sessions after password reset', async () => {
+    const bcryptMocked = jest.requireMock('bcrypt') as unknown as {
+      hash: jest.Mock;
+    };
+    bcryptMocked.hash.mockResolvedValueOnce('new-hash');
+
+    await service.resetPassword({
+      token: 'reset-token',
+      newPassword: 'newpass123',
+    });
+
+    expect(mockUsersService.updateRefreshToken).toHaveBeenCalledWith(
+      'user-id-1',
+      null,
+    );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+});

@@ -82,9 +82,13 @@ function VerifyEmailPage() {
 
     setResendStatus("loading");
     try {
-      await resendVerificationEmail(resendEmail);
-      setResendStatus("success");
-      toast.success("Verification email sent! Please check your inbox.");
+      const result = await resendVerificationEmail(resendEmail);
+      if (result === false) {
+        toast.info("Your account is already verified. You can log in.");
+      } else {
+        setResendStatus("success");
+        toast.success("Verification email sent! Please check your inbox.");
+      }
     } catch (_err) {
       setResendStatus("error");
       toast.error("Failed to send email. Please try again.");
