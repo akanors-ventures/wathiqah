@@ -42,19 +42,23 @@ export class AuthService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
   ) {
-    this.accessExpiry = this.configService.getOrThrow<string>('auth.jwt.expiration');
-    this.refreshExpiry = this.configService.getOrThrow<string>('auth.jwt.refreshExpiration');
+    this.accessExpiry = this.configService.getOrThrow<string>(
+      'auth.jwt.expiration',
+    );
+    this.refreshExpiry = this.configService.getOrThrow<string>(
+      'auth.jwt.refreshExpiration',
+    );
   }
 
   private async generateTokens(userId: string, email: string) {
     const accessToken = await this.jwtService.signAsync(
       { sub: userId, email },
-      { expiresIn: this.accessExpiry },
+      { expiresIn: this.accessExpiry as ms.StringValue },
     );
 
     const refreshToken = await this.jwtService.signAsync(
       { sub: userId, email },
-      { expiresIn: this.refreshExpiry },
+      { expiresIn: this.refreshExpiry as ms.StringValue },
     );
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
