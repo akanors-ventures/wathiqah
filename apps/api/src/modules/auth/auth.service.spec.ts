@@ -2,13 +2,14 @@ import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { UsersService } from '../users/users.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import type { Response } from 'express';
+
+jest.mock('bcrypt');
 
 describe('AuthService — generateTokens', () => {
   let service: AuthService;
@@ -334,11 +335,15 @@ describe('AuthService — changePassword', () => {
     service = module.get(AuthService);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('clears the refresh token after password update', async () => {
-    jest
-      .spyOn(bcrypt, 'compare')
-      .mockResolvedValueOnce(true as unknown as never);
-    jest.spyOn(bcrypt, 'hash').mockResolvedValueOnce('new-hash' as never);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bcryptMocked = jest.requireMock('bcrypt') as any;
+    bcryptMocked.compare.mockResolvedValueOnce(true);
+    bcryptMocked.hash.mockResolvedValueOnce('new-hash');
 
     await service.changePassword(userId, {
       currentPassword: 'oldpass',
