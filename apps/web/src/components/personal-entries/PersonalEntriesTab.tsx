@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { Download, Filter, Plus, Search, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
+import { EditPersonalEntryDialog } from "@/components/personal-entries/EditPersonalEntryDialog";
 import { PersonalEntryForm } from "@/components/personal-entries/PersonalEntryForm";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,10 @@ import {
 } from "@/components/ui/table";
 import { usePersonalEntries, usePersonalEntrySummary } from "@/hooks/usePersonalEntries";
 import { formatCurrency } from "@/lib/utils/formatters";
-import type { FilterPersonalEntryInput } from "@/types/__generated__/graphql";
+import type {
+  FilterPersonalEntryInput,
+  PersonalEntryFieldsFragment,
+} from "@/types/__generated__/graphql";
 import { PersonalEntryType } from "@/types/__generated__/graphql";
 
 export function PersonalEntriesTab() {
@@ -36,6 +40,7 @@ export function PersonalEntriesTab() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
   const [showForm, setShowForm] = useState(false);
+  const [editingEntry, setEditingEntry] = useState<PersonalEntryFieldsFragment | null>(null);
 
   const baseFilter = {
     ...(search && { search }),
@@ -286,7 +291,8 @@ export function PersonalEntriesTab() {
                   entries.map((entry) => (
                     <TableRow
                       key={entry.id}
-                      className="border-b border-border/30 last:border-0 hover:bg-muted/50 transition-colors group"
+                      className="border-b border-border/30 last:border-0 hover:bg-muted/50 transition-colors group cursor-pointer"
+                      onClick={() => setEditingEntry(entry)}
                     >
                       <TableCell className="font-medium text-xs text-muted-foreground/80 pl-6">
                         {format(new Date(entry.date), "MMM d, yyyy")}
@@ -333,7 +339,10 @@ export function PersonalEntriesTab() {
                           variant="ghost"
                           size="sm"
                           className="h-7 text-[10px] font-bold text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => deleteEntry(entry.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteEntry(entry.id);
+                          }}
                         >
                           Delete
                         </Button>
@@ -365,7 +374,8 @@ export function PersonalEntriesTab() {
               entries.map((entry) => (
                 <Card
                   key={entry.id}
-                  className="overflow-hidden border-border/50 hover:border-primary/30 transition-all"
+                  className="overflow-hidden border-border/50 hover:border-primary/30 transition-all cursor-pointer active:scale-[0.98]"
+                  onClick={() => setEditingEntry(entry)}
                 >
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -405,7 +415,10 @@ export function PersonalEntriesTab() {
                         variant="ghost"
                         size="sm"
                         className="h-7 text-[10px] font-bold text-destructive hover:text-destructive"
-                        onClick={() => deleteEntry(entry.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteEntry(entry.id);
+                        }}
                       >
                         Delete
                       </Button>
@@ -425,6 +438,16 @@ export function PersonalEntriesTab() {
           />
         </CardContent>
       </Card>
+
+      {editingEntry && (
+        <EditPersonalEntryDialog
+          entry={editingEntry}
+          open={!!editingEntry}
+          onOpenChange={(open) => {
+            if (!open) setEditingEntry(null);
+          }}
+        />
+      )}
     </div>
   );
 }
