@@ -36,8 +36,6 @@ export type AssetCategory = (typeof AssetCategory)[keyof typeof AssetCategory]
 
 
 export const TransactionType = {
-  EXPENSE: 'EXPENSE',
-  INCOME: 'INCOME',
   LOAN_GIVEN: 'LOAN_GIVEN',
   LOAN_RECEIVED: 'LOAN_RECEIVED',
   REPAYMENT_MADE: 'REPAYMENT_MADE',

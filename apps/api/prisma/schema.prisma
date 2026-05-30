@@ -334,8 +334,6 @@ enum AssetCategory {
 }
 
 enum TransactionType {
-  EXPENSE
-  INCOME
   LOAN_GIVEN
   LOAN_RECEIVED
   REPAYMENT_MADE
