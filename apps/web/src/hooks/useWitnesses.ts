@@ -94,7 +94,7 @@ export function useWitnessInvitation(token: string) {
   });
 
   return {
-    invitation: data?.witnessInvitation,
+    invitation: data?.getWitnessInvitation,
     loading,
     error,
   };
