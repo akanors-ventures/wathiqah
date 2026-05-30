@@ -1054,7 +1054,6 @@ export class TransactionsService {
       DEPOSIT_RECEIVED: 'totalDepositReceived',
       ESCROWED: 'totalEscrowed',
       REMITTED: 'totalRemitted',
-      // EXPENSE and INCOME deliberately omitted — legacy rows ignored in summaries
     };
     const field = fieldMap[type];
     if (field) (summary[field] as number) += amount;
