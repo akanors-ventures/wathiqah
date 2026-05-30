@@ -124,6 +124,15 @@ export type CreateContactInput = {
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreatePersonalEntryInput = {
+  amount: Scalars['Float']['input'];
+  category?: InputMaybe<Scalars['String']['input']>;
+  currency?: Scalars['String']['input'];
+  date: Scalars['DateTime']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  type: PersonalEntryType;
+};
+
 export type CreateProjectInput = {
   budget?: InputMaybe<Scalars['Float']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -171,6 +180,16 @@ export type FilterContactInput = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type FilterPersonalEntryInput = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+  endDate?: InputMaybe<Scalars['DateTime']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  startDate?: InputMaybe<Scalars['DateTime']['input']>;
+  type?: InputMaybe<PersonalEntryType>;
 };
 
 export type FilterProjectInput = {
@@ -274,11 +293,13 @@ export type Mutation = {
   changePassword: Scalars['Boolean']['output'];
   createCheckoutSession: CheckoutSession;
   createContact: Contact;
+  createPersonalEntry: PersonalEntry;
   createProject: Project;
   createPromise: Promise;
   createSupport: Support;
   createSupportSession: CheckoutSession;
   createTransaction: Transaction;
+  deletePersonalEntry: Scalars['Boolean']['output'];
   deprovisionPro: User;
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
@@ -302,6 +323,7 @@ export type Mutation = {
   setUserRole: User;
   signup: AuthPayload;
   updateContact: Contact;
+  updatePersonalEntry: PersonalEntry;
   updateProject: Project;
   updateProjectTransaction: ProjectTransaction;
   updatePromise: Promise;
@@ -348,6 +370,11 @@ export type MutationCreateContactArgs = {
 };
 
 
+export type MutationCreatePersonalEntryArgs = {
+  input: CreatePersonalEntryInput;
+};
+
+
 export type MutationCreateProjectArgs = {
   input: CreateProjectInput;
 };
@@ -371,6 +398,11 @@ export type MutationCreateSupportSessionArgs = {
 
 export type MutationCreateTransactionArgs = {
   input: CreateTransactionInput;
+};
+
+
+export type MutationDeletePersonalEntryArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -474,6 +506,11 @@ export type MutationUpdateContactArgs = {
 };
 
 
+export type MutationUpdatePersonalEntryArgs = {
+  input: UpdatePersonalEntryInput;
+};
+
+
 export type MutationUpdateProjectArgs = {
   input: UpdateProjectInput;
 };
@@ -511,6 +548,14 @@ export type PaginatedContactsResponse = {
   total: Scalars['Int']['output'];
 };
 
+export type PaginatedPersonalEntriesResponse = {
+  __typename: 'PaginatedPersonalEntriesResponse';
+  items: Array<PersonalEntry>;
+  limit: Scalars['Int']['output'];
+  page: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
 export type PaginatedProjectTransactionsResponse = {
   __typename: 'PaginatedProjectTransactionsResponse';
   items: Array<ProjectTransaction>;
@@ -542,6 +587,32 @@ export type PaginatedWitnessesResponse = {
   page: Scalars['Int']['output'];
   total: Scalars['Int']['output'];
 };
+
+export type PersonalEntry = {
+  __typename: 'PersonalEntry';
+  amount: Scalars['Float']['output'];
+  category: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  createdById: Scalars['String']['output'];
+  currency: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  description: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  type: PersonalEntryType;
+};
+
+export type PersonalEntrySummary = {
+  __typename: 'PersonalEntrySummary';
+  currency: Scalars['String']['output'];
+  netCashPosition: Scalars['Float']['output'];
+  totalExpenses: Scalars['Float']['output'];
+  totalIncome: Scalars['Float']['output'];
+};
+
+export enum PersonalEntryType {
+  Expense = 'EXPENSE',
+  Income = 'INCOME'
+}
 
 export enum Priority {
   High = 'HIGH',
@@ -655,6 +726,8 @@ export type Query = {
   mySubscription: SubscriptionInfo;
   mySupports: Array<Support>;
   myWitnessRequests: PaginatedWitnessesResponse;
+  personalEntries: PaginatedPersonalEntriesResponse;
+  personalEntrySummary: PersonalEntrySummary;
   project: Project;
   promise: Promise;
   receivedAccessGrants: Array<AccessGrant>;
@@ -668,7 +741,6 @@ export type Query = {
   transactions: TransactionsResponse;
   transactionsGroupedByContact: Array<ContactGroupedSummary>;
   user: Maybe<User>;
-  witnessInvitation: Witness;
 };
 
 
@@ -712,6 +784,16 @@ export type QueryMyProjectsArgs = {
 export type QueryMyWitnessRequestsArgs = {
   filter?: InputMaybe<FilterWitnessInput>;
   status?: InputMaybe<WitnessStatus>;
+};
+
+
+export type QueryPersonalEntriesArgs = {
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+};
+
+
+export type QueryPersonalEntrySummaryArgs = {
+  filter?: InputMaybe<FilterPersonalEntryInput>;
 };
 
 
@@ -768,11 +850,6 @@ export type QueryTransactionsGroupedByContactArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['String']['input'];
-};
-
-
-export type QueryWitnessInvitationArgs = {
-  token: Scalars['String']['input'];
 };
 
 export type RefreshTokenInput = {
@@ -922,10 +999,8 @@ export enum TransactionType {
   DepositPaid = 'DEPOSIT_PAID',
   DepositReceived = 'DEPOSIT_RECEIVED',
   Escrowed = 'ESCROWED',
-  Expense = 'EXPENSE',
   GiftGiven = 'GIFT_GIVEN',
   GiftReceived = 'GIFT_RECEIVED',
-  Income = 'INCOME',
   LoanGiven = 'LOAN_GIVEN',
   LoanReceived = 'LOAN_RECEIVED',
   Remitted = 'REMITTED',
@@ -965,6 +1040,16 @@ export type UpdateContactInput = {
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdatePersonalEntryInput = {
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
+  date?: InputMaybe<Scalars['DateTime']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  type?: InputMaybe<PersonalEntryType>;
 };
 
 export type UpdateProjectInput = {
@@ -1095,7 +1180,7 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
+export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -1107,14 +1192,14 @@ export type SignupMutationVariables = Exact<{
 }>;
 
 
-export type SignupMutation = { signup: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
+export type SignupMutation = { signup: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } } };
 
 export type AcceptInvitationMutationVariables = Exact<{
   acceptInvitationInput: AcceptInvitationInput;
 }>;
 
 
-export type AcceptInvitationMutation = { acceptInvitation: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
+export type AcceptInvitationMutation = { acceptInvitation: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } } };
 
 export type ForgotPasswordMutationVariables = Exact<{
   forgotPasswordInput: ForgotPasswordInput;
@@ -1142,7 +1227,7 @@ export type VerifyEmailMutationVariables = Exact<{
 }>;
 
 
-export type VerifyEmailMutation = { verifyEmail: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, isSupporter: boolean } } };
+export type VerifyEmailMutation = { verifyEmail: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } } };
 
 export type ResendVerificationEmailMutationVariables = Exact<{
   email: Scalars['String']['input'];
@@ -1231,6 +1316,43 @@ export type ReactivateSubscriptionMutationVariables = Exact<{ [key: string]: nev
 
 
 export type ReactivateSubscriptionMutation = { reactivateSubscription: boolean };
+
+export type PersonalEntryFieldsFragment = { __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string };
+
+export type GetPersonalEntriesQueryVariables = Exact<{
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+}>;
+
+
+export type GetPersonalEntriesQuery = { personalEntries: { __typename: 'PaginatedPersonalEntriesResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string }> } };
+
+export type GetPersonalEntrySummaryQueryVariables = Exact<{
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+}>;
+
+
+export type GetPersonalEntrySummaryQuery = { personalEntrySummary: { __typename: 'PersonalEntrySummary', totalIncome: number, totalExpenses: number, netCashPosition: number, currency: string } };
+
+export type CreatePersonalEntryMutationVariables = Exact<{
+  input: CreatePersonalEntryInput;
+}>;
+
+
+export type CreatePersonalEntryMutation = { createPersonalEntry: { __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string } };
+
+export type UpdatePersonalEntryMutationVariables = Exact<{
+  input: UpdatePersonalEntryInput;
+}>;
+
+
+export type UpdatePersonalEntryMutation = { updatePersonalEntry: { __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string } };
+
+export type DeletePersonalEntryMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletePersonalEntryMutation = { deletePersonalEntry: boolean };
 
 export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, status: ProjectStatus, userId: string, createdAt: string, updatedAt: string };
 
@@ -1465,4 +1587,4 @@ export type GetWitnessInvitationQueryVariables = Exact<{
 }>;
 
 
-export type GetWitnessInvitationQuery = { witnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };
+export type GetWitnessInvitationQuery = { getWitnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };
