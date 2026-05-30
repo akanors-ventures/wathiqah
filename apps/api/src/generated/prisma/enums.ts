@@ -82,6 +82,14 @@ export const ProjectTransactionType = {
 export type ProjectTransactionType = (typeof ProjectTransactionType)[keyof typeof ProjectTransactionType]
 
 
+export const PersonalEntryType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE'
+} as const
+
+export type PersonalEntryType = (typeof PersonalEntryType)[keyof typeof PersonalEntryType]
+
+
 export const ProjectStatus = {
   ACTIVE: 'ACTIVE',
   COMPLETED: 'COMPLETED',

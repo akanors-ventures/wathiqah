@@ -62,6 +62,7 @@ export const ModelName = {
   Project: 'Project',
   ProjectTransaction: 'ProjectTransaction',
   ProjectTransactionHistory: 'ProjectTransactionHistory',
+  PersonalEntry: 'PersonalEntry',
   Promise: 'Promise',
   AccessGrant: 'AccessGrant',
   ExchangeRate: 'ExchangeRate',
@@ -265,6 +266,21 @@ export const ProjectTransactionHistoryScalarFieldEnum = {
 } as const
 
 export type ProjectTransactionHistoryScalarFieldEnum = (typeof ProjectTransactionHistoryScalarFieldEnum)[keyof typeof ProjectTransactionHistoryScalarFieldEnum]
+
+
+export const PersonalEntryScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  amount: 'amount',
+  currency: 'currency',
+  category: 'category',
+  date: 'date',
+  description: 'description',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type PersonalEntryScalarFieldEnum = (typeof PersonalEntryScalarFieldEnum)[keyof typeof PersonalEntryScalarFieldEnum]
 
 
 export const PromiseScalarFieldEnum = {
