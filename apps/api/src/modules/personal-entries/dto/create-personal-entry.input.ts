@@ -10,7 +10,7 @@ export class CreatePersonalEntryInput {
 
   @Field(() => Float)
   @IsNumber()
-  @Min(0)
+  @Min(0.01)
   amount: number;
 
   @Field({ defaultValue: 'NGN' })
