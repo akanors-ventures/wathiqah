@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { ItemsList } from "@/components/items/ItemsList";
+import { PersonalEntriesTab } from "@/components/personal-entries/PersonalEntriesTab";
 import { TransactionAmount } from "@/components/transactions/TransactionAmount";
 import { TransactionCharts } from "@/components/transactions/TransactionCharts";
 import { TransactionSummaryCard } from "@/components/transactions/TransactionSummaryCard";
@@ -154,7 +155,7 @@ function TransactionsPage() {
       </div>
 
       <div className="sticky top-0 z-20 -mx-4 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b lg:border-none lg:bg-transparent lg:static lg:p-0 flex justify-center">
-        <TabsList className="grid w-full max-w-[500px] grid-cols-3 h-12 p-1.5 bg-muted/50 shadow-sm lg:shadow-none">
+        <TabsList className="grid w-full max-w-[500px] grid-cols-4 h-12 p-1.5 bg-muted/50 shadow-sm lg:shadow-none">
           <TabsTrigger value="funds" className="flex items-center gap-2 py-2">
             <ArrowRightLeft className="w-4 h-4" />
             Funds
@@ -165,6 +166,9 @@ function TransactionsPage() {
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2 py-2">
             Analytics
+          </TabsTrigger>
+          <TabsTrigger value="personal" className="flex items-center gap-2 py-2">
+            Personal
           </TabsTrigger>
         </TabsList>
       </div>
@@ -562,6 +566,10 @@ function TransactionsPage() {
 
         <TabsContent value="analytics">
           <TransactionCharts />
+        </TabsContent>
+
+        <TabsContent value="personal">
+          <PersonalEntriesTab />
         </TabsContent>
       </div>
     </Tabs>
