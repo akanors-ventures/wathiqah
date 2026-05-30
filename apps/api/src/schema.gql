@@ -102,6 +102,15 @@ input CreateContactInput {
   phoneNumber: String
 }
 
+input CreatePersonalEntryInput {
+  amount: Float!
+  category: String
+  currency: String! = "NGN"
+  date: DateTime!
+  description: String
+  type: PersonalEntryType!
+}
+
 input CreateProjectInput {
   budget: Float
   currency: String
@@ -154,6 +163,16 @@ input FilterContactInput {
   limit: Int = 25
   page: Int = 1
   search: String
+}
+
+input FilterPersonalEntryInput {
+  currency: String
+  endDate: DateTime
+  limit: Int = 25
+  page: Int = 1
+  search: String
+  startDate: DateTime
+  type: PersonalEntryType
 }
 
 input FilterProjectInput {
@@ -259,11 +278,13 @@ type Mutation {
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createCheckoutSession(currency: String, interval: BillingInterval = MONTHLY, tier: SubscriptionTier!): CheckoutSession!
   createContact(createContactInput: CreateContactInput!): Contact!
+  createPersonalEntry(input: CreatePersonalEntryInput!): PersonalEntry!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
   createSupport(createSupportInput: CreateSupportInput!): Support!
   createSupportSession(amount: Float, currency: String): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
+  deletePersonalEntry(id: ID!): Boolean!
   deprovisionPro(userId: ID!): User!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
@@ -287,6 +308,7 @@ type Mutation {
   setUserRole(input: SetUserRoleInput!): User!
   signup(signupInput: SignupInput!): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
+  updatePersonalEntry(input: UpdatePersonalEntryInput!): PersonalEntry!
   updateProject(input: UpdateProjectInput!): Project!
   updateProjectTransaction(input: UpdateProjectTransactionInput!): ProjectTransaction!
   updatePromise(updatePromiseInput: UpdatePromiseInput!): Promise!
@@ -297,6 +319,13 @@ type Mutation {
 
 type PaginatedContactsResponse {
   items: [Contact!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
+
+type PaginatedPersonalEntriesResponse {
+  items: [PersonalEntry!]!
   limit: Int!
   page: Int!
   total: Int!
@@ -328,6 +357,30 @@ type PaginatedWitnessesResponse {
   limit: Int!
   page: Int!
   total: Int!
+}
+
+type PersonalEntry {
+  amount: Float!
+  category: String
+  createdAt: DateTime!
+  createdById: String!
+  currency: String!
+  date: DateTime!
+  description: String
+  id: ID!
+  type: PersonalEntryType!
+}
+
+type PersonalEntrySummary {
+  currency: String!
+  netCashPosition: Float!
+  totalExpenses: Float!
+  totalIncome: Float!
+}
+
+enum PersonalEntryType {
+  EXPENSE
+  INCOME
 }
 
 enum Priority {
@@ -432,6 +485,8 @@ type Query {
   mySubscription: SubscriptionInfo!
   mySupports: [Support!]!
   myWitnessRequests(filter: FilterWitnessInput, status: WitnessStatus): PaginatedWitnessesResponse!
+  personalEntries(filter: FilterPersonalEntryInput): PaginatedPersonalEntriesResponse!
+  personalEntrySummary(filter: FilterPersonalEntryInput): PersonalEntrySummary!
   project(id: ID!): Project!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
@@ -628,6 +683,16 @@ input UpdateContactInput {
   id: ID!
   name: String
   phoneNumber: String
+}
+
+input UpdatePersonalEntryInput {
+  amount: Float
+  category: String
+  currency: String
+  date: DateTime
+  description: String
+  id: ID!
+  type: PersonalEntryType
 }
 
 input UpdateProjectInput {
