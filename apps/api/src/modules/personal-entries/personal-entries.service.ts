@@ -75,17 +75,11 @@ export class PersonalEntriesService {
   }
 
   async update(userId: string, input: UpdatePersonalEntryInput) {
-    await this.findOne(input.id, userId);
+    const { id, ...rest } = input;
+    await this.findOne(id, userId);
     return this.prisma.personalEntry.update({
-      where: { id: input.id },
-      data: {
-        type: input.type,
-        amount: input.amount,
-        currency: input.currency,
-        category: input.category,
-        date: input.date,
-        description: input.description,
-      },
+      where: { id },
+      data: rest,
     });
   }
 
