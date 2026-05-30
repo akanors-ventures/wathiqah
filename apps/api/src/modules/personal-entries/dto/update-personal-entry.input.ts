@@ -23,7 +23,7 @@ export class UpdatePersonalEntryInput {
   @Field(() => Float, { nullable: true })
   @IsOptional()
   @IsNumber()
-  @Min(0)
+  @Min(0.01)
   amount?: number;
 
   @Field({ nullable: true })
