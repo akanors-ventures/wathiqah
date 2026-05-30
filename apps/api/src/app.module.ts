@@ -159,8 +159,11 @@ import { GraphQLError } from 'graphql';
           (rawCode && rawCode !== 'INTERNAL_SERVER_ERROR'
             ? rawCode
             : originalError?.statusCode
-              ? (HTTP_STATUS_TO_CODE[originalError.statusCode] ?? 'INTERNAL_SERVER_ERROR')
-              : null) ?? rawCode ?? 'INTERNAL_SERVER_ERROR';
+              ? (HTTP_STATUS_TO_CODE[originalError.statusCode] ??
+                'INTERNAL_SERVER_ERROR')
+              : null) ??
+          rawCode ??
+          'INTERNAL_SERVER_ERROR';
 
         // Enhanced error logging for server errors
         if (code === 'INTERNAL_SERVER_ERROR') {
