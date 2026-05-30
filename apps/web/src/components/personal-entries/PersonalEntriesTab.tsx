@@ -1,10 +1,30 @@
-import { format } from "date-fns";
-import { Download, Filter, Plus, Search, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { endOfMonth, format, startOfMonth, subMonths } from "date-fns";
+import {
+  Calendar,
+  Download,
+  Filter,
+  Plus,
+  Search,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { EditPersonalEntryDialog } from "@/components/personal-entries/EditPersonalEntryDialog";
 import { PersonalEntryForm } from "@/components/personal-entries/PersonalEntryForm";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
@@ -31,7 +51,61 @@ import type {
 } from "@/types/__generated__/graphql";
 import { PersonalEntryType } from "@/types/__generated__/graphql";
 
+type SummaryPeriod = "ALL_TIME" | "THIS_MONTH" | "LAST_MONTH" | "LAST_3_MONTHS" | "CUSTOM";
+type CustomRange = { from: string | null; to: string | null };
+
+function getPeriodDates(
+  period: SummaryPeriod,
+  custom: CustomRange,
+): { startDate?: string; endDate?: string } {
+  const now = new Date();
+  switch (period) {
+    case "ALL_TIME":
+      return {};
+    case "THIS_MONTH":
+      return {
+        startDate: format(startOfMonth(now), "yyyy-MM-dd"),
+        endDate: format(endOfMonth(now), "yyyy-MM-dd"),
+      };
+    case "LAST_MONTH": {
+      const prev = subMonths(now, 1);
+      return {
+        startDate: format(startOfMonth(prev), "yyyy-MM-dd"),
+        endDate: format(endOfMonth(prev), "yyyy-MM-dd"),
+      };
+    }
+    case "LAST_3_MONTHS":
+      return {
+        startDate: format(startOfMonth(subMonths(now, 2)), "yyyy-MM-dd"),
+        endDate: format(endOfMonth(now), "yyyy-MM-dd"),
+      };
+    case "CUSTOM":
+      return custom.from && custom.to ? { startDate: custom.from, endDate: custom.to } : {};
+  }
+}
+
+function formatPeriodLabel(period: SummaryPeriod, custom: CustomRange): string {
+  const now = new Date();
+  switch (period) {
+    case "ALL_TIME":
+      return "All time";
+    case "THIS_MONTH":
+      return format(now, "MMMM yyyy");
+    case "LAST_MONTH":
+      return format(subMonths(now, 1), "MMMM yyyy");
+    case "LAST_3_MONTHS": {
+      const start = subMonths(now, 2);
+      return `${format(start, "MMM")}–${format(now, "MMM yyyy")}`;
+    }
+    case "CUSTOM":
+      return custom.from && custom.to
+        ? `${format(new Date(custom.from), "d MMM")}–${format(new Date(custom.to), "d MMM yyyy")}`
+        : "Select range";
+  }
+}
+
 export function PersonalEntriesTab() {
+  // List filters
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<PersonalEntryType | "ALL">("ALL");
   const [currency, setCurrency] = useState("ALL");
@@ -39,24 +113,38 @@ export function PersonalEntriesTab() {
   const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(25);
+
+  // Summary period filter
+  const [summaryPeriod, setSummaryPeriod] = useState<SummaryPeriod>("THIS_MONTH");
+  const [customRange, setCustomRange] = useState<CustomRange>({ from: null, to: null });
+
+  // UI state
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<PersonalEntryFieldsFragment | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const baseFilter = {
+  const summaryDates = getPeriodDates(summaryPeriod, customRange);
+
+  const listFilter: FilterPersonalEntryInput = {
     ...(search && { search }),
     ...(typeFilter !== "ALL" && { type: typeFilter }),
     ...(currency !== "ALL" && { currency }),
     ...(startDate && { startDate }),
     ...(endDate && { endDate }),
+    page,
+    limit,
   };
 
-  const listFilter: FilterPersonalEntryInput = { ...baseFilter, page, limit };
-  const summaryFilter: FilterPersonalEntryInput = baseFilter;
+  const summaryFilter: FilterPersonalEntryInput = {
+    ...(currency !== "ALL" && { currency }),
+    ...summaryDates,
+  };
 
   const { entries, total, loading, deleteEntry } = usePersonalEntries(listFilter);
   const { summary } = usePersonalEntrySummary(summaryFilter);
 
   const displayCurrency = currency !== "ALL" ? currency : (summary?.currency ?? "NGN");
+  const netCashPosition = summary?.netCashPosition ?? 0;
 
   const handleFilterChange =
     <T,>(setter: (v: T) => void) =>
@@ -64,6 +152,13 @@ export function PersonalEntriesTab() {
       setter(v);
       setPage(1);
     };
+
+  const handleConfirmDelete = async () => {
+    if (deletingId) {
+      await deleteEntry(deletingId);
+      setDeletingId(null);
+    }
+  };
 
   const handleExport = () => {
     const headers = ["Date", "Type", "Category", "Description", "Amount", "Currency"];
@@ -89,46 +184,98 @@ export function PersonalEntriesTab() {
 
   return (
     <div className="space-y-6">
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="rounded-[24px] border-border/50 shadow-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Income</CardTitle>
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-emerald-600">
-              {formatCurrency(summary?.totalIncome ?? 0, displayCurrency)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-[24px] border-border/50 shadow-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Expenses</CardTitle>
-            <TrendingDown className="w-4 h-4 text-rose-500" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-rose-600">
-              {formatCurrency(summary?.totalExpenses ?? 0, displayCurrency)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="rounded-[24px] border-border/50 shadow-sm">
-          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Cash Position
-            </CardTitle>
-            <Wallet className="w-4 h-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <p
-              className={`text-2xl font-bold ${(summary?.netCashPosition ?? 0) >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+      {/* Summary card with period filter */}
+      <Card className="rounded-[32px] overflow-hidden border-border/60 shadow-sm">
+        <CardContent className="p-5 space-y-3">
+          {/* Period selector */}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
+              <Select
+                value={summaryPeriod}
+                onValueChange={(v) => setSummaryPeriod(v as SummaryPeriod)}
+              >
+                <SelectTrigger className="h-9 w-[160px] text-xs font-semibold border-border/60">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL_TIME" className="text-xs">
+                    All Time
+                  </SelectItem>
+                  <SelectItem value="THIS_MONTH" className="text-xs">
+                    This Month
+                  </SelectItem>
+                  <SelectItem value="LAST_MONTH" className="text-xs">
+                    Last Month
+                  </SelectItem>
+                  <SelectItem value="LAST_3_MONTHS" className="text-xs">
+                    Last 3 Months
+                  </SelectItem>
+                  <SelectItem value="CUSTOM" className="text-xs">
+                    Custom Range
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground ml-auto">
+              {formatPeriodLabel(summaryPeriod, customRange)}
+            </span>
+          </div>
+
+          {summaryPeriod === "CUSTOM" && (
+            <DateRangePicker value={customRange} onChange={setCustomRange} />
+          )}
+
+          {/* Stat cells */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex flex-col gap-2 p-3 rounded-2xl border bg-emerald-500/[0.06] border-emerald-500/20">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Income
+                </span>
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-600 opacity-70" />
+              </div>
+              <span className="text-sm font-bold tabular-nums text-emerald-600">
+                {formatCurrency(summary?.totalIncome ?? 0, displayCurrency)}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-2 p-3 rounded-2xl border bg-rose-500/[0.06] border-rose-500/20">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Expenses
+                </span>
+                <TrendingDown className="w-3.5 h-3.5 text-rose-600 opacity-70" />
+              </div>
+              <span className="text-sm font-bold tabular-nums text-rose-600">
+                {formatCurrency(summary?.totalExpenses ?? 0, displayCurrency)}
+              </span>
+            </div>
+
+            <div
+              className={`flex flex-col gap-2 p-3 rounded-2xl border ${
+                netCashPosition >= 0
+                  ? "bg-emerald-500/[0.06] border-emerald-500/20"
+                  : "bg-rose-500/[0.06] border-rose-500/20"
+              }`}
             >
-              {formatCurrency(summary?.netCashPosition ?? 0, displayCurrency)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  Cash Position
+                </span>
+                <Wallet className="w-3.5 h-3.5 text-muted-foreground opacity-70" />
+              </div>
+              <span
+                className={`text-sm font-bold tabular-nums ${
+                  netCashPosition >= 0 ? "text-emerald-600" : "text-rose-600"
+                }`}
+              >
+                {formatCurrency(netCashPosition, displayCurrency)}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Inline add form */}
       {showForm && (
@@ -341,7 +488,7 @@ export function PersonalEntriesTab() {
                           className="h-7 text-[10px] font-bold text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => {
                             e.stopPropagation();
-                            deleteEntry(entry.id);
+                            setDeletingId(entry.id);
                           }}
                         >
                           Delete
@@ -417,7 +564,7 @@ export function PersonalEntriesTab() {
                         className="h-7 text-[10px] font-bold text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();
-                          deleteEntry(entry.id);
+                          setDeletingId(entry.id);
                         }}
                       >
                         Delete
@@ -439,6 +586,7 @@ export function PersonalEntriesTab() {
         </CardContent>
       </Card>
 
+      {/* Edit dialog */}
       {editingEntry && (
         <EditPersonalEntryDialog
           entry={editingEntry}
@@ -448,6 +596,33 @@ export function PersonalEntriesTab() {
           }}
         />
       )}
+
+      {/* Delete confirmation */}
+      <AlertDialog
+        open={!!deletingId}
+        onOpenChange={(open) => {
+          if (!open) setDeletingId(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this entry?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The entry will be permanently removed from your personal
+              ledger.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
