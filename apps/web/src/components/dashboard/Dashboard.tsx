@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { useBalance } from "@/hooks/useBalance";
 import { useContacts } from "@/hooks/useContacts";
+import { usePersonalEntrySummary } from "@/hooks/usePersonalEntries";
 import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
@@ -69,6 +70,7 @@ export function Dashboard() {
 
   const { requests: witnessRequests, loading: loadingWitnesses } = useMyWitnessRequests();
   const { promises, loading: loadingPromises } = usePromises();
+  const { summary: cashSummary } = usePersonalEntrySummary();
 
   const loading =
     loadingTx ||
@@ -193,9 +195,22 @@ export function Dashboard() {
               />
             }
             icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-            description="Your current cash position (All Time)"
+            description="Net amount owed to / by your contacts (All Time)"
           />
         </div>
+        <StatsCard
+          title="Cash Position"
+          value={
+            <BalanceIndicator
+              amount={cashSummary?.netCashPosition ?? 0}
+              currency={balanceCurrency}
+              overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
+              className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
+            />
+          }
+          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+          description="Personal income minus expenses (All Time)"
+        />
         <StatsCard
           title={`Inflow (${getPeriodLabel()})`}
           value={
