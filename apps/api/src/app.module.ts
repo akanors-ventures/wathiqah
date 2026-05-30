@@ -21,6 +21,7 @@ import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { PersonalEntriesModule } from './modules/personal-entries/personal-entries.module';
 import { GeoIPModule } from './modules/geoip/geoip.module';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
@@ -204,6 +205,7 @@ import { GraphQLError } from 'graphql';
     MaintenanceModule,
     AdminModule,
     ProjectsModule,
+    PersonalEntriesModule,
     QueueModule,
     GeoIPModule,
   ],
