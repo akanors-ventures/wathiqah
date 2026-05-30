@@ -281,6 +281,7 @@ export type UserWhereInput = {
   contacts?: Prisma.ContactListRelationFilter
   projects?: Prisma.ProjectListRelationFilter
   promises?: Prisma.PromiseListRelationFilter
+  personalEntries?: Prisma.PersonalEntryListRelationFilter
   transactionHistory?: Prisma.TransactionHistoryListRelationFilter
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
@@ -316,6 +317,7 @@ export type UserOrderByWithRelationInput = {
   contacts?: Prisma.ContactOrderByRelationAggregateInput
   projects?: Prisma.ProjectOrderByRelationAggregateInput
   promises?: Prisma.PromiseOrderByRelationAggregateInput
+  personalEntries?: Prisma.PersonalEntryOrderByRelationAggregateInput
   transactionHistory?: Prisma.TransactionHistoryOrderByRelationAggregateInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryOrderByRelationAggregateInput
   transactions?: Prisma.TransactionOrderByRelationAggregateInput
@@ -354,6 +356,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   contacts?: Prisma.ContactListRelationFilter
   projects?: Prisma.ProjectListRelationFilter
   promises?: Prisma.PromiseListRelationFilter
+  personalEntries?: Prisma.PersonalEntryListRelationFilter
   transactionHistory?: Prisma.TransactionHistoryListRelationFilter
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryListRelationFilter
   transactions?: Prisma.TransactionListRelationFilter
@@ -435,6 +438,7 @@ export type UserCreateInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -470,6 +474,7 @@ export type UserUncheckedCreateInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -505,6 +510,7 @@ export type UserUpdateInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -540,6 +546,7 @@ export type UserUncheckedUpdateInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -846,6 +853,20 @@ export type UserUpdateOneRequiredWithoutProjectTransactionHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProjectTransactionHistoryInput, Prisma.UserUpdateWithoutProjectTransactionHistoryInput>, Prisma.UserUncheckedUpdateWithoutProjectTransactionHistoryInput>
 }
 
+export type UserCreateNestedOneWithoutPersonalEntriesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPersonalEntriesInput, Prisma.UserUncheckedCreateWithoutPersonalEntriesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPersonalEntriesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPersonalEntriesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPersonalEntriesInput, Prisma.UserUncheckedCreateWithoutPersonalEntriesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPersonalEntriesInput
+  upsert?: Prisma.UserUpsertWithoutPersonalEntriesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPersonalEntriesInput, Prisma.UserUpdateWithoutPersonalEntriesInput>, Prisma.UserUncheckedUpdateWithoutPersonalEntriesInput>
+}
+
 export type UserCreateNestedOneWithoutPromisesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutPromisesInput, Prisma.UserUncheckedCreateWithoutPromisesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutPromisesInput
@@ -945,6 +966,7 @@ export type UserCreateWithoutProvisionedSubscriptionsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -979,6 +1001,7 @@ export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1018,6 +1041,7 @@ export type UserCreateWithoutSubscriptionInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -1052,6 +1076,7 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1102,6 +1127,7 @@ export type UserUpdateWithoutProvisionedSubscriptionsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -1136,6 +1162,7 @@ export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1181,6 +1208,7 @@ export type UserUpdateWithoutSubscriptionInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -1215,6 +1243,7 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1249,6 +1278,7 @@ export type UserCreateWithoutPaymentsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -1283,6 +1313,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1333,6 +1364,7 @@ export type UserUpdateWithoutPaymentsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -1367,6 +1399,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1400,6 +1433,7 @@ export type UserCreateWithoutLinkedContactsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -1434,6 +1468,7 @@ export type UserUncheckedCreateWithoutLinkedContactsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1473,6 +1508,7 @@ export type UserCreateWithoutContactsInput = {
   linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -1507,6 +1543,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1557,6 +1594,7 @@ export type UserUpdateWithoutLinkedContactsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -1591,6 +1629,7 @@ export type UserUncheckedUpdateWithoutLinkedContactsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1636,6 +1675,7 @@ export type UserUpdateWithoutContactsInput = {
   linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -1670,6 +1710,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1705,6 +1746,7 @@ export type UserCreateWithoutTransactionsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
@@ -1739,6 +1781,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
@@ -1789,6 +1832,7 @@ export type UserUpdateWithoutTransactionsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
@@ -1823,6 +1867,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
@@ -1857,6 +1902,7 @@ export type UserCreateWithoutTransactionHistoryInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
   witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
@@ -1891,6 +1937,7 @@ export type UserUncheckedCreateWithoutTransactionHistoryInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
   witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
@@ -1941,6 +1988,7 @@ export type UserUpdateWithoutTransactionHistoryInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
   witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
@@ -1975,6 +2023,7 @@ export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
   witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
@@ -2009,6 +2058,7 @@ export type UserCreateWithoutWitnessRecordsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -2043,6 +2093,7 @@ export type UserUncheckedCreateWithoutWitnessRecordsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2093,6 +2144,7 @@ export type UserUpdateWithoutWitnessRecordsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -2127,6 +2179,7 @@ export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2160,6 +2213,7 @@ export type UserCreateWithoutProjectsInput = {
   linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -2194,6 +2248,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2244,6 +2299,7 @@ export type UserUpdateWithoutProjectsInput = {
   linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -2278,6 +2334,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2313,6 +2370,7 @@ export type UserCreateWithoutProjectTransactionHistoryInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
   witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
@@ -2347,6 +2405,7 @@ export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
   witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
@@ -2397,6 +2456,7 @@ export type UserUpdateWithoutProjectTransactionHistoryInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
   witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
@@ -2431,7 +2491,164 @@ export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+}
+
+export type UserCreateWithoutPersonalEntriesInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+}
+
+export type UserUncheckedCreateWithoutPersonalEntriesInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+}
+
+export type UserCreateOrConnectWithoutPersonalEntriesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPersonalEntriesInput, Prisma.UserUncheckedCreateWithoutPersonalEntriesInput>
+}
+
+export type UserUpsertWithoutPersonalEntriesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPersonalEntriesInput, Prisma.UserUncheckedUpdateWithoutPersonalEntriesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPersonalEntriesInput, Prisma.UserUncheckedCreateWithoutPersonalEntriesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPersonalEntriesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPersonalEntriesInput, Prisma.UserUncheckedUpdateWithoutPersonalEntriesInput>
+}
+
+export type UserUpdateWithoutPersonalEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
   witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
   supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
@@ -2464,6 +2681,7 @@ export type UserCreateWithoutPromisesInput = {
   linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -2498,6 +2716,7 @@ export type UserUncheckedCreateWithoutPromisesInput = {
   linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2548,6 +2767,7 @@ export type UserUpdateWithoutPromisesInput = {
   linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -2582,6 +2802,7 @@ export type UserUncheckedUpdateWithoutPromisesInput = {
   linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2616,6 +2837,7 @@ export type UserCreateWithoutAccessGrantsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -2650,6 +2872,7 @@ export type UserUncheckedCreateWithoutAccessGrantsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2700,6 +2923,7 @@ export type UserUpdateWithoutAccessGrantsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -2734,6 +2958,7 @@ export type UserUncheckedUpdateWithoutAccessGrantsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -2768,6 +2993,7 @@ export type UserCreateWithoutContactInvitationsReceivedInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -2802,6 +3028,7 @@ export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2841,6 +3068,7 @@ export type UserCreateWithoutContactInvitationsSentInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -2875,6 +3103,7 @@ export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -2925,6 +3154,7 @@ export type UserUpdateWithoutContactInvitationsReceivedInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -2959,6 +3189,7 @@ export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3004,6 +3235,7 @@ export type UserUpdateWithoutContactInvitationsSentInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -3038,6 +3270,7 @@ export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3073,6 +3306,7 @@ export type UserCreateWithoutSupportsInput = {
   contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
@@ -3107,6 +3341,7 @@ export type UserUncheckedCreateWithoutSupportsInput = {
   contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
@@ -3157,6 +3392,7 @@ export type UserUpdateWithoutSupportsInput = {
   contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
@@ -3191,6 +3427,7 @@ export type UserUncheckedUpdateWithoutSupportsInput = {
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -3213,6 +3450,7 @@ export type UserCountOutputType = {
   contacts: number
   projects: number
   promises: number
+  personalEntries: number
   transactionHistory: number
   projectTransactionHistory: number
   transactions: number
@@ -3230,6 +3468,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   contacts?: boolean | UserCountOutputTypeCountContactsArgs
   projects?: boolean | UserCountOutputTypeCountProjectsArgs
   promises?: boolean | UserCountOutputTypeCountPromisesArgs
+  personalEntries?: boolean | UserCountOutputTypeCountPersonalEntriesArgs
   transactionHistory?: boolean | UserCountOutputTypeCountTransactionHistoryArgs
   projectTransactionHistory?: boolean | UserCountOutputTypeCountProjectTransactionHistoryArgs
   transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
@@ -3296,6 +3535,13 @@ export type UserCountOutputTypeCountProjectsArgs<ExtArgs extends runtime.Types.E
  */
 export type UserCountOutputTypeCountPromisesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.PromiseWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPersonalEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PersonalEntryWhereInput
 }
 
 /**
@@ -3373,6 +3619,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   contacts?: boolean | Prisma.User$contactsArgs<ExtArgs>
   projects?: boolean | Prisma.User$projectsArgs<ExtArgs>
   promises?: boolean | Prisma.User$promisesArgs<ExtArgs>
+  personalEntries?: boolean | Prisma.User$personalEntriesArgs<ExtArgs>
   transactionHistory?: boolean | Prisma.User$transactionHistoryArgs<ExtArgs>
   projectTransactionHistory?: boolean | Prisma.User$projectTransactionHistoryArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
@@ -3453,6 +3700,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   contacts?: boolean | Prisma.User$contactsArgs<ExtArgs>
   projects?: boolean | Prisma.User$projectsArgs<ExtArgs>
   promises?: boolean | Prisma.User$promisesArgs<ExtArgs>
+  personalEntries?: boolean | Prisma.User$personalEntriesArgs<ExtArgs>
   transactionHistory?: boolean | Prisma.User$transactionHistoryArgs<ExtArgs>
   projectTransactionHistory?: boolean | Prisma.User$projectTransactionHistoryArgs<ExtArgs>
   transactions?: boolean | Prisma.User$transactionsArgs<ExtArgs>
@@ -3476,6 +3724,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     contacts: Prisma.$ContactPayload<ExtArgs>[]
     projects: Prisma.$ProjectPayload<ExtArgs>[]
     promises: Prisma.$PromisePayload<ExtArgs>[]
+    personalEntries: Prisma.$PersonalEntryPayload<ExtArgs>[]
     transactionHistory: Prisma.$TransactionHistoryPayload<ExtArgs>[]
     projectTransactionHistory: Prisma.$ProjectTransactionHistoryPayload<ExtArgs>[]
     transactions: Prisma.$TransactionPayload<ExtArgs>[]
@@ -3904,6 +4153,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   contacts<T extends Prisma.User$contactsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$contactsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projects<T extends Prisma.User$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   promises<T extends Prisma.User$promisesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$promisesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PromisePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  personalEntries<T extends Prisma.User$personalEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$personalEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PersonalEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactionHistory<T extends Prisma.User$transactionHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectTransactionHistory<T extends Prisma.User$projectTransactionHistoryArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$projectTransactionHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTransactionHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   transactions<T extends Prisma.User$transactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -4511,6 +4761,30 @@ export type User$promisesArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.PromiseScalarFieldEnum | Prisma.PromiseScalarFieldEnum[]
+}
+
+/**
+ * User.personalEntries
+ */
+export type User$personalEntriesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PersonalEntry
+   */
+  select?: Prisma.PersonalEntrySelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PersonalEntry
+   */
+  omit?: Prisma.PersonalEntryOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PersonalEntryInclude<ExtArgs> | null
+  where?: Prisma.PersonalEntryWhereInput
+  orderBy?: Prisma.PersonalEntryOrderByWithRelationInput | Prisma.PersonalEntryOrderByWithRelationInput[]
+  cursor?: Prisma.PersonalEntryWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PersonalEntryScalarFieldEnum | Prisma.PersonalEntryScalarFieldEnum[]
 }
 
 /**

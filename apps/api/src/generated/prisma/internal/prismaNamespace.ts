@@ -395,6 +395,7 @@ export const ModelName = {
   Project: 'Project',
   ProjectTransaction: 'ProjectTransaction',
   ProjectTransactionHistory: 'ProjectTransactionHistory',
+  PersonalEntry: 'PersonalEntry',
   Promise: 'Promise',
   AccessGrant: 'AccessGrant',
   ExchangeRate: 'ExchangeRate',
@@ -417,7 +418,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "projectTransactionHistory" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support" | "smsOptOut"
+    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "projectTransactionHistory" | "personalEntry" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support" | "smsOptOut"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1235,6 +1236,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    PersonalEntry: {
+      payload: Prisma.$PersonalEntryPayload<ExtArgs>
+      fields: Prisma.PersonalEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PersonalEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PersonalEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.PersonalEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PersonalEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        findMany: {
+          args: Prisma.PersonalEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>[]
+        }
+        create: {
+          args: Prisma.PersonalEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        createMany: {
+          args: Prisma.PersonalEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PersonalEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.PersonalEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        update: {
+          args: Prisma.PersonalEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.PersonalEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PersonalEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PersonalEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.PersonalEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.PersonalEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePersonalEntry>
+        }
+        groupBy: {
+          args: Prisma.PersonalEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonalEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PersonalEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonalEntryCountAggregateOutputType> | number
+        }
+      }
+    }
     Promise: {
       payload: Prisma.$PromisePayload<ExtArgs>
       fields: Prisma.PromiseFieldRefs
@@ -1972,6 +2047,21 @@ export const ProjectTransactionHistoryScalarFieldEnum = {
 export type ProjectTransactionHistoryScalarFieldEnum = (typeof ProjectTransactionHistoryScalarFieldEnum)[keyof typeof ProjectTransactionHistoryScalarFieldEnum]
 
 
+export const PersonalEntryScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  amount: 'amount',
+  currency: 'currency',
+  category: 'category',
+  date: 'date',
+  description: 'description',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type PersonalEntryScalarFieldEnum = (typeof PersonalEntryScalarFieldEnum)[keyof typeof PersonalEntryScalarFieldEnum]
+
+
 export const PromiseScalarFieldEnum = {
   id: 'id',
   description: 'description',
@@ -2342,6 +2432,20 @@ export type ListEnumProjectTransactionTypeFieldRefInput<$PrismaModel> = FieldRef
 
 
 /**
+ * Reference to a field of type 'PersonalEntryType'
+ */
+export type EnumPersonalEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PersonalEntryType'>
+    
+
+
+/**
+ * Reference to a field of type 'PersonalEntryType[]'
+ */
+export type ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PersonalEntryType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Priority'
  */
 export type EnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Priority'>
@@ -2544,6 +2648,7 @@ export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   projectTransaction?: Prisma.ProjectTransactionOmit
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryOmit
+  personalEntry?: Prisma.PersonalEntryOmit
   promise?: Prisma.PromiseOmit
   accessGrant?: Prisma.AccessGrantOmit
   exchangeRate?: Prisma.ExchangeRateOmit
