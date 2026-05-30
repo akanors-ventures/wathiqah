@@ -41,7 +41,7 @@ export class CreateTransactionInput {
 
   @Field(() => TransactionType)
   @IsEnum(TransactionType)
-  @IsNotIn(['EXPENSE', 'INCOME', 'GIVEN', 'RECEIVED', 'RETURNED', 'GIFT'], {
+  @IsNotIn(['GIVEN', 'RECEIVED', 'RETURNED', 'GIFT'], {
     message:
       'This transaction type is no longer supported. Use the new formal types.',
   })
