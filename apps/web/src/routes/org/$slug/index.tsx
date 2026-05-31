@@ -40,28 +40,24 @@ function OrgDashboardPage() {
       label: "Record transaction",
       sub: "Log a sale, payment or loan",
       href: "/transactions/new",
-      useLink: true,
     },
     {
       icon: CalendarDays,
       label: "Add event",
       sub: "Vaccination, Eid, breeding",
       href: `/org/${slug}/events`,
-      useLink: false,
     },
     {
       icon: UserPlus,
       label: "Add contact",
       sub: "Buyer, vet, partner",
       href: "/contacts/new",
-      useLink: false,
     },
     {
       icon: Users,
       label: "Invite member",
       sub: "Add staff or operator",
       href: `/org/${slug}/members`,
-      useLink: false,
     },
   ];
 
@@ -81,29 +77,17 @@ function OrgDashboardPage() {
           Quick actions
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {quickActions.map(({ icon: Icon, label, sub, href, useLink }) =>
-            useLink ? (
-              <Link
-                key={label}
-                to={href}
-                className="flex flex-col gap-1 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-150"
-              >
-                <Icon className="h-5 w-5 text-muted-foreground mb-1" />
-                <span className="text-[13px] font-semibold">{label}</span>
-                <span className="text-[11px] text-muted-foreground">{sub}</span>
-              </Link>
-            ) : (
-              <a
-                key={label}
-                href={href}
-                className="flex flex-col gap-1 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-150"
-              >
-                <Icon className="h-5 w-5 text-muted-foreground mb-1" />
-                <span className="text-[13px] font-semibold">{label}</span>
-                <span className="text-[11px] text-muted-foreground">{sub}</span>
-              </a>
-            ),
-          )}
+          {quickActions.map(({ icon: Icon, label, sub, href }) => (
+            <Link
+              key={label}
+              to={href as never}
+              className="flex flex-col gap-1 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-150"
+            >
+              <Icon className="h-5 w-5 text-muted-foreground mb-1" />
+              <span className="text-[13px] font-semibold">{label}</span>
+              <span className="text-[11px] text-muted-foreground">{sub}</span>
+            </Link>
+          ))}
         </div>
       </div>
 
@@ -115,7 +99,7 @@ function OrgDashboardPage() {
               Upcoming events
             </h2>
             <Button asChild variant="ghost" size="sm" className="text-xs">
-              <a href={`/org/${slug}/events`}>View all →</a>
+              <Link to={`/org/${slug}/events` as never}>View all →</Link>
             </Button>
           </div>
           <div className="space-y-2">
