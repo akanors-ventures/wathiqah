@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { MemberRow } from "@/components/org/member-row";
 import { Button } from "@/components/ui/button";
 import {
@@ -76,14 +77,22 @@ function MembersPage() {
   }
 
   async function handleRoleChange(memberId: string, role: OrgRole) {
-    await updateRole({ variables: { memberId, role } });
-    await refetch();
+    try {
+      await updateRole({ variables: { memberId, role } });
+      await refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update role");
+    }
   }
 
   async function handleRemove(memberId: string) {
     if (!confirm("Remove this member from the organisation?")) return;
-    await removeMember({ variables: { memberId } });
-    await refetch();
+    try {
+      await removeMember({ variables: { memberId } });
+      await refetch();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to remove member");
+    }
   }
 
   if (loading) return <BrandLoader />;

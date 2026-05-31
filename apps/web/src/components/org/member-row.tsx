@@ -47,7 +47,8 @@ export function MemberRow({
   onRoleChange,
   onRemove,
 }: MemberRowProps) {
-  const initials = `${member.user.firstName[0]}${member.user.lastName[0]}`.toUpperCase();
+  const initials =
+    `${member.user.firstName?.[0] ?? "?"}${member.user.lastName?.[0] ?? "?"}`.toUpperCase();
   const name = `${member.user.firstName} ${member.user.lastName}`;
 
   return (
