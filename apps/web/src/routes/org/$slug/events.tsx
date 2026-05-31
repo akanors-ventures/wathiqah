@@ -56,6 +56,7 @@ function EventsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {/* TODO: open create-note form */}
           <Button variant="outline" size="sm">
             <PenLine className="h-4 w-4 mr-1.5" />
             Add Note
@@ -133,6 +134,7 @@ function EventsPage() {
 
             <TabsContent value="notes" className="mt-4">
               {/* Write prompt */}
+              {/* TODO: open create-note form */}
               <button
                 type="button"
                 className="w-full text-left p-4 rounded-xl border border-dashed border-border bg-background hover:border-primary/30 mb-4 transition-all"

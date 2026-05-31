@@ -65,11 +65,13 @@ export function EventCard({ event, onEdit }: EventCardProps) {
         <span
           className={cn(
             "text-[12px] font-bold",
-            daysUntil <= 7
-              ? "text-red-500"
-              : daysUntil <= 30
-                ? "text-amber-600"
-                : "text-muted-foreground",
+            daysUntil < 0
+              ? "text-muted-foreground"
+              : daysUntil <= 7
+                ? "text-red-500"
+                : daysUntil <= 30
+                  ? "text-amber-600"
+                  : "text-muted-foreground",
           )}
         >
           {daysUntil === 0
