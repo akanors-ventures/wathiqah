@@ -43,6 +43,7 @@ import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contac
 import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
 import { Route as SharedAccessViewGrantIdRouteImport } from './routes/shared-access/view.$grantId'
+import { Route as OrgSlugMembersRouteImport } from './routes/org/$slug/members'
 import { Route as OrgSlugEventsRouteImport } from './routes/org/$slug/events'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
@@ -216,6 +217,11 @@ const SharedAccessViewGrantIdRoute = SharedAccessViewGrantIdRouteImport.update({
   path: '/shared-access/view/$grantId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrgSlugMembersRoute = OrgSlugMembersRouteImport.update({
+  id: '/org/$slug/members',
+  path: '/org/$slug/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrgSlugEventsRoute = OrgSlugEventsRouteImport.update({
   id: '/org/$slug/events',
   path: '/org/$slug/events',
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/transactions/': typeof TransactionsIndexRoute
   '/witnesses/': typeof WitnessesIndexRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
+  '/org/$slug/members': typeof OrgSlugMembersRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
   '/org/$slug/': typeof OrgSlugIndexRoute
@@ -292,6 +299,7 @@ export interface FileRoutesByTo {
   '/transactions': typeof TransactionsIndexRoute
   '/witnesses': typeof WitnessesIndexRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
+  '/org/$slug/members': typeof OrgSlugMembersRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
   '/org/$slug': typeof OrgSlugIndexRoute
@@ -330,6 +338,7 @@ export interface FileRoutesById {
   '/transactions/': typeof TransactionsIndexRoute
   '/witnesses/': typeof WitnessesIndexRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
+  '/org/$slug/members': typeof OrgSlugMembersRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
   '/org/$slug/': typeof OrgSlugIndexRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/transactions/'
     | '/witnesses/'
     | '/org/$slug/events'
+    | '/org/$slug/members'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
     | '/org/$slug/'
@@ -406,6 +416,7 @@ export interface FileRouteTypes {
     | '/transactions'
     | '/witnesses'
     | '/org/$slug/events'
+    | '/org/$slug/members'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
     | '/org/$slug'
@@ -443,6 +454,7 @@ export interface FileRouteTypes {
     | '/transactions/'
     | '/witnesses/'
     | '/org/$slug/events'
+    | '/org/$slug/members'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
     | '/org/$slug/'
@@ -481,6 +493,7 @@ export interface RootRouteChildren {
   TransactionsIndexRoute: typeof TransactionsIndexRoute
   WitnessesIndexRoute: typeof WitnessesIndexRoute
   OrgSlugEventsRoute: typeof OrgSlugEventsRoute
+  OrgSlugMembersRoute: typeof OrgSlugMembersRoute
   SharedAccessViewGrantIdRoute: typeof SharedAccessViewGrantIdRoute
   WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute
   OrgSlugIndexRoute: typeof OrgSlugIndexRoute
@@ -726,6 +739,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SharedAccessViewGrantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/org/$slug/members': {
+      id: '/org/$slug/members'
+      path: '/org/$slug/members'
+      fullPath: '/org/$slug/members'
+      preLoaderRoute: typeof OrgSlugMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/org/$slug/events': {
       id: '/org/$slug/events'
       path: '/org/$slug/events'
@@ -770,6 +790,7 @@ const rootRouteChildren: RootRouteChildren = {
   TransactionsIndexRoute: TransactionsIndexRoute,
   WitnessesIndexRoute: WitnessesIndexRoute,
   OrgSlugEventsRoute: OrgSlugEventsRoute,
+  OrgSlugMembersRoute: OrgSlugMembersRoute,
   SharedAccessViewGrantIdRoute: SharedAccessViewGrantIdRoute,
   WitnessesInviteTokenRoute: WitnessesInviteTokenRoute,
   OrgSlugIndexRoute: OrgSlugIndexRoute,
