@@ -15,6 +15,7 @@ import { NotFound } from "@/components/errors/NotFound";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
+import { OrgProvider } from "@/context/OrgContext";
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   notFoundComponent: NotFound,
@@ -90,24 +91,26 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       <body className="flex flex-col min-h-screen overflow-x-hidden" suppressHydrationWarning>
         <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
           <AuthProvider>
-            <Header />
-            <main className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden">
-              {children}
-            </main>
-            <Toaster />
-            <TanStackDevtools
-              config={{
-                position: "bottom-right",
-              }}
-              plugins={[
-                {
-                  name: "Tanstack Router",
-                  render: <TanStackRouterDevtoolsPanel />,
-                },
-                TanStackQueryDevtools,
-              ]}
-            />
-            <Scripts />
+            <OrgProvider>
+              <Header />
+              <main className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden">
+                {children}
+              </main>
+              <Toaster />
+              <TanStackDevtools
+                config={{
+                  position: "bottom-right",
+                }}
+                plugins={[
+                  {
+                    name: "Tanstack Router",
+                    render: <TanStackRouterDevtoolsPanel />,
+                  },
+                  TanStackQueryDevtools,
+                ]}
+              />
+              <Scripts />
+            </OrgProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
