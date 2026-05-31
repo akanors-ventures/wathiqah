@@ -99,6 +99,10 @@ describe('OrganisationsService', () => {
 
   describe('inviteMember', () => {
     it('throws NotFoundException when user email is not found', async () => {
+      prisma.organisationMember.findUnique.mockResolvedValueOnce({
+        id: 'admin-mem',
+        role: OrgRole.ADMIN,
+      }); // assertAdmin passes
       prisma.user.findUnique.mockResolvedValue(null);
       await expect(
         service.inviteMember(
@@ -144,6 +148,10 @@ describe('OrganisationsService', () => {
 
   describe('promoteContactToOrg', () => {
     it('creates a new org-scoped contact from a personal contact', async () => {
+      prisma.organisationMember.findUnique.mockResolvedValueOnce({
+        id: 'mem1',
+        role: OrgRole.OPERATOR,
+      }); // membership check passes
       prisma.contact.findUnique.mockResolvedValue({
         id: 'c1',
         firstName: 'Ali',
@@ -165,10 +173,21 @@ describe('OrganisationsService', () => {
     });
 
     it('throws ForbiddenException when contact does not belong to user', async () => {
+      prisma.organisationMember.findUnique.mockResolvedValueOnce({
+        id: 'mem1',
+        role: OrgRole.OPERATOR,
+      }); // membership check passes
       prisma.contact.findUnique.mockResolvedValue({
         id: 'c1',
         userId: 'other',
       });
+      await expect(
+        service.promoteContactToOrg('c1', 'org1', 'user1'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('throws ForbiddenException when caller is not a member of the org', async () => {
+      prisma.organisationMember.findUnique.mockResolvedValue(null); // not a member
       await expect(
         service.promoteContactToOrg('c1', 'org1', 'user1'),
       ).rejects.toThrow(ForbiddenException);

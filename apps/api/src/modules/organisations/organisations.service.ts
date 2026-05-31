@@ -86,13 +86,13 @@ export class OrganisationsService {
     input: InviteMemberInput,
     requesterId: string,
   ) {
+    await this.assertAdmin(orgId, requesterId);
+
     const user = await this.prisma.user.findUnique({
       where: { email: input.email },
     });
     if (!user)
       throw new NotFoundException('No Wathīqah account found for that email');
-
-    await this.assertAdmin(orgId, requesterId);
 
     const existing = await this.prisma.organisationMember.findUnique({
       where: { orgId_userId: { orgId, userId: user.id } },
@@ -127,12 +127,23 @@ export class OrganisationsService {
   }
 
   async promoteContactToOrg(contactId: string, orgId: string, userId: string) {
+    // Verify caller is a member of the target org
+    const membership = await this.prisma.organisationMember.findUnique({
+      where: { orgId_userId: { orgId, userId } },
+    });
+    if (!membership)
+      throw new ForbiddenException(
+        'You do not have permission to access this organisation',
+      );
+
     const contact = await this.prisma.contact.findUnique({
       where: { id: contactId },
     });
     if (!contact) throw new NotFoundException('Contact not found');
     if (contact.userId !== userId)
-      throw new ForbiddenException('Contact does not belong to you');
+      throw new ForbiddenException(
+        'You do not have permission to access this contact',
+      );
 
     return this.prisma.contact.create({
       data: {
