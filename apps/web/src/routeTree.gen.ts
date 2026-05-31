@@ -37,6 +37,7 @@ import { Route as ProjectsNewRouteImport } from './routes/projects/new'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projectId'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as PaymentCancelRouteImport } from './routes/payment.cancel'
+import { Route as OrgCreateRouteImport } from './routes/org/create'
 import { Route as ItemsNewRouteImport } from './routes/items/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
@@ -183,6 +184,11 @@ const PaymentCancelRoute = PaymentCancelRouteImport.update({
   path: '/payment/cancel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrgCreateRoute = OrgCreateRouteImport.update({
+  id: '/org/create',
+  path: '/org/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsNewRoute = ItemsNewRouteImport.update({
   id: '/items/new',
   path: '/items/new',
@@ -220,6 +226,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -254,6 +261,7 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -289,6 +297,7 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/org/create'
     | '/payment/cancel'
     | '/payment/success'
     | '/projects/$projectId'
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/org/create'
     | '/payment/cancel'
     | '/payment/success'
     | '/projects/$projectId'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/org/create'
     | '/payment/cancel'
     | '/payment/success'
     | '/projects/$projectId'
@@ -428,6 +440,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   ContactsContactIdRoute: typeof ContactsContactIdRoute
   ItemsNewRoute: typeof ItemsNewRoute
+  OrgCreateRoute: typeof OrgCreateRoute
   PaymentCancelRoute: typeof PaymentCancelRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
@@ -645,6 +658,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentCancelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/org/create': {
+      id: '/org/create'
+      path: '/org/create'
+      fullPath: '/org/create'
+      preLoaderRoute: typeof OrgCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items/new': {
       id: '/items/new'
       path: '/items/new'
@@ -692,6 +712,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   ContactsContactIdRoute: ContactsContactIdRoute,
   ItemsNewRoute: ItemsNewRoute,
+  OrgCreateRoute: OrgCreateRoute,
   PaymentCancelRoute: PaymentCancelRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
