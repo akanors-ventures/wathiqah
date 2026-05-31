@@ -41,6 +41,9 @@ model User {
   payments                   Payment[]
   subscription               Subscription?
   provisionedSubscriptions   Subscription[]       @relation("ProvisionedBy")
+  organisationMembers        OrganisationMember[]
+  orgEventsCreated           OrgEvent[]           @relation("OrgEventCreator")
+  orgNotesCreated            OrgNote[]            @relation("OrgNoteCreator")
 
   @@index([phoneNumber])
   @@map("users")
@@ -127,9 +130,11 @@ model Contact {
   lastName     String
   linkedUserId String?
   invitations  ContactInvitation[]
+  orgId        String?
   linkedUser   User?               @relation("ContactLinkedUser", fields: [linkedUserId], references: [id])
   user         User                @relation(fields: [userId], references: [id])
   transactions Transaction[]
+  organisation Organisation?       @relation("OrgContacts", fields: [orgId], references: [id])
 
   @@map("contacts")
 }
@@ -150,12 +155,14 @@ model Transaction {
 
   parentId        String?
   currency        String               @default("NGN")
+  orgId           String?
   history         TransactionHistory[]
   contact         Contact?             @relation(fields: [contactId], references: [id])
   createdBy       User                 @relation("TransactionCreator", fields: [createdById], references: [id])
   parent          Transaction?         @relation("TransactionConversion", fields: [parentId], references: [id])
   conversions     Transaction[]        @relation("TransactionConversion")
   witnesses       Witness[]
+  organisation    Organisation?        @relation("OrgTransactions", fields: [orgId], references: [id])
 
   @@map("transactions")
 }
@@ -202,8 +209,10 @@ model Project {
   userId       String
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
+  orgId        String?
   transactions ProjectTransaction[]
   user         User                 @relation(fields: [userId], references: [id])
+  organisation Organisation?        @relation("OrgProjects", fields: [orgId], references: [id])
 
   @@map("projects")
 }
@@ -251,7 +260,9 @@ model Promise {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   userId      String
+  orgId       String?
   user        User          @relation(fields: [userId], references: [id])
+  organisation Organisation? @relation("OrgPromises", fields: [orgId], references: [id])
 
   @@map("promises")
 }
@@ -433,4 +444,101 @@ model SmsOptOut {
   createdAt   DateTime     @default(now())
 
   @@map("sms_opt_outs")
+}
+
+model Organisation {
+  id              String               @id @default(uuid())
+  name            String
+  slug            String               @unique
+  description     String?
+  logoUrl         String?
+  industry        String?
+  attributionMode AttributionMode      @default(ORG_ONLY)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  members         OrganisationMember[]
+  contacts        Contact[]            @relation("OrgContacts")
+  transactions    Transaction[]        @relation("OrgTransactions")
+  projects        Project[]            @relation("OrgProjects")
+  promises        Promise[]            @relation("OrgPromises")
+  events          OrgEvent[]
+  notes           OrgNote[]
+  subscription    OrgSubscription?
+
+  @@map("organisations")
+}
+
+model OrganisationMember {
+  id           String       @id @default(uuid())
+  orgId        String
+  userId       String
+  role         OrgRole      @default(OPERATOR)
+  joinedAt     DateTime     @default(now())
+  organisation Organisation @relation(fields: [orgId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([orgId, userId])
+  @@map("organisation_members")
+}
+
+model OrgSubscription {
+  id                 String           @id @default(uuid())
+  orgId              String           @unique
+  tier               SubscriptionTier @default(FREE)
+  status             String
+  provider           String
+  externalId         String?          @unique
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  organisation       Organisation     @relation(fields: [orgId], references: [id])
+
+  @@map("org_subscriptions")
+}
+
+model OrgEvent {
+  id           String       @id @default(uuid())
+  orgId        String
+  title        String
+  date         DateTime
+  endDate      DateTime?
+  category     String
+  notes        String?
+  isRecurring  Boolean      @default(false)
+  recurrence   String?
+  createdById  String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  organisation Organisation @relation(fields: [orgId], references: [id])
+  createdBy    User         @relation("OrgEventCreator", fields: [createdById], references: [id])
+
+  @@index([orgId, date])
+  @@map("org_events")
+}
+
+model OrgNote {
+  id           String       @id @default(uuid())
+  orgId        String
+  body         String
+  category     String?
+  createdById  String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  organisation Organisation @relation(fields: [orgId], references: [id])
+  createdBy    User         @relation("OrgNoteCreator", fields: [createdById], references: [id])
+
+  @@index([orgId, createdAt])
+  @@map("org_notes")
+}
+
+enum OrgRole {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+enum AttributionMode {
+  ORG_ONLY
+  ORG_AND_OPERATOR
 }

@@ -160,3 +160,20 @@ export const OptOutSource = {
 } as const
 
 export type OptOutSource = (typeof OptOutSource)[keyof typeof OptOutSource]
+
+
+export const OrgRole = {
+  ADMIN: 'ADMIN',
+  OPERATOR: 'OPERATOR',
+  VIEWER: 'VIEWER'
+} as const
+
+export type OrgRole = (typeof OrgRole)[keyof typeof OrgRole]
+
+
+export const AttributionMode = {
+  ORG_ONLY: 'ORG_ONLY',
+  ORG_AND_OPERATOR: 'ORG_AND_OPERATOR'
+} as const
+
+export type AttributionMode = (typeof AttributionMode)[keyof typeof AttributionMode]

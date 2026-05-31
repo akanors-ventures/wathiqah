@@ -107,3 +107,28 @@ export type Support = Prisma.SupportModel
  * 
  */
 export type SmsOptOut = Prisma.SmsOptOutModel
+/**
+ * Model Organisation
+ * 
+ */
+export type Organisation = Prisma.OrganisationModel
+/**
+ * Model OrganisationMember
+ * 
+ */
+export type OrganisationMember = Prisma.OrganisationMemberModel
+/**
+ * Model OrgSubscription
+ * 
+ */
+export type OrgSubscription = Prisma.OrgSubscriptionModel
+/**
+ * Model OrgEvent
+ * 
+ */
+export type OrgEvent = Prisma.OrgEventModel
+/**
+ * Model OrgNote
+ * 
+ */
+export type OrgNote = Prisma.OrgNoteModel
