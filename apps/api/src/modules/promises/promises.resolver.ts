@@ -29,24 +29,34 @@ export class PromisesResolver {
   }
 
   @Query(() => Promise, { name: 'promise' })
-  findOne(@Args('id') id: string, @CurrentUser() user: User) {
-    return this.promisesService.findOne(id, user.id);
+  findOne(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
+  ) {
+    return this.promisesService.findOne(id, user.id, orgId);
   }
 
   @Mutation(() => Promise)
   updatePromise(
     @Args('updatePromiseInput') updatePromiseInput: UpdatePromiseInput,
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
   ) {
     return this.promisesService.update(
       updatePromiseInput.id,
       updatePromiseInput,
       user.id,
+      orgId,
     );
   }
 
   @Mutation(() => Promise)
-  removePromise(@Args('id') id: string, @CurrentUser() user: User) {
-    return this.promisesService.remove(id, user.id);
+  removePromise(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
+  ) {
+    return this.promisesService.remove(id, user.id, orgId);
   }
 }
