@@ -424,6 +424,8 @@ export class NotificationService {
     currency: string;
     witnessDisplayName: string;
     transactionType: string;
+    orgName?: string;
+    attributionMode?: string;
   }): Promise<{ smsSkipped: boolean }> {
     const {
       transactionId,
@@ -436,6 +438,8 @@ export class NotificationService {
       currency,
       witnessDisplayName,
       transactionType,
+      orgName,
+      attributionMode,
     } = params;
 
     let smsSkipped = false;
@@ -463,6 +467,8 @@ export class NotificationService {
             currency,
             witnessDisplayName,
             transactionType,
+            ...(orgName && { orgName }),
+            ...(attributionMode && { attributionMode }),
           } as ContactNotificationSmsJobData,
           {
             attempts: 3,
@@ -487,6 +493,8 @@ export class NotificationService {
           currency,
           witnessDisplayName,
           transactionType,
+          ...(orgName && { orgName }),
+          ...(attributionMode && { attributionMode }),
         } as ContactNotificationEmailJobData,
         {
           attempts: 5,
