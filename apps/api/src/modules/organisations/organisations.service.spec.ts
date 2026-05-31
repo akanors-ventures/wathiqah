@@ -97,6 +97,35 @@ describe('OrganisationsService', () => {
     });
   });
 
+  describe('findBySlug', () => {
+    const orgWithMembers = {
+      id: 'org1',
+      slug: 'akanors',
+      members: [{ id: 'mem1', userId: 'user1', role: OrgRole.ADMIN, user: {} }],
+      subscription: null,
+    };
+
+    it('returns the org when the requester is a member', async () => {
+      prisma.organisation.findUnique.mockResolvedValue(orgWithMembers);
+      const result = await service.findBySlug('akanors', 'user1');
+      expect(result).toEqual(orgWithMembers);
+    });
+
+    it('throws NotFoundException when the org does not exist', async () => {
+      prisma.organisation.findUnique.mockResolvedValue(null);
+      await expect(service.findBySlug('unknown', 'user1')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('throws ForbiddenException when the requester is not a member', async () => {
+      prisma.organisation.findUnique.mockResolvedValue(orgWithMembers);
+      await expect(service.findBySlug('akanors', 'outsider')).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+  });
+
   describe('inviteMember', () => {
     it('throws NotFoundException when user email is not found', async () => {
       prisma.organisationMember.findUnique.mockResolvedValueOnce({

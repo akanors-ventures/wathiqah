@@ -60,12 +60,18 @@ export class OrganisationsService {
     return org;
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string, requesterId: string) {
     const org = await this.prisma.organisation.findUnique({
       where: { slug },
       include: { members: { include: { user: true } }, subscription: true },
     });
     if (!org) throw new NotFoundException('Organisation not found');
+
+    // Only members can see full org details
+    const isMember = org.members.some((m) => m.userId === requesterId);
+    if (!isMember)
+      throw new ForbiddenException('You are not a member of this organisation');
+
     return org;
   }
 

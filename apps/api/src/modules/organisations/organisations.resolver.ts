@@ -28,8 +28,8 @@ export class OrganisationsResolver {
   }
 
   @Query(() => Organisation, { name: 'organisation' })
-  findOrganisation(@Args('slug') slug: string) {
-    return this.orgsService.findBySlug(slug);
+  findOrganisation(@Args('slug') slug: string, @CurrentUser() user: User) {
+    return this.orgsService.findBySlug(slug, user.id);
   }
 
   @Query(() => [Organisation], { name: 'myOrganisations' })
@@ -81,6 +81,8 @@ export class OrganisationsResolver {
   }
 
   @Mutation(() => Contact)
+  @UseGuards(OrgRolesGuard)
+  @OrgRoles(OrgRole.ADMIN, OrgRole.OPERATOR)
   promoteContactToOrg(
     @Args('contactId', { type: () => ID }) contactId: string,
     @ActiveOrg() orgId: string,
