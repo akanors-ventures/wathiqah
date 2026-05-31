@@ -128,10 +128,13 @@ export class AuthResolver {
   async switchOrgContext(
     @Args('orgId', { nullable: true, type: () => String }) orgId: string | null,
     @CurrentUser() user: User,
+    @Context('res') res: Response,
   ) {
     const { accessToken, refreshToken } =
       await this.authService.switchOrgContext(user.id, user.email, orgId);
-    return { accessToken, refreshToken, user };
+    const payload = { accessToken, refreshToken, user };
+    this.setCookies(res, payload);
+    return payload;
   }
 
   @Mutation(() => Boolean)
