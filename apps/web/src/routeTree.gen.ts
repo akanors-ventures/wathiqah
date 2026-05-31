@@ -40,6 +40,7 @@ import { Route as PaymentCancelRouteImport } from './routes/payment.cancel'
 import { Route as OrgCreateRouteImport } from './routes/org/create'
 import { Route as ItemsNewRouteImport } from './routes/items/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
+import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
 import { Route as SharedAccessViewGrantIdRouteImport } from './routes/shared-access/view.$grantId'
 
@@ -199,6 +200,11 @@ const ContactsContactIdRoute = ContactsContactIdRouteImport.update({
   path: '/contacts/$contactId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrgSlugIndexRoute = OrgSlugIndexRouteImport.update({
+  id: '/org/$slug/',
+  path: '/org/$slug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WitnessesInviteTokenRoute = WitnessesInviteTokenRouteImport.update({
   id: '/witnesses/invite/$token',
   path: '/witnesses/invite/$token',
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/witnesses/': typeof WitnessesIndexRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/org/$slug/': typeof OrgSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/witnesses': typeof WitnessesIndexRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/org/$slug': typeof OrgSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -315,6 +323,7 @@ export interface FileRoutesById {
   '/witnesses/': typeof WitnessesIndexRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/org/$slug/': typeof OrgSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -352,6 +361,7 @@ export interface FileRouteTypes {
     | '/witnesses/'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/org/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/witnesses'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/org/$slug'
   id:
     | '__root__'
     | '/'
@@ -422,6 +433,7 @@ export interface FileRouteTypes {
     | '/witnesses/'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/org/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -458,6 +470,7 @@ export interface RootRouteChildren {
   WitnessesIndexRoute: typeof WitnessesIndexRoute
   SharedAccessViewGrantIdRoute: typeof SharedAccessViewGrantIdRoute
   WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute
+  OrgSlugIndexRoute: typeof OrgSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -679,6 +692,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactsContactIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/org/$slug/': {
+      id: '/org/$slug/'
+      path: '/org/$slug'
+      fullPath: '/org/$slug/'
+      preLoaderRoute: typeof OrgSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/witnesses/invite/$token': {
       id: '/witnesses/invite/$token'
       path: '/witnesses/invite/$token'
@@ -731,6 +751,7 @@ const rootRouteChildren: RootRouteChildren = {
   WitnessesIndexRoute: WitnessesIndexRoute,
   SharedAccessViewGrantIdRoute: SharedAccessViewGrantIdRoute,
   WitnessesInviteTokenRoute: WitnessesInviteTokenRoute,
+  OrgSlugIndexRoute: OrgSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
