@@ -1,6 +1,7 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { OrgRole } from '../../../generated/prisma/client';
 import { Organisation } from './organisation.entity';
+import { User } from '../../users/entities/user.entity';
 
 registerEnumType(OrgRole, { name: 'OrgRole' });
 
@@ -23,4 +24,7 @@ export class OrganisationMember {
 
   @Field(() => Organisation)
   organisation: Organisation;
+
+  @Field(() => User)
+  user: User;
 }

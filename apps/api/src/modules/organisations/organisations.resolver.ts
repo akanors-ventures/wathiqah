@@ -1,4 +1,12 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  ID,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { OrgRolesGuard, OrgRoles } from './guards/org-roles.guard';
@@ -89,5 +97,10 @@ export class OrganisationsResolver {
     @CurrentUser() user: User,
   ) {
     return this.orgsService.promoteContactToOrg(contactId, orgId, user.id);
+  }
+
+  @ResolveField(() => [OrganisationMember])
+  async members(@Parent() org: Organisation) {
+    return this.orgsService.getOrgMembers(org.id);
   }
 }

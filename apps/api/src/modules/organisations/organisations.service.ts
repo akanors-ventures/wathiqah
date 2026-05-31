@@ -82,6 +82,13 @@ export class OrganisationsService {
     });
   }
 
+  async getOrgMembers(orgId: string) {
+    return this.prisma.organisationMember.findMany({
+      where: { orgId },
+      include: { user: true },
+    });
+  }
+
   async update(id: string, input: UpdateOrganisationInput, userId: string) {
     await this.assertAdmin(id, userId);
     return this.prisma.organisation.update({ where: { id }, data: input });

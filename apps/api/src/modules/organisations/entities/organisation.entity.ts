@@ -1,5 +1,6 @@
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { AttributionMode } from '../../../generated/prisma/client';
+import { OrganisationMember } from './organisation-member.entity';
 
 registerEnumType(AttributionMode, { name: 'AttributionMode' });
 
@@ -31,4 +32,7 @@ export class Organisation {
 
   @Field()
   updatedAt: Date;
+
+  @Field(() => [OrganisationMember])
+  members?: OrganisationMember[];
 }

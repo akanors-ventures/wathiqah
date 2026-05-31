@@ -378,6 +378,7 @@ type Organisation {
   id: ID!
   industry: String
   logoUrl: String
+  members: [OrganisationMember!]!
   name: String!
   slug: String!
   updatedAt: DateTime!
@@ -389,6 +390,7 @@ type OrganisationMember {
   orgId: String!
   organisation: Organisation!
   role: OrgRole!
+  user: User!
   userId: String!
 }
 
