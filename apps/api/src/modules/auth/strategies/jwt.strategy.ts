@@ -5,9 +5,10 @@ import { ConfigService } from '@nestjs/config';
 import { AuthService } from '../auth.service';
 import { Request } from 'express';
 
-interface JwtPayload {
+export interface JwtPayload {
   sub: string;
   email: string;
+  activeOrgId?: string;
 }
 
 @Injectable()
@@ -18,9 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (request: Request) => {
-          return request?.cookies?.accessToken;
-        },
+        (request: Request) => request?.cookies?.accessToken,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
@@ -30,9 +29,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: JwtPayload) {
     const user = await this.authService.validateUser(payload.sub);
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    return user;
+    if (!user) throw new UnauthorizedException();
+    // Attach activeOrgId from JWT payload to req.user
+    return { ...user, activeOrgId: payload.activeOrgId ?? null };
   }
 }
