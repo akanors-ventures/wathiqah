@@ -42,7 +42,11 @@ export class ContactsService {
     private notificationService: NotificationService,
   ) {}
 
-  async create(createContactInput: CreateContactInput, userId: string) {
+  async create(
+    createContactInput: CreateContactInput,
+    userId: string,
+    orgId: string | null,
+  ) {
     if (!userId) {
       throw new BadRequestException('User ID is required to create a contact');
     }
@@ -70,17 +74,24 @@ export class ContactsService {
         lastName,
         userId,
         linkedUserId,
+        orgId: orgId ?? undefined,
       },
     });
   }
 
-  async findAll(userId: string, filter?: FilterContactInput) {
+  async findAll(
+    userId: string,
+    orgId: string | null,
+    filter?: FilterContactInput,
+  ) {
     const page = filter?.page ?? 1;
     const limit = filter?.limit ?? 25;
     const search = filter?.search;
 
+    const baseWhere = orgId ? { orgId } : { userId, orgId: null };
+
     const where: Prisma.ContactWhereInput = {
-      userId,
+      ...baseWhere,
       ...(search && {
         OR: [
           { firstName: { contains: search, mode: 'insensitive' } },

@@ -24,6 +24,7 @@ import {
 } from './entities/invite-response.entity';
 import { CheckFeature } from '../subscription/decorators/check-feature.decorator';
 import { FeatureLimitInterceptor } from '../subscription/interceptors/feature-limit.interceptor';
+import { ActiveOrg } from '../organisations/decorators/active-org.decorator';
 
 @Resolver(() => Contact)
 @UseGuards(GqlAuthGuard)
@@ -36,16 +37,18 @@ export class ContactsResolver {
   createContact(
     @Args('createContactInput') createContactInput: CreateContactInput,
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
   ) {
-    return this.contactsService.create(createContactInput, user.id);
+    return this.contactsService.create(createContactInput, user.id, orgId);
   }
 
   @Query(() => PaginatedContactsResponse, { name: 'contacts' })
   findAll(
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
     @Args('filter', { nullable: true }) filter?: FilterContactInput,
   ) {
-    return this.contactsService.findAll(user.id, filter);
+    return this.contactsService.findAll(user.id, orgId, filter);
   }
 
   @Query(() => Contact, { name: 'contact' })
