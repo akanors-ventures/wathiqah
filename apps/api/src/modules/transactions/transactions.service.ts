@@ -395,7 +395,11 @@ export class TransactionsService {
     }
   }
 
-  async create(createTransactionInput: CreateTransactionInput, userId: string) {
+  async create(
+    createTransactionInput: CreateTransactionInput,
+    userId: string,
+    orgId: string | null,
+  ) {
     const {
       category,
       amount,
@@ -626,6 +630,7 @@ export class TransactionsService {
           itemName: category === AssetCategory.ITEM ? itemName : null,
           quantity: category === AssetCategory.ITEM ? quantity : null,
           createdById: userId,
+          orgId: orgId ?? undefined,
           ...rest,
           ...(isLifecycleParent ? { status: TransactionStatus.PENDING } : {}),
         },
@@ -812,9 +817,17 @@ export class TransactionsService {
     return transformed;
   }
 
-  async findAll(userId: string, filter?: FilterTransactionInput) {
+  async findAll(
+    userId: string,
+    orgId: string | null,
+    filter?: FilterTransactionInput,
+  ) {
+    const baseWhere: Prisma.TransactionWhereInput = orgId
+      ? { orgId }
+      : { createdById: userId, orgId: null };
+
     const where: Prisma.TransactionWhereInput = {
-      OR: [{ createdById: userId }, { contact: { linkedUserId: userId } }],
+      ...baseWhere,
       status: { not: TransactionStatus.CANCELLED },
     };
 
