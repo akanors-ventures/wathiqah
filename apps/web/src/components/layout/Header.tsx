@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRightLeft,
+  CalendarDays,
   ChevronDown,
   FileSignature,
   FolderKanban,
@@ -10,6 +11,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import { AccountSwitcher } from "@/components/org/account-switcher";
 import { AppLogo } from "@/components/ui/app-logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,16 +22,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { cn } from "@/lib/utils";
 import HeaderUser from "../auth/header-user";
 
 export default function Header() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
+  const { activeOrg, isOrgMode } = useActiveOrg();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm transition-colors duration-300">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm transition-colors duration-300",
+        isOrgMode
+          ? "border-blue-200 bg-blue-50/95 dark:border-blue-800 dark:bg-blue-950/95"
+          : "border-border",
+      )}
+    >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 lg:gap-8 min-w-0">
           <Link
@@ -50,6 +62,15 @@ export default function Header() {
               </span>
             </div>
           </Link>
+
+          {isOrgMode && activeOrg && (
+            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+              <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+              <span className="text-[11px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-w-[160px] truncate">
+                {activeOrg.name}
+              </span>
+            </div>
+          )}
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1 min-w-0">
@@ -104,6 +125,23 @@ export default function Header() {
 
             <NavLink to="/features">Features</NavLink>
             <NavLink to="/pricing">Pricing</NavLink>
+
+            {isOrgMode && activeOrg && (
+              <>
+                <NavLink to={`/org/${activeOrg.slug}/events`}>
+                  <span className="flex items-center gap-1.5">
+                    <CalendarDays className="w-3.5 h-3.5" />
+                    Events
+                  </span>
+                </NavLink>
+                <NavLink to={`/org/${activeOrg.slug}/members`}>
+                  <span className="flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" />
+                    Members
+                  </span>
+                </NavLink>
+              </>
+            )}
           </nav>
 
           {/* Mobile Navigation (Dropdown) */}
@@ -218,6 +256,7 @@ export default function Header() {
               </Link>
             </Button>
           )}
+          <AccountSwitcher />
           <HeaderUser />
         </div>
       </div>
