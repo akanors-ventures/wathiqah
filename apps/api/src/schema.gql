@@ -40,6 +40,11 @@ enum AssetCategory {
   ITEM
 }
 
+enum AttributionMode {
+  ORG_AND_OPERATOR
+  ORG_ONLY
+}
+
 type AuthPayload {
   accessToken: String
   refreshToken: String
@@ -74,6 +79,7 @@ type Contact {
   lastName: String!
   linkedUserId: String
   name: String!
+  orgId: String
   phoneNumber: String
   transactions: [Transaction!]
   user: User!
@@ -100,6 +106,12 @@ input CreateContactInput {
   email: String
   name: String!
   phoneNumber: String
+}
+
+input CreateOrganisationInput {
+  description: String
+  industry: String
+  name: String!
 }
 
 input CreateProjectInput {
@@ -229,6 +241,11 @@ type InviteContactResponse {
   success: Boolean!
 }
 
+input InviteMemberInput {
+  email: String!
+  role: OrgRole!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -259,6 +276,7 @@ type Mutation {
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createCheckoutSession(currency: String, interval: BillingInterval = MONTHLY, tier: SubscriptionTier!): CheckoutSession!
   createContact(createContactInput: CreateContactInput!): Contact!
+  createOrganisation(input: CreateOrganisationInput!): Organisation!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
   createSupport(createSupportInput: CreateSupportInput!): Support!
@@ -268,14 +286,17 @@ type Mutation {
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
   inviteContactToPlatform(contactId: ID!): InviteContactResponse!
+  inviteMember(input: InviteMemberInput!): OrganisationMember!
   logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
   markSharedHistorySeen: Boolean!
+  promoteContactToOrg(contactId: ID!): Contact!
   provisionPro(input: ProvisionProInput!): User!
   reactivateSubscription: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
+  removeMember(memberId: ID!): Boolean!
   removePromise(id: String!): Promise!
   removeTransaction(id: ID!): Transaction!
   removeWitness(witnessId: ID!): Witness!
@@ -286,13 +307,43 @@ type Mutation {
   revokeAccess(id: String!): AccessGrant!
   setUserRole(input: SetUserRoleInput!): User!
   signup(signupInput: SignupInput!): AuthPayload!
+  switchOrgContext(orgId: String): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
+  updateMemberRole(memberId: ID!, role: OrgRole!): OrganisationMember!
+  updateOrganisation(input: UpdateOrganisationInput!): Organisation!
   updateProject(input: UpdateProjectInput!): Project!
   updateProjectTransaction(input: UpdateProjectTransactionInput!): ProjectTransaction!
   updatePromise(updatePromiseInput: UpdatePromiseInput!): Promise!
   updateTransaction(input: UpdateTransactionInput!): Transaction!
   updateUser(updateUserInput: UpdateUserInput!): User!
   verifyEmail(token: String!): AuthPayload!
+}
+
+enum OrgRole {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+type Organisation {
+  attributionMode: AttributionMode!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  industry: String
+  logoUrl: String
+  name: String!
+  slug: String!
+  updatedAt: DateTime!
+}
+
+type OrganisationMember {
+  id: ID!
+  joinedAt: DateTime!
+  orgId: String!
+  organisation: Organisation!
+  role: OrgRole!
+  userId: String!
 }
 
 type PaginatedContactsResponse {
@@ -427,11 +478,13 @@ type Query {
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions(filter: FilterSharedHistoryInput): PaginatedSharedHistoryResponse!
+  myOrganisations: [Organisation!]!
   myProjects(filter: FilterProjectInput): PaginatedProjectsResponse!
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
   mySupports: [Support!]!
   myWitnessRequests(filter: FilterWitnessInput, status: WitnessStatus): PaginatedWitnessesResponse!
+  organisation(slug: String!): Organisation!
   project(id: ID!): Project!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
@@ -629,6 +682,14 @@ input UpdateContactInput {
   id: ID!
   name: String
   phoneNumber: String
+}
+
+input UpdateOrganisationInput {
+  attributionMode: AttributionMode
+  description: String
+  industry: String
+  logoUrl: String
+  name: String
 }
 
 input UpdateProjectInput {
