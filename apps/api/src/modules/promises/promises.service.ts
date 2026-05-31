@@ -12,21 +12,28 @@ import { PromiseStatus } from '../../generated/prisma/client';
 export class PromisesService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createPromiseInput: CreatePromiseInput, userId: string) {
+  async create(
+    createPromiseInput: CreatePromiseInput,
+    userId: string,
+    orgId: string | null,
+  ) {
     return this.prisma.promise.create({
       data: {
         ...createPromiseInput,
         userId,
+        ...(orgId != null && { orgId }),
       },
     });
   }
 
-  async findAll(userId: string) {
+  async findAll(userId: string, orgId: string | null) {
     // Check for overdue promises and update them
     await this.updateOverduePromises(userId);
 
+    const where = orgId ? { orgId } : { userId, orgId: null };
+
     return this.prisma.promise.findMany({
-      where: { userId },
+      where,
       orderBy: { dueDate: 'asc' },
     });
   }

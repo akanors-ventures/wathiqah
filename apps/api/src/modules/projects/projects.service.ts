@@ -13,21 +13,31 @@ import { PaginatedProjectsResponse } from './entities/paginated-projects-respons
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, input: CreateProjectInput) {
+  async create(
+    userId: string,
+    orgId: string | null,
+    input: CreateProjectInput,
+  ) {
     return this.prisma.project.create({
       data: {
         ...input,
         userId,
+        ...(orgId != null && { orgId }),
       },
     });
   }
 
   async findAll(
     userId: string,
+    orgId: string | null,
     filter?: FilterProjectInput,
   ): Promise<PaginatedProjectsResponse> {
     const page = filter?.page ?? 1;
     const limit = filter?.limit ?? 25;
+
+    const baseWhere: Prisma.ProjectWhereInput = orgId
+      ? { orgId }
+      : { userId, orgId: null };
 
     // Balance standing requires raw SQL (column-vs-column comparison)
     if (
@@ -37,14 +47,24 @@ export class ProjectsService {
       const isOverBudget =
         filter.balanceStanding === ProjectBalanceStanding.OVER_BUDGET;
 
-      const rawIds = await this.prisma.$queryRaw<{ id: string }[]>`
-        SELECT id FROM "projects"
-        WHERE "userId" = ${userId}
-        AND "budget" IS NOT NULL
-        AND ${isOverBudget ? Prisma.sql`"balance" > "budget"` : Prisma.sql`"balance" <= "budget"`}
-        ${filter?.search ? Prisma.sql`AND "name" ILIKE ${'%' + filter.search + '%'}` : Prisma.empty}
-        ${filter?.status ? Prisma.sql`AND "status" = ${filter.status}::"ProjectStatus"` : Prisma.empty}
-      `;
+      const rawIds = orgId
+        ? await this.prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM "projects"
+            WHERE "orgId" = ${orgId}
+            AND "budget" IS NOT NULL
+            AND ${isOverBudget ? Prisma.sql`"balance" > "budget"` : Prisma.sql`"balance" <= "budget"`}
+            ${filter?.search ? Prisma.sql`AND "name" ILIKE ${'%' + filter.search + '%'}` : Prisma.empty}
+            ${filter?.status ? Prisma.sql`AND "status" = ${filter.status}::"ProjectStatus"` : Prisma.empty}
+          `
+        : await this.prisma.$queryRaw<{ id: string }[]>`
+            SELECT id FROM "projects"
+            WHERE "userId" = ${userId}
+            AND "orgId" IS NULL
+            AND "budget" IS NOT NULL
+            AND ${isOverBudget ? Prisma.sql`"balance" > "budget"` : Prisma.sql`"balance" <= "budget"`}
+            ${filter?.search ? Prisma.sql`AND "name" ILIKE ${'%' + filter.search + '%'}` : Prisma.empty}
+            ${filter?.status ? Prisma.sql`AND "status" = ${filter.status}::"ProjectStatus"` : Prisma.empty}
+          `;
 
       const ids = rawIds.map((r) => r.id);
       const total = ids.length;
@@ -64,7 +84,7 @@ export class ProjectsService {
     }
 
     const where: Prisma.ProjectWhereInput = {
-      userId,
+      ...baseWhere,
       ...(filter?.search && {
         name: { contains: filter.search, mode: 'insensitive' },
       }),

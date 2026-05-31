@@ -35,7 +35,10 @@ describe('ProjectsService — findAll pagination', () => {
       },
     ]);
     prisma.project.count.mockResolvedValue(1);
-    const result = await service.findAll('user-1', { page: 1, limit: 10 });
+    const result = await service.findAll('user-1', null, {
+      page: 1,
+      limit: 10,
+    });
     expect(result.total).toBe(1);
     expect(result.items).toHaveLength(1);
   });
@@ -43,7 +46,7 @@ describe('ProjectsService — findAll pagination', () => {
   it('filters by OVER_BUDGET — uses $queryRaw', async () => {
     prisma.$queryRaw.mockResolvedValue([]);
     prisma.project.findMany.mockResolvedValue([]);
-    await service.findAll('user-1', {
+    await service.findAll('user-1', null, {
       balanceStanding: ProjectBalanceStanding.OVER_BUDGET,
     });
     expect(prisma.$queryRaw).toHaveBeenCalled();
