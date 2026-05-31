@@ -123,6 +123,17 @@ export class AuthResolver {
     }
   }
 
+  @Mutation(() => AuthPayload)
+  @UseGuards(GqlAuthGuard)
+  async switchOrgContext(
+    @Args('orgId', { nullable: true, type: () => String }) orgId: string | null,
+    @CurrentUser() user: User,
+  ) {
+    const { accessToken, refreshToken } =
+      await this.authService.switchOrgContext(user.id, user.email, orgId);
+    return { accessToken, refreshToken, user };
+  }
+
   @Mutation(() => Boolean)
   async logout(@Context('req') req: Request, @Context('res') res: Response) {
     // If we have a valid session, also invalidate it in the DB
