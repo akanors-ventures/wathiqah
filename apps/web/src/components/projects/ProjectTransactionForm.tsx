@@ -37,12 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useAmountInput } from "@/hooks/useAmountInput";
 import { useProjects } from "@/hooks/useProjects";
-import {
-  GET_MY_PROJECTS,
-  GET_PROJECT,
-  LOG_PROJECT_TRANSACTION,
-  UPDATE_PROJECT_TRANSACTION,
-} from "@/lib/apollo/queries/projects";
+import { LOG_PROJECT_TRANSACTION, UPDATE_PROJECT_TRANSACTION } from "@/lib/apollo/queries/projects";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { ProjectTransactionType } from "@/types/__generated__/graphql";
@@ -101,17 +96,11 @@ export function ProjectTransactionForm({
   const projectCurrencyId = useId();
 
   const [logTransaction, { loading: logging }] = useMutation(LOG_PROJECT_TRANSACTION, {
-    refetchQueries: [
-      { query: GET_MY_PROJECTS },
-      ...(initialProjectId ? [{ query: GET_PROJECT, variables: { id: initialProjectId } }] : []),
-    ],
+    refetchQueries: ["GetMyProjects", "GetProject"],
   });
 
   const [updateTransaction, { loading: updating }] = useMutation(UPDATE_PROJECT_TRANSACTION, {
-    refetchQueries: [
-      { query: GET_MY_PROJECTS },
-      ...(initialProjectId ? [{ query: GET_PROJECT, variables: { id: initialProjectId } }] : []),
-    ],
+    refetchQueries: ["GetMyProjects", "GetProject"],
   });
 
   const form = useForm<ProjectTransactionFormValues>({
@@ -126,11 +115,6 @@ export function ProjectTransactionForm({
       witnesses: [],
     },
   });
-
-  // Watch projectId to potentially refetch specific project if needed,
-  // but GET_MY_PROJECTS should be enough for the list.
-  // If user selects a project, we might want to refetch that project's details too if we were displaying them,
-  // but here we just log a transaction.
 
   const selectedProject = useMemo(
     () => projects.find((p) => p.id === form.watch("projectId")),
