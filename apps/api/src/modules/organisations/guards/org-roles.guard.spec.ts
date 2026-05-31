@@ -4,6 +4,7 @@ import { OrgRolesGuard, ORG_ROLES_KEY } from './org-roles.guard';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ExecutionContext } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
+import { OrgRole } from '../../../generated/prisma/client';
 
 jest.mock('@nestjs/graphql', () => ({
   GqlExecutionContext: {
@@ -51,31 +52,34 @@ describe('OrgRolesGuard', () => {
   });
 
   it('denies when user has no activeOrgId', async () => {
-    reflector.getAllAndOverride.mockReturnValue(['ADMIN']);
+    reflector.getAllAndOverride.mockReturnValue([OrgRole.ADMIN]);
     const ctx = makeContext({ id: 'u1', activeOrgId: null });
     expect(await guard.canActivate(ctx)).toBe(false);
   });
 
   it('denies when user is not a member of the active org', async () => {
-    reflector.getAllAndOverride.mockReturnValue(['ADMIN']);
+    reflector.getAllAndOverride.mockReturnValue([OrgRole.ADMIN]);
     prisma.organisationMember.findUnique.mockResolvedValue(null);
     const ctx = makeContext({ id: 'u1', activeOrgId: 'org1' });
     expect(await guard.canActivate(ctx)).toBe(false);
   });
 
   it('denies when member role does not satisfy required roles', async () => {
-    reflector.getAllAndOverride.mockReturnValue(['ADMIN']);
+    reflector.getAllAndOverride.mockReturnValue([OrgRole.ADMIN]);
     prisma.organisationMember.findUnique.mockResolvedValue({
-      role: 'OPERATOR',
+      role: OrgRole.OPERATOR,
     });
     const ctx = makeContext({ id: 'u1', activeOrgId: 'org1' });
     expect(await guard.canActivate(ctx)).toBe(false);
   });
 
   it('allows when member role satisfies required roles', async () => {
-    reflector.getAllAndOverride.mockReturnValue(['ADMIN', 'OPERATOR']);
+    reflector.getAllAndOverride.mockReturnValue([
+      OrgRole.ADMIN,
+      OrgRole.OPERATOR,
+    ]);
     prisma.organisationMember.findUnique.mockResolvedValue({
-      role: 'OPERATOR',
+      role: OrgRole.OPERATOR,
     });
     const ctx = makeContext({ id: 'u1', activeOrgId: 'org1' });
     expect(await guard.canActivate(ctx)).toBe(true);
