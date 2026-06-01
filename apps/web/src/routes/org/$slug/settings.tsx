@@ -36,7 +36,7 @@ function SettingsPage() {
   const industryId = useId();
   const descriptionId = useId();
 
-  const { data, loading } = useQuery(MY_ORGANISATIONS_QUERY);
+  const { data, loading, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org = data?.myOrganisations.find((o) => o.slug === slug);
 
   const isAdmin = org?.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
@@ -66,6 +66,7 @@ function SettingsPage() {
   async function onSubmit(formData: UpdateOrganisationInput) {
     try {
       await updateOrganisation({ variables: { input: formData } });
+      await refetch();
       toast.success("Organisation settings saved");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save settings");
@@ -73,8 +74,8 @@ function SettingsPage() {
   }
 
   if (loading) return <BrandLoader />;
-  if (!org) return null;
   if (!user) return <BrandLoader />;
+  if (!org) return null;
 
   if (!isAdmin) {
     return (
