@@ -23,8 +23,10 @@ CREATE TABLE "public"."user_notes" (
   "category" text NULL,
   "createdAt" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   "updatedAt" timestamp(3) NOT NULL,
-  PRIMARY KEY ("id"),
-  CONSTRAINT "user_notes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users" ("id") ON UPDATE CASCADE ON DELETE RESTRICT
+  PRIMARY KEY ("id")
 );
 -- Create index "user_notes_userId_createdAt_idx" to table: "user_notes"
 CREATE INDEX "user_notes_userId_createdAt_idx" ON "public"."user_notes" ("userId", "createdAt");
+-- Add FK constraint separately using NOT VALID + VALIDATE pattern
+ALTER TABLE "public"."user_notes" ADD CONSTRAINT "user_notes_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."users" ("id") ON UPDATE CASCADE ON DELETE CASCADE NOT VALID;
+ALTER TABLE "public"."user_notes" VALIDATE CONSTRAINT "user_notes_userId_fkey";
