@@ -37,6 +37,8 @@ import type {
   CreateOrgNoteInput,
   OrgEvent,
   OrgNote,
+  UpdateOrgEventInput,
+  UpdateOrgNoteInput,
 } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -81,14 +83,14 @@ function EventsPage() {
   const [editingNote, setEditingNote] = useState<OrgNote | null>(null);
 
   // ── Queries ──
+  // Note: category filtering is done client-side so sidebar counts remain accurate across
+  // all categories. The backend scopes results to the active org via JWT (@ActiveOrg()).
   const {
     data: eventsData,
     loading: eventsLoading,
     refetch: refetchEvents,
-  } = useQuery(ORG_UPCOMING_EVENTS_QUERY, { variables: { category: categoryFilter } });
-  const { data: notesData, refetch: refetchNotes } = useQuery(ORG_NOTES_QUERY, {
-    variables: { category: categoryFilter },
-  });
+  } = useQuery(ORG_UPCOMING_EVENTS_QUERY);
+  const { data: notesData, refetch: refetchNotes } = useQuery(ORG_NOTES_QUERY);
   const { data: suggestionsData } = useQuery(ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY);
 
   // ── Mutations ──
@@ -99,9 +101,15 @@ function EventsPage() {
   const [updateOrgNote] = useMutation(UPDATE_ORG_NOTE_MUTATION);
   const [removeOrgNote] = useMutation(REMOVE_ORG_NOTE_MUTATION);
 
-  const upcomingEvents = eventsData?.orgUpcomingEvents ?? [];
-  const notes = notesData?.orgNotes ?? [];
+  // Keep full lists for sidebar counts; apply category filter only for display
+  const allUpcomingEvents = eventsData?.orgUpcomingEvents ?? [];
+  const allNotes = notesData?.orgNotes ?? [];
   const suggestions = suggestionsData?.orgEventCategorySuggestions ?? [];
+
+  const upcomingEvents = categoryFilter
+    ? allUpcomingEvents.filter((e) => e.category === categoryFilter)
+    : allUpcomingEvents;
+  const notes = categoryFilter ? allNotes.filter((n) => n.category === categoryFilter) : allNotes;
 
   // Group events by time horizon
   const thisWeekEvents = upcomingEvents.filter((e) => isThisWeek(new Date(e.date)));
@@ -132,21 +140,28 @@ function EventsPage() {
   }
 
   async function handleEventSubmit(formData: EventFormValues) {
-    const input: CreateOrgEventInput = {
-      title: formData.title,
-      date: formData.date,
-      category: formData.category,
-      notes: formData.notes || undefined,
-      isRecurring: formData.isRecurring,
-      recurrence: formData.isRecurring && formData.recurrence ? formData.recurrence : undefined,
-    };
-
     try {
       if (editingEvent) {
-        await updateOrgEvent({ variables: { id: editingEvent.id, input } });
+        const updateInput: UpdateOrgEventInput = {
+          title: formData.title,
+          date: formData.date,
+          category: formData.category,
+          notes: formData.notes || undefined,
+          isRecurring: formData.isRecurring,
+          recurrence: formData.isRecurring && formData.recurrence ? formData.recurrence : undefined,
+        };
+        await updateOrgEvent({ variables: { id: editingEvent.id, input: updateInput } });
         toast.success("Event updated");
       } else {
-        await createOrgEvent({ variables: { input } });
+        const createInput: CreateOrgEventInput = {
+          title: formData.title,
+          date: formData.date,
+          category: formData.category,
+          notes: formData.notes || undefined,
+          isRecurring: formData.isRecurring,
+          recurrence: formData.isRecurring && formData.recurrence ? formData.recurrence : undefined,
+        };
+        await createOrgEvent({ variables: { input: createInput } });
         toast.success("Event added");
       }
       await refetchEvents();
@@ -154,6 +169,7 @@ function EventsPage() {
       setEditingEvent(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save event");
+      throw err;
     }
   }
 
@@ -189,17 +205,20 @@ function EventsPage() {
   }
 
   async function handleNoteSubmit(formData: NoteFormValues) {
-    const input: CreateOrgNoteInput = {
-      body: formData.body,
-      category: formData.category || undefined,
-    };
-
     try {
       if (editingNote) {
-        await updateOrgNote({ variables: { id: editingNote.id, input } });
+        const updateInput: UpdateOrgNoteInput = {
+          body: formData.body,
+          category: formData.category || undefined,
+        };
+        await updateOrgNote({ variables: { id: editingNote.id, input: updateInput } });
         toast.success("Note updated");
       } else {
-        await createOrgNote({ variables: { input } });
+        const createInput: CreateOrgNoteInput = {
+          body: formData.body,
+          category: formData.category || undefined,
+        };
+        await createOrgNote({ variables: { input: createInput } });
         toast.success("Note saved");
       }
       await refetchNotes();
@@ -207,6 +226,7 @@ function EventsPage() {
       setEditingNote(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save note");
+      throw err;
     }
   }
 
@@ -346,7 +366,7 @@ function EventsPage() {
             <div className="space-y-0.5">
               <FilterOption
                 label="All"
-                count={upcomingEvents.length}
+                count={allUpcomingEvents.length}
                 active={!categoryFilter}
                 onClick={() => setCategoryFilter(undefined)}
               />
@@ -354,7 +374,7 @@ function EventsPage() {
                 <FilterOption
                   key={cat}
                   label={cat}
-                  count={upcomingEvents.filter((e) => e.category === cat).length}
+                  count={allUpcomingEvents.filter((e) => e.category === cat).length}
                   active={categoryFilter === cat}
                   onClick={() => setCategoryFilter(cat === categoryFilter ? undefined : cat)}
                 />
