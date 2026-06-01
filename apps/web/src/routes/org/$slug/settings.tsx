@@ -74,6 +74,7 @@ function SettingsPage() {
 
   if (loading) return <BrandLoader />;
   if (!org) return null;
+  if (!user) return <BrandLoader />;
 
   if (!isAdmin) {
     return (
