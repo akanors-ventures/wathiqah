@@ -431,6 +431,7 @@ function EventForm({
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<EventFormValues>({
     defaultValues: {
@@ -453,8 +454,13 @@ function EventForm({
   const recurringId = useId();
   const recurrenceId = useId();
 
+  async function handleFormSubmit(values: EventFormValues) {
+    await onSubmit(values);
+    reset();
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-2">
       <div className="space-y-1.5">
         <Label htmlFor={titleId}>Title</Label>
         <Input
@@ -554,6 +560,7 @@ function NoteForm({
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<NoteFormValues>({
     defaultValues: {
@@ -566,8 +573,13 @@ function NoteForm({
   const bodyId = useId();
   const noteCategoryId = useId();
 
+  async function handleFormSubmit(values: NoteFormValues) {
+    await onSubmit(values);
+    reset();
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-2">
       <div className="space-y-1.5">
         <Label htmlFor={bodyId}>Note</Label>
         <Textarea
