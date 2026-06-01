@@ -132,3 +132,8 @@ export type OrgEvent = Prisma.OrgEventModel
  * 
  */
 export type OrgNote = Prisma.OrgNoteModel
+/**
+ * Model UserNote
+ * 
+ */
+export type UserNote = Prisma.UserNoteModel

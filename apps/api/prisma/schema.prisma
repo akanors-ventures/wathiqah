@@ -44,6 +44,7 @@ model User {
   organisationMembers        OrganisationMember[]
   orgEventsCreated           OrgEvent[]           @relation("OrgEventCreator")
   orgNotesCreated            OrgNote[]            @relation("OrgNoteCreator")
+  userNotes                  UserNote[]
 
   @@index([phoneNumber])
   @@map("users")
@@ -542,4 +543,18 @@ enum OrgRole {
 enum AttributionMode {
   ORG_ONLY
   ORG_AND_OPERATOR
+}
+
+model UserNote {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  category  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@map("user_notes")
 }
