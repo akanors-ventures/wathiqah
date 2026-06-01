@@ -1,19 +1,43 @@
-import { useQuery } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { isThisMonth, isThisWeek } from "date-fns";
 import { CalendarDays, PenLine, Plus } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { EventCard } from "@/components/org/event-card";
 import { NoteEntry } from "@/components/org/note-entry";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
+  CREATE_ORG_EVENT_MUTATION,
+  CREATE_ORG_NOTE_MUTATION,
   ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY,
   ORG_NOTES_QUERY,
   ORG_UPCOMING_EVENTS_QUERY,
+  REMOVE_ORG_EVENT_MUTATION,
+  REMOVE_ORG_NOTE_MUTATION,
+  UPDATE_ORG_EVENT_MUTATION,
+  UPDATE_ORG_NOTE_MUTATION,
 } from "@/lib/apollo/queries/organisations";
+import type {
+  CreateOrgEventInput,
+  CreateOrgNoteInput,
+  OrgEvent,
+  OrgNote,
+} from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/org/$slug/events")({
@@ -21,16 +45,59 @@ export const Route = createFileRoute("/org/$slug/events")({
   beforeLoad: (ctx) => authGuard({ location: ctx.location }),
 });
 
+// ─── Event form types ────────────────────────────────────────────────────────
+
+type EventFormValues = {
+  title: string;
+  date: string;
+  category: string;
+  notes: string;
+  isRecurring: boolean;
+  recurrence: string;
+};
+
+type NoteFormValues = {
+  body: string;
+  category: string;
+};
+
+// ─── Helper: format DateTime string to YYYY-MM-DD ────────────────────────────
+
+function toDateInputValue(isoString: string): string {
+  // isoString may be "2026-06-01T00:00:00.000Z" or "2026-06-01"
+  return isoString.split("T")[0];
+}
+
+// ─── EventsPage ──────────────────────────────────────────────────────────────
+
 function EventsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
-  const { data: eventsData, loading: eventsLoading } = useQuery(ORG_UPCOMING_EVENTS_QUERY, {
-    variables: { category: categoryFilter },
-  });
-  const { data: notesData } = useQuery(ORG_NOTES_QUERY, {
+  // ── Dialog state ──
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<OrgEvent | null>(null);
+
+  const [noteDialogOpen, setNoteDialogOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState<OrgNote | null>(null);
+
+  // ── Queries ──
+  const {
+    data: eventsData,
+    loading: eventsLoading,
+    refetch: refetchEvents,
+  } = useQuery(ORG_UPCOMING_EVENTS_QUERY, { variables: { category: categoryFilter } });
+  const { data: notesData, refetch: refetchNotes } = useQuery(ORG_NOTES_QUERY, {
     variables: { category: categoryFilter },
   });
   const { data: suggestionsData } = useQuery(ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY);
+
+  // ── Mutations ──
+  const [createOrgEvent] = useMutation(CREATE_ORG_EVENT_MUTATION);
+  const [updateOrgEvent] = useMutation(UPDATE_ORG_EVENT_MUTATION);
+  const [removeOrgEvent] = useMutation(REMOVE_ORG_EVENT_MUTATION);
+  const [createOrgNote] = useMutation(CREATE_ORG_NOTE_MUTATION);
+  const [updateOrgNote] = useMutation(UPDATE_ORG_NOTE_MUTATION);
+  const [removeOrgNote] = useMutation(REMOVE_ORG_NOTE_MUTATION);
 
   const upcomingEvents = eventsData?.orgUpcomingEvents ?? [];
   const notes = notesData?.orgNotes ?? [];
@@ -45,6 +112,116 @@ function EventsPage() {
     (e) => !isThisWeek(new Date(e.date)) && !isThisMonth(new Date(e.date)),
   );
 
+  // ── Event dialog handlers ──
+
+  function openCreateEvent() {
+    setEditingEvent(null);
+    setEventDialogOpen(true);
+  }
+
+  function openEditEvent(event: OrgEvent) {
+    setEditingEvent(event);
+    setEventDialogOpen(true);
+  }
+
+  function handleEventDialogClose(open: boolean) {
+    if (!open) {
+      setEventDialogOpen(false);
+      setEditingEvent(null);
+    }
+  }
+
+  async function handleEventSubmit(formData: EventFormValues) {
+    const input: CreateOrgEventInput = {
+      title: formData.title,
+      date: formData.date,
+      category: formData.category,
+      notes: formData.notes || undefined,
+      isRecurring: formData.isRecurring,
+      recurrence: formData.isRecurring && formData.recurrence ? formData.recurrence : undefined,
+    };
+
+    try {
+      if (editingEvent) {
+        await updateOrgEvent({ variables: { id: editingEvent.id, input } });
+        toast.success("Event updated");
+      } else {
+        await createOrgEvent({ variables: { input } });
+        toast.success("Event added");
+      }
+      await refetchEvents();
+      setEventDialogOpen(false);
+      setEditingEvent(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save event");
+    }
+  }
+
+  async function handleDeleteEvent(id: string) {
+    try {
+      await removeOrgEvent({ variables: { id } });
+      await refetchEvents();
+      setEventDialogOpen(false);
+      setEditingEvent(null);
+      toast.success("Event deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete event");
+    }
+  }
+
+  // ── Note dialog handlers ──
+
+  function openCreateNote() {
+    setEditingNote(null);
+    setNoteDialogOpen(true);
+  }
+
+  function openEditNote(note: OrgNote) {
+    setEditingNote(note);
+    setNoteDialogOpen(true);
+  }
+
+  function handleNoteDialogClose(open: boolean) {
+    if (!open) {
+      setNoteDialogOpen(false);
+      setEditingNote(null);
+    }
+  }
+
+  async function handleNoteSubmit(formData: NoteFormValues) {
+    const input: CreateOrgNoteInput = {
+      body: formData.body,
+      category: formData.category || undefined,
+    };
+
+    try {
+      if (editingNote) {
+        await updateOrgNote({ variables: { id: editingNote.id, input } });
+        toast.success("Note updated");
+      } else {
+        await createOrgNote({ variables: { input } });
+        toast.success("Note saved");
+      }
+      await refetchNotes();
+      setNoteDialogOpen(false);
+      setEditingNote(null);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save note");
+    }
+  }
+
+  async function handleDeleteNote(id: string) {
+    try {
+      await removeOrgNote({ variables: { id } });
+      await refetchNotes();
+      setNoteDialogOpen(false);
+      setEditingNote(null);
+      toast.success("Note deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete note");
+    }
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Page header */}
@@ -56,12 +233,11 @@ function EventsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {/* TODO: open create-note form */}
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={openCreateNote}>
             <PenLine className="h-4 w-4 mr-1.5" />
             Add Note
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={openCreateEvent}>
             <Plus className="h-4 w-4 mr-1.5" />
             Add Event
           </Button>
@@ -95,7 +271,7 @@ function EventsPage() {
                   <SectionLabel>This week</SectionLabel>
                   <div className="space-y-2">
                     {thisWeekEvents.map((e) => (
-                      <EventCard key={e.id} event={e} />
+                      <EventCard key={e.id} event={e} onEdit={openEditEvent} />
                     ))}
                   </div>
                 </section>
@@ -106,7 +282,7 @@ function EventsPage() {
                   <SectionLabel>This month</SectionLabel>
                   <div className="space-y-2">
                     {thisMonthEvents.map((e) => (
-                      <EventCard key={e.id} event={e} />
+                      <EventCard key={e.id} event={e} onEdit={openEditEvent} />
                     ))}
                   </div>
                 </section>
@@ -117,7 +293,7 @@ function EventsPage() {
                   <SectionLabel>Upcoming</SectionLabel>
                   <div className="space-y-2">
                     {laterEvents.map((e) => (
-                      <EventCard key={e.id} event={e} />
+                      <EventCard key={e.id} event={e} onEdit={openEditEvent} />
                     ))}
                   </div>
                 </section>
@@ -134,9 +310,9 @@ function EventsPage() {
 
             <TabsContent value="notes" className="mt-4">
               {/* Write prompt */}
-              {/* TODO: open create-note form */}
               <button
                 type="button"
+                onClick={openCreateNote}
                 className="w-full text-left p-4 rounded-xl border border-dashed border-border bg-background hover:border-primary/30 mb-4 transition-all"
               >
                 <p className="text-[12px] font-semibold text-muted-foreground">+ Write a note…</p>
@@ -147,7 +323,7 @@ function EventsPage() {
 
               <div className="space-y-3">
                 {notes.map((note) => (
-                  <NoteEntry key={note.id} note={note} />
+                  <NoteEntry key={note.id} note={note} onEdit={openEditNote} />
                 ))}
               </div>
 
@@ -187,9 +363,253 @@ function EventsPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Event Dialog ── */}
+      <Dialog open={eventDialogOpen} onOpenChange={handleEventDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingEvent ? "Edit Event" : "New Event"}</DialogTitle>
+          </DialogHeader>
+          <EventForm
+            key={editingEvent?.id ?? "new-event"}
+            defaultValues={
+              editingEvent
+                ? {
+                    title: editingEvent.title,
+                    date: toDateInputValue(editingEvent.date),
+                    category: editingEvent.category,
+                    notes: editingEvent.notes ?? "",
+                    isRecurring: editingEvent.isRecurring,
+                    recurrence: editingEvent.recurrence ?? "",
+                  }
+                : undefined
+            }
+            onSubmit={handleEventSubmit}
+            onDelete={editingEvent ? () => handleDeleteEvent(editingEvent.id) : undefined}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Note Dialog ── */}
+      <Dialog open={noteDialogOpen} onOpenChange={handleNoteDialogClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingNote ? "Edit Note" : "New Note"}</DialogTitle>
+          </DialogHeader>
+          <NoteForm
+            key={editingNote?.id ?? "new-note"}
+            defaultValues={
+              editingNote
+                ? {
+                    body: editingNote.body,
+                    category: editingNote.category ?? "",
+                  }
+                : undefined
+            }
+            onSubmit={handleNoteSubmit}
+            onDelete={editingNote ? () => handleDeleteNote(editingNote.id) : undefined}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+
+// ─── EventForm ───────────────────────────────────────────────────────────────
+
+function EventForm({
+  defaultValues,
+  onSubmit,
+  onDelete,
+}: {
+  defaultValues?: Partial<EventFormValues>;
+  onSubmit: (values: EventFormValues) => Promise<void>;
+  onDelete?: () => Promise<void>;
+}) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<EventFormValues>({
+    defaultValues: {
+      title: "",
+      date: "",
+      category: "",
+      notes: "",
+      isRecurring: false,
+      recurrence: "",
+      ...defaultValues,
+    },
+  });
+
+  const isRecurring = watch("isRecurring");
+
+  const titleId = useId();
+  const dateId = useId();
+  const categoryId = useId();
+  const notesId = useId();
+  const recurringId = useId();
+  const recurrenceId = useId();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+      <div className="space-y-1.5">
+        <Label htmlFor={titleId}>Title</Label>
+        <Input
+          id={titleId}
+          placeholder="Event title"
+          {...register("title", { required: "Title is required" })}
+        />
+        {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor={dateId}>Date</Label>
+        <input
+          id={dateId}
+          type="date"
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          {...register("date", { required: "Date is required" })}
+        />
+        {errors.date && <p className="text-xs text-destructive">{errors.date.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor={categoryId}>Category</Label>
+        <Input
+          id={categoryId}
+          placeholder="e.g. Vaccination, Islamic Calendar, Breeding"
+          {...register("category", { required: "Category is required" })}
+        />
+        {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor={notesId}>Notes</Label>
+        <Textarea
+          id={notesId}
+          placeholder="Optional notes about this event"
+          {...register("notes")}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <input
+          id={recurringId}
+          type="checkbox"
+          checked={isRecurring}
+          onChange={(e) => setValue("isRecurring", e.target.checked)}
+          className="h-4 w-4 rounded border border-input accent-primary cursor-pointer"
+        />
+        <Label htmlFor={recurringId} className="cursor-pointer font-normal">
+          Recurring event
+        </Label>
+      </div>
+
+      {isRecurring && (
+        <div className="space-y-1.5">
+          <Label htmlFor={recurrenceId}>Recurrence</Label>
+          <Input
+            id={recurrenceId}
+            placeholder="e.g. WEEKLY, ANNUALLY"
+            {...register("recurrence")}
+          />
+        </div>
+      )}
+
+      <DialogFooter className="gap-2 pt-2">
+        {onDelete && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-destructive border-destructive hover:bg-destructive/10 mr-auto"
+            onClick={onDelete}
+            disabled={isSubmitting}
+          >
+            Delete
+          </Button>
+        )}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving…" : defaultValues?.title ? "Save changes" : "Add Event"}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
+// ─── NoteForm ────────────────────────────────────────────────────────────────
+
+function NoteForm({
+  defaultValues,
+  onSubmit,
+  onDelete,
+}: {
+  defaultValues?: Partial<NoteFormValues>;
+  onSubmit: (values: NoteFormValues) => Promise<void>;
+  onDelete?: () => Promise<void>;
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<NoteFormValues>({
+    defaultValues: {
+      body: "",
+      category: "",
+      ...defaultValues,
+    },
+  });
+
+  const bodyId = useId();
+  const noteCategoryId = useId();
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-2">
+      <div className="space-y-1.5">
+        <Label htmlFor={bodyId}>Note</Label>
+        <Textarea
+          id={bodyId}
+          rows={5}
+          placeholder="Write your note here…"
+          {...register("body", { required: "Note body is required" })}
+        />
+        {errors.body && <p className="text-xs text-destructive">{errors.body.message}</p>}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor={noteCategoryId}>Category (optional)</Label>
+        <Input
+          id={noteCategoryId}
+          placeholder="e.g. Meeting notes, Decision, Observation"
+          {...register("category")}
+        />
+      </div>
+
+      <DialogFooter className="gap-2 pt-2">
+        {onDelete && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="text-destructive border-destructive hover:bg-destructive/10 mr-auto"
+            onClick={onDelete}
+            disabled={isSubmitting}
+          >
+            Delete
+          </Button>
+        )}
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Saving…" : defaultValues?.body ? "Save changes" : "Save Note"}
+        </Button>
+      </DialogFooter>
+    </form>
+  );
+}
+
+// ─── SectionLabel ─────────────────────────────────────────────────────────────
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -201,6 +621,8 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+// ─── FilterOption ─────────────────────────────────────────────────────────────
 
 function FilterOption({
   label,
