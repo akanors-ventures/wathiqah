@@ -43,6 +43,7 @@ import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contac
 import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
 import { Route as SharedAccessViewGrantIdRouteImport } from './routes/shared-access/view.$grantId'
+import { Route as OrgSlugSettingsRouteImport } from './routes/org/$slug/settings'
 import { Route as OrgSlugMembersRouteImport } from './routes/org/$slug/members'
 import { Route as OrgSlugEventsRouteImport } from './routes/org/$slug/events'
 
@@ -217,6 +218,11 @@ const SharedAccessViewGrantIdRoute = SharedAccessViewGrantIdRouteImport.update({
   path: '/shared-access/view/$grantId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrgSlugSettingsRoute = OrgSlugSettingsRouteImport.update({
+  id: '/org/$slug/settings',
+  path: '/org/$slug/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OrgSlugMembersRoute = OrgSlugMembersRouteImport.update({
   id: '/org/$slug/members',
   path: '/org/$slug/members',
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/witnesses/': typeof WitnessesIndexRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
   '/org/$slug/members': typeof OrgSlugMembersRoute
+  '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
   '/org/$slug/': typeof OrgSlugIndexRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/witnesses': typeof WitnessesIndexRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
   '/org/$slug/members': typeof OrgSlugMembersRoute
+  '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
   '/org/$slug': typeof OrgSlugIndexRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/witnesses/': typeof WitnessesIndexRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
   '/org/$slug/members': typeof OrgSlugMembersRoute
+  '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
   '/org/$slug/': typeof OrgSlugIndexRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/witnesses/'
     | '/org/$slug/events'
     | '/org/$slug/members'
+    | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
     | '/org/$slug/'
@@ -417,6 +427,7 @@ export interface FileRouteTypes {
     | '/witnesses'
     | '/org/$slug/events'
     | '/org/$slug/members'
+    | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
     | '/org/$slug'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/witnesses/'
     | '/org/$slug/events'
     | '/org/$slug/members'
+    | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
     | '/org/$slug/'
@@ -494,6 +506,7 @@ export interface RootRouteChildren {
   WitnessesIndexRoute: typeof WitnessesIndexRoute
   OrgSlugEventsRoute: typeof OrgSlugEventsRoute
   OrgSlugMembersRoute: typeof OrgSlugMembersRoute
+  OrgSlugSettingsRoute: typeof OrgSlugSettingsRoute
   SharedAccessViewGrantIdRoute: typeof SharedAccessViewGrantIdRoute
   WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute
   OrgSlugIndexRoute: typeof OrgSlugIndexRoute
@@ -739,6 +752,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SharedAccessViewGrantIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/org/$slug/settings': {
+      id: '/org/$slug/settings'
+      path: '/org/$slug/settings'
+      fullPath: '/org/$slug/settings'
+      preLoaderRoute: typeof OrgSlugSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/org/$slug/members': {
       id: '/org/$slug/members'
       path: '/org/$slug/members'
@@ -791,6 +811,7 @@ const rootRouteChildren: RootRouteChildren = {
   WitnessesIndexRoute: WitnessesIndexRoute,
   OrgSlugEventsRoute: OrgSlugEventsRoute,
   OrgSlugMembersRoute: OrgSlugMembersRoute,
+  OrgSlugSettingsRoute: OrgSlugSettingsRoute,
   SharedAccessViewGrantIdRoute: SharedAccessViewGrantIdRoute,
   WitnessesInviteTokenRoute: WitnessesInviteTokenRoute,
   OrgSlugIndexRoute: OrgSlugIndexRoute,
