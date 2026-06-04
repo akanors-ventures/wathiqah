@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import {
@@ -72,6 +73,36 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     },
     [switchOrgContextMutation, apolloClient],
   );
+
+  // Restore org-scoped JWT on mount/after token refresh.
+  // When the JWT is refreshed by apollo-links.ts, the new token loses activeOrgId.
+  // This effect detects that case and re-calls switchOrgContext once to restore it.
+  const hasRestoredOrgContext = useRef<boolean>(false);
+
+  useEffect(() => {
+    // Only run once per provider mount
+    if (hasRestoredOrgContext.current) return;
+    // Nothing to restore if not in org mode
+    if (!activeOrgId) return;
+    // Wait for orgs to load before we can validate the org exists
+    if (loadingOrgs) return;
+
+    const orgExists = myOrgs.some((o) => o.id === activeOrgId);
+    if (!orgExists) {
+      // Org no longer accessible — clear stale selection
+      localStorage.removeItem(ORG_STORAGE_KEY);
+      setActiveOrgId(null);
+      return;
+    }
+
+    hasRestoredOrgContext.current = true;
+    // Re-issue a JWT with activeOrgId so backend queries are org-scoped
+    switchToOrg(activeOrgId).catch(() => {
+      // If restoration fails (e.g. network error), clear selection silently
+      localStorage.removeItem(ORG_STORAGE_KEY);
+      setActiveOrgId(null);
+    });
+  }, [activeOrgId, loadingOrgs, myOrgs, switchToOrg]);
 
   const value = useMemo(
     () => ({
