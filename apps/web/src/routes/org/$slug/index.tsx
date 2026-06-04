@@ -6,6 +6,7 @@ import { OrgStatsRow } from "@/components/org/org-stats-row";
 import { Button } from "@/components/ui/button";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { useAuth } from "@/hooks/use-auth";
+import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
 import {
   MY_ORGANISATIONS_QUERY,
   ORG_UPCOMING_EVENTS_QUERY,
@@ -20,6 +21,7 @@ export const Route = createFileRoute("/org/$slug/")({
 
 function OrgDashboardPage() {
   const { slug } = Route.useParams();
+  useOrgFromSlug(slug);
   const { user } = useAuth();
   const { data: orgsData } = useQuery(MY_ORGANISATIONS_QUERY);
   const org = orgsData?.myOrganisations.find((o) => o.slug === slug);

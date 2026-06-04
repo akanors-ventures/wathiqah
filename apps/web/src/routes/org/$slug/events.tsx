@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
 import {
   CREATE_ORG_EVENT_MUTATION,
   CREATE_ORG_NOTE_MUTATION,
@@ -73,6 +74,8 @@ function toDateInputValue(isoString: string): string {
 // ─── EventsPage ──────────────────────────────────────────────────────────────
 
 function EventsPage() {
+  const { slug } = Route.useParams();
+  useOrgFromSlug(slug);
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
   // ── Dialog state ──

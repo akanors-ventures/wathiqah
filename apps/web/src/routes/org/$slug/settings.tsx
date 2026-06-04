@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/hooks/use-auth";
+import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
 import {
   MY_ORGANISATIONS_QUERY,
   UPDATE_ORGANISATION_MUTATION,
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/org/$slug/settings")({
 
 function SettingsPage() {
   const { slug } = Route.useParams();
+  useOrgFromSlug(slug);
   const { user } = useAuth();
   const nameId = useId();
   const industryId = useId();

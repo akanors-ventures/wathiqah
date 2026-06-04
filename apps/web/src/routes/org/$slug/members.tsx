@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
+import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
 import {
   INVITE_MEMBER_MUTATION,
   MY_ORGANISATIONS_QUERY,
@@ -41,6 +42,7 @@ export const Route = createFileRoute("/org/$slug/members")({
 
 function MembersPage() {
   const { slug } = Route.useParams();
+  useOrgFromSlug(slug);
   const { user } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
 
