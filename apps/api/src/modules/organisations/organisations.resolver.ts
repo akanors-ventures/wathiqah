@@ -4,6 +4,7 @@ import {
   Mutation,
   Args,
   ID,
+  Int,
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
@@ -18,14 +19,18 @@ import { OrganisationMember } from './entities/organisation-member.entity';
 import { CreateOrganisationInput } from './dto/create-organisation.input';
 import { UpdateOrganisationInput } from './dto/update-organisation.input';
 import { InviteMemberInput } from './dto/invite-member.input';
-import { OrgRole } from '../../generated/prisma/client';
+import { OrgRole, ProjectStatus } from '../../generated/prisma/client';
 import { User } from '../users/entities/user.entity';
 import { Contact } from '../contacts/entities/contact.entity';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Resolver(() => Organisation)
 @UseGuards(GqlAuthGuard)
 export class OrganisationsResolver {
-  constructor(private readonly orgsService: OrganisationsService) {}
+  constructor(
+    private readonly orgsService: OrganisationsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
   @Mutation(() => Organisation)
   createOrganisation(
@@ -102,5 +107,22 @@ export class OrganisationsResolver {
   @ResolveField(() => [OrganisationMember])
   async members(@Parent() org: Organisation) {
     return this.orgsService.getOrgMembers(org.id);
+  }
+
+  @ResolveField(() => Int)
+  async transactionCount(@Parent() org: Organisation): Promise<number> {
+    return this.prisma.transaction.count({ where: { orgId: org.id } });
+  }
+
+  @ResolveField(() => Int)
+  async contactCount(@Parent() org: Organisation): Promise<number> {
+    return this.prisma.contact.count({ where: { orgId: org.id } });
+  }
+
+  @ResolveField(() => Int)
+  async activeProjectCount(@Parent() org: Organisation): Promise<number> {
+    return this.prisma.project.count({
+      where: { orgId: org.id, status: ProjectStatus.ACTIVE },
+    });
   }
 }

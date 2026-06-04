@@ -65,10 +65,10 @@ function OrgDashboardPage() {
     <div className="container mx-auto px-4 py-8 space-y-6">
       <OrgHero org={org} isAdmin={isAdmin} />
       <OrgStatsRow
-        transactionCount={0}
-        contactCount={0}
+        transactionCount={org.transactionCount}
+        contactCount={org.contactCount}
         upcomingEventCount={upcomingEvents.length}
-        activeProjectCount={0}
+        activeProjectCount={org.activeProjectCount}
       />
 
       {/* Quick actions */}

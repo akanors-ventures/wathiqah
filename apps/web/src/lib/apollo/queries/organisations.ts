@@ -48,6 +48,9 @@ export const ORGANISATION_FIELDS = gql`
     logoUrl
     attributionMode
     createdAt
+    transactionCount
+    contactCount
+    activeProjectCount
   }
 `;
 

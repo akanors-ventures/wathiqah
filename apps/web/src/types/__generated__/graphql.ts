@@ -651,7 +651,9 @@ export enum OrgRole {
 
 export type Organisation = {
   __typename: 'Organisation';
+  activeProjectCount: Scalars['Int']['output'];
   attributionMode: AttributionMode;
+  contactCount: Scalars['Int']['output'];
   createdAt: Scalars['DateTime']['output'];
   description: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -660,6 +662,7 @@ export type Organisation = {
   members: Array<OrganisationMember>;
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
+  transactionCount: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -1425,12 +1428,12 @@ export type GetGeoIpInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: string, countryCode: string, countryName: string, regionName: string, cityName: string, currencyCode: string | null, isVpn: boolean } };
 
-export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string };
+export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number };
 
 export type MyOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyOrganisationsQuery = { myOrganisations: Array<{ __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, members: Array<{ __typename: 'OrganisationMember', id: string, userId: string, role: OrgRole, joinedAt: string, user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } }> }> };
+export type MyOrganisationsQuery = { myOrganisations: Array<{ __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number, members: Array<{ __typename: 'OrganisationMember', id: string, userId: string, role: OrgRole, joinedAt: string, user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } }> }> };
 
 export type SwitchOrgContextMutationVariables = Exact<{
   orgId?: InputMaybe<Scalars['String']['input']>;
@@ -1444,14 +1447,14 @@ export type CreateOrganisationMutationVariables = Exact<{
 }>;
 
 
-export type CreateOrganisationMutation = { createOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string } };
+export type CreateOrganisationMutation = { createOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number } };
 
 export type UpdateOrganisationMutationVariables = Exact<{
   input: UpdateOrganisationInput;
 }>;
 
 
-export type UpdateOrganisationMutation = { updateOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string } };
+export type UpdateOrganisationMutation = { updateOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number } };
 
 export type InviteMemberMutationVariables = Exact<{
   input: InviteMemberInput;

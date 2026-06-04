@@ -372,7 +372,9 @@ enum OrgRole {
 }
 
 type Organisation {
+  activeProjectCount: Int!
   attributionMode: AttributionMode!
+  contactCount: Int!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -381,6 +383,7 @@ type Organisation {
   members: [OrganisationMember!]!
   name: String!
   slug: String!
+  transactionCount: Int!
   updatedAt: DateTime!
 }
 
