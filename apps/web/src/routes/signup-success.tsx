@@ -48,9 +48,13 @@ function SignupSuccessPage() {
 
     setIsResending(true);
     try {
-      await resendVerificationEmail(email);
-      toast.success("Verification email resent!");
-      setCountdown(60); // 1 minute cooldown
+      const result = await resendVerificationEmail(email);
+      if (result === false) {
+        toast.info("Your account is already verified. You can log in.");
+      } else {
+        toast.success("Verification email resent!");
+        setCountdown(60); // 1 minute cooldown
+      }
     } catch (_err) {
       toast.error("Failed to resend verification email. Please try again later.");
     } finally {

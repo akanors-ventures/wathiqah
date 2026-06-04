@@ -33,6 +33,7 @@ model User {
   contacts                   Contact[]
   projects                   Project[]
   promises                   Promise[]
+  personalEntries            PersonalEntry[]
   transactionHistory         TransactionHistory[]         @relation("HistoryUser")
   projectTransactionHistory  ProjectTransactionHistory[]  @relation("ProjectHistoryUser")
   transactions               Transaction[]        @relation("TransactionCreator")
@@ -248,6 +249,22 @@ model ProjectTransactionHistory {
   @@map("project_transaction_history")
 }
 
+model PersonalEntry {
+  id          String            @id @default(uuid())
+  type        PersonalEntryType
+  amount      Decimal           @db.Decimal(10, 2)
+  currency    String            @default("NGN")
+  category    String?
+  date        DateTime
+  description String?
+  createdAt   DateTime          @default(now())
+  createdById String
+  createdBy   User              @relation(fields: [createdById], references: [id])
+
+  @@index([createdById])
+  @@map("personal_entries")
+}
+
 model Promise {
   id          String        @id @default(uuid())
   description String
@@ -328,8 +345,6 @@ enum AssetCategory {
 }
 
 enum TransactionType {
-  EXPENSE
-  INCOME
   LOAN_GIVEN
   LOAN_RECEIVED
   REPAYMENT_MADE
@@ -358,6 +373,11 @@ enum WitnessStatus {
 }
 
 enum ProjectTransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum PersonalEntryType {
   INCOME
   EXPENSE
 }

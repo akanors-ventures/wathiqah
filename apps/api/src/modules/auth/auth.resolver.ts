@@ -4,7 +4,7 @@ import { AuthPayload } from './entities/auth-payload.entity';
 import { SignupInput } from './dto/signup.input';
 import { LoginInput } from './dto/login.input';
 import { RefreshTokenInput } from './dto/refresh-token.input';
-import { UseGuards, UnauthorizedException } from '@nestjs/common';
+import { UseGuards, UnauthorizedException, Logger } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
@@ -19,17 +19,32 @@ import { ConfigService } from '@nestjs/config';
 
 @Resolver(() => AuthPayload)
 export class AuthResolver {
+  private readonly logger = new Logger(AuthResolver.name);
+  private readonly accessMaxAge: number;
+  private readonly refreshMaxAge: number;
+
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    this.accessMaxAge = ms(
+      this.configService.getOrThrow<string>(
+        'auth.jwt.expiration',
+      ) as ms.StringValue,
+    );
+    this.refreshMaxAge = ms(
+      this.configService.getOrThrow<string>(
+        'auth.jwt.refreshExpiration',
+      ) as ms.StringValue,
+    );
+  }
 
   private setCookies(res: Response, payload: AuthPayload) {
     const isProd = process.env.NODE_ENV === 'production';
     const domain = this.configService.get<string>('app.cookieDomain');
 
-    console.log(
-      `[AuthResolver] Setting cookies. Domain: ${domain || 'none'}, isProd: ${isProd}`,
+    this.logger.debug(
+      `Setting cookies. Domain: ${domain ?? 'none'}, isProd: ${isProd}`,
     );
 
     // Security Note: SameSite: 'lax' is safer than 'none' and works across subdomains
@@ -44,18 +59,18 @@ export class AuthResolver {
 
     res.cookie('accessToken', payload.accessToken, {
       ...cookieOptions,
-      maxAge: ms('15m'),
+      maxAge: this.accessMaxAge,
     });
 
     res.cookie('refreshToken', payload.refreshToken, {
       ...cookieOptions,
-      maxAge: ms('7d'),
+      maxAge: this.refreshMaxAge,
     });
 
     res.cookie('isLoggedIn', 'true', {
       ...cookieOptions,
       httpOnly: false, // JS needs to read this to sync AuthContext state
-      maxAge: ms('7d'),
+      maxAge: this.refreshMaxAge,
     });
   }
 
@@ -63,7 +78,7 @@ export class AuthResolver {
     const domain = this.configService.get<string>('app.cookieDomain');
     const options = { path: '/', ...(domain ? { domain } : {}) };
 
-    console.log(`[AuthResolver] Clearing cookies. Domain: ${domain || 'none'}`);
+    this.logger.debug(`Clearing cookies. Domain: ${domain ?? 'none'}`);
 
     res.clearCookie('accessToken', options);
     res.clearCookie('refreshToken', options);
@@ -113,14 +128,9 @@ export class AuthResolver {
       throw new UnauthorizedException('Refresh token not found');
     }
 
-    try {
-      const payload = await this.authService.refreshToken(refreshToken);
-      this.setCookies(res, payload);
-      return payload;
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      throw new UnauthorizedException(message);
-    }
+    const payload = await this.authService.refreshToken(refreshToken);
+    this.setCookies(res, payload);
+    return payload;
   }
 
   @Mutation(() => AuthPayload)
@@ -149,9 +159,8 @@ export class AuthResolver {
         }
       } catch (error) {
         // Ignore verification errors during logout, we still want to clear cookies
-        console.debug(
-          '[AuthResolver] Error during logout session invalidation:',
-          error instanceof Error ? error.message : String(error),
+        this.logger.debug(
+          `Error during logout session invalidation: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
     }
@@ -169,11 +178,6 @@ export class AuthResolver {
     );
     this.setCookies(res, payload);
     return payload;
-  }
-
-  @Query(() => Witness)
-  witnessInvitation(@Args('token') token: string) {
-    return this.authService.getWitnessInvitation(token);
   }
 
   @Mutation(() => Boolean)

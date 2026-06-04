@@ -31,6 +31,8 @@ import { User } from 'src/generated/prisma/client';
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly accessExpiry: string;
+  private readonly refreshExpiry: string;
 
   constructor(
     private usersService: UsersService,
@@ -39,36 +41,30 @@ export class AuthService {
     private prisma: PrismaService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
-  ) {}
+  ) {
+    this.accessExpiry = this.configService.getOrThrow<string>(
+      'auth.jwt.expiration',
+    );
+    this.refreshExpiry = this.configService.getOrThrow<string>(
+      'auth.jwt.refreshExpiration',
+    );
+  }
 
   private async generateTokens(
     userId: string,
     email: string,
     activeOrgId?: string | null,
   ) {
-    const accessExpiry = ms(
-      this.configService.getOrThrow<string>(
-        'auth.jwt.expiration',
-      ) as ms.StringValue,
-    );
-    const refreshExpiry = ms(
-      this.configService.getOrThrow<string>(
-        'auth.jwt.refreshExpiration',
-      ) as ms.StringValue,
-    );
-
     const accessPayload: Record<string, unknown> = { sub: userId, email };
     if (activeOrgId) accessPayload.activeOrgId = activeOrgId;
 
     const accessToken = await this.jwtService.signAsync(accessPayload, {
-      expiresIn: accessExpiry,
+      expiresIn: this.accessExpiry as ms.StringValue,
     });
 
     const refreshToken = await this.jwtService.signAsync(
       { sub: userId, email },
-      {
-        expiresIn: refreshExpiry,
-      },
+      { expiresIn: this.refreshExpiry as ms.StringValue },
     );
 
     const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
@@ -408,9 +404,10 @@ export class AuthService {
       return true;
     }
 
-    // If user is already verified, we can just return true
+    // If user is already verified, return false to allow callers to show
+    // a more helpful message ("account already verified, go log in")
     if (user.isEmailVerified) {
-      return true;
+      return false;
     }
 
     // Generate verification token
@@ -457,6 +454,10 @@ export class AuthService {
 
     await this.usersService.updatePassword(userId, passwordHash);
 
+    // Invalidate all existing sessions to prevent use of old refresh tokens
+    // after a password reset.
+    await this.usersService.updateRefreshToken(userId, null);
+
     // Invalidate token
     await this.cacheManager.del(redisKey);
 
@@ -487,6 +488,10 @@ export class AuthService {
 
     await this.usersService.updatePassword(userId, passwordHash);
 
+    // Invalidate all existing sessions so a compromised old password
+    // cannot be used to refresh tokens.
+    await this.usersService.updateRefreshToken(userId, null);
+
     return true;
   }
 
@@ -512,42 +517,40 @@ export class AuthService {
     }
 
     if (user.isEmailVerified) {
-      // Clear verification token if it somehow still exists
       await this.cacheManager.del(redisKey);
-      // Ensure we have the verified record
-      await this.cacheManager.set(verifiedKey, user.id, ms('24h'));
+      await this.cacheManager.set(
+        verifiedKey,
+        user.id,
+        ms('24h' as ms.StringValue),
+      );
       throw new ConflictException('Account already verified');
     }
 
-    // Generate tokens
+    // Commit DB writes atomically before issuing tokens.
+    // If either fails, no tokens are issued and the verification link remains valid.
+    await this.prisma.$transaction(async (prisma) => {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isEmailVerified: true },
+      });
+      await prisma.contact.updateMany({
+        where: { email: user.email, linkedUserId: null },
+        data: { linkedUserId: user.id },
+      });
+    });
+
+    // Consume the verification token only after DB writes succeed.
+    await this.cacheManager.del(redisKey);
+    await this.cacheManager.set(
+      verifiedKey,
+      user.id,
+      ms('24h' as ms.StringValue),
+    );
+
     const { accessToken, refreshToken } = await this.generateTokens(
       user.id,
       user.email,
     );
-
-    // Clear verification token
-    await this.cacheManager.del(redisKey);
-
-    // Store a temporary record that this token was used to verify an account
-    // This allows us to show a better message if the user clicks the link again
-    await this.cacheManager.set(verifiedKey, user.id, ms('24h'));
-
-    // Update user status
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { isEmailVerified: true },
-    });
-
-    // Link existing contacts
-    await this.prisma.contact.updateMany({
-      where: {
-        email: user.email,
-        linkedUserId: null,
-      },
-      data: {
-        linkedUserId: user.id,
-      },
-    });
 
     return {
       accessToken,

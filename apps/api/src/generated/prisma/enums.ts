@@ -36,8 +36,6 @@ export type AssetCategory = (typeof AssetCategory)[keyof typeof AssetCategory]
 
 
 export const TransactionType = {
-  EXPENSE: 'EXPENSE',
-  INCOME: 'INCOME',
   LOAN_GIVEN: 'LOAN_GIVEN',
   LOAN_RECEIVED: 'LOAN_RECEIVED',
   REPAYMENT_MADE: 'REPAYMENT_MADE',
@@ -80,6 +78,14 @@ export const ProjectTransactionType = {
 } as const
 
 export type ProjectTransactionType = (typeof ProjectTransactionType)[keyof typeof ProjectTransactionType]
+
+
+export const PersonalEntryType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE'
+} as const
+
+export type PersonalEntryType = (typeof PersonalEntryType)[keyof typeof PersonalEntryType]
 
 
 export const ProjectStatus = {

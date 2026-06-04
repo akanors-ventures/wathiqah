@@ -21,6 +21,7 @@ import { MaintenanceModule } from './modules/maintenance/maintenance.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { PersonalEntriesModule } from './modules/personal-entries/personal-entries.module';
 import { GeoIPModule } from './modules/geoip/geoip.module';
 import { OrganisationsModule } from './modules/organisations/organisations.module';
 import { OrgEventsModule } from './modules/org-events/org-events.module';
@@ -136,6 +137,7 @@ import { GraphQLError } from 'graphql';
       formatError: (error) => {
         const originalError = error.extensions?.originalError as {
           message?: string | string[];
+          statusCode?: number;
         };
         let message = error.message;
 
@@ -145,7 +147,26 @@ import { GraphQLError } from 'graphql';
             : originalError.message;
         }
 
-        const code = error.extensions?.code || 'INTERNAL_SERVER_ERROR';
+        const HTTP_STATUS_TO_CODE: Record<number, string> = {
+          400: 'BAD_USER_INPUT',
+          401: 'UNAUTHENTICATED',
+          403: 'FORBIDDEN',
+          404: 'NOT_FOUND',
+          409: 'CONFLICT',
+          422: 'UNPROCESSABLE_ENTITY',
+          429: 'TOO_MANY_REQUESTS',
+        };
+
+        const rawCode = error.extensions?.code as string | undefined;
+        const code =
+          (rawCode && rawCode !== 'INTERNAL_SERVER_ERROR'
+            ? rawCode
+            : originalError?.statusCode
+              ? (HTTP_STATUS_TO_CODE[originalError.statusCode] ??
+                'INTERNAL_SERVER_ERROR')
+              : null) ??
+          rawCode ??
+          'INTERNAL_SERVER_ERROR';
 
         // Enhanced error logging for server errors
         if (code === 'INTERNAL_SERVER_ERROR') {
@@ -190,6 +211,7 @@ import { GraphQLError } from 'graphql';
     MaintenanceModule,
     AdminModule,
     ProjectsModule,
+    PersonalEntriesModule,
     QueueModule,
     GeoIPModule,
     OrganisationsModule,
