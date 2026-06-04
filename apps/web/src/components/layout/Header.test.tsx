@@ -35,6 +35,22 @@ vi.mock("@/context/AuthContext", () => ({
   useAuthContext: vi.fn(),
 }));
 
+// Mock OrgContext — Header now uses useActiveOrg and AccountSwitcher uses useOrgContext
+vi.mock("@/context/OrgContext", () => ({
+  useOrgContext: vi.fn(() => ({
+    activeOrg: null,
+    myOrgs: [],
+    loadingOrgs: false,
+    switchToOrg: vi.fn(),
+    isOrgMode: false,
+  })),
+  OrgProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("@/hooks/use-active-org", () => ({
+  useActiveOrg: vi.fn(() => ({ activeOrg: null, isOrgMode: false, switchToOrg: vi.fn() })),
+}));
+
 // Mock useSubscription
 vi.mock("@/hooks/useSubscription", () => ({
   useSubscription: vi.fn(() => ({ isPro: false, loading: false })),
