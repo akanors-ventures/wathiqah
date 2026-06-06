@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
 import {
@@ -38,8 +39,14 @@ function SettingsPage() {
   const industryId = useId();
   const descriptionId = useId();
 
-  const { data, loading, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
-  const org = data?.myOrganisations.find((o) => o.slug === slug);
+  // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
+  // Keep the per-page query only for refetch after saving settings.
+  const { activeOrg, loadingOrgs } = useOrgContext();
+  const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
+  const org =
+    activeOrg?.slug === slug
+      ? activeOrg
+      : (data?.myOrganisations.find((o) => o.slug === slug) ?? null);
 
   const isAdmin = org?.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
 
@@ -75,8 +82,7 @@ function SettingsPage() {
     }
   }
 
-  if (loading) return <BrandLoader />;
-  if (!user) return <BrandLoader />;
+  if (loadingOrgs || !user) return <BrandLoader />;
   if (!org) return null;
 
   if (!isAdmin) {

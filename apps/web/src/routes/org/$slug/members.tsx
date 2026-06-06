@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
 import {
@@ -46,8 +47,14 @@ function MembersPage() {
   const { user } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const { data, loading, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
-  const org = data?.myOrganisations.find((o) => o.slug === slug);
+  // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
+  // Keep the per-page query only for refetch after mutations (cache update).
+  const { activeOrg, loadingOrgs } = useOrgContext();
+  const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
+  const org =
+    activeOrg?.slug === slug
+      ? activeOrg
+      : (data?.myOrganisations.find((o) => o.slug === slug) ?? null);
   const members = org?.members ?? [];
 
   const currentMember = members.find((m) => m.userId === user?.id);
@@ -97,7 +104,7 @@ function MembersPage() {
     }
   }
 
-  if (loading) return <BrandLoader />;
+  if (loadingOrgs || !org) return <BrandLoader />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

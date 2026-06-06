@@ -65,12 +65,15 @@ export default function Header() {
           </Link>
 
           {isOrgMode && activeOrg && (
-            <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+            <Link
+              to={`/org/${activeOrg.slug}`}
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
+            >
               <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
               <span className="text-[11px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-w-[160px] truncate">
                 {activeOrg.name}
               </span>
-            </div>
+            </Link>
           )}
 
           {/* Desktop Navigation */}
@@ -129,12 +132,6 @@ export default function Header() {
 
             {isOrgMode && activeOrg && (
               <>
-                <NavLink to={`/org/${activeOrg.slug}`}>
-                  <span className="flex items-center gap-1.5">
-                    <LayoutGrid className="w-3.5 h-3.5" />
-                    Dashboard
-                  </span>
-                </NavLink>
                 <NavLink to={`/org/${activeOrg.slug}/events`}>
                   <span className="flex items-center gap-1.5">
                     <CalendarDays className="w-3.5 h-3.5" />

@@ -5,12 +5,10 @@ import { OrgHero } from "@/components/org/org-hero";
 import { OrgStatsRow } from "@/components/org/org-stats-row";
 import { Button } from "@/components/ui/button";
 import { BrandLoader } from "@/components/ui/page-loader";
+import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
-import {
-  MY_ORGANISATIONS_QUERY,
-  ORG_UPCOMING_EVENTS_QUERY,
-} from "@/lib/apollo/queries/organisations";
+import { ORG_UPCOMING_EVENTS_QUERY } from "@/lib/apollo/queries/organisations";
 import { OrgRole } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -23,14 +21,18 @@ function OrgDashboardPage() {
   const { slug } = Route.useParams();
   useOrgFromSlug(slug);
   const { user } = useAuth();
-  const { data: orgsData } = useQuery(MY_ORGANISATIONS_QUERY);
-  const org = orgsData?.myOrganisations.find((o) => o.slug === slug);
+
+  // Use OrgContext directly — it already has MY_ORGANISATIONS_QUERY warm and
+  // reactive. Avoids a duplicate query instance that can race with useOrgFromSlug's
+  // switchToOrg → refetchQueries and leave the page stuck in a loading state.
+  const { activeOrg, loadingOrgs } = useOrgContext();
+  const org = activeOrg?.slug === slug ? activeOrg : null;
 
   const { data: eventsData } = useQuery(ORG_UPCOMING_EVENTS_QUERY, {
     skip: !org,
   });
 
-  if (!org) return <BrandLoader />;
+  if (loadingOrgs || !org) return <BrandLoader />;
 
   const isAdmin = org.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
 
