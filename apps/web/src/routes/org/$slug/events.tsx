@@ -75,7 +75,7 @@ function toDateInputValue(isoString: string): string {
 
 function EventsPage() {
   const { slug } = Route.useParams();
-  useOrgFromSlug(slug);
+  const { isSyncing } = useOrgFromSlug(slug);
   const [categoryFilter, setCategoryFilter] = useState<string | undefined>();
 
   // ── Dialog state ──
@@ -244,6 +244,8 @@ function EventsPage() {
       toast.error(err instanceof Error ? err.message : "Failed to delete note");
     }
   }
+
+  if (isSyncing) return <BrandLoader />;
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -33,7 +33,7 @@ export const Route = createFileRoute("/org/$slug/settings")({
 
 function SettingsPage() {
   const { slug } = Route.useParams();
-  useOrgFromSlug(slug);
+  const { isSyncing } = useOrgFromSlug(slug);
   const { user } = useAuth();
   const nameId = useId();
   const industryId = useId();
@@ -82,7 +82,7 @@ function SettingsPage() {
     }
   }
 
-  if (loadingOrgs || !user) return <BrandLoader />;
+  if (loadingOrgs || isSyncing || !user) return <BrandLoader />;
   if (!org) return null;
 
   if (!isAdmin) {

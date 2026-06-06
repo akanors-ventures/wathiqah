@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOrgContext } from "@/context/OrgContext";
 
 /**
@@ -19,46 +19,64 @@ function getJwtActiveOrgId(): string | null {
   }
 }
 
+function needsSwitch(
+  slug: string,
+  activeOrgId: string | undefined,
+  myOrgs: Array<{ id: string; slug: string }>,
+): boolean {
+  const targetOrg = myOrgs.find((o) => o.slug === slug);
+  if (!targetOrg) return false;
+  return !(activeOrgId === targetOrg.id && getJwtActiveOrgId() === targetOrg.id);
+}
+
 /**
  * Ensures the active-org JWT matches the org identified by the URL slug.
  *
- * Two cases are handled:
- *   1. User navigates directly to /org/beta/events while org A is active
- *      → switches JWT to beta so backend @ActiveOrg() queries target beta.
- *   2. The access token was refreshed (expiry) and the new token lost its
- *      activeOrgId field → re-issues the token with the correct org.
+ * Returns { isSyncing } so callers can gate rendering until the JWT is
+ * correct — preventing a flash of org-A's data when navigating to org-B.
  *
- * Called on every org-scoped page. Works together with AccountSwitcher which
- * navigates to the destination org's page AFTER the switch completes, so by
- * the time this hook runs the context already matches and no extra switch fires.
+ * Two cases are handled:
+ *   1. User navigates directly to /org/beta/events while org A is active.
+ *   2. The access token was refreshed and lost its activeOrgId field.
  */
-export function useOrgFromSlug(slug: string): void {
+export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
   const { activeOrg, myOrgs, switchToOrg } = useOrgContext();
   const switchingRef = useRef(false);
 
+  // Initialise synchronously so the FIRST render already knows whether a
+  // switch is needed — prevents a brief flash with the wrong org's data.
+  const [isSyncing, setIsSyncing] = useState(() => needsSwitch(slug, activeOrg?.id, myOrgs));
+
   useEffect(() => {
     const targetOrg = myOrgs.find((o) => o.slug === slug);
-    if (!targetOrg) return; // org not in user's list — page will show 404 via !org check
+    if (!targetOrg) {
+      setIsSyncing(false);
+      return;
+    }
 
     const contextMatches = activeOrg?.id === targetOrg.id;
     const jwtMatches = getJwtActiveOrgId() === targetOrg.id;
 
-    // Both context and JWT already correct — nothing to do.
     if (contextMatches && jwtMatches) {
       switchingRef.current = false;
+      setIsSyncing(false);
       return;
     }
 
-    // Prevent duplicate concurrent switches.
     if (switchingRef.current) return;
 
     switchingRef.current = true;
+    setIsSyncing(true);
     switchToOrg(targetOrg.id)
       .then(() => {
         switchingRef.current = false;
+        setIsSyncing(false);
       })
       .catch(() => {
         switchingRef.current = false;
+        setIsSyncing(false);
       });
   }, [slug, activeOrg?.id, myOrgs, switchToOrg]);
+
+  return { isSyncing };
 }

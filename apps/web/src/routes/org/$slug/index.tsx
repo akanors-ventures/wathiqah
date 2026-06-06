@@ -19,7 +19,7 @@ export const Route = createFileRoute("/org/$slug/")({
 
 function OrgDashboardPage() {
   const { slug } = Route.useParams();
-  useOrgFromSlug(slug);
+  const { isSyncing } = useOrgFromSlug(slug);
   const { user } = useAuth();
 
   // Derive org from myOrgs by slug — NOT from activeOrg.
@@ -33,7 +33,7 @@ function OrgDashboardPage() {
     skip: !org,
   });
 
-  if (loadingOrgs || !org) return <BrandLoader />;
+  if (loadingOrgs || isSyncing || !org) return <BrandLoader />;
 
   const isAdmin = org.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
 

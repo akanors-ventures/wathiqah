@@ -43,7 +43,7 @@ export const Route = createFileRoute("/org/$slug/members")({
 
 function MembersPage() {
   const { slug } = Route.useParams();
-  useOrgFromSlug(slug);
+  const { isSyncing } = useOrgFromSlug(slug);
   const { user } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
 
@@ -104,7 +104,7 @@ function MembersPage() {
     }
   }
 
-  if (loadingOrgs || !org) return <BrandLoader />;
+  if (loadingOrgs || isSyncing || !org) return <BrandLoader />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

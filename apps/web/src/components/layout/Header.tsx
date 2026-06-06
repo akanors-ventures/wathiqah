@@ -1,14 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRightLeft,
-  CalendarDays,
   ChevronDown,
   FileSignature,
   FolderKanban,
   Handshake,
   History,
   LayoutGrid,
-  Settings,
   Users,
   Zap,
 } from "lucide-react";
@@ -44,10 +42,11 @@ export default function Header() {
       )}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 lg:gap-8 min-w-0">
+        <div className="flex items-center gap-3 lg:gap-6 min-w-0">
+          {/* Logo */}
           <Link
             to="/"
-            className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02]"
+            className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02] shrink-0"
             aria-label="Wathīqah Home"
           >
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-sm group-hover:shadow-md">
@@ -64,10 +63,11 @@ export default function Header() {
             </div>
           </Link>
 
+          {/* Active org badge — links to org dashboard */}
           {isOrgMode && activeOrg && (
             <Link
               to={`/org/${activeOrg.slug}`}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors shrink-0 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
             >
               <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
               <span className="text-[11px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-w-[160px] truncate">
@@ -76,7 +76,7 @@ export default function Header() {
             </Link>
           )}
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation — global links only; org nav is in OrgNavBar */}
           <nav className="hidden md:flex items-center gap-1 min-w-0">
             <NavDropdown label="Ledger" icon={<ArrowRightLeft className="w-4 h-4" />}>
               <DropdownMenuItem asChild>
@@ -129,26 +129,9 @@ export default function Header() {
 
             <NavLink to="/features">Features</NavLink>
             <NavLink to="/pricing">Pricing</NavLink>
-
-            {isOrgMode && activeOrg && (
-              <>
-                <NavLink to={`/org/${activeOrg.slug}/events`}>
-                  <span className="flex items-center gap-1.5">
-                    <CalendarDays className="w-3.5 h-3.5" />
-                    Events
-                  </span>
-                </NavLink>
-                <NavLink to={`/org/${activeOrg.slug}/members`}>
-                  <span className="flex items-center gap-1.5">
-                    <Users className="w-3.5 h-3.5" />
-                    Members
-                  </span>
-                </NavLink>
-              </>
-            )}
           </nav>
 
-          {/* Mobile Navigation (Dropdown) */}
+          {/* Mobile Navigation — global links only; org tabs are in OrgNavBar */}
           <div className="md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -213,51 +196,6 @@ export default function Header() {
                     <span>Witness Requests</span>
                   </Link>
                 </DropdownMenuItem>
-
-                {isOrgMode && activeOrg && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                      Organisation
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={`/org/${activeOrg.slug}`}
-                        className="cursor-pointer flex items-center gap-2"
-                      >
-                        <LayoutGrid className="h-4 w-4 text-blue-500" />
-                        <span>Dashboard</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={`/org/${activeOrg.slug}/events`}
-                        className="cursor-pointer flex items-center gap-2"
-                      >
-                        <CalendarDays className="h-4 w-4 text-blue-500" />
-                        <span>Events &amp; Notes</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={`/org/${activeOrg.slug}/members`}
-                        className="cursor-pointer flex items-center gap-2"
-                      >
-                        <Users className="h-4 w-4 text-blue-500" />
-                        <span>Members</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={`/org/${activeOrg.slug}/settings`}
-                        className="cursor-pointer flex items-center gap-2"
-                      >
-                        <Settings className="h-4 w-4 text-blue-500" />
-                        <span>Settings</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
 
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">

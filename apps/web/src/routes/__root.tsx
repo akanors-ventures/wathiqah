@@ -3,6 +3,7 @@ import { TanStackDevtools } from "@tanstack/react-devtools";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { OrgNavBar } from "@/components/org/org-nav-bar";
 import Header from "../components/layout/Header";
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools";
 import appCss from "../styles.css?url";
@@ -93,6 +94,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <AuthProvider>
             <OrgProvider>
               <Header />
+              <OrgNavBar />
               <main className="flex-1 flex flex-col min-w-0 w-full overflow-x-hidden">
                 {children}
               </main>
