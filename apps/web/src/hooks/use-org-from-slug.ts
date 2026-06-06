@@ -46,7 +46,7 @@ function jwtNeedsSwitch(slug: string, myOrgs: Array<{ id: string; slug: string }
  * is momentarily stale), avoiding an unnecessary round-trip after a switch.
  */
 export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
-  const { activeOrg, myOrgs, switchToOrg, autoSwitchBlocked } = useOrgContext();
+  const { myOrgs, switchToOrg, autoSwitchBlocked } = useOrgContext();
   const switchingRef = useRef(false);
 
   // Initialise synchronously from the JWT (not React state) so the very
@@ -88,9 +88,7 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
         switchingRef.current = false;
         setIsSyncing(false);
       });
-    // activeOrg?.id omitted — effect no longer reads it (checks JWT only).
     // autoSwitchBlocked is a stable ref object — safe to include in deps.
-    // biome-ignore lint/correctness/useExhaustiveDependencies: activeOrg?.id intentionally omitted
   }, [slug, myOrgs, switchToOrg, autoSwitchBlocked]);
 
   return { isSyncing };
