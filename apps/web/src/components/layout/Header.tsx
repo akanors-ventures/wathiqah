@@ -8,6 +8,7 @@ import {
   Handshake,
   History,
   LayoutGrid,
+  Settings,
   Users,
   Zap,
 } from "lucide-react";
@@ -209,6 +210,51 @@ export default function Header() {
                     <span>Witness Requests</span>
                   </Link>
                 </DropdownMenuItem>
+
+                {isOrgMode && activeOrg && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
+                      Organisation
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={`/org/${activeOrg.slug}`}
+                        className="cursor-pointer flex items-center gap-2"
+                      >
+                        <LayoutGrid className="h-4 w-4 text-blue-500" />
+                        <span>Dashboard</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={`/org/${activeOrg.slug}/events`}
+                        className="cursor-pointer flex items-center gap-2"
+                      >
+                        <CalendarDays className="h-4 w-4 text-blue-500" />
+                        <span>Events &amp; Notes</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={`/org/${activeOrg.slug}/members`}
+                        className="cursor-pointer flex items-center gap-2"
+                      >
+                        <Users className="h-4 w-4 text-blue-500" />
+                        <span>Members</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={`/org/${activeOrg.slug}/settings`}
+                        className="cursor-pointer flex items-center gap-2"
+                      >
+                        <Settings className="h-4 w-4 text-blue-500" />
+                        <span>Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
 
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">

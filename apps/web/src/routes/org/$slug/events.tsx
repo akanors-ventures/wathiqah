@@ -395,6 +395,7 @@ function EventsPage() {
           </DialogHeader>
           <EventForm
             key={editingEvent?.id ?? "new-event"}
+            suggestions={suggestions}
             defaultValues={
               editingEvent
                 ? {
@@ -442,10 +443,12 @@ function EventsPage() {
 
 function EventForm({
   defaultValues,
+  suggestions,
   onSubmit,
   onDelete,
 }: {
   defaultValues?: Partial<EventFormValues>;
+  suggestions: string[];
   onSubmit: (values: EventFormValues) => Promise<void>;
   onDelete?: () => Promise<void>;
 }) {
@@ -509,9 +512,22 @@ function EventForm({
         <Label htmlFor={categoryId}>Category</Label>
         <Input
           id={categoryId}
-          placeholder="e.g. Vaccination, Islamic Calendar, Breeding"
+          list={`${categoryId}-list`}
+          placeholder={
+            suggestions.length > 0
+              ? "Select or type a category"
+              : "e.g. Vaccination, Islamic Calendar, Breeding"
+          }
+          autoComplete="off"
           {...register("category", { required: "Category is required" })}
         />
+        {suggestions.length > 0 && (
+          <datalist id={`${categoryId}-list`}>
+            {suggestions.map((cat) => (
+              <option key={cat} value={cat} />
+            ))}
+          </datalist>
+        )}
         {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
       </div>
 

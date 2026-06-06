@@ -7,14 +7,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrgEventInput } from './dto/create-org-event.input';
 import { UpdateOrgEventInput } from './dto/update-org-event.input';
 
-export const PREDEFINED_EVENT_CATEGORIES = [
-  'Vaccination',
-  'Breeding',
-  'Islamic Calendar',
-  'Regulatory',
-  'Commercial',
-];
-
 @Injectable()
 export class OrgEventsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -53,8 +45,14 @@ export class OrgEventsService {
     });
   }
 
-  categorySuggestions() {
-    return PREDEFINED_EVENT_CATEGORIES;
+  async usedCategories(orgId: string): Promise<string[]> {
+    const rows = await this.prisma.orgEvent.findMany({
+      where: { orgId },
+      select: { category: true },
+      distinct: ['category'],
+      orderBy: { category: 'asc' },
+    });
+    return rows.map((r) => r.category);
   }
 
   async update(id: string, input: UpdateOrgEventInput, orgId: string) {
