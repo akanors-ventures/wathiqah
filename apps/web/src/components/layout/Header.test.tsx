@@ -9,6 +9,7 @@ import Header from "./Header";
 // Mock router
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+  useRouterState: vi.fn(() => ({ location: { pathname: "/" } })),
   Link: ({
     children,
     to,

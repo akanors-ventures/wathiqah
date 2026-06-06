@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ArrowRightLeft,
   ChevronDown,
@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useActiveOrg } from "@/hooks/use-active-org";
@@ -24,10 +23,80 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 import HeaderUser from "../auth/header-user";
 
+// ─── Nav item type ────────────────────────────────────────────────────────────
+
+type NavItem = {
+  icon: React.ElementType;
+  iconColor: string;
+  label: string;
+  description: string;
+  href: string;
+  search?: Record<string, string>;
+  match: string; // prefix to test against pathname for active state
+};
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
 export default function Header() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
   const { activeOrg, isOrgMode } = useActiveOrg();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const ledgerItems: NavItem[] = [
+    {
+      icon: ArrowRightLeft,
+      iconColor: "text-blue-500",
+      label: "Transactions",
+      description: "Funds, loans, gifts & payments",
+      href: "/transactions",
+      search: { tab: "funds" },
+      match: "/transactions",
+    },
+    {
+      icon: History,
+      iconColor: "text-orange-500",
+      label: "My Records",
+      description: "Transactions you appear in",
+      href: "/transactions/my-contact-transactions",
+      match: "/transactions/my-contact-transactions",
+    },
+    {
+      icon: FolderKanban,
+      iconColor: "text-violet-500",
+      label: "Projects",
+      description: "Budget & expense tracking",
+      href: "/projects",
+      match: "/projects",
+    },
+  ];
+
+  const networkItems: NavItem[] = [
+    {
+      icon: Users,
+      iconColor: "text-indigo-500",
+      label: "Contacts",
+      description: "People you transact with",
+      href: "/contacts",
+      match: "/contacts",
+    },
+    {
+      icon: Handshake,
+      iconColor: "text-emerald-500",
+      label: "Promises",
+      description: "Track commitments & agreements",
+      href: "/promises",
+      match: "/promises",
+    },
+    {
+      icon: FileSignature,
+      iconColor: "text-purple-500",
+      label: "Witnesses",
+      description: "Transaction witness requests",
+      href: "/witnesses",
+      match: "/witnesses",
+    },
+  ];
 
   return (
     <header
@@ -39,7 +108,8 @@ export default function Header() {
       )}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-3 lg:gap-6 min-w-0">
+        {/* Left: logo + org badge + nav */}
+        <div className="flex items-center gap-3 lg:gap-5 min-w-0">
           {/* Logo */}
           <Link
             to="/"
@@ -50,94 +120,62 @@ export default function Header() {
               <AppLogo className="h-5 w-5" />
               <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary/20 group-hover:ring-transparent transition-all duration-300" />
             </div>
-            <div className="hidden lg:grid grid-cols-1 grid-rows-1 h-9 items-center overflow-hidden text-left pr-1 w-max">
-              <span className="col-start-1 row-start-1 font-bold text-xl leading-none tracking-tight text-primary transition-all duration-300 group-hover:-translate-y-2 group-hover:text-primary whitespace-nowrap">
-                Wathīqah
-              </span>
-              <span className="col-start-1 row-start-1 self-end text-[0.6rem] font-medium tracking-normal text-muted-foreground uppercase opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out text-nowrap">
-                Ledger of Trust
-              </span>
-            </div>
+            <span className="hidden lg:block font-bold text-xl leading-none tracking-tight text-primary whitespace-nowrap">
+              Wathīqah
+            </span>
           </Link>
 
-          {/* Active org badge — links to org dashboard. Visible on all screen sizes. */}
+          {/* Divider (desktop) */}
+          {isOrgMode && activeOrg && (
+            <span className="hidden md:block h-5 w-px bg-blue-200 dark:bg-blue-700 shrink-0" />
+          )}
+
+          {/* Active org badge */}
           {isOrgMode && activeOrg && (
             <Link
               to={`/org/${activeOrg.slug}`}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors shrink-0 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-150 shrink-0
+                bg-blue-600/10 border-blue-300/60 hover:bg-blue-600/20 hover:border-blue-400
+                dark:bg-blue-500/15 dark:border-blue-600/50 dark:hover:bg-blue-500/25"
             >
-              <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-              <span className="text-[11px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-w-[120px] sm:max-w-[160px] truncate">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 max-w-[110px] sm:max-w-[150px] truncate">
                 {activeOrg.name}
               </span>
             </Link>
           )}
 
-          {/* Desktop Navigation — global links only; org nav is in OrgNavBar */}
-          <nav className="hidden md:flex items-center gap-1 min-w-0">
-            <NavDropdown label="Ledger" icon={<ArrowRightLeft className="w-4 h-4" />}>
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/transactions"
-                  search={{ tab: "funds" }}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <ArrowRightLeft className="w-4 h-4 text-blue-500" />
-                  <span>Transactions</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/transactions/my-contact-transactions"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <History className="w-4 h-4 text-orange-500" />
-                  <span>My Records</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/projects" className="flex items-center gap-2 cursor-pointer">
-                  <FolderKanban className="w-4 h-4 text-violet-500" />
-                  <span>Projects</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/promises" className="flex items-center gap-2 cursor-pointer">
-                  <Handshake className="w-4 h-4 text-emerald-500" />
-                  <span>Promises</span>
-                </Link>
-              </DropdownMenuItem>
-            </NavDropdown>
-
-            <NavDropdown label="Network" icon={<Users className="w-4 h-4" />}>
-              <DropdownMenuItem asChild>
-                <Link to="/contacts" className="flex items-center gap-2 cursor-pointer">
-                  <Users className="w-4 h-4 text-indigo-500" />
-                  <span>Contacts</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/witnesses" className="flex items-center gap-2 cursor-pointer">
-                  <FileSignature className="w-4 h-4 text-purple-500" />
-                  <span>Witness Requests</span>
-                </Link>
-              </DropdownMenuItem>
-            </NavDropdown>
-
-            <NavLink to="/features">Features</NavLink>
-            <NavLink to="/pricing">Pricing</NavLink>
+          {/* Desktop nav — hidden on mobile (bottom nav handles it) */}
+          <nav className="hidden md:flex items-center gap-0.5">
+            <NavDropdown
+              label="Ledger"
+              items={ledgerItems}
+              pathname={pathname}
+              isOrgMode={isOrgMode}
+            />
+            <NavDropdown
+              label="Network"
+              items={networkItems}
+              pathname={pathname}
+              isOrgMode={isOrgMode}
+            />
+            <NavLink to="/features" pathname={pathname}>
+              Features
+            </NavLink>
+            <NavLink to="/pricing" pathname={pathname}>
+              Pricing
+            </NavLink>
           </nav>
-
-          {/* Mobile: no hamburger — navigation is handled by MobileBottomNav */}
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
+        {/* Right: Go Pro + AccountSwitcher + user */}
+        <div className="flex items-center gap-2 shrink-0">
           {user && !isPro && !subLoading && (
             <Button
               asChild
               size="sm"
               variant="outline"
-              className="hidden lg:flex rounded-md border-primary/20 text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-[10px] h-9 px-4 gap-2 animate-in fade-in slide-in-from-right duration-500"
+              className="hidden lg:flex h-8 px-3 gap-1.5 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5 animate-in fade-in slide-in-from-right duration-500"
             >
               <Link to="/pricing">
                 <Zap className="w-3 h-3 fill-primary" />
@@ -153,56 +191,120 @@ export default function Header() {
   );
 }
 
+// ─── NavLink ─────────────────────────────────────────────────────────────────
+
 function NavLink({
   to,
-  search,
+  pathname,
   children,
 }: {
   to: string;
-  search?: Record<string, unknown>;
+  pathname: string;
   children: React.ReactNode;
 }) {
+  const isActive = pathname === to || pathname.startsWith(`${to}/`);
   return (
     <Link
       to={to}
-      search={search}
-      className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 [&.active]:text-primary [&.active]:bg-primary/5 [&.active]:font-semibold group overflow-hidden"
+      className={cn(
+        "relative px-3.5 py-2 text-sm font-medium rounded-lg transition-colors",
+        isActive
+          ? "text-primary bg-primary/8"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+      )}
     >
-      <span className="relative z-10">{children}</span>
-      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100 [&.active]:scale-x-100 opacity-0 group-hover:opacity-100 [&.active]:opacity-100" />
+      {children}
+      {isActive && (
+        <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+      )}
     </Link>
   );
 }
 
+// ─── NavDropdown ─────────────────────────────────────────────────────────────
+
 function NavDropdown({
   label,
-  icon,
-  children,
+  items,
+  pathname,
+  isOrgMode,
 }: {
   label: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  items: NavItem[];
+  pathname: string;
+  isOrgMode: boolean;
 }) {
+  const isAnyActive = items.some((item) => pathname.startsWith(item.match));
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
-          className="relative px-4 py-2 h-9 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 data-[state=open]:text-primary data-[state=open]:bg-primary/5 group"
+          className={cn(
+            "relative h-9 px-3.5 text-sm font-medium rounded-lg transition-colors gap-1.5",
+            isAnyActive
+              ? "text-primary bg-primary/8 hover:bg-primary/12"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+            "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
+          )}
         >
-          <div className="flex items-center gap-2">
-            {icon}
-            <span>{label}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-          </div>
+          {label}
+          <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+          {isAnyActive && (
+            <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-52 mt-1 animate-in fade-in zoom-in duration-200"
+        className="w-72 p-2 mt-1.5 animate-in fade-in-0 zoom-in-95 duration-150"
+        sideOffset={4}
       >
-        {children}
+        <div className="space-y-0.5">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname.startsWith(item.match);
+            return (
+              <Link
+                key={item.href}
+                to={item.href as never}
+                search={item.search as never}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors group",
+                  isActive ? "bg-primary/8 text-primary" : "hover:bg-muted/70 text-foreground",
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    isActive
+                      ? "bg-primary/10"
+                      : isOrgMode
+                        ? "bg-blue-50 dark:bg-blue-950 group-hover:bg-muted"
+                        : "bg-muted group-hover:bg-muted/80",
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4", isActive ? "text-primary" : item.iconColor)} />
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      "text-[13px] font-semibold leading-tight",
+                      isActive ? "text-primary" : "text-foreground",
+                    )}
+                  >
+                    {item.label}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                    {item.description}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
