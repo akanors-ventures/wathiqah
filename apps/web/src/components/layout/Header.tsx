@@ -129,6 +129,12 @@ export default function Header() {
 
             {isOrgMode && activeOrg && (
               <>
+                <NavLink to={`/org/${activeOrg.slug}`}>
+                  <span className="flex items-center gap-1.5">
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    Dashboard
+                  </span>
+                </NavLink>
                 <NavLink to={`/org/${activeOrg.slug}/events`}>
                   <span className="flex items-center gap-1.5">
                     <CalendarDays className="w-3.5 h-3.5" />
