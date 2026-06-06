@@ -1,5 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
-import { Building2, ChevronDown, Plus, User } from "lucide-react";
+import { ChevronDown, Loader2, Plus } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,6 +19,7 @@ export function AccountSwitcher() {
   const { user } = useAuth();
   const { activeOrg, myOrgs, switchToOrg, isOrgMode } = useOrgContext();
   const navigate = useNavigate();
+  const [isSwitching, setIsSwitching] = useState(false);
 
   const initials = activeOrg
     ? activeOrg.name
@@ -33,12 +36,45 @@ export function AccountSwitcher() {
       : activeOrg.name
     : `${user?.firstName ?? ""} ${user?.lastName?.[0] ?? ""}.`;
 
+  async function handleSwitchToOrg(orgId: string, orgSlug: string) {
+    if (isSwitching || activeOrg?.id === orgId) return;
+    setIsSwitching(true);
+    try {
+      await switchToOrg(orgId);
+      // Navigate to the org dashboard. This must happen AFTER the switch
+      // completes so that useOrgFromSlug on the destination page sees
+      // activeOrg already matching the slug and does not fire a second switch.
+      await navigate({ to: `/org/${orgSlug}` });
+    } catch {
+      toast.error("Failed to switch organisation. Please try again.");
+    } finally {
+      setIsSwitching(false);
+    }
+  }
+
+  async function handleSwitchToPersonal() {
+    if (isSwitching || !isOrgMode) return;
+    setIsSwitching(true);
+    try {
+      await switchToOrg(null);
+      // If we were on an org-scoped page, navigate away. Otherwise stay.
+      if (typeof window !== "undefined" && window.location.pathname.startsWith("/org/")) {
+        await navigate({ to: "/" });
+      }
+    } catch {
+      toast.error("Failed to switch to personal. Please try again.");
+    } finally {
+      setIsSwitching(false);
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
+          disabled={isSwitching}
           className={cn(
             "flex items-center gap-2 px-2 py-1.5 h-9 rounded-lg border transition-all duration-200",
             isOrgMode
@@ -55,7 +91,7 @@ export function AccountSwitcher() {
                 : "bg-muted text-muted-foreground",
             )}
           >
-            {initials}
+            {isSwitching ? <Loader2 className="h-3 w-3 animate-spin" /> : initials}
           </div>
 
           {/* Name + type */}
@@ -69,7 +105,7 @@ export function AccountSwitcher() {
                 isOrgMode ? "text-blue-500" : "text-muted-foreground",
               )}
             >
-              {isOrgMode ? "Organisation" : "Personal"}
+              {isSwitching ? "Switching…" : isOrgMode ? "Organisation" : "Personal"}
             </span>
           </div>
 
@@ -85,7 +121,8 @@ export function AccountSwitcher() {
 
         <DropdownMenuItem
           className="flex items-center gap-2.5 cursor-pointer"
-          onClick={() => switchToOrg(null)}
+          disabled={isSwitching || !isOrgMode}
+          onClick={handleSwitchToPersonal}
         >
           <div className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-muted-foreground text-[10px] font-bold flex-shrink-0">
             {`${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase()}
@@ -110,7 +147,8 @@ export function AccountSwitcher() {
               <DropdownMenuItem
                 key={org.id}
                 className="flex items-center gap-2.5 cursor-pointer"
-                onClick={() => switchToOrg(org.id)}
+                disabled={isSwitching || activeOrg?.id === org.id}
+                onClick={() => handleSwitchToOrg(org.id, org.slug)}
               >
                 <div className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-[10px] font-bold flex-shrink-0">
                   {org.name
@@ -140,6 +178,7 @@ export function AccountSwitcher() {
         <DropdownMenuSeparator />
         <DropdownMenuItem
           className="flex items-center gap-2 cursor-pointer text-muted-foreground"
+          disabled={isSwitching}
           onClick={() => navigate({ to: "/org/create" })}
         >
           <Plus className="h-4 w-4" />

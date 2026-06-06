@@ -17,6 +17,25 @@ import type { Organisation } from "@/types/__generated__/graphql";
 
 const ORG_STORAGE_KEY = "wathiqah_active_org_id";
 
+/**
+ * Decode the activeOrgId field from the access token cookie without
+ * verifying the signature (frontend read-only). Returns null if the
+ * cookie is absent, malformed, or the field is not present.
+ */
+function getJwtActiveOrgId(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|; )accessToken=([^;]*)/);
+  if (!match) return null;
+  try {
+    const parts = match[1].split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1])) as Record<string, unknown>;
+    return typeof payload.activeOrgId === "string" ? payload.activeOrgId : null;
+  } catch {
+    return null;
+  }
+}
+
 interface OrgContextType {
   activeOrg: Organisation | null;
   myOrgs: Organisation[];
@@ -33,11 +52,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     typeof window !== "undefined" ? localStorage.getItem(ORG_STORAGE_KEY) : null,
   );
 
-  const {
-    data,
-    loading: loadingOrgs,
-    refetch,
-  } = useQuery(MY_ORGANISATIONS_QUERY, {
+  const { data, loading: loadingOrgs } = useQuery(MY_ORGANISATIONS_QUERY, {
     fetchPolicy: "cache-and-network",
   });
 
@@ -74,31 +89,41 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     [switchOrgContextMutation, apolloClient],
   );
 
-  // Restore org-scoped JWT on mount/after token refresh.
-  // When the JWT is refreshed by apollo-links.ts, the new token loses activeOrgId.
-  // This effect detects that case and re-calls switchOrgContext once to restore it.
-  const hasRestoredOrgContext = useRef<boolean>(false);
+  // Restore org-scoped JWT after a token refresh.
+  //
+  // When the Apollo error-link refreshes the access token (e.g. expiry), the
+  // new token is issued without activeOrgId because the refresh endpoint only
+  // knows the user, not the org. This effect detects that situation on first
+  // mount and re-calls switchOrgContext to restore the org scope.
+  //
+  // We skip restoration entirely when the JWT already carries the correct
+  // activeOrgId (the normal case on page load with a still-valid token). This
+  // avoids an unnecessary mutation + full Apollo refetch on every page load.
+  const hasAttemptedRestoration = useRef(false);
 
   useEffect(() => {
-    // Only run once per provider mount
-    if (hasRestoredOrgContext.current) return;
-    // Nothing to restore if not in org mode
+    if (hasAttemptedRestoration.current) return;
     if (!activeOrgId) return;
-    // Wait for orgs to load before we can validate the org exists
     if (loadingOrgs) return;
 
     const orgExists = myOrgs.some((o) => o.id === activeOrgId);
     if (!orgExists) {
-      // Org no longer accessible — clear stale selection
       localStorage.removeItem(ORG_STORAGE_KEY);
       setActiveOrgId(null);
+      hasAttemptedRestoration.current = true;
       return;
     }
 
-    hasRestoredOrgContext.current = true;
-    // Re-issue a JWT with activeOrgId so backend queries are org-scoped
+    // JWT already has the right org — no mutation needed.
+    if (getJwtActiveOrgId() === activeOrgId) {
+      hasAttemptedRestoration.current = true;
+      return;
+    }
+
+    // JWT is missing or has a stale activeOrgId (happens after token refresh).
+    // Re-issue a JWT with activeOrgId so backend @ActiveOrg() queries work.
+    hasAttemptedRestoration.current = true;
     switchToOrg(activeOrgId).catch(() => {
-      // If restoration fails (e.g. network error), clear selection silently
       localStorage.removeItem(ORG_STORAGE_KEY);
       setActiveOrgId(null);
     });
