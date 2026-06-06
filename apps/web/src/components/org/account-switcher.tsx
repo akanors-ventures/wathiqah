@@ -17,7 +17,8 @@ import { cn } from "@/lib/utils";
 
 export function AccountSwitcher() {
   const { user } = useAuth();
-  const { activeOrg, myOrgs, switchToOrg, isOrgMode } = useOrgContext();
+  const { activeOrg, myOrgs, switchToOrg, isOrgMode, blockAutoSwitch, unblockAutoSwitch } =
+    useOrgContext();
   const navigate = useNavigate();
   const [isSwitching, setIsSwitching] = useState(false);
 
@@ -39,15 +40,15 @@ export function AccountSwitcher() {
   async function handleSwitchToOrg(orgId: string, orgSlug: string) {
     if (isSwitching || activeOrg?.id === orgId) return;
     setIsSwitching(true);
+    // Block useOrgFromSlug from counter-switching while we switch + navigate.
+    blockAutoSwitch();
     try {
       await switchToOrg(orgId);
-      // Navigate to the org dashboard. This must happen AFTER the switch
-      // completes so that useOrgFromSlug on the destination page sees
-      // activeOrg already matching the slug and does not fire a second switch.
       await navigate({ to: `/org/${orgSlug}` });
     } catch {
       toast.error("Failed to switch organisation. Please try again.");
     } finally {
+      unblockAutoSwitch();
       setIsSwitching(false);
     }
   }
@@ -55,15 +56,16 @@ export function AccountSwitcher() {
   async function handleSwitchToPersonal() {
     if (isSwitching || !isOrgMode) return;
     setIsSwitching(true);
+    blockAutoSwitch();
     try {
       await switchToOrg(null);
-      // If we were on an org-scoped page, navigate away. Otherwise stay.
-      if (typeof window !== "undefined" && window.location.pathname.startsWith("/org/")) {
+      if (window?.location.pathname.startsWith("/org/")) {
         await navigate({ to: "/" });
       }
     } catch {
       toast.error("Failed to switch to personal. Please try again.");
     } finally {
+      unblockAutoSwitch();
       setIsSwitching(false);
     }
   }

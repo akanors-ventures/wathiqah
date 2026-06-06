@@ -42,6 +42,17 @@ interface OrgContextType {
   loadingOrgs: boolean;
   switchToOrg: (orgId: string | null) => Promise<void>;
   isOrgMode: boolean;
+  /**
+   * Call before an explicit user-initiated org switch. Prevents
+   * useOrgFromSlug from counter-switching during the transition.
+   */
+  blockAutoSwitch: () => void;
+  /**
+   * Call after the switch + navigation completes (or on error).
+   */
+  unblockAutoSwitch: () => void;
+  /** Ref — true while an explicit switch + navigate is in progress. */
+  autoSwitchBlocked: React.MutableRefObject<boolean>;
 }
 
 const OrgContext = createContext<OrgContextType | null>(null);
@@ -60,6 +71,17 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   const activeOrg = myOrgs.find((o) => o.id === activeOrgId) ?? null;
 
   const [switchOrgContextMutation] = useMutation(SWITCH_ORG_CONTEXT_MUTATION);
+
+  // When true, useOrgFromSlug must not auto-switch. Set by AccountSwitcher
+  // before an explicit user-initiated switch to prevent counter-switching
+  // (the hook detects the JWT change before navigate() fires).
+  const autoSwitchBlocked = useRef(false);
+  const blockAutoSwitch = useCallback(() => {
+    autoSwitchBlocked.current = true;
+  }, []);
+  const unblockAutoSwitch = useCallback(() => {
+    autoSwitchBlocked.current = false;
+  }, []);
 
   const switchToOrg = useCallback(
     async (orgId: string | null) => {
@@ -90,15 +112,9 @@ export function OrgProvider({ children }: { children: ReactNode }) {
   );
 
   // Restore org-scoped JWT after a token refresh.
-  //
-  // When the Apollo error-link refreshes the access token (e.g. expiry), the
-  // new token is issued without activeOrgId because the refresh endpoint only
-  // knows the user, not the org. This effect detects that situation on first
-  // mount and re-calls switchOrgContext to restore the org scope.
-  //
-  // We skip restoration entirely when the JWT already carries the correct
-  // activeOrgId (the normal case on page load with a still-valid token). This
-  // avoids an unnecessary mutation + full Apollo refetch on every page load.
+  // When the Apollo error-link refreshes the access token (expiry), the new
+  // token lacks activeOrgId. This effect re-issues it once on mount.
+  // Skip when the JWT already has the correct org (avoids a mutation every load).
   const hasAttemptedRestoration = useRef(false);
 
   useEffect(() => {
@@ -114,14 +130,11 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // JWT already has the right org — no mutation needed.
     if (getJwtActiveOrgId() === activeOrgId) {
       hasAttemptedRestoration.current = true;
       return;
     }
 
-    // JWT is missing or has a stale activeOrgId (happens after token refresh).
-    // Re-issue a JWT with activeOrgId so backend @ActiveOrg() queries work.
     hasAttemptedRestoration.current = true;
     switchToOrg(activeOrgId).catch(() => {
       localStorage.removeItem(ORG_STORAGE_KEY);
@@ -136,8 +149,11 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       loadingOrgs,
       switchToOrg,
       isOrgMode: activeOrg !== null,
+      blockAutoSwitch,
+      unblockAutoSwitch,
+      autoSwitchBlocked,
     }),
-    [activeOrg, myOrgs, loadingOrgs, switchToOrg],
+    [activeOrg, myOrgs, loadingOrgs, switchToOrg, blockAutoSwitch, unblockAutoSwitch],
   );
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;

@@ -20,7 +20,7 @@ export function OrgNavBar() {
   ];
 
   return (
-    <div className="sticky top-16 z-40 w-full border-b border-blue-200 bg-blue-50/95 dark:border-blue-800 dark:bg-blue-950/95 backdrop-blur-md">
+    <div className="hidden md:block sticky top-16 z-40 w-full border-b border-blue-200 bg-blue-50/95 dark:border-blue-800 dark:bg-blue-950/95 backdrop-blur-md">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <nav
           className="flex items-center overflow-x-auto"

@@ -6,7 +6,6 @@ import {
   FolderKanban,
   Handshake,
   History,
-  LayoutGrid,
   Users,
   Zap,
 } from "lucide-react";
@@ -17,8 +16,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useActiveOrg } from "@/hooks/use-active-org";
@@ -63,14 +60,14 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* Active org badge — links to org dashboard */}
+          {/* Active org badge — links to org dashboard. Visible on all screen sizes. */}
           {isOrgMode && activeOrg && (
             <Link
               to={`/org/${activeOrg.slug}`}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors shrink-0 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-colors shrink-0 dark:bg-blue-950 dark:border-blue-800 dark:hover:bg-blue-900"
             >
               <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
-              <span className="text-[11px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-w-[160px] truncate">
+              <span className="text-[11px] font-bold uppercase tracking-wide text-blue-700 dark:text-blue-300 max-w-[120px] sm:max-w-[160px] truncate">
                 {activeOrg.name}
               </span>
             </Link>
@@ -131,102 +128,7 @@ export default function Header() {
             <NavLink to="/pricing">Pricing</NavLink>
           </nav>
 
-          {/* Mobile Navigation — global links only; org tabs are in OrgNavBar */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="group flex items-center gap-2 px-3 data-[state=open]:bg-muted"
-                >
-                  <LayoutGrid className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  <span className="font-medium">Menu</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-60 mt-2">
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                  Ledger
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/transactions"
-                    search={{ tab: "funds" }}
-                    className="cursor-pointer flex items-center gap-2"
-                  >
-                    <ArrowRightLeft className="h-4 w-4 text-blue-500" />
-                    <span>Transactions</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/transactions/my-contact-transactions"
-                    className="cursor-pointer flex items-center gap-2"
-                  >
-                    <History className="h-4 w-4 text-orange-500" />
-                    <span>My Records</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/projects" className="cursor-pointer flex items-center gap-2">
-                    <FolderKanban className="h-4 w-4 text-violet-500" />
-                    <span>Projects</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/promises" className="cursor-pointer flex items-center gap-2">
-                    <Handshake className="h-4 w-4 text-emerald-500" />
-                    <span>Promises</span>
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                  Network
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link to="/contacts" className="cursor-pointer flex items-center gap-2">
-                    <Users className="h-4 w-4 text-indigo-500" />
-                    <span>Contacts</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/witnesses" className="cursor-pointer flex items-center gap-2">
-                    <FileSignature className="h-4 w-4 text-purple-500" />
-                    <span>Witness Requests</span>
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                  Explore
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link to="/features" className="cursor-pointer flex items-center gap-2">
-                    <LayoutGrid className="h-4 w-4 text-primary" />
-                    <span>Features</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/pricing" className="cursor-pointer flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" />
-                    <span>Pricing</span>
-                  </Link>
-                </DropdownMenuItem>
-                {!isPro && (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to="/pricing"
-                      className="cursor-pointer flex items-center gap-2 font-bold text-primary"
-                    >
-                      <Zap className="h-4 w-4 fill-primary" />
-                      <span>Go Pro</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* Mobile: no hamburger — navigation is handled by MobileBottomNav */}
         </div>
 
         <div className="flex items-center gap-4 shrink-0">

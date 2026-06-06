@@ -55,6 +55,8 @@ const SKIP_REFRESH_OPERATIONS = new Set([
   "GetWitnessInvitation",
   "AcknowledgeWitnessRequest",
   "CreateCheckoutSession",
+  // AccountSwitcher handles its own error toasts; skip global handling here.
+  "SwitchOrgContext",
 ]);
 
 export const errorLink = (uri: string) =>

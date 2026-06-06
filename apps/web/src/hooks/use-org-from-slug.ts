@@ -40,7 +40,7 @@ function needsSwitch(
  *   2. The access token was refreshed and lost its activeOrgId field.
  */
 export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
-  const { activeOrg, myOrgs, switchToOrg } = useOrgContext();
+  const { activeOrg, myOrgs, switchToOrg, autoSwitchBlocked } = useOrgContext();
   const switchingRef = useRef(false);
 
   // Initialise synchronously so the FIRST render already knows whether a
@@ -48,6 +48,12 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
   const [isSyncing, setIsSyncing] = useState(() => needsSwitch(slug, activeOrg?.id, myOrgs));
 
   useEffect(() => {
+    // An explicit AccountSwitcher switch is in progress — don't counter-switch.
+    if (autoSwitchBlocked.current) {
+      setIsSyncing(false);
+      return;
+    }
+
     const targetOrg = myOrgs.find((o) => o.slug === slug);
     if (!targetOrg) {
       setIsSyncing(false);
@@ -76,7 +82,8 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
         switchingRef.current = false;
         setIsSyncing(false);
       });
-  }, [slug, activeOrg?.id, myOrgs, switchToOrg]);
+    // autoSwitchBlocked is a stable ref object — safe to include in deps.
+  }, [slug, activeOrg?.id, myOrgs, switchToOrg, autoSwitchBlocked]);
 
   return { isSyncing };
 }
