@@ -22,11 +22,12 @@ function OrgDashboardPage() {
   useOrgFromSlug(slug);
   const { user } = useAuth();
 
-  // Use OrgContext directly — it already has MY_ORGANISATIONS_QUERY warm and
-  // reactive. Avoids a duplicate query instance that can race with useOrgFromSlug's
-  // switchToOrg → refetchQueries and leave the page stuck in a loading state.
-  const { activeOrg, loadingOrgs } = useOrgContext();
-  const org = activeOrg?.slug === slug ? activeOrg : null;
+  // Derive org from myOrgs by slug — NOT from activeOrg.
+  // activeOrg depends on setActiveOrgId state being committed, which React 18
+  // may batch until after navigate(). myOrgs is always populated from cache
+  // and contains all orgs the user is a member of, regardless of active context.
+  const { myOrgs, loadingOrgs } = useOrgContext();
+  const org = myOrgs.find((o) => o.slug === slug) ?? null;
 
   const { data: eventsData } = useQuery(ORG_UPCOMING_EVENTS_QUERY, {
     skip: !org,

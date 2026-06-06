@@ -41,12 +41,12 @@ function SettingsPage() {
 
   // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
   // Keep the per-page query only for refetch after saving settings.
-  const { activeOrg, loadingOrgs } = useOrgContext();
+  const { myOrgs, loadingOrgs } = useOrgContext();
   const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org =
-    activeOrg?.slug === slug
-      ? activeOrg
-      : (data?.myOrganisations.find((o) => o.slug === slug) ?? null);
+    myOrgs.find((o) => o.slug === slug) ??
+    data?.myOrganisations.find((o) => o.slug === slug) ??
+    null;
 
   const isAdmin = org?.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
 

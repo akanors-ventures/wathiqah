@@ -49,12 +49,12 @@ function MembersPage() {
 
   // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
   // Keep the per-page query only for refetch after mutations (cache update).
-  const { activeOrg, loadingOrgs } = useOrgContext();
+  const { myOrgs, loadingOrgs } = useOrgContext();
   const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org =
-    activeOrg?.slug === slug
-      ? activeOrg
-      : (data?.myOrganisations.find((o) => o.slug === slug) ?? null);
+    myOrgs.find((o) => o.slug === slug) ??
+    data?.myOrganisations.find((o) => o.slug === slug) ??
+    null;
   const members = org?.members ?? [];
 
   const currentMember = members.find((m) => m.userId === user?.id);
