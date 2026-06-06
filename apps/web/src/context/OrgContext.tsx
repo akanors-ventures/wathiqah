@@ -30,7 +30,7 @@ const OrgContext = createContext<OrgContextType | null>(null);
 export function OrgProvider({ children }: { children: ReactNode }) {
   const apolloClient = useApolloClient();
   const [activeOrgId, setActiveOrgId] = useState<string | null>(() =>
-    localStorage.getItem(ORG_STORAGE_KEY),
+    typeof window !== "undefined" ? localStorage.getItem(ORG_STORAGE_KEY) : null,
   );
 
   const {
