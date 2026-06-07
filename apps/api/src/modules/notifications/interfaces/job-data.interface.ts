@@ -21,6 +21,8 @@ export interface ContactNotificationSmsJobData {
   currency: string;
   witnessDisplayName: string;
   transactionType: string;
+  orgName?: string;
+  attributionMode?: string;
 }
 
 export interface ContactNotificationEmailJobData {
@@ -33,6 +35,8 @@ export interface ContactNotificationEmailJobData {
   currency: string;
   witnessDisplayName: string;
   transactionType: string;
+  orgName?: string;
+  attributionMode?: string;
 }
 
 export interface ProvisioningNotificationJobData {

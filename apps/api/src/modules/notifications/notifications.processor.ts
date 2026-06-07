@@ -140,6 +140,8 @@ export class NotificationsProcessor extends WorkerHost {
       creatorId,
       witnessDisplayName,
       transactionType,
+      orgName,
+      attributionMode,
     } = data;
 
     const optedOut = await this.smsOptOutService.isOptedOut(contactPhoneNumber);
@@ -168,7 +170,14 @@ export class NotificationsProcessor extends WorkerHost {
     };
     const typeLabel = typeLabels[transactionType] ?? 'transaction';
 
-    const body = `${name}, ${creatorDisplayName} has recorded a ${typeLabel} of ${formattedAmount} in your name on Wathīqah. This has been witnessed and confirmed by ${witnessDisplayName}. View your record at ${appUrl}. Reply STOP to opt out.`;
+    const senderLabel =
+      orgName && attributionMode === 'ORG_AND_OPERATOR' && creatorDisplayName
+        ? `${orgName} (${creatorDisplayName})`
+        : orgName
+          ? orgName
+          : creatorDisplayName;
+
+    const body = `${name}, ${senderLabel} has recorded a ${typeLabel} of ${formattedAmount} in your name on Wathīqah. This has been witnessed and confirmed by ${witnessDisplayName}. View your record at ${appUrl}. Reply STOP to opt out.`;
 
     await this.smsProvider.sendSms({ to: contactPhoneNumber, body });
     await this.subscriptionService.incrementFeatureUsage(
@@ -189,6 +198,8 @@ export class NotificationsProcessor extends WorkerHost {
       currency,
       witnessDisplayName,
       transactionType,
+      orgName,
+      attributionMode,
     } = data;
 
     const name = contactFirstName ?? 'Someone';
@@ -210,13 +221,20 @@ export class NotificationsProcessor extends WorkerHost {
     };
     const typeLabel = typeLabels[transactionType] ?? 'transaction';
 
+    const senderLabel =
+      orgName && attributionMode === 'ORG_AND_OPERATOR' && creatorDisplayName
+        ? `${orgName} (${creatorDisplayName})`
+        : orgName
+          ? orgName
+          : creatorDisplayName;
+
     await this.handleSendEmail({
       to: contactEmail,
       subject,
       templateName: 'contact-transaction-notification',
       templateData: {
         name,
-        creatorDisplayName,
+        creatorDisplayName: senderLabel,
         formattedAmount,
         witnessDisplayName,
         typeLabel,

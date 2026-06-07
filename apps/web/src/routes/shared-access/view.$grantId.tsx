@@ -222,9 +222,9 @@ function SharedAccessView() {
                                     ? "text-blue-600 bg-blue-500/10"
                                     : tx.type === "LOAN_RECEIVED" ||
                                         tx.type === "REPAYMENT_RECEIVED" ||
-                                        tx.type === "EXPENSE"
+                                        (tx.type as string) === "EXPENSE"
                                       ? "text-rose-600 bg-rose-500/10"
-                                      : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                      : tx.type === "ESCROWED" || (tx.type as string) === "INCOME"
                                         ? "text-emerald-600 bg-emerald-500/10"
                                         : tx.type === "GIFT_RECEIVED" ||
                                             tx.type === "ADVANCE_RECEIVED" ||
@@ -277,9 +277,9 @@ function SharedAccessView() {
                                       ? "text-blue-600"
                                       : tx.type === "LOAN_RECEIVED" ||
                                           tx.type === "REPAYMENT_RECEIVED" ||
-                                          tx.type === "EXPENSE"
+                                          (tx.type as string) === "EXPENSE"
                                         ? "text-rose-600"
-                                        : tx.type === "ESCROWED" || tx.type === "INCOME"
+                                        : tx.type === "ESCROWED" || (tx.type as string) === "INCOME"
                                           ? "text-emerald-600"
                                           : tx.type === "GIFT_RECEIVED" ||
                                               tx.type === "ADVANCE_RECEIVED" ||
@@ -300,7 +300,7 @@ function SharedAccessView() {
                                   tx.type === "ADVANCE_RECEIVED" ||
                                   tx.type === "DEPOSIT_RECEIVED" ||
                                   tx.type === "ESCROWED" ||
-                                  tx.type === "INCOME"
+                                  (tx.type as string) === "INCOME"
                                     ? "+"
                                     : "-"}
                                   {formatCurrency(tx.amount || 0, tx.currency)}

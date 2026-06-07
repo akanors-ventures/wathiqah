@@ -6,6 +6,7 @@ import { UpdatePromiseInput } from './dto/update-promise.input';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ActiveOrg } from '../organisations/decorators/active-org.decorator';
 import { User } from '../../generated/prisma/client';
 
 @Resolver(() => Promise)
@@ -17,34 +18,45 @@ export class PromisesResolver {
   createPromise(
     @Args('createPromiseInput') createPromiseInput: CreatePromiseInput,
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
   ) {
-    return this.promisesService.create(createPromiseInput, user.id);
+    return this.promisesService.create(createPromiseInput, user.id, orgId);
   }
 
   @Query(() => [Promise], { name: 'myPromises' })
-  findAll(@CurrentUser() user: User) {
-    return this.promisesService.findAll(user.id);
+  findAll(@CurrentUser() user: User, @ActiveOrg() orgId: string | null) {
+    return this.promisesService.findAll(user.id, orgId);
   }
 
   @Query(() => Promise, { name: 'promise' })
-  findOne(@Args('id') id: string, @CurrentUser() user: User) {
-    return this.promisesService.findOne(id, user.id);
+  findOne(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
+  ) {
+    return this.promisesService.findOne(id, user.id, orgId);
   }
 
   @Mutation(() => Promise)
   updatePromise(
     @Args('updatePromiseInput') updatePromiseInput: UpdatePromiseInput,
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
   ) {
     return this.promisesService.update(
       updatePromiseInput.id,
       updatePromiseInput,
       user.id,
+      orgId,
     );
   }
 
   @Mutation(() => Promise)
-  removePromise(@Args('id') id: string, @CurrentUser() user: User) {
-    return this.promisesService.remove(id, user.id);
+  removePromise(
+    @Args('id') id: string,
+    @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
+  ) {
+    return this.promisesService.remove(id, user.id, orgId);
   }
 }

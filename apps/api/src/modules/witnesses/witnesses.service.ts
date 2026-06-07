@@ -7,7 +7,11 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { WitnessStatus, TransactionType } from '../../generated/prisma/client';
+import {
+  WitnessStatus,
+  TransactionType,
+  AttributionMode,
+} from '../../generated/prisma/client';
 import { FilterWitnessInput } from './dto/filter-witness.input';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -58,6 +62,9 @@ export class WitnessesService {
             include: {
               createdBy: true,
               contact: true,
+              organisation: {
+                select: { name: true, attributionMode: true },
+              },
             },
           },
           user: true,
@@ -139,6 +146,14 @@ export class WitnessesService {
               currency: transaction.currency,
               witnessDisplayName,
               transactionType: transaction.type,
+              ...(transaction.organisation && {
+                orgName: transaction.organisation.name,
+                attributionMode:
+                  transaction.organisation.attributionMode ===
+                  AttributionMode.ORG_AND_OPERATOR
+                    ? 'ORG_AND_OPERATOR'
+                    : 'ORG_ONLY',
+              }),
             })
             .catch((err) => {
               this.logger.error(

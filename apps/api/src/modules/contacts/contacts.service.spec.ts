@@ -41,7 +41,10 @@ describe('ContactsService — findAll pagination', () => {
     ]);
     prisma.contact.count.mockResolvedValue(1);
 
-    const result = await service.findAll('user-1', { page: 1, limit: 10 });
+    const result = await service.findAll('user-1', null, {
+      page: 1,
+      limit: 10,
+    });
 
     expect(result.total).toBe(1);
     expect(result.page).toBe(1);
@@ -53,7 +56,7 @@ describe('ContactsService — findAll pagination', () => {
     prisma.contact.findMany.mockResolvedValue([]);
     prisma.contact.count.mockResolvedValue(0);
 
-    const result = await service.findAll('user-1', {});
+    const result = await service.findAll('user-1', null, {});
 
     expect(result.page).toBe(1);
     expect(result.limit).toBe(25);
@@ -86,7 +89,7 @@ describe('ContactsService — findAll pagination', () => {
     ];
     prisma.contact.findMany.mockResolvedValue(contacts);
 
-    const result = await service.findAll('user-1', {
+    const result = await service.findAll('user-1', null, {
       balanceStanding: ContactBalanceStanding.OWED_TO_ME,
     });
 
@@ -120,7 +123,7 @@ describe('ContactsService — findAll pagination', () => {
     ];
     prisma.contact.findMany.mockResolvedValue(contacts);
 
-    const result = await service.findAll('user-1', {
+    const result = await service.findAll('user-1', null, {
       balanceStanding: ContactBalanceStanding.I_OWE,
     });
 
@@ -144,7 +147,7 @@ describe('ContactsService — findAll pagination', () => {
     prisma.contact.findMany.mockResolvedValue(contacts);
 
     // Balance is 0 (GIVEN is cancelled), so OWED_TO_ME should exclude it
-    const result = await service.findAll('user-1', {
+    const result = await service.findAll('user-1', null, {
       balanceStanding: ContactBalanceStanding.OWED_TO_ME,
     });
 
@@ -165,7 +168,7 @@ describe('ContactsService — findAll pagination', () => {
     }));
     prisma.contact.findMany.mockResolvedValue(contacts);
 
-    const result = await service.findAll('user-1', {
+    const result = await service.findAll('user-1', null, {
       balanceStanding: ContactBalanceStanding.OWED_TO_ME,
       page: 1,
       limit: 3,
@@ -175,5 +178,33 @@ describe('ContactsService — findAll pagination', () => {
     expect(result.items).toHaveLength(3);
     expect(result.page).toBe(1);
     expect(result.limit).toBe(3);
+  });
+
+  describe('ContactsService — org scoping', () => {
+    it('scopes findAll to orgId when org context active', async () => {
+      prisma.contact.findMany.mockResolvedValue([]);
+      prisma.contact.count.mockResolvedValue(0);
+
+      await service.findAll('user1', 'org1', {});
+
+      expect(prisma.contact.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ orgId: 'org1' }),
+        }),
+      );
+    });
+
+    it('scopes findAll to personal when orgId is null', async () => {
+      prisma.contact.findMany.mockResolvedValue([]);
+      prisma.contact.count.mockResolvedValue(0);
+
+      await service.findAll('user1', null, {});
+
+      expect(prisma.contact.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ userId: 'user1', orgId: null }),
+        }),
+      );
+    });
   });
 });

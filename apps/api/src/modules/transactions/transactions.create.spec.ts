@@ -117,6 +117,7 @@ describe('TransactionsService - create()', () => {
         date: TX_DATE,
       },
       CREATOR_ID,
+      null,
     );
 
     expect(
@@ -140,6 +141,7 @@ describe('TransactionsService - create()', () => {
         date: TX_DATE,
       },
       CREATOR_ID,
+      null,
     );
 
     expect(
@@ -189,6 +191,7 @@ describe('TransactionsService - create()', () => {
         date: TX_DATE,
       },
       CREATOR_ID,
+      null,
     );
 
     expect(
@@ -213,6 +216,7 @@ describe('TransactionsService - create()', () => {
         date: TX_DATE,
       },
       CREATOR_ID,
+      null,
     );
 
     expect(
@@ -235,6 +239,7 @@ describe('TransactionsService - create()', () => {
         date: TX_DATE,
       },
       CREATOR_ID,
+      null,
     );
 
     expect(

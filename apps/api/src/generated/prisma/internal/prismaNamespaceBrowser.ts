@@ -69,7 +69,12 @@ export const ModelName = {
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
   Support: 'Support',
-  SmsOptOut: 'SmsOptOut'
+  SmsOptOut: 'SmsOptOut',
+  Organisation: 'Organisation',
+  OrganisationMember: 'OrganisationMember',
+  OrgSubscription: 'OrgSubscription',
+  OrgEvent: 'OrgEvent',
+  OrgNote: 'OrgNote'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -172,7 +177,8 @@ export const ContactScalarFieldEnum = {
   userId: 'userId',
   firstName: 'firstName',
   lastName: 'lastName',
-  linkedUserId: 'linkedUserId'
+  linkedUserId: 'linkedUserId',
+  orgId: 'orgId'
 } as const
 
 export type ContactScalarFieldEnum = (typeof ContactScalarFieldEnum)[keyof typeof ContactScalarFieldEnum]
@@ -192,7 +198,8 @@ export const TransactionScalarFieldEnum = {
   createdById: 'createdById',
   status: 'status',
   parentId: 'parentId',
-  currency: 'currency'
+  currency: 'currency',
+  orgId: 'orgId'
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
@@ -234,7 +241,8 @@ export const ProjectScalarFieldEnum = {
   currency: 'currency',
   userId: 'userId',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  orgId: 'orgId'
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
@@ -294,7 +302,8 @@ export const PromiseScalarFieldEnum = {
   status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  userId: 'userId'
+  userId: 'userId',
+  orgId: 'orgId'
 } as const
 
 export type PromiseScalarFieldEnum = (typeof PromiseScalarFieldEnum)[keyof typeof PromiseScalarFieldEnum]
@@ -379,6 +388,79 @@ export const SmsOptOutScalarFieldEnum = {
 } as const
 
 export type SmsOptOutScalarFieldEnum = (typeof SmsOptOutScalarFieldEnum)[keyof typeof SmsOptOutScalarFieldEnum]
+
+
+export const OrganisationScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  description: 'description',
+  logoUrl: 'logoUrl',
+  industry: 'industry',
+  attributionMode: 'attributionMode',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrganisationScalarFieldEnum = (typeof OrganisationScalarFieldEnum)[keyof typeof OrganisationScalarFieldEnum]
+
+
+export const OrganisationMemberScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  userId: 'userId',
+  role: 'role',
+  joinedAt: 'joinedAt'
+} as const
+
+export type OrganisationMemberScalarFieldEnum = (typeof OrganisationMemberScalarFieldEnum)[keyof typeof OrganisationMemberScalarFieldEnum]
+
+
+export const OrgSubscriptionScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  tier: 'tier',
+  status: 'status',
+  provider: 'provider',
+  externalId: 'externalId',
+  currentPeriodEnd: 'currentPeriodEnd',
+  cancelAtPeriodEnd: 'cancelAtPeriodEnd',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrgSubscriptionScalarFieldEnum = (typeof OrgSubscriptionScalarFieldEnum)[keyof typeof OrgSubscriptionScalarFieldEnum]
+
+
+export const OrgEventScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  title: 'title',
+  date: 'date',
+  endDate: 'endDate',
+  category: 'category',
+  notes: 'notes',
+  isRecurring: 'isRecurring',
+  recurrence: 'recurrence',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrgEventScalarFieldEnum = (typeof OrgEventScalarFieldEnum)[keyof typeof OrgEventScalarFieldEnum]
+
+
+export const OrgNoteScalarFieldEnum = {
+  id: 'id',
+  orgId: 'orgId',
+  body: 'body',
+  category: 'category',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OrgNoteScalarFieldEnum = (typeof OrgNoteScalarFieldEnum)[keyof typeof OrgNoteScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -124,7 +124,7 @@ describe('TransactionsService - Balance & Audit', () => {
         ]) // ownAggregations
         .mockResolvedValueOnce([]); // contactAggregations
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
 
       expect(result.summary.netBalance).toBe(0); // equal gifts cancel out in netBalance
     });
@@ -152,7 +152,7 @@ describe('TransactionsService - Balance & Audit', () => {
           },
         ]); // contactAggregations
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
 
       // Flipped: LOAN_GIVEN -> LOAN_RECEIVED, LOAN_RECEIVED -> LOAN_GIVEN
       expect(result.summary.totalLoanReceived).toBe(200);
@@ -186,7 +186,7 @@ describe('TransactionsService - Balance & Audit', () => {
         ])
         .mockResolvedValueOnce([]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
 
       expect(result.summary.totalLoanReceived).toBe(15000); // 10 * 1500
       expect(result.summary.netBalance).toBe(15000);
@@ -204,7 +204,7 @@ describe('TransactionsService - Balance & Audit', () => {
         .mockResolvedValueOnce([]) // ownAggregations
         .mockResolvedValueOnce([]); // contactAggregations
 
-      await service.findAll(userId);
+      await service.findAll(userId, null);
 
       // Verify that the first call (ownAggregations) includes status: { not: CANCELLED }
       const firstCallArgs = groupByMock.mock.calls[0][0];
@@ -223,7 +223,7 @@ describe('TransactionsService - Balance & Audit', () => {
       groupByMock.mockResolvedValue([]);
 
       // Call findAll without date filters
-      await service.findAll(userId);
+      await service.findAll(userId, null);
 
       // Verify that the where clause DOES NOT have date constraints
       const firstCallArgs = groupByMock.mock.calls[0][0];
@@ -239,7 +239,7 @@ describe('TransactionsService - Balance & Audit', () => {
         .mockResolvedValueOnce([]) // ownAggregations
         .mockResolvedValueOnce([]); // contactAggregations
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
 
       // Project transactions are not aggregated into the contact-obligation summary
       expect(result.summary.netBalance).toBe(0);
@@ -284,7 +284,7 @@ describe('TransactionsService - Balance & Audit', () => {
       ]);
       (prisma.projectTransaction.groupBy as jest.Mock).mockResolvedValue([]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
 
       // Project transactions are excluded from the unified feed (they have their own resolver)
       expect(result.items).toHaveLength(0);
@@ -405,7 +405,7 @@ describe('TransactionsService - Balance & Audit', () => {
         ])
         .mockResolvedValueOnce([]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
       expect(result.summary.totalLoanGiven).toBe(1000);
       expect(result.summary.netBalance).toBe(-1000);
     });
@@ -421,7 +421,7 @@ describe('TransactionsService - Balance & Audit', () => {
         ])
         .mockResolvedValueOnce([]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
       expect(result.summary.totalLoanReceived).toBe(500);
       expect(result.summary.netBalance).toBe(500);
     });
@@ -437,7 +437,7 @@ describe('TransactionsService - Balance & Audit', () => {
           },
         ]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
       expect(result.summary.totalLoanReceived).toBe(200);
       expect(result.summary.netBalance).toBe(200);
     });
@@ -458,7 +458,7 @@ describe('TransactionsService - Balance & Audit', () => {
         ])
         .mockResolvedValueOnce([]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
       expect(result.summary.totalRepaymentMade).toBe(300);
       expect(result.summary.totalRepaymentReceived).toBe(150);
       expect(result.summary.netBalance).toBe(150 - 300); // -150
@@ -480,7 +480,7 @@ describe('TransactionsService - Balance & Audit', () => {
         ])
         .mockResolvedValueOnce([]);
 
-      const result = await service.findAll(userId);
+      const result = await service.findAll(userId, null);
       expect(result.summary.totalEscrowed).toBe(800);
       expect(result.summary.totalRemitted).toBe(600);
       expect(result.summary.netBalance).toBe(800 - 600); // 200
@@ -502,8 +502,8 @@ describe('TransactionsService - Balance & Audit', () => {
         ])
         .mockResolvedValueOnce([]);
 
-      const result = await service.findAll(userId);
-      expect(result.summary.netBalance).toBe(0); // equal gifts cancel out
+      const result = await service.findAll(userId, null);
+      expect(result.summary.netBalance).toBe(0);
     });
   });
 });

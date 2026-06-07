@@ -36,11 +36,15 @@ import { authGuard } from "@/utils/auth";
 export const Route = createFileRoute("/contacts/")({
   component: ContactsPage,
   beforeLoad: (ctx) => authGuard({ location: ctx.location }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    new: search.new === true || search.new === "true" ? true : undefined,
+  }),
 });
 
 type ContactItem = GetContactsQuery["contacts"]["items"][number];
 
 function ContactsPage() {
+  const { new: openNew } = Route.useSearch();
   const {
     search,
     setSearch,
@@ -57,7 +61,7 @@ function ContactsPage() {
 
   const { items } = useItems();
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(!!openNew);
   const [editingContact, setEditingContact] = useState<ContactItem | null>(null);
   const [deletingContact, setDeletingContact] = useState<ContactItem | null>(null);
 

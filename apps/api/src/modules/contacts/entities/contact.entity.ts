@@ -25,6 +25,9 @@ export class Contact {
   @Field({ nullable: true })
   linkedUserId?: string;
 
+  @Field({ nullable: true })
+  orgId?: string;
+
   @Field()
   createdAt: Date;
 
