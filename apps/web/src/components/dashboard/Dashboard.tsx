@@ -201,7 +201,7 @@ export function Dashboard() {
       )}
 
       {/* Header — title in personal mode; period selector + mobile button always */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
         {!isOrgMode && (
           <div className="space-y-1 w-full sm:w-auto text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
@@ -212,7 +212,8 @@ export function Dashboard() {
             </p>
           </div>
         )}
-        <div className="flex gap-3 w-full sm:w-auto items-center">
+        {/* sm:ml-auto pushes this group to the right whether or not the title is present */}
+        <div className="flex gap-3 w-full sm:w-auto items-center sm:ml-auto">
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <SelectTrigger className="flex-1 sm:w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
               <div className="flex items-center gap-2">
