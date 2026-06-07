@@ -9,6 +9,7 @@ export interface TierLimits {
   allowSMS: boolean;
   allowAdvancedAnalytics: boolean;
   allowProfessionalReports: boolean;
+  maxNotesPerMonth: number;
 }
 
 export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
@@ -19,6 +20,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
     allowSMS: false,
     allowAdvancedAnalytics: false,
     allowProfessionalReports: false,
+    maxNotesPerMonth: 10,
   },
   [SubscriptionTier.PRO]: {
     maxContacts: -1,
@@ -27,5 +29,6 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
     allowSMS: true,
     allowAdvancedAnalytics: true,
     allowProfessionalReports: true,
+    maxNotesPerMonth: -1,
   },
 };
