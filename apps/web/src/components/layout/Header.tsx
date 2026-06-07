@@ -125,16 +125,18 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Divider (desktop) */}
+          {/* Divider (large desktop only) */}
           {isOrgMode && activeOrg && (
-            <span className="hidden md:block h-5 w-px bg-blue-200 dark:bg-blue-700 shrink-0" />
+            <span className="hidden lg:block h-5 w-px bg-blue-200 dark:bg-blue-700 shrink-0" />
           )}
 
-          {/* Active org badge — desktop only; AccountSwitcher covers this on mobile */}
+          {/* Active org badge — large desktop only.
+              Hidden on mobile (AccountSwitcher covers it) and on tablet
+              (not enough room alongside the full nav + AccountSwitcher). */}
           {isOrgMode && activeOrg && (
             <Link
               to={`/org/${activeOrg.slug}`}
-              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-150 shrink-0
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-150 shrink-0
                 bg-blue-600/10 border-blue-300/60 hover:bg-blue-600/20 hover:border-blue-400
                 dark:bg-blue-500/15 dark:border-blue-600/50 dark:hover:bg-blue-500/25"
             >
