@@ -259,7 +259,9 @@ export function BillingSection() {
               </div>
             ) : (
               <Button asChild size="sm" className="w-full font-bold">
-                <Link to="/pricing">Upgrade to Pro</Link>
+                <Link to="/pricing" search={{ reason: undefined }}>
+                  Upgrade to Pro
+                </Link>
               </Button>
             )}
           </div>

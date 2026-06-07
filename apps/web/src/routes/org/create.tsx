@@ -1,13 +1,14 @@
 import { useMutation } from "@apollo/client/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Building2 } from "lucide-react";
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrgContext } from "@/context/OrgContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { CREATE_ORGANISATION_MUTATION } from "@/lib/apollo/queries/organisations";
 import type { CreateOrganisationInput } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
@@ -18,19 +19,26 @@ export const Route = createFileRoute("/org/create")({
 });
 
 function CreateOrgPage() {
+  const { isPro, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const { switchToOrg } = useOrgContext();
   const [createOrg, { loading, error }] = useMutation(CREATE_ORGANISATION_MUTATION);
-
   const nameId = useId();
   const industryId = useId();
   const descriptionId = useId();
-
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<CreateOrganisationInput>();
+
+  useEffect(() => {
+    if (!subLoading && !isPro) {
+      void navigate({ to: "/pricing", search: { reason: "org-creation" } });
+    }
+  }, [isPro, subLoading, navigate]);
+
+  if (subLoading || !isPro) return null;
 
   async function onSubmit(data: CreateOrganisationInput) {
     const { data: result } = await createOrg({ variables: { input: data } });

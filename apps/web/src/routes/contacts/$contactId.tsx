@@ -148,7 +148,7 @@ function ContactDetailsPage() {
       <div className="flex items-start gap-3 min-w-0">
         {/* Back button */}
         <Button variant="ghost" size="icon" className="shrink-0 mt-0.5" asChild>
-          <Link to="/contacts">
+          <Link to="/contacts" search={{ new: undefined }}>
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </Button>

@@ -1,7 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Mail, Phone, User, Zap, AlertCircle, ArrowUpCircle, Heart } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AlertCircle, ArrowUpCircle, Heart, Mail, Phone, User, Zap } from "lucide-react";
 import { useEffect, useId, useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,17 +8,17 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageLoader } from "@/components/ui/page-loader";
-import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { TierBadge } from "@/components/ui/tier-badge";
+import { Separator } from "@/components/ui/separator";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
+import { TierBadge } from "@/components/ui/tier-badge";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -145,7 +144,7 @@ function ProfilePage() {
                     variant="outline"
                     className="w-full h-11 rounded-md border-primary/20 hover:bg-primary/5 hover:text-primary transition-all group"
                   >
-                    <Link to="/pricing">
+                    <Link to="/pricing" search={{ reason: undefined }}>
                       <Zap className="w-4 h-4 mr-2 group-hover:fill-primary transition-all" />
                       Upgrade to Pro
                     </Link>
@@ -184,6 +183,7 @@ function ProfilePage() {
                 </p>
                 <Link
                   to="/pricing"
+                  search={{ reason: undefined }}
                   className="text-[10px] font-black text-amber-800 uppercase tracking-widest hover:underline flex items-center gap-1 mt-1"
                 >
                   Upgrade Now <ArrowUpCircle className="w-3 h-3" />

@@ -211,7 +211,11 @@ export function WitnessSelector({
           </div>
           {witnessRemaining === 0 && (
             <p className="text-xs text-muted-foreground">
-              <Link to="/pricing" className="text-amber-600 underline hover:text-amber-700">
+              <Link
+                to="/pricing"
+                search={{ reason: undefined }}
+                className="text-amber-600 underline hover:text-amber-700"
+              >
                 Upgrade to Pro
               </Link>{" "}
               to add more witnesses this month.

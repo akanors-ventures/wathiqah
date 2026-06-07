@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { XCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { AlertCircle, ArrowLeft, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/payment/cancel")({
@@ -32,7 +32,7 @@ function PaymentCancelPage() {
           asChild
           className="flex-1 h-14 rounded-2xl font-black uppercase tracking-widest text-xs"
         >
-          <Link to="/pricing">
+          <Link to="/pricing" search={{ reason: undefined }}>
             <ArrowLeft className="mr-2 w-4 h-4" /> Try Again
           </Link>
         </Button>

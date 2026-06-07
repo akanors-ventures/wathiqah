@@ -140,6 +140,7 @@ function MoreSheet({
               <DialogPrimitive.Close asChild>
                 <Link
                   to="/pricing"
+                  search={{ reason: undefined }}
                   className="flex items-center gap-3 rounded-xl px-4 py-3 bg-primary/8 border border-primary/20 hover:bg-primary/12 transition-colors"
                 >
                   <Zap className="h-4 w-4 fill-primary text-primary shrink-0" />

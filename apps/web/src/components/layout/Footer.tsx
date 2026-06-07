@@ -41,6 +41,7 @@ export function Footer() {
                 <li>
                   <Link
                     to="/pricing"
+                    search={{ reason: undefined }}
                     className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                   >
                     Pricing

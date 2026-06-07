@@ -39,6 +39,7 @@ import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as PaymentCancelRouteImport } from './routes/payment.cancel'
 import { Route as OrgCreateRouteImport } from './routes/org/create'
 import { Route as ItemsNewRouteImport } from './routes/items/new'
+import { Route as ContactsNewRouteImport } from './routes/contacts/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
 import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
@@ -198,6 +199,11 @@ const ItemsNewRoute = ItemsNewRouteImport.update({
   path: '/items/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactsNewRoute = ContactsNewRouteImport.update({
+  id: '/contacts/new',
+  path: '/contacts/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactsContactIdRoute = ContactsContactIdRouteImport.update({
   id: '/contacts/$contactId',
   path: '/contacts/$contactId',
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
+  '/contacts/new': typeof ContactsNewRoute
   '/items/new': typeof ItemsNewRoute
   '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
@@ -288,6 +295,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
+  '/contacts/new': typeof ContactsNewRoute
   '/items/new': typeof ItemsNewRoute
   '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
+  '/contacts/new': typeof ContactsNewRoute
   '/items/new': typeof ItemsNewRoute
   '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
@@ -369,6 +378,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/verify-email'
     | '/contacts/$contactId'
+    | '/contacts/new'
     | '/items/new'
     | '/org/create'
     | '/payment/cancel'
@@ -408,6 +418,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/verify-email'
     | '/contacts/$contactId'
+    | '/contacts/new'
     | '/items/new'
     | '/org/create'
     | '/payment/cancel'
@@ -447,6 +458,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/verify-email'
     | '/contacts/$contactId'
+    | '/contacts/new'
     | '/items/new'
     | '/org/create'
     | '/payment/cancel'
@@ -487,6 +499,7 @@ export interface RootRouteChildren {
   SupportRoute: typeof SupportRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
   ContactsContactIdRoute: typeof ContactsContactIdRoute
+  ContactsNewRoute: typeof ContactsNewRoute
   ItemsNewRoute: typeof ItemsNewRoute
   OrgCreateRoute: typeof OrgCreateRoute
   PaymentCancelRoute: typeof PaymentCancelRoute
@@ -724,6 +737,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ItemsNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contacts/new': {
+      id: '/contacts/new'
+      path: '/contacts/new'
+      fullPath: '/contacts/new'
+      preLoaderRoute: typeof ContactsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contacts/$contactId': {
       id: '/contacts/$contactId'
       path: '/contacts/$contactId'
@@ -791,6 +811,7 @@ const rootRouteChildren: RootRouteChildren = {
   SupportRoute: SupportRoute,
   VerifyEmailRoute: VerifyEmailRoute,
   ContactsContactIdRoute: ContactsContactIdRoute,
+  ContactsNewRoute: ContactsNewRoute,
   ItemsNewRoute: ItemsNewRoute,
   OrgCreateRoute: OrgCreateRoute,
   PaymentCancelRoute: PaymentCancelRoute,
