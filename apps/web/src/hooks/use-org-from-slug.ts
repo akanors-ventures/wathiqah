@@ -2,56 +2,70 @@ import { useEffect, useRef, useState } from "react";
 import { useOrgContext } from "@/context/OrgContext";
 
 /**
- * Read the activeOrgId claim from the access-token cookie without verifying
- * the signature (client-side, read-only). Returns null if absent or invalid.
+ * Read the activeOrgId from the non-httpOnly signal cookie set by the backend
+ * alongside every auth mutation (login, switchOrgContext, refreshToken, etc.).
+ * Returns null if absent or blank (= personal mode).
+ *
+ * We use a dedicated signal cookie instead of decoding the accessToken JWT
+ * because the JWT is httpOnly (unreadable from JS for security).
  */
-function getJwtActiveOrgId(): string | null {
+export function getActiveOrgIdSignal(): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )accessToken=([^;]*)/);
+  const match = document.cookie.match(/(?:^|; )activeOrgId=([^;]*)/);
   if (!match) return null;
-  try {
-    const parts = match[1].split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1])) as Record<string, unknown>;
-    return typeof payload.activeOrgId === "string" ? payload.activeOrgId : null;
-  } catch {
-    return null;
-  }
+  const val = decodeURIComponent(match[1]);
+  return val || null;
 }
 
 /**
- * The JWT cookie is set synchronously via document.cookie inside switchToOrg,
- * before React commits setActiveOrgId(). React 18 concurrent rendering can
- * show the new route component with a stale activeOrg snapshot while the JWT
- * cookie already has the correct org. Using the JWT (not React state) as the
- * source of truth avoids a spurious isSyncing = true → BrandLoader cycle.
+ * Returns true when the server-side org context (signal cookie) does not yet
+ * match the org identified by the URL slug. Used to gate page renders until
+ * the correct org JWT is in place.
+ *
+ * Falls back to comparing against React state (activeOrg) when the signal
+ * cookie is absent — e.g., before the user's first explicit switch after
+ * login.
  */
-function jwtNeedsSwitch(slug: string, myOrgs: Array<{ id: string; slug: string }>): boolean {
+function needsSwitch(
+  slug: string,
+  myOrgs: Array<{ id: string; slug: string }>,
+  activeOrgId: string | null,
+): boolean {
   const targetOrg = myOrgs.find((o) => o.slug === slug);
   if (!targetOrg) return false;
-  return getJwtActiveOrgId() !== targetOrg.id;
+
+  // Primary: signal cookie — set by backend on every auth mutation.
+  const signalOrgId = getActiveOrgIdSignal();
+  if (signalOrgId !== null) {
+    return signalOrgId !== targetOrg.id;
+  }
+
+  // Fallback: React state (may be momentarily stale after a switch, but
+  // autoSwitchBlocked handles that window).
+  return activeOrgId !== targetOrg.id;
 }
 
 /**
  * Ensures the active-org JWT matches the org identified by the URL slug.
  *
  * Returns { isSyncing } so callers can gate rendering until the JWT is
- * correct — preventing a flash of org-A's data when navigating to org-B.
+ * correct — preventing a flash of wrong-org data on direct navigation.
  *
  * Cases handled:
  *   1. User navigates directly to /org/beta/events while org A is active.
- *   2. The access token was refreshed and lost its activeOrgId field.
+ *   2. The access token was refreshed and lost its activeOrgId claim.
  *
- * NOT triggered when the JWT is already correct (even if React context state
- * is momentarily stale), avoiding an unnecessary round-trip after a switch.
+ * NOT triggered when the signal cookie already matches (avoids a redundant
+ * round-trip after an AccountSwitcher-initiated switch).
  */
 export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
-  const { myOrgs, switchToOrg, autoSwitchBlocked } = useOrgContext();
+  const { myOrgs, activeOrg, switchToOrg, autoSwitchBlocked } = useOrgContext();
   const switchingRef = useRef(false);
 
-  // Initialise synchronously from the JWT (not React state) so the very
-  // first render already reflects whether a switch is needed.
-  const [isSyncing, setIsSyncing] = useState(() => jwtNeedsSwitch(slug, myOrgs));
+  // Initialise synchronously so the very first render reflects reality.
+  const [isSyncing, setIsSyncing] = useState(
+    () => !autoSwitchBlocked.current && needsSwitch(slug, myOrgs, activeOrg?.id ?? null),
+  );
 
   useEffect(() => {
     // An explicit AccountSwitcher switch is in progress — don't counter-switch.
@@ -66,9 +80,22 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
       return;
     }
 
-    // JWT already carries the right org — no mutation needed.
-    // Context state (activeOrg) may lag behind due to React batching; that's OK.
-    if (getJwtActiveOrgId() === targetOrg.id) {
+    // Signal cookie matches — server already has the right context.
+    const signalOrgId = getActiveOrgIdSignal();
+    if (signalOrgId !== null && signalOrgId === targetOrg.id) {
+      // Sync React state to match if it hasn't caught up yet.
+      if (activeOrg?.id !== targetOrg.id) {
+        // React state is stale but server is fine; just wait for it to commit.
+        // No mutation needed.
+      }
+      switchingRef.current = false;
+      setIsSyncing(false);
+      return;
+    }
+
+    // No signal cookie yet (first login ever, before first explicit switch),
+    // or signal says wrong org: fall back to React state.
+    if (signalOrgId === null && activeOrg?.id === targetOrg.id) {
       switchingRef.current = false;
       setIsSyncing(false);
       return;
@@ -88,8 +115,7 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
         switchingRef.current = false;
         setIsSyncing(false);
       });
-    // autoSwitchBlocked is a stable ref object — safe to include in deps.
-  }, [slug, myOrgs, switchToOrg, autoSwitchBlocked]);
+  }, [slug, myOrgs, activeOrg, switchToOrg, autoSwitchBlocked]);
 
   return { isSyncing };
 }

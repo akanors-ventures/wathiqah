@@ -44,7 +44,10 @@ export function AccountSwitcher() {
     blockAutoSwitch();
     try {
       await switchToOrg(orgId);
-      await navigate({ to: `/org/${orgSlug}` });
+      // Use typed params navigation so TanStack Router populates Route.useParams()
+      // correctly. Navigating by raw string (/org/fam) leaves params undefined
+      // in the initial concurrent render; using params: { slug } fixes it.
+      void navigate({ to: "/org/$slug/", params: { slug: orgSlug } });
     } catch {
       toast.error("Failed to switch organisation. Please try again.");
     } finally {
@@ -60,14 +63,19 @@ export function AccountSwitcher() {
     try {
       await switchToOrg(null);
       if (window?.location.pathname.startsWith("/org/")) {
-        await navigate({ to: "/" });
+        void navigate({ to: "/" });
       }
     } catch {
       toast.error("Failed to switch to personal. Please try again.");
-    } finally {
       unblockAutoSwitch();
+    } finally {
       setIsSwitching(false);
     }
+    // Delay unblocking: unblocking immediately allows useOrgFromSlug on the still-
+    // mounted org page (concurrent tree) to see signal=null + activeOrg=null and
+    // counter-switch back to the org. 800 ms gives TanStack Router enough time to
+    // commit the navigation and fully unmount the org route first.
+    setTimeout(unblockAutoSwitch, 800);
   }
 
   return (

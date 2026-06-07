@@ -39,6 +39,17 @@ const PUBLIC_PATHS = [
 const isPublicPath = (pathname: string) =>
   PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p));
 
+/**
+ * Suppress "Forbidden resource" (FORBIDDEN) error toasts for a window after an
+ * org context switch. Org queries that fire with the old JWT during the
+ * transition produce expected FORBIDDEN responses — showing them as toasts
+ * is noise. Call before initiating a switch; the suppression auto-expires.
+ */
+let suppressForbiddenUntil = 0;
+export function suppressForbiddenFor(ms: number) {
+  suppressForbiddenUntil = Date.now() + ms;
+}
+
 const SKIP_REFRESH_OPERATIONS = new Set([
   "Login",
   "Logout",
@@ -129,7 +140,15 @@ export const errorLink = (uri: string) =>
 
         if (!skipRefresh && code === "INTERNAL_SERVER_ERROR") {
           toast.error("A server error occurred. Please try again later.");
-        } else if (!skipRefresh && code !== "UNAUTHENTICATED" && code !== "UNAUTHORIZED") {
+        } else if (
+          !skipRefresh &&
+          code !== "UNAUTHENTICATED" &&
+          code !== "UNAUTHORIZED" &&
+          // FORBIDDEN is expected during org context transitions (org queries
+          // refetch with the previous JWT briefly after a switch). Suppress
+          // the toast while suppressForbiddenFor() window is active.
+          !(code === "FORBIDDEN" && Date.now() < suppressForbiddenUntil)
+        ) {
           toast.error(message || "An error occurred");
         }
       });

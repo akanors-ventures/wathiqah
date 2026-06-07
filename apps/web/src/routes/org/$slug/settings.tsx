@@ -41,7 +41,7 @@ function SettingsPage() {
 
   // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
   // Keep the per-page query only for refetch after saving settings.
-  const { myOrgs, loadingOrgs } = useOrgContext();
+  const { myOrgs } = useOrgContext();
   const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org =
     myOrgs.find((o) => o.slug === slug) ??
@@ -82,8 +82,7 @@ function SettingsPage() {
     }
   }
 
-  if (loadingOrgs || isSyncing || !user) return <BrandLoader />;
-  if (!org) return null;
+  if (isSyncing || !org || !user) return <BrandLoader />;
 
   if (!isAdmin) {
     return (

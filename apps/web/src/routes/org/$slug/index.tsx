@@ -26,14 +26,17 @@ function OrgDashboardPage() {
   // activeOrg depends on setActiveOrgId state being committed, which React 18
   // may batch until after navigate(). myOrgs is always populated from cache
   // and contains all orgs the user is a member of, regardless of active context.
-  const { myOrgs, loadingOrgs } = useOrgContext();
+  const { myOrgs } = useOrgContext();
   const org = myOrgs.find((o) => o.slug === slug) ?? null;
 
   const { data: eventsData } = useQuery(ORG_UPCOMING_EVENTS_QUERY, {
     skip: !org,
   });
 
-  if (loadingOrgs || isSyncing || !org) return <BrandLoader />;
+  // loadingOrgs removed: !org already covers the empty-cache case,
+  // and loadingOrgs=true while cached data exists would cause a spurious
+  // BrandLoader after an AccountSwitcher-initiated navigation.
+  if (isSyncing || !org) return <BrandLoader />;
 
   const isAdmin = org.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
 

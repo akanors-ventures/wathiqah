@@ -72,6 +72,28 @@ export class AuthResolver {
       httpOnly: false, // JS needs to read this to sync AuthContext state
       maxAge: this.refreshMaxAge,
     });
+
+    // Non-httpOnly signal so the frontend can read the active org without
+    // decoding the httpOnly accessToken. Set to the org ID or '' for personal.
+    try {
+      const parts = payload.accessToken.split('.');
+      const jwtData = JSON.parse(
+        Buffer.from(parts[1], 'base64url').toString('utf-8'),
+      ) as Record<string, unknown>;
+      const activeOrgId =
+        typeof jwtData.activeOrgId === 'string' ? jwtData.activeOrgId : '';
+      res.cookie('activeOrgId', activeOrgId, {
+        ...cookieOptions,
+        httpOnly: false, // JS reads this to sync OrgContext state
+        maxAge: this.accessMaxAge,
+      });
+    } catch {
+      res.cookie('activeOrgId', '', {
+        ...cookieOptions,
+        httpOnly: false,
+        maxAge: this.accessMaxAge,
+      });
+    }
   }
 
   private clearCookies(res: Response) {
@@ -83,6 +105,7 @@ export class AuthResolver {
     res.clearCookie('accessToken', options);
     res.clearCookie('refreshToken', options);
     res.clearCookie('isLoggedIn', options);
+    res.clearCookie('activeOrgId', options);
   }
 
   @Mutation(() => AuthPayload)

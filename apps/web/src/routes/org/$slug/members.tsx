@@ -49,7 +49,7 @@ function MembersPage() {
 
   // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
   // Keep the per-page query only for refetch after mutations (cache update).
-  const { myOrgs, loadingOrgs } = useOrgContext();
+  const { myOrgs } = useOrgContext();
   const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org =
     myOrgs.find((o) => o.slug === slug) ??
@@ -104,7 +104,7 @@ function MembersPage() {
     }
   }
 
-  if (loadingOrgs || isSyncing || !org) return <BrandLoader />;
+  if (isSyncing || !org) return <BrandLoader />;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

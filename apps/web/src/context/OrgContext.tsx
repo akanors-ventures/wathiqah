@@ -13,27 +13,21 @@ import {
   MY_ORGANISATIONS_QUERY,
   SWITCH_ORG_CONTEXT_MUTATION,
 } from "@/lib/apollo/queries/organisations";
+import { suppressForbiddenFor } from "@/lib/apollo-links";
 import type { Organisation } from "@/types/__generated__/graphql";
 
 const ORG_STORAGE_KEY = "wathiqah_active_org_id";
 
 /**
- * Decode the activeOrgId field from the access token cookie without
- * verifying the signature (frontend read-only). Returns null if the
- * cookie is absent, malformed, or the field is not present.
+ * Read the non-httpOnly activeOrgId signal cookie set by the backend on every
+ * auth mutation. Returns null if absent or blank (= personal mode).
  */
-function getJwtActiveOrgId(): string | null {
+function getActiveOrgIdSignal(): string | null {
   if (typeof document === "undefined") return null;
-  const match = document.cookie.match(/(?:^|; )accessToken=([^;]*)/);
+  const match = document.cookie.match(/(?:^|; )activeOrgId=([^;]*)/);
   if (!match) return null;
-  try {
-    const parts = match[1].split(".");
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(atob(parts[1])) as Record<string, unknown>;
-    return typeof payload.activeOrgId === "string" ? payload.activeOrgId : null;
-  } catch {
-    return null;
-  }
+  const val = decodeURIComponent(match[1]);
+  return val || null;
 }
 
 interface OrgContextType {
@@ -85,17 +79,19 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   const switchToOrg = useCallback(
     async (orgId: string | null) => {
+      // Suppress FORBIDDEN toasts for 3 s. Org queries that are still active
+      // when refetchQueries fires may briefly hit the backend with the old JWT
+      // and return FORBIDDEN — that's expected during the transition window.
+      suppressForbiddenFor(3000);
+
       const { data: switchData } = await switchOrgContextMutation({
         variables: { orgId },
       });
 
       if (!switchData?.switchOrgContext) return;
 
-      const { accessToken, refreshToken } = switchData.switchOrgContext;
-
-      // Store new tokens (same cookie approach as auth)
-      document.cookie = `accessToken=${accessToken}; path=/; SameSite=Strict`;
-      document.cookie = `refreshToken=${refreshToken}; path=/; SameSite=Strict`;
+      // The server sets httpOnly accessToken and refreshToken cookies on the
+      // GraphQL response. We don't need to set them from JS.
 
       // Persist active org selection
       if (orgId) {
@@ -105,8 +101,12 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       }
       setActiveOrgId(orgId);
 
-      // Refetch all active Apollo queries so pages see org-scoped data
-      await apolloClient.refetchQueries({ include: "active" });
+      // Kick off a background refetch so pages see org-scoped data.
+      // Do NOT await — the caller (AccountSwitcher) navigates immediately
+      // after this returns. The new route's own queries will load fresh
+      // data; stale personal-mode cache for OTHER routes is cleared in
+      // the background without blocking the navigation.
+      void apolloClient.refetchQueries({ include: "active" });
     },
     [switchOrgContextMutation, apolloClient],
   );
@@ -130,7 +130,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (getJwtActiveOrgId() === activeOrgId) {
+    if (getActiveOrgIdSignal() === activeOrgId) {
       hasAttemptedRestoration.current = true;
       return;
     }
