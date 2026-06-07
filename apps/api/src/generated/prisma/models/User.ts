@@ -290,6 +290,9 @@ export type UserWhereInput = {
   payments?: Prisma.PaymentListRelationFilter
   subscription?: Prisma.XOR<Prisma.SubscriptionNullableScalarRelationFilter, Prisma.SubscriptionWhereInput> | null
   provisionedSubscriptions?: Prisma.SubscriptionListRelationFilter
+  organisationMembers?: Prisma.OrganisationMemberListRelationFilter
+  orgEventsCreated?: Prisma.OrgEventListRelationFilter
+  orgNotesCreated?: Prisma.OrgNoteListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -326,6 +329,9 @@ export type UserOrderByWithRelationInput = {
   payments?: Prisma.PaymentOrderByRelationAggregateInput
   subscription?: Prisma.SubscriptionOrderByWithRelationInput
   provisionedSubscriptions?: Prisma.SubscriptionOrderByRelationAggregateInput
+  organisationMembers?: Prisma.OrganisationMemberOrderByRelationAggregateInput
+  orgEventsCreated?: Prisma.OrgEventOrderByRelationAggregateInput
+  orgNotesCreated?: Prisma.OrgNoteOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -365,6 +371,9 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   payments?: Prisma.PaymentListRelationFilter
   subscription?: Prisma.XOR<Prisma.SubscriptionNullableScalarRelationFilter, Prisma.SubscriptionWhereInput> | null
   provisionedSubscriptions?: Prisma.SubscriptionListRelationFilter
+  organisationMembers?: Prisma.OrganisationMemberListRelationFilter
+  orgEventsCreated?: Prisma.OrgEventListRelationFilter
+  orgNotesCreated?: Prisma.OrgNoteListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -447,6 +456,9 @@ export type UserCreateInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -483,6 +495,9 @@ export type UserUncheckedCreateInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUpdateInput = {
@@ -519,6 +534,9 @@ export type UserUpdateInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -555,6 +573,9 @@ export type UserUncheckedUpdateInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -941,6 +962,48 @@ export type UserUpdateOneWithoutSupportsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSupportsInput, Prisma.UserUpdateWithoutSupportsInput>, Prisma.UserUncheckedUpdateWithoutSupportsInput>
 }
 
+export type UserCreateNestedOneWithoutOrganisationMembersInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrganisationMembersInput, Prisma.UserUncheckedCreateWithoutOrganisationMembersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrganisationMembersInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOrganisationMembersNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrganisationMembersInput, Prisma.UserUncheckedCreateWithoutOrganisationMembersInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrganisationMembersInput
+  upsert?: Prisma.UserUpsertWithoutOrganisationMembersInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrganisationMembersInput, Prisma.UserUpdateWithoutOrganisationMembersInput>, Prisma.UserUncheckedUpdateWithoutOrganisationMembersInput>
+}
+
+export type UserCreateNestedOneWithoutOrgEventsCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrgEventsCreatedInput, Prisma.UserUncheckedCreateWithoutOrgEventsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrgEventsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOrgEventsCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrgEventsCreatedInput, Prisma.UserUncheckedCreateWithoutOrgEventsCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrgEventsCreatedInput
+  upsert?: Prisma.UserUpsertWithoutOrgEventsCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrgEventsCreatedInput, Prisma.UserUpdateWithoutOrgEventsCreatedInput>, Prisma.UserUncheckedUpdateWithoutOrgEventsCreatedInput>
+}
+
+export type UserCreateNestedOneWithoutOrgNotesCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrgNotesCreatedInput, Prisma.UserUncheckedCreateWithoutOrgNotesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrgNotesCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOrgNotesCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOrgNotesCreatedInput, Prisma.UserUncheckedCreateWithoutOrgNotesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOrgNotesCreatedInput
+  upsert?: Prisma.UserUpsertWithoutOrgNotesCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOrgNotesCreatedInput, Prisma.UserUpdateWithoutOrgNotesCreatedInput>, Prisma.UserUncheckedUpdateWithoutOrgNotesCreatedInput>
+}
+
 export type UserCreateWithoutProvisionedSubscriptionsInput = {
   id?: string
   email: string
@@ -974,6 +1037,9 @@ export type UserCreateWithoutProvisionedSubscriptionsInput = {
   supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
@@ -1009,6 +1075,9 @@ export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
   supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutProvisionedSubscriptionsInput = {
@@ -1049,6 +1118,9 @@ export type UserCreateWithoutSubscriptionInput = {
   supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -1084,6 +1156,9 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -1135,6 +1210,9 @@ export type UserUpdateWithoutProvisionedSubscriptionsInput = {
   supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
@@ -1170,6 +1248,9 @@ export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
   supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUpsertWithoutSubscriptionInput = {
@@ -1216,6 +1297,9 @@ export type UserUpdateWithoutSubscriptionInput = {
   supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -1251,6 +1335,9 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutPaymentsInput = {
@@ -1286,6 +1373,9 @@ export type UserCreateWithoutPaymentsInput = {
   supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -1321,6 +1411,9 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -1372,6 +1465,9 @@ export type UserUpdateWithoutPaymentsInput = {
   supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -1407,6 +1503,9 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutLinkedContactsInput = {
@@ -1442,6 +1541,9 @@ export type UserCreateWithoutLinkedContactsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutLinkedContactsInput = {
@@ -1477,6 +1579,9 @@ export type UserUncheckedCreateWithoutLinkedContactsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutLinkedContactsInput = {
@@ -1517,6 +1622,9 @@ export type UserCreateWithoutContactsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1552,6 +1660,9 @@ export type UserUncheckedCreateWithoutContactsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1603,6 +1714,9 @@ export type UserUpdateWithoutLinkedContactsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedContactsInput = {
@@ -1638,6 +1752,9 @@ export type UserUncheckedUpdateWithoutLinkedContactsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUpsertWithoutContactsInput = {
@@ -1684,6 +1801,9 @@ export type UserUpdateWithoutContactsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1719,6 +1839,9 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -1754,6 +1877,9 @@ export type UserCreateWithoutTransactionsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -1789,6 +1915,9 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -1840,6 +1969,9 @@ export type UserUpdateWithoutTransactionsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -1875,6 +2007,9 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutTransactionHistoryInput = {
@@ -1910,6 +2045,9 @@ export type UserCreateWithoutTransactionHistoryInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutTransactionHistoryInput = {
@@ -1945,6 +2083,9 @@ export type UserUncheckedCreateWithoutTransactionHistoryInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutTransactionHistoryInput = {
@@ -1996,6 +2137,9 @@ export type UserUpdateWithoutTransactionHistoryInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
@@ -2031,6 +2175,9 @@ export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutWitnessRecordsInput = {
@@ -2066,6 +2213,9 @@ export type UserCreateWithoutWitnessRecordsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutWitnessRecordsInput = {
@@ -2101,6 +2251,9 @@ export type UserUncheckedCreateWithoutWitnessRecordsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutWitnessRecordsInput = {
@@ -2152,6 +2305,9 @@ export type UserUpdateWithoutWitnessRecordsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
@@ -2187,6 +2343,9 @@ export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutProjectsInput = {
@@ -2222,6 +2381,9 @@ export type UserCreateWithoutProjectsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectsInput = {
@@ -2257,6 +2419,9 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectsInput = {
@@ -2308,6 +2473,9 @@ export type UserUpdateWithoutProjectsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsInput = {
@@ -2343,6 +2511,9 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutProjectTransactionHistoryInput = {
@@ -2378,6 +2549,9 @@ export type UserCreateWithoutProjectTransactionHistoryInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
@@ -2413,6 +2587,9 @@ export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectTransactionHistoryInput = {
@@ -2464,6 +2641,9 @@ export type UserUpdateWithoutProjectTransactionHistoryInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
@@ -2499,6 +2679,9 @@ export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutPersonalEntriesInput = {
@@ -2534,6 +2717,9 @@ export type UserCreateWithoutPersonalEntriesInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutPersonalEntriesInput = {
@@ -2569,6 +2755,9 @@ export type UserUncheckedCreateWithoutPersonalEntriesInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutPersonalEntriesInput = {
@@ -2620,6 +2809,9 @@ export type UserUpdateWithoutPersonalEntriesInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
@@ -2655,6 +2847,9 @@ export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutPromisesInput = {
@@ -2690,6 +2885,9 @@ export type UserCreateWithoutPromisesInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutPromisesInput = {
@@ -2725,6 +2923,9 @@ export type UserUncheckedCreateWithoutPromisesInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutPromisesInput = {
@@ -2776,6 +2977,9 @@ export type UserUpdateWithoutPromisesInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPromisesInput = {
@@ -2811,6 +3015,9 @@ export type UserUncheckedUpdateWithoutPromisesInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutAccessGrantsInput = {
@@ -2846,6 +3053,9 @@ export type UserCreateWithoutAccessGrantsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutAccessGrantsInput = {
@@ -2881,6 +3091,9 @@ export type UserUncheckedCreateWithoutAccessGrantsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutAccessGrantsInput = {
@@ -2932,6 +3145,9 @@ export type UserUpdateWithoutAccessGrantsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccessGrantsInput = {
@@ -2967,6 +3183,9 @@ export type UserUncheckedUpdateWithoutAccessGrantsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutContactInvitationsReceivedInput = {
@@ -3002,6 +3221,9 @@ export type UserCreateWithoutContactInvitationsReceivedInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
@@ -3037,6 +3259,9 @@ export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutContactInvitationsReceivedInput = {
@@ -3077,6 +3302,9 @@ export type UserCreateWithoutContactInvitationsSentInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
@@ -3112,6 +3340,9 @@ export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutContactInvitationsSentInput = {
@@ -3163,6 +3394,9 @@ export type UserUpdateWithoutContactInvitationsReceivedInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
@@ -3198,6 +3432,9 @@ export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUpsertWithoutContactInvitationsSentInput = {
@@ -3244,6 +3481,9 @@ export type UserUpdateWithoutContactInvitationsSentInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
@@ -3279,6 +3519,9 @@ export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutSupportsInput = {
@@ -3314,6 +3557,9 @@ export type UserCreateWithoutSupportsInput = {
   payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutSupportsInput = {
@@ -3349,6 +3595,9 @@ export type UserUncheckedCreateWithoutSupportsInput = {
   payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
   subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutSupportsInput = {
@@ -3400,6 +3649,9 @@ export type UserUpdateWithoutSupportsInput = {
   payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupportsInput = {
@@ -3435,6 +3687,513 @@ export type UserUncheckedUpdateWithoutSupportsInput = {
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutOrganisationMembersInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutOrganisationMembersInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutOrganisationMembersInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrganisationMembersInput, Prisma.UserUncheckedCreateWithoutOrganisationMembersInput>
+}
+
+export type UserUpsertWithoutOrganisationMembersInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOrganisationMembersInput, Prisma.UserUncheckedUpdateWithoutOrganisationMembersInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrganisationMembersInput, Prisma.UserUncheckedCreateWithoutOrganisationMembersInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOrganisationMembersInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOrganisationMembersInput, Prisma.UserUncheckedUpdateWithoutOrganisationMembersInput>
+}
+
+export type UserUpdateWithoutOrganisationMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrganisationMembersInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutOrgEventsCreatedInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgNotesCreated?: Prisma.OrgNoteCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutOrgEventsCreatedInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutOrgEventsCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrgEventsCreatedInput, Prisma.UserUncheckedCreateWithoutOrgEventsCreatedInput>
+}
+
+export type UserUpsertWithoutOrgEventsCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOrgEventsCreatedInput, Prisma.UserUncheckedUpdateWithoutOrgEventsCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrgEventsCreatedInput, Prisma.UserUncheckedCreateWithoutOrgEventsCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOrgEventsCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOrgEventsCreatedInput, Prisma.UserUncheckedUpdateWithoutOrgEventsCreatedInput>
+}
+
+export type UserUpdateWithoutOrgEventsCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrgEventsCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgNotesCreated?: Prisma.OrgNoteUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutOrgNotesCreatedInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutOrgNotesCreatedInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutOrgNotesCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrgNotesCreatedInput, Prisma.UserUncheckedCreateWithoutOrgNotesCreatedInput>
+}
+
+export type UserUpsertWithoutOrgNotesCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOrgNotesCreatedInput, Prisma.UserUncheckedUpdateWithoutOrgNotesCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOrgNotesCreatedInput, Prisma.UserUncheckedCreateWithoutOrgNotesCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOrgNotesCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOrgNotesCreatedInput, Prisma.UserUncheckedUpdateWithoutOrgNotesCreatedInput>
+}
+
+export type UserUpdateWithoutOrgNotesCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOrgNotesCreatedInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 
@@ -3458,6 +4217,9 @@ export type UserCountOutputType = {
   supports: number
   payments: number
   provisionedSubscriptions: number
+  organisationMembers: number
+  orgEventsCreated: number
+  orgNotesCreated: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3476,6 +4238,9 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   supports?: boolean | UserCountOutputTypeCountSupportsArgs
   payments?: boolean | UserCountOutputTypeCountPaymentsArgs
   provisionedSubscriptions?: boolean | UserCountOutputTypeCountProvisionedSubscriptionsArgs
+  organisationMembers?: boolean | UserCountOutputTypeCountOrganisationMembersArgs
+  orgEventsCreated?: boolean | UserCountOutputTypeCountOrgEventsCreatedArgs
+  orgNotesCreated?: boolean | UserCountOutputTypeCountOrgNotesCreatedArgs
 }
 
 /**
@@ -3593,6 +4358,27 @@ export type UserCountOutputTypeCountProvisionedSubscriptionsArgs<ExtArgs extends
   where?: Prisma.SubscriptionWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOrganisationMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrganisationMemberWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOrgEventsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrgEventWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOrgNotesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrgNoteWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3628,6 +4414,9 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
   subscription?: boolean | Prisma.User$subscriptionArgs<ExtArgs>
   provisionedSubscriptions?: boolean | Prisma.User$provisionedSubscriptionsArgs<ExtArgs>
+  organisationMembers?: boolean | Prisma.User$organisationMembersArgs<ExtArgs>
+  orgEventsCreated?: boolean | Prisma.User$orgEventsCreatedArgs<ExtArgs>
+  orgNotesCreated?: boolean | Prisma.User$orgNotesCreatedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -3709,6 +4498,9 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   payments?: boolean | Prisma.User$paymentsArgs<ExtArgs>
   subscription?: boolean | Prisma.User$subscriptionArgs<ExtArgs>
   provisionedSubscriptions?: boolean | Prisma.User$provisionedSubscriptionsArgs<ExtArgs>
+  organisationMembers?: boolean | Prisma.User$organisationMembersArgs<ExtArgs>
+  orgEventsCreated?: boolean | Prisma.User$orgEventsCreatedArgs<ExtArgs>
+  orgNotesCreated?: boolean | Prisma.User$orgNotesCreatedArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -3733,6 +4525,9 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     payments: Prisma.$PaymentPayload<ExtArgs>[]
     subscription: Prisma.$SubscriptionPayload<ExtArgs> | null
     provisionedSubscriptions: Prisma.$SubscriptionPayload<ExtArgs>[]
+    organisationMembers: Prisma.$OrganisationMemberPayload<ExtArgs>[]
+    orgEventsCreated: Prisma.$OrgEventPayload<ExtArgs>[]
+    orgNotesCreated: Prisma.$OrgNotePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4162,6 +4957,9 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   payments<T extends Prisma.User$paymentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PaymentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscription<T extends Prisma.User$subscriptionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$subscriptionArgs<ExtArgs>>): Prisma.Prisma__SubscriptionClient<runtime.Types.Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   provisionedSubscriptions<T extends Prisma.User$provisionedSubscriptionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$provisionedSubscriptionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubscriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  organisationMembers<T extends Prisma.User$organisationMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$organisationMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganisationMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orgEventsCreated<T extends Prisma.User$orgEventsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$orgEventsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orgNotesCreated<T extends Prisma.User$orgNotesCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$orgNotesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4972,6 +5770,78 @@ export type User$provisionedSubscriptionsArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.SubscriptionScalarFieldEnum | Prisma.SubscriptionScalarFieldEnum[]
+}
+
+/**
+ * User.organisationMembers
+ */
+export type User$organisationMembersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrganisationMember
+   */
+  select?: Prisma.OrganisationMemberSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrganisationMember
+   */
+  omit?: Prisma.OrganisationMemberOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganisationMemberInclude<ExtArgs> | null
+  where?: Prisma.OrganisationMemberWhereInput
+  orderBy?: Prisma.OrganisationMemberOrderByWithRelationInput | Prisma.OrganisationMemberOrderByWithRelationInput[]
+  cursor?: Prisma.OrganisationMemberWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrganisationMemberScalarFieldEnum | Prisma.OrganisationMemberScalarFieldEnum[]
+}
+
+/**
+ * User.orgEventsCreated
+ */
+export type User$orgEventsCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrgEvent
+   */
+  select?: Prisma.OrgEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrgEvent
+   */
+  omit?: Prisma.OrgEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrgEventInclude<ExtArgs> | null
+  where?: Prisma.OrgEventWhereInput
+  orderBy?: Prisma.OrgEventOrderByWithRelationInput | Prisma.OrgEventOrderByWithRelationInput[]
+  cursor?: Prisma.OrgEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrgEventScalarFieldEnum | Prisma.OrgEventScalarFieldEnum[]
+}
+
+/**
+ * User.orgNotesCreated
+ */
+export type User$orgNotesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OrgNote
+   */
+  select?: Prisma.OrgNoteSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OrgNote
+   */
+  omit?: Prisma.OrgNoteOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrgNoteInclude<ExtArgs> | null
+  where?: Prisma.OrgNoteWhereInput
+  orderBy?: Prisma.OrgNoteOrderByWithRelationInput | Prisma.OrgNoteOrderByWithRelationInput[]
+  cursor?: Prisma.OrgNoteWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrgNoteScalarFieldEnum | Prisma.OrgNoteScalarFieldEnum[]
 }
 
 /**

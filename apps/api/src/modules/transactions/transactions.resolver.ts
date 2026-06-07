@@ -28,6 +28,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { CheckFeature } from '../subscription/decorators/check-feature.decorator';
 import { FeatureLimitInterceptor } from '../subscription/interceptors/feature-limit.interceptor';
+import { ActiveOrg } from '../organisations/decorators/active-org.decorator';
 
 @Resolver(() => Transaction)
 @UseGuards(GqlAuthGuard)
@@ -72,10 +73,11 @@ export class TransactionsResolver {
   @Query(() => TransactionsSummary, { name: 'totalBalance' })
   async getTotalBalance(
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
     @Args('currency', { nullable: true }) currency?: string,
     @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
   ) {
-    const summary = await this.transactionsService.findAll(user.id, {
+    const summary = await this.transactionsService.findAll(user.id, orgId, {
       ...filter,
       summaryCurrency: currency,
     });
@@ -88,8 +90,13 @@ export class TransactionsResolver {
   async createTransaction(
     @Args('input') createTransactionInput: CreateTransactionInput,
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
   ) {
-    return this.transactionsService.create(createTransactionInput, user.id);
+    return this.transactionsService.create(
+      createTransactionInput,
+      user.id,
+      orgId,
+    );
   }
 
   @Mutation(() => Transaction)
@@ -105,9 +112,10 @@ export class TransactionsResolver {
   @Query(() => TransactionsResponse, { name: 'transactions' })
   async findAll(
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
     @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
   ) {
-    return this.transactionsService.findAll(user.id, filter);
+    return this.transactionsService.findAll(user.id, orgId, filter);
   }
 
   @Query(() => PaginatedSharedHistoryResponse, {

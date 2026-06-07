@@ -17,25 +17,28 @@ import { SecurityFeatures } from "@/components/marketing/SecurityFeatures";
 import { TrustSignals } from "@/components/marketing/TrustSignals";
 import { SharedHistoryInterstitial } from "@/components/onboarding/SharedHistoryInterstitial";
 import { Button } from "@/components/ui/button";
-import { PageLoader } from "@/components/ui/page-loader";
+import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
+import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
 function LandingPage() {
   const { user, loading } = useAuth();
+  const { activeOrg, loadingOrgs } = useOrgContext();
 
-  if (loading) {
-    return <PageLoader />;
-  }
+  if (loading) return <PageLoader />;
 
   if (user) {
+    // Wait briefly while orgs resolve to avoid flashing skeleton content.
+    if (loadingOrgs && !activeOrg) return <BrandLoader />;
+
     // New users who have pre-existing transactions recorded against their contact
-    // entry see a dedicated interstitial before the dashboard. The flag is set
-    // to true once they dismiss it, ensuring it is shown only once.
+    // entry see a dedicated interstitial before the dashboard.
     if (!user.hasSeenSharedHistory) {
       return <SharedHistoryInterstitial />;
     }
+    // Single unified dashboard — shows org content when in org mode.
     return <Dashboard />;
   }
 
@@ -173,9 +176,10 @@ function LandingPage() {
                   <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-transform">
                     <Lock className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold mb-3">Secure Access</h3>
+                  <h3 className="text-base font-bold mb-3">Shared Access</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                    Read-only sharing for partners without compromising your account.
+                    Grant time-limited, read-only access to a partner or accountant — no credentials
+                    shared.
                   </p>
                 </div>
               </div>
@@ -184,9 +188,10 @@ function LandingPage() {
                   <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
                     <Handshake className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold mb-3">Verified IOUs</h3>
+                  <h3 className="text-base font-bold mb-3">Promises & IOUs</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                    Promises with due dates and priorities that stay verified by both parties.
+                    Capture informal commitments before they become transactions. Set due dates and
+                    convert once fulfilled.
                   </p>
                 </div>
                 <div className="p-8 bg-card border border-border/50 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group translate-y-4">

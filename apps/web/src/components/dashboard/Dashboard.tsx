@@ -1,6 +1,15 @@
+import { useQuery } from "@apollo/client/react";
 import { Link } from "@tanstack/react-router";
 import { endOfMonth, endOfYear, format, startOfMonth, startOfYear } from "date-fns";
-import { CalendarClock, CalendarDays, CreditCard, FileCheck, Users } from "lucide-react";
+import {
+  CalendarClock,
+  CalendarDays,
+  CreditCard,
+  FileCheck,
+  Plus,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { TransactionCard } from "@/components/transactions/TransactionCard";
 import { BalanceIndicator } from "@/components/ui/balance-indicator";
@@ -14,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useBalance } from "@/hooks/useBalance";
 import { useContacts } from "@/hooks/useContacts";
@@ -21,7 +31,10 @@ import { usePersonalEntrySummary } from "@/hooks/usePersonalEntries";
 import { usePromises } from "@/hooks/usePromises";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useMyWitnessRequests } from "@/hooks/useWitnesses";
-import { PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
+import { ORG_UPCOMING_EVENTS_QUERY } from "@/lib/apollo/queries/organisations";
+import { OrgRole, PromiseStatus, WitnessStatus } from "@/types/__generated__/graphql";
+import { OrgHero } from "../org/org-hero";
+import { OrgStatsRow } from "../org/org-stats-row";
 import { OnboardingChecklist } from "./OnboardingChecklist";
 import { ProjectsWidget } from "./ProjectsWidget";
 import { StatsCard } from "./StatsCard";
@@ -30,6 +43,7 @@ type Period = "ALL" | "MONTH" | "YEAR";
 
 export function Dashboard() {
   const { user } = useAuth();
+  const { activeOrg, isOrgMode } = useOrgContext();
   const [selectedCurrency, setSelectedCurrency] = useState<string | undefined>();
   const [period, setPeriod] = useState<Period>("MONTH");
 
@@ -70,7 +84,52 @@ export function Dashboard() {
 
   const { requests: witnessRequests, loading: loadingWitnesses } = useMyWitnessRequests();
   const { promises, loading: loadingPromises } = usePromises();
-  const { summary: cashSummary } = usePersonalEntrySummary();
+  const { summary: cashSummary, loading: loadingCashSummary } = usePersonalEntrySummary();
+
+  // Org-specific data
+  const isAdmin =
+    isOrgMode && activeOrg
+      ? activeOrg.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin
+      : false;
+
+  const { data: eventsData } = useQuery(ORG_UPCOMING_EVENTS_QUERY, {
+    skip: !activeOrg,
+  });
+  const upcomingEvents = eventsData?.orgUpcomingEvents ?? [];
+
+  const quickActions =
+    isOrgMode && activeOrg
+      ? [
+          {
+            icon: Plus,
+            label: "Record transaction",
+            sub: "Log a sale, payment or loan",
+            href: "/transactions/new",
+            search: { contactId: undefined } as never,
+          },
+          {
+            icon: CalendarDays,
+            label: "Add event",
+            sub: "Vaccination, Eid, breeding",
+            href: `/org/${activeOrg.slug}/events`,
+            search: undefined,
+          },
+          {
+            icon: UserPlus,
+            label: "Add contact",
+            sub: "Buyer, vet, partner",
+            href: "/contacts/new",
+            search: undefined,
+          },
+          {
+            icon: Users,
+            label: "Invite member",
+            sub: "Add staff or operator",
+            href: `/org/${activeOrg.slug}/members`,
+            search: undefined,
+          },
+        ]
+      : [];
 
   const loading =
     loadingTx ||
@@ -78,7 +137,8 @@ export function Dashboard() {
     loadingWitnesses ||
     loadingPromises ||
     loadingTotalBalance ||
-    loadingPeriodBalance;
+    loadingPeriodBalance ||
+    loadingCashSummary;
 
   // Calculate Stats
   const totalBalance = totalBalanceData?.netBalance || 0;
@@ -127,17 +187,54 @@ export function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div className="space-y-1 w-full sm:w-auto text-center sm:text-left">
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
-            Dashboard
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium capitalize tracking-tight opacity-70">
-            Personal ledger for loans, promises, and shared expenses
-          </p>
-        </div>
-        <div className="flex gap-3 w-full sm:w-auto items-center">
+      {/* Org Hero — only in org mode, replaces the page title section */}
+      {isOrgMode && activeOrg && (
+        <>
+          <OrgHero
+            org={activeOrg}
+            isAdmin={isAdmin}
+            periodSelector={
+              <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+                <SelectTrigger className="w-[130px] h-9 bg-white/15 border-white/20 text-white hover:bg-white/20 focus:ring-white/30 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-white/70" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTH">This Month</SelectItem>
+                  <SelectItem value="YEAR">This Year</SelectItem>
+                  <SelectItem value="ALL">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            }
+          />
+          <OrgStatsRow
+            transactionCount={activeOrg.transactionCount}
+            contactCount={activeOrg.contactCount}
+            upcomingEventCount={upcomingEvents.length}
+            activeProjectCount={activeOrg.activeProjectCount}
+          />
+        </>
+      )}
+
+      {/* Header — title in personal mode; period selector + mobile button always */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+        {!isOrgMode && (
+          <div className="space-y-1 w-full sm:w-auto text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
+              Dashboard
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground font-medium capitalize tracking-tight opacity-70">
+              Personal ledger for loans, promises, and shared expenses
+            </p>
+          </div>
+        )}
+        {/* sm:ml-auto pushes this group to the right whether or not the title is present */}
+        {/* In org mode this row is mobile-only — desktop uses the OrgHero right section */}
+        <div
+          className={`flex gap-3 w-full sm:w-auto items-center sm:ml-auto${isOrgMode ? " md:hidden" : ""}`}
+        >
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <SelectTrigger className="flex-1 sm:w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
               <div className="flex items-center gap-2">
@@ -152,9 +249,14 @@ export function Dashboard() {
             </SelectContent>
           </Select>
 
+          {/* Personal mode: always show; Org mode: mobile only (OrgHero has it on desktop) */}
           <Button
             asChild
-            className="flex-1 sm:flex-none sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className={
+              isOrgMode
+                ? "flex-1 sm:flex-none sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all md:hidden"
+                : "flex-1 sm:flex-none sm:w-auto h-11 sm:h-12 px-6 sm:px-8 rounded-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            }
           >
             <Link to="/transactions/new" search={{ contactId: undefined }}>
               New Transaction
@@ -163,9 +265,13 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Financial Stats */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
-        <div className="col-span-2 sm:col-span-1">
+      {/* Financial Stats
+          Layout: 2-col on mobile/tablet, 4-col on lg+
+          Total Balance + Cash Position each span full width below lg so they
+          never leave an orphaned card — Inflow/Outflow always sit side-by-side. */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {/* Total Balance — full width below lg */}
+        <div className="col-span-2 lg:col-span-1">
           <StatsCard
             title="Total Balance"
             variant="primary"
@@ -198,19 +304,25 @@ export function Dashboard() {
             description="Net amount owed to / by your contacts (All Time)"
           />
         </div>
-        <StatsCard
-          title="Cash Position"
-          value={
-            <BalanceIndicator
-              amount={cashSummary?.netCashPosition ?? 0}
-              currency={balanceCurrency}
-              overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
-              className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
-            />
-          }
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-          description="Personal income minus expenses (All Time)"
-        />
+
+        {/* Cash Position — full width below lg */}
+        <div className="col-span-2 lg:col-span-1">
+          <StatsCard
+            title="Cash Position"
+            value={
+              <BalanceIndicator
+                amount={cashSummary?.netCashPosition ?? 0}
+                currency={balanceCurrency}
+                overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
+                className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
+              />
+            }
+            icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+            description="Personal income minus expenses (All Time)"
+          />
+        </div>
+
+        {/* Inflow + Outflow — always side-by-side (1 col each) */}
         <StatsCard
           title={`Inflow (${getPeriodLabel()})`}
           value={
@@ -228,9 +340,8 @@ export function Dashboard() {
           title={`Outflow (${getPeriodLabel()})`}
           value={
             <BalanceIndicator
-              amount={periodExpense}
+              amount={-periodExpense}
               currency={balanceCurrency}
-              overrideColor="red"
               className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
             />
           }
@@ -266,6 +377,29 @@ export function Dashboard() {
           link="/contacts"
         />
       </div>
+
+      {/* Org Quick Actions — only in org mode */}
+      {isOrgMode && activeOrg && quickActions.length > 0 && (
+        <div>
+          <h2 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground mb-3">
+            Quick actions
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {quickActions.map(({ icon: Icon, label, sub, href, search }) => (
+              <Link
+                key={label}
+                to={href as never}
+                search={search as never}
+                className="flex flex-col gap-1 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-150"
+              >
+                <Icon className="h-5 w-5 text-muted-foreground mb-1" />
+                <span className="text-[13px] font-semibold">{label}</span>
+                <span className="text-[11px] text-muted-foreground">{sub}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         <div className="lg:col-span-4">
@@ -305,7 +439,6 @@ export function Dashboard() {
                     <div className="text-[9px] sm:text-[10px] font-bold capitalize tracking-tight text-primary bg-primary/5 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-md sm:rounded-lg border border-primary/10 shadow-sm relative z-10">
                       {format(new Date(promise.dueDate as string), "MMM d")}
                     </div>
-                    {/* Hover decorative element */}
                     <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-primary/[0.02] to-transparent translate-x-full group-hover/promise:translate-x-0 transition-transform duration-700" />
                   </div>
                 ))}
@@ -383,6 +516,41 @@ export function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Upcoming Events — only in org mode */}
+      {isOrgMode && activeOrg && upcomingEvents.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
+              Upcoming events
+            </h2>
+            <Button asChild variant="ghost" size="sm" className="text-xs">
+              <Link to={`/org/${activeOrg.slug}/events` as never}>View all →</Link>
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {upcomingEvents.slice(0, 3).map((event) => (
+              <div
+                key={event.id}
+                className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
+              >
+                <div className="flex-shrink-0 w-10 text-center">
+                  <p className="text-[9px] font-bold uppercase text-muted-foreground">
+                    {new Date(event.date).toLocaleDateString("en-NG", { month: "short" })}
+                  </p>
+                  <p className="text-lg font-black leading-tight">
+                    {new Date(event.date).getDate()}
+                  </p>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold truncate">{event.title}</p>
+                  <p className="text-[11px] text-muted-foreground">{event.category}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

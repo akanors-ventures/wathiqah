@@ -37,10 +37,15 @@ import { Route as ProjectsNewRouteImport } from './routes/projects/new'
 import { Route as ProjectsProjectIdRouteImport } from './routes/projects/$projectId'
 import { Route as PaymentSuccessRouteImport } from './routes/payment.success'
 import { Route as PaymentCancelRouteImport } from './routes/payment.cancel'
+import { Route as OrgCreateRouteImport } from './routes/org/create'
 import { Route as ItemsNewRouteImport } from './routes/items/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
+import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
 import { Route as SharedAccessViewGrantIdRouteImport } from './routes/shared-access/view.$grantId'
+import { Route as OrgSlugSettingsRouteImport } from './routes/org/$slug/settings'
+import { Route as OrgSlugMembersRouteImport } from './routes/org/$slug/members'
+import { Route as OrgSlugEventsRouteImport } from './routes/org/$slug/events'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -183,6 +188,11 @@ const PaymentCancelRoute = PaymentCancelRouteImport.update({
   path: '/payment/cancel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrgCreateRoute = OrgCreateRouteImport.update({
+  id: '/org/create',
+  path: '/org/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ItemsNewRoute = ItemsNewRouteImport.update({
   id: '/items/new',
   path: '/items/new',
@@ -193,6 +203,11 @@ const ContactsContactIdRoute = ContactsContactIdRouteImport.update({
   path: '/contacts/$contactId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrgSlugIndexRoute = OrgSlugIndexRouteImport.update({
+  id: '/org/$slug/',
+  path: '/org/$slug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WitnessesInviteTokenRoute = WitnessesInviteTokenRouteImport.update({
   id: '/witnesses/invite/$token',
   path: '/witnesses/invite/$token',
@@ -201,6 +216,21 @@ const WitnessesInviteTokenRoute = WitnessesInviteTokenRouteImport.update({
 const SharedAccessViewGrantIdRoute = SharedAccessViewGrantIdRouteImport.update({
   id: '/shared-access/view/$grantId',
   path: '/shared-access/view/$grantId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgSlugSettingsRoute = OrgSlugSettingsRouteImport.update({
+  id: '/org/$slug/settings',
+  path: '/org/$slug/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgSlugMembersRoute = OrgSlugMembersRouteImport.update({
+  id: '/org/$slug/members',
+  path: '/org/$slug/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrgSlugEventsRoute = OrgSlugEventsRouteImport.update({
+  id: '/org/$slug/events',
+  path: '/org/$slug/events',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -220,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -235,8 +266,12 @@ export interface FileRoutesByFullPath {
   '/shared-access/': typeof SharedAccessIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
   '/witnesses/': typeof WitnessesIndexRoute
+  '/org/$slug/events': typeof OrgSlugEventsRoute
+  '/org/$slug/members': typeof OrgSlugMembersRoute
+  '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/org/$slug/': typeof OrgSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -254,6 +289,7 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -269,8 +305,12 @@ export interface FileRoutesByTo {
   '/shared-access': typeof SharedAccessIndexRoute
   '/transactions': typeof TransactionsIndexRoute
   '/witnesses': typeof WitnessesIndexRoute
+  '/org/$slug/events': typeof OrgSlugEventsRoute
+  '/org/$slug/members': typeof OrgSlugMembersRoute
+  '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/org/$slug': typeof OrgSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -289,6 +329,7 @@ export interface FileRoutesById {
   '/verify-email': typeof VerifyEmailRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/items/new': typeof ItemsNewRoute
+  '/org/create': typeof OrgCreateRoute
   '/payment/cancel': typeof PaymentCancelRoute
   '/payment/success': typeof PaymentSuccessRoute
   '/projects/$projectId': typeof ProjectsProjectIdRoute
@@ -304,8 +345,12 @@ export interface FileRoutesById {
   '/shared-access/': typeof SharedAccessIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
   '/witnesses/': typeof WitnessesIndexRoute
+  '/org/$slug/events': typeof OrgSlugEventsRoute
+  '/org/$slug/members': typeof OrgSlugMembersRoute
+  '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/org/$slug/': typeof OrgSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -325,6 +370,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/org/create'
     | '/payment/cancel'
     | '/payment/success'
     | '/projects/$projectId'
@@ -340,8 +386,12 @@ export interface FileRouteTypes {
     | '/shared-access/'
     | '/transactions/'
     | '/witnesses/'
+    | '/org/$slug/events'
+    | '/org/$slug/members'
+    | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/org/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -359,6 +409,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/org/create'
     | '/payment/cancel'
     | '/payment/success'
     | '/projects/$projectId'
@@ -374,8 +425,12 @@ export interface FileRouteTypes {
     | '/shared-access'
     | '/transactions'
     | '/witnesses'
+    | '/org/$slug/events'
+    | '/org/$slug/members'
+    | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/org/$slug'
   id:
     | '__root__'
     | '/'
@@ -393,6 +448,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/contacts/$contactId'
     | '/items/new'
+    | '/org/create'
     | '/payment/cancel'
     | '/payment/success'
     | '/projects/$projectId'
@@ -408,8 +464,12 @@ export interface FileRouteTypes {
     | '/shared-access/'
     | '/transactions/'
     | '/witnesses/'
+    | '/org/$slug/events'
+    | '/org/$slug/members'
+    | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/org/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -428,6 +488,7 @@ export interface RootRouteChildren {
   VerifyEmailRoute: typeof VerifyEmailRoute
   ContactsContactIdRoute: typeof ContactsContactIdRoute
   ItemsNewRoute: typeof ItemsNewRoute
+  OrgCreateRoute: typeof OrgCreateRoute
   PaymentCancelRoute: typeof PaymentCancelRoute
   PaymentSuccessRoute: typeof PaymentSuccessRoute
   ProjectsProjectIdRoute: typeof ProjectsProjectIdRoute
@@ -443,8 +504,12 @@ export interface RootRouteChildren {
   SharedAccessIndexRoute: typeof SharedAccessIndexRoute
   TransactionsIndexRoute: typeof TransactionsIndexRoute
   WitnessesIndexRoute: typeof WitnessesIndexRoute
+  OrgSlugEventsRoute: typeof OrgSlugEventsRoute
+  OrgSlugMembersRoute: typeof OrgSlugMembersRoute
+  OrgSlugSettingsRoute: typeof OrgSlugSettingsRoute
   SharedAccessViewGrantIdRoute: typeof SharedAccessViewGrantIdRoute
   WitnessesInviteTokenRoute: typeof WitnessesInviteTokenRoute
+  OrgSlugIndexRoute: typeof OrgSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -645,6 +710,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PaymentCancelRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/org/create': {
+      id: '/org/create'
+      path: '/org/create'
+      fullPath: '/org/create'
+      preLoaderRoute: typeof OrgCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/items/new': {
       id: '/items/new'
       path: '/items/new'
@@ -659,6 +731,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactsContactIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/org/$slug/': {
+      id: '/org/$slug/'
+      path: '/org/$slug'
+      fullPath: '/org/$slug/'
+      preLoaderRoute: typeof OrgSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/witnesses/invite/$token': {
       id: '/witnesses/invite/$token'
       path: '/witnesses/invite/$token'
@@ -671,6 +750,27 @@ declare module '@tanstack/react-router' {
       path: '/shared-access/view/$grantId'
       fullPath: '/shared-access/view/$grantId'
       preLoaderRoute: typeof SharedAccessViewGrantIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org/$slug/settings': {
+      id: '/org/$slug/settings'
+      path: '/org/$slug/settings'
+      fullPath: '/org/$slug/settings'
+      preLoaderRoute: typeof OrgSlugSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org/$slug/members': {
+      id: '/org/$slug/members'
+      path: '/org/$slug/members'
+      fullPath: '/org/$slug/members'
+      preLoaderRoute: typeof OrgSlugMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/org/$slug/events': {
+      id: '/org/$slug/events'
+      path: '/org/$slug/events'
+      fullPath: '/org/$slug/events'
+      preLoaderRoute: typeof OrgSlugEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -692,6 +792,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyEmailRoute: VerifyEmailRoute,
   ContactsContactIdRoute: ContactsContactIdRoute,
   ItemsNewRoute: ItemsNewRoute,
+  OrgCreateRoute: OrgCreateRoute,
   PaymentCancelRoute: PaymentCancelRoute,
   PaymentSuccessRoute: PaymentSuccessRoute,
   ProjectsProjectIdRoute: ProjectsProjectIdRoute,
@@ -708,8 +809,12 @@ const rootRouteChildren: RootRouteChildren = {
   SharedAccessIndexRoute: SharedAccessIndexRoute,
   TransactionsIndexRoute: TransactionsIndexRoute,
   WitnessesIndexRoute: WitnessesIndexRoute,
+  OrgSlugEventsRoute: OrgSlugEventsRoute,
+  OrgSlugMembersRoute: OrgSlugMembersRoute,
+  OrgSlugSettingsRoute: OrgSlugSettingsRoute,
   SharedAccessViewGrantIdRoute: SharedAccessViewGrantIdRoute,
   WitnessesInviteTokenRoute: WitnessesInviteTokenRoute,
+  OrgSlugIndexRoute: OrgSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

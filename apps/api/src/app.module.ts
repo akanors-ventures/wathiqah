@@ -23,6 +23,9 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { ProjectsModule } from './modules/projects/projects.module';
 import { PersonalEntriesModule } from './modules/personal-entries/personal-entries.module';
 import { GeoIPModule } from './modules/geoip/geoip.module';
+import { OrganisationsModule } from './modules/organisations/organisations.module';
+import { OrgEventsModule } from './modules/org-events/org-events.module';
+import { OrgNotesModule } from './modules/org-notes/org-notes.module';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
@@ -211,6 +214,9 @@ import { GraphQLError } from 'graphql';
     PersonalEntriesModule,
     QueueModule,
     GeoIPModule,
+    OrganisationsModule,
+    OrgEventsModule,
+    OrgNotesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

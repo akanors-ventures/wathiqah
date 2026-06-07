@@ -2,6 +2,7 @@ import { Test } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { UsersService } from '../users/users.service';
@@ -10,6 +11,10 @@ import { NotificationService } from '../notifications/notification.service';
 import type { Response } from 'express';
 
 jest.mock('bcrypt');
+
+// ---------------------------------------------------------------------------
+// generateTokens
+// ---------------------------------------------------------------------------
 
 describe('AuthService — generateTokens', () => {
   let service: AuthService;
@@ -99,6 +104,10 @@ describe('AuthService — generateTokens', () => {
     expect(refreshOptions.expiresIn).toBe('7d');
   });
 });
+
+// ---------------------------------------------------------------------------
+// verifyEmail
+// ---------------------------------------------------------------------------
 
 describe('AuthService — verifyEmail', () => {
   let service: AuthService;
@@ -213,7 +222,94 @@ describe('AuthService — verifyEmail', () => {
   });
 });
 
-// --- auth.resolver cookie maxAge ---
+// ---------------------------------------------------------------------------
+// switchOrgContext
+// ---------------------------------------------------------------------------
+
+describe('AuthService — switchOrgContext', () => {
+  let service: AuthService;
+  let prisma: { organisationMember: { findUnique: jest.Mock } };
+  let jwtService: { signAsync: jest.Mock };
+  let usersService: { updateRefreshToken: jest.Mock };
+  let configService: { getOrThrow: jest.Mock };
+
+  beforeEach(async () => {
+    prisma = {
+      organisationMember: { findUnique: jest.fn() },
+    };
+    jwtService = { signAsync: jest.fn().mockResolvedValue('mock-token') };
+    usersService = {
+      updateRefreshToken: jest.fn().mockResolvedValue(undefined),
+    };
+    configService = {
+      getOrThrow: jest.fn().mockReturnValue('15m'),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        AuthService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: JwtService, useValue: jwtService },
+        { provide: UsersService, useValue: usersService },
+        { provide: ConfigService, useValue: configService },
+        { provide: CACHE_MANAGER, useValue: {} },
+        { provide: NotificationService, useValue: {} },
+      ],
+    }).compile();
+
+    service = module.get(AuthService);
+  });
+
+  it('returns tokens with activeOrgId in access token when org context valid', async () => {
+    prisma.organisationMember.findUnique.mockResolvedValue({
+      id: 'mem1',
+      role: 'ADMIN',
+    });
+
+    const result = await service.switchOrgContext(
+      'user1',
+      'user@test.com',
+      'org1',
+    );
+
+    expect(result).toHaveProperty('accessToken');
+    expect(result).toHaveProperty('refreshToken');
+    // Access token payload should include activeOrgId
+    expect(jwtService.signAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ activeOrgId: 'org1' }),
+      expect.any(Object),
+    );
+  });
+
+  it('returns tokens without activeOrgId when switching to personal mode (null)', async () => {
+    const result = await service.switchOrgContext(
+      'user1',
+      'user@test.com',
+      null,
+    );
+
+    expect(result).toHaveProperty('accessToken');
+    // Refresh token should NOT include activeOrgId
+    expect(jwtService.signAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ sub: 'user1', email: 'user@test.com' }),
+      expect.any(Object),
+    );
+    // Membership check should NOT be called for personal mode
+    expect(prisma.organisationMember.findUnique).not.toHaveBeenCalled();
+  });
+
+  it('throws UnauthorizedException when user is not a member of the org', async () => {
+    prisma.organisationMember.findUnique.mockResolvedValue(null);
+
+    await expect(
+      service.switchOrgContext('user1', 'user@test.com', 'org1'),
+    ).rejects.toThrow(UnauthorizedException);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AuthResolver — setCookies maxAge
+// ---------------------------------------------------------------------------
 
 describe('AuthResolver — setCookies maxAge from config', () => {
   let resolver: AuthResolver;
@@ -276,6 +372,10 @@ describe('AuthResolver — setCookies maxAge from config', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// changePassword
+// ---------------------------------------------------------------------------
 
 describe('AuthService — changePassword', () => {
   let service: AuthService;
@@ -359,6 +459,10 @@ describe('AuthService — changePassword', () => {
   });
 });
 
+// ---------------------------------------------------------------------------
+// resendVerificationEmail
+// ---------------------------------------------------------------------------
+
 describe('AuthService — resendVerificationEmail', () => {
   let service: AuthService;
   let mockUsersService: {
@@ -441,6 +545,10 @@ describe('AuthService — resendVerificationEmail', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// resetPassword
+// ---------------------------------------------------------------------------
 
 describe('AuthService — resetPassword', () => {
   let service: AuthService;

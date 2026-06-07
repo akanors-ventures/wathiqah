@@ -11,6 +11,7 @@ import {
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ActiveOrg } from '../organisations/decorators/active-org.decorator';
 import { User } from '../users/entities/user.entity';
 import { ProjectsService } from './projects.service';
 import { ProjectTransactionsService } from './project-transactions.service';
@@ -36,9 +37,10 @@ export class ProjectsResolver {
   @Query(() => PaginatedProjectsResponse, { name: 'myProjects' })
   async myProjects(
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
     @Args('filter', { nullable: true }) filter?: FilterProjectInput,
   ) {
-    return this.projectsService.findAll(user.id, filter);
+    return this.projectsService.findAll(user.id, orgId, filter);
   }
 
   @Query(() => Project, { name: 'project' })
@@ -52,9 +54,10 @@ export class ProjectsResolver {
   @Mutation(() => Project)
   async createProject(
     @CurrentUser() user: User,
+    @ActiveOrg() orgId: string | null,
     @Args('input') input: CreateProjectInput,
   ) {
-    return this.projectsService.create(user.id, input);
+    return this.projectsService.create(user.id, orgId, input);
   }
 
   @Mutation(() => Project)

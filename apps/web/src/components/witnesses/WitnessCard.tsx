@@ -25,14 +25,15 @@ export function WitnessCard({ request, onAcknowledge, onDecline, isLoading }: Wi
 
   if (!transaction || !transaction.createdBy) return null;
 
+  // INCOME is excluded: it's not a valid witness transaction type in the
+  // current schema (only the 12 formal types can be witnessed).
   const isPositive =
     transaction.type === "LOAN_RECEIVED" ||
     transaction.type === "REPAYMENT_RECEIVED" ||
     transaction.type === "GIFT_RECEIVED" ||
     transaction.type === "ADVANCE_RECEIVED" ||
     transaction.type === "DEPOSIT_RECEIVED" ||
-    transaction.type === "ESCROWED" ||
-    transaction.type === "INCOME";
+    transaction.type === "ESCROWED";
 
   const isPending = status === WitnessStatus.Pending || status === WitnessStatus.Modified;
 

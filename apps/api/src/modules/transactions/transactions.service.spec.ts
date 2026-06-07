@@ -163,7 +163,10 @@ describe('TransactionsService - Pagination', () => {
         return (arg as (p: unknown) => Promise<unknown>)(prisma);
       });
 
-      const result = await service.findAll(userId, { page: 1, limit: 25 });
+      const result = await service.findAll(userId, null, {
+        page: 1,
+        limit: 25,
+      });
 
       expect(result).toHaveProperty('items');
       expect(result).toHaveProperty('summary');
@@ -200,11 +203,103 @@ describe('TransactionsService - Pagination', () => {
         },
       );
 
-      await service.findAll(userId, { page: 2, limit: 10 });
+      await service.findAll(userId, null, { page: 2, limit: 10 });
 
       // skip should be (2-1)*10 = 10
       expect(capturedFindManyArgs?.skip).toBe(10);
       expect(capturedFindManyArgs?.take).toBe(10);
+    });
+  });
+
+  describe('TransactionsService — org scoping', () => {
+    let scopeService: TransactionsService;
+    let scopePrisma: {
+      transaction: {
+        findMany: jest.Mock;
+        count: jest.Mock;
+        create: jest.Mock;
+        groupBy: jest.Mock;
+      };
+    };
+
+    beforeEach(async () => {
+      scopePrisma = {
+        transaction: {
+          findMany: jest.fn(),
+          count: jest.fn(),
+          create: jest.fn(),
+          groupBy: jest.fn().mockResolvedValue([]),
+        },
+      };
+      const module = await Test.createTestingModule({
+        providers: [
+          TransactionsService,
+          { provide: PrismaService, useValue: scopePrisma },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: CACHE_MANAGER, useValue: mockCacheManager },
+          { provide: NotificationService, useValue: mockNotificationService },
+          { provide: ExchangeRateService, useValue: mockExchangeRateService },
+        ],
+      }).compile();
+      scopeService = module.get(TransactionsService);
+    });
+
+    it('scopes findAll to orgId when org context is active', async () => {
+      scopePrisma.transaction.findMany.mockResolvedValue([]);
+      scopePrisma.transaction.count.mockResolvedValue(0);
+
+      // Provide a $transaction mock on scopePrisma
+      (scopePrisma as unknown as Record<string, unknown>).$transaction =
+        jest.fn((arg: unknown) => {
+          if (Array.isArray(arg)) return Promise.resolve([0, []]);
+          return (arg as (p: unknown) => Promise<unknown>)(scopePrisma);
+        });
+      // Provide user + project mocks used inside findAll
+      (scopePrisma as unknown as Record<string, unknown>).user = {
+        findUnique: jest.fn().mockResolvedValue({ preferredCurrency: 'NGN' }),
+      };
+      (scopePrisma as unknown as Record<string, unknown>).project = {
+        findMany: jest.fn().mockResolvedValue([]),
+      };
+      (scopePrisma as unknown as Record<string, unknown>).projectTransaction = {
+        findMany: jest.fn().mockResolvedValue([]),
+      };
+
+      await scopeService.findAll('user1', 'org1', {});
+
+      expect(scopePrisma.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ orgId: 'org1' }),
+        }),
+      );
+    });
+
+    it('scopes findAll to personal records when orgId is null', async () => {
+      scopePrisma.transaction.findMany.mockResolvedValue([]);
+      scopePrisma.transaction.count.mockResolvedValue(0);
+
+      (scopePrisma as unknown as Record<string, unknown>).$transaction =
+        jest.fn((arg: unknown) => {
+          if (Array.isArray(arg)) return Promise.resolve([0, []]);
+          return (arg as (p: unknown) => Promise<unknown>)(scopePrisma);
+        });
+      (scopePrisma as unknown as Record<string, unknown>).user = {
+        findUnique: jest.fn().mockResolvedValue({ preferredCurrency: 'NGN' }),
+      };
+      (scopePrisma as unknown as Record<string, unknown>).project = {
+        findMany: jest.fn().mockResolvedValue([]),
+      };
+      (scopePrisma as unknown as Record<string, unknown>).projectTransaction = {
+        findMany: jest.fn().mockResolvedValue([]),
+      };
+
+      await scopeService.findAll('user1', null, {});
+
+      expect(scopePrisma.transaction.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ createdById: 'user1', orgId: null }),
+        }),
+      );
     });
   });
 

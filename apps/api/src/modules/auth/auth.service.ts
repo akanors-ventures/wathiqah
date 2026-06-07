@@ -50,11 +50,17 @@ export class AuthService {
     );
   }
 
-  private async generateTokens(userId: string, email: string) {
-    const accessToken = await this.jwtService.signAsync(
-      { sub: userId, email },
-      { expiresIn: this.accessExpiry as ms.StringValue },
-    );
+  private async generateTokens(
+    userId: string,
+    email: string,
+    activeOrgId?: string | null,
+  ) {
+    const accessPayload: Record<string, unknown> = { sub: userId, email };
+    if (activeOrgId) accessPayload.activeOrgId = activeOrgId;
+
+    const accessToken = await this.jwtService.signAsync(accessPayload, {
+      expiresIn: this.accessExpiry as ms.StringValue,
+    });
 
     const refreshToken = await this.jwtService.signAsync(
       { sub: userId, email },
@@ -249,6 +255,24 @@ export class AuthService {
 
   async logout(userId: string) {
     await this.usersService.updateRefreshToken(userId, null);
+  }
+
+  async switchOrgContext(
+    userId: string,
+    email: string,
+    orgId: string | null,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    if (orgId) {
+      const member = await this.prisma.organisationMember.findUnique({
+        where: { orgId_userId: { orgId, userId } },
+      });
+      if (!member) {
+        throw new UnauthorizedException(
+          'You are not a member of this organisation',
+        );
+      }
+    }
+    return this.generateTokens(userId, email, orgId ?? undefined);
   }
 
   async validateUser(userId: string) {

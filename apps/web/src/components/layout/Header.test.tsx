@@ -9,6 +9,12 @@ import Header from "./Header";
 // Mock router
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+  useRouterState: vi.fn(
+    ({ select }: { select?: (s: { location: { pathname: string } }) => unknown } = {}) => {
+      const state = { location: { pathname: "/" } };
+      return select ? select(state) : state;
+    },
+  ),
   Link: ({
     children,
     to,
@@ -33,6 +39,22 @@ vi.mock("sonner", () => ({
 // Mock AuthContext
 vi.mock("@/context/AuthContext", () => ({
   useAuthContext: vi.fn(),
+}));
+
+// Mock OrgContext — Header now uses useActiveOrg and AccountSwitcher uses useOrgContext
+vi.mock("@/context/OrgContext", () => ({
+  useOrgContext: vi.fn(() => ({
+    activeOrg: null,
+    myOrgs: [],
+    loadingOrgs: false,
+    switchToOrg: vi.fn(),
+    isOrgMode: false,
+  })),
+  OrgProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+vi.mock("@/hooks/use-active-org", () => ({
+  useActiveOrg: vi.fn(() => ({ activeOrg: null, isOrgMode: false, switchToOrg: vi.fn() })),
 }));
 
 // Mock useSubscription

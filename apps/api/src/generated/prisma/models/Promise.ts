@@ -36,6 +36,7 @@ export type PromiseMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   userId: string | null
+  orgId: string | null
 }
 
 export type PromiseMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type PromiseMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   userId: string | null
+  orgId: string | null
 }
 
 export type PromiseCountAggregateOutputType = {
@@ -64,6 +66,7 @@ export type PromiseCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   userId: number
+  orgId: number
   _all: number
 }
 
@@ -80,6 +83,7 @@ export type PromiseMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   userId?: true
+  orgId?: true
 }
 
 export type PromiseMaxAggregateInputType = {
@@ -94,6 +98,7 @@ export type PromiseMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   userId?: true
+  orgId?: true
 }
 
 export type PromiseCountAggregateInputType = {
@@ -108,6 +113,7 @@ export type PromiseCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   userId?: true
+  orgId?: true
   _all?: true
 }
 
@@ -195,6 +201,7 @@ export type PromiseGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   userId: string
+  orgId: string | null
   _count: PromiseCountAggregateOutputType | null
   _min: PromiseMinAggregateOutputType | null
   _max: PromiseMaxAggregateOutputType | null
@@ -230,7 +237,9 @@ export type PromiseWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Promise"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Promise"> | Date | string
   userId?: Prisma.StringFilter<"Promise"> | string
+  orgId?: Prisma.StringNullableFilter<"Promise"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  organisation?: Prisma.XOR<Prisma.OrganisationNullableScalarRelationFilter, Prisma.OrganisationWhereInput> | null
 }
 
 export type PromiseOrderByWithRelationInput = {
@@ -245,7 +254,9 @@ export type PromiseOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orgId?: Prisma.SortOrderInput | Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
+  organisation?: Prisma.OrganisationOrderByWithRelationInput
 }
 
 export type PromiseWhereUniqueInput = Prisma.AtLeast<{
@@ -263,7 +274,9 @@ export type PromiseWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Promise"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Promise"> | Date | string
   userId?: Prisma.StringFilter<"Promise"> | string
+  orgId?: Prisma.StringNullableFilter<"Promise"> | string | null
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  organisation?: Prisma.XOR<Prisma.OrganisationNullableScalarRelationFilter, Prisma.OrganisationWhereInput> | null
 }, "id">
 
 export type PromiseOrderByWithAggregationInput = {
@@ -278,6 +291,7 @@ export type PromiseOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orgId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.PromiseCountOrderByAggregateInput
   _max?: Prisma.PromiseMaxOrderByAggregateInput
   _min?: Prisma.PromiseMinOrderByAggregateInput
@@ -298,6 +312,7 @@ export type PromiseScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Promise"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Promise"> | Date | string
   userId?: Prisma.StringWithAggregatesFilter<"Promise"> | string
+  orgId?: Prisma.StringNullableWithAggregatesFilter<"Promise"> | string | null
 }
 
 export type PromiseCreateInput = {
@@ -312,6 +327,7 @@ export type PromiseCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPromisesInput
+  organisation?: Prisma.OrganisationCreateNestedOneWithoutPromisesInput
 }
 
 export type PromiseUncheckedCreateInput = {
@@ -326,6 +342,7 @@ export type PromiseUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   userId: string
+  orgId?: string | null
 }
 
 export type PromiseUpdateInput = {
@@ -340,6 +357,7 @@ export type PromiseUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPromisesNestedInput
+  organisation?: Prisma.OrganisationUpdateOneWithoutPromisesNestedInput
 }
 
 export type PromiseUncheckedUpdateInput = {
@@ -354,6 +372,7 @@ export type PromiseUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PromiseCreateManyInput = {
@@ -368,6 +387,7 @@ export type PromiseCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   userId: string
+  orgId?: string | null
 }
 
 export type PromiseUpdateManyMutationInput = {
@@ -395,6 +415,7 @@ export type PromiseUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PromiseListRelationFilter = {
@@ -419,6 +440,7 @@ export type PromiseCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orgId?: Prisma.SortOrder
 }
 
 export type PromiseMaxOrderByAggregateInput = {
@@ -433,6 +455,7 @@ export type PromiseMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orgId?: Prisma.SortOrder
 }
 
 export type PromiseMinOrderByAggregateInput = {
@@ -447,6 +470,7 @@ export type PromiseMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   userId?: Prisma.SortOrder
+  orgId?: Prisma.SortOrder
 }
 
 export type PromiseCreateNestedManyWithoutUserInput = {
@@ -499,6 +523,48 @@ export type EnumPromiseStatusFieldUpdateOperationsInput = {
   set?: $Enums.PromiseStatus
 }
 
+export type PromiseCreateNestedManyWithoutOrganisationInput = {
+  create?: Prisma.XOR<Prisma.PromiseCreateWithoutOrganisationInput, Prisma.PromiseUncheckedCreateWithoutOrganisationInput> | Prisma.PromiseCreateWithoutOrganisationInput[] | Prisma.PromiseUncheckedCreateWithoutOrganisationInput[]
+  connectOrCreate?: Prisma.PromiseCreateOrConnectWithoutOrganisationInput | Prisma.PromiseCreateOrConnectWithoutOrganisationInput[]
+  createMany?: Prisma.PromiseCreateManyOrganisationInputEnvelope
+  connect?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+}
+
+export type PromiseUncheckedCreateNestedManyWithoutOrganisationInput = {
+  create?: Prisma.XOR<Prisma.PromiseCreateWithoutOrganisationInput, Prisma.PromiseUncheckedCreateWithoutOrganisationInput> | Prisma.PromiseCreateWithoutOrganisationInput[] | Prisma.PromiseUncheckedCreateWithoutOrganisationInput[]
+  connectOrCreate?: Prisma.PromiseCreateOrConnectWithoutOrganisationInput | Prisma.PromiseCreateOrConnectWithoutOrganisationInput[]
+  createMany?: Prisma.PromiseCreateManyOrganisationInputEnvelope
+  connect?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+}
+
+export type PromiseUpdateManyWithoutOrganisationNestedInput = {
+  create?: Prisma.XOR<Prisma.PromiseCreateWithoutOrganisationInput, Prisma.PromiseUncheckedCreateWithoutOrganisationInput> | Prisma.PromiseCreateWithoutOrganisationInput[] | Prisma.PromiseUncheckedCreateWithoutOrganisationInput[]
+  connectOrCreate?: Prisma.PromiseCreateOrConnectWithoutOrganisationInput | Prisma.PromiseCreateOrConnectWithoutOrganisationInput[]
+  upsert?: Prisma.PromiseUpsertWithWhereUniqueWithoutOrganisationInput | Prisma.PromiseUpsertWithWhereUniqueWithoutOrganisationInput[]
+  createMany?: Prisma.PromiseCreateManyOrganisationInputEnvelope
+  set?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  disconnect?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  delete?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  connect?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  update?: Prisma.PromiseUpdateWithWhereUniqueWithoutOrganisationInput | Prisma.PromiseUpdateWithWhereUniqueWithoutOrganisationInput[]
+  updateMany?: Prisma.PromiseUpdateManyWithWhereWithoutOrganisationInput | Prisma.PromiseUpdateManyWithWhereWithoutOrganisationInput[]
+  deleteMany?: Prisma.PromiseScalarWhereInput | Prisma.PromiseScalarWhereInput[]
+}
+
+export type PromiseUncheckedUpdateManyWithoutOrganisationNestedInput = {
+  create?: Prisma.XOR<Prisma.PromiseCreateWithoutOrganisationInput, Prisma.PromiseUncheckedCreateWithoutOrganisationInput> | Prisma.PromiseCreateWithoutOrganisationInput[] | Prisma.PromiseUncheckedCreateWithoutOrganisationInput[]
+  connectOrCreate?: Prisma.PromiseCreateOrConnectWithoutOrganisationInput | Prisma.PromiseCreateOrConnectWithoutOrganisationInput[]
+  upsert?: Prisma.PromiseUpsertWithWhereUniqueWithoutOrganisationInput | Prisma.PromiseUpsertWithWhereUniqueWithoutOrganisationInput[]
+  createMany?: Prisma.PromiseCreateManyOrganisationInputEnvelope
+  set?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  disconnect?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  delete?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  connect?: Prisma.PromiseWhereUniqueInput | Prisma.PromiseWhereUniqueInput[]
+  update?: Prisma.PromiseUpdateWithWhereUniqueWithoutOrganisationInput | Prisma.PromiseUpdateWithWhereUniqueWithoutOrganisationInput[]
+  updateMany?: Prisma.PromiseUpdateManyWithWhereWithoutOrganisationInput | Prisma.PromiseUpdateManyWithWhereWithoutOrganisationInput[]
+  deleteMany?: Prisma.PromiseScalarWhereInput | Prisma.PromiseScalarWhereInput[]
+}
+
 export type PromiseCreateWithoutUserInput = {
   id?: string
   description: string
@@ -510,6 +576,7 @@ export type PromiseCreateWithoutUserInput = {
   status?: $Enums.PromiseStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  organisation?: Prisma.OrganisationCreateNestedOneWithoutPromisesInput
 }
 
 export type PromiseUncheckedCreateWithoutUserInput = {
@@ -523,6 +590,7 @@ export type PromiseUncheckedCreateWithoutUserInput = {
   status?: $Enums.PromiseStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  orgId?: string | null
 }
 
 export type PromiseCreateOrConnectWithoutUserInput = {
@@ -566,6 +634,61 @@ export type PromiseScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Promise"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Promise"> | Date | string
   userId?: Prisma.StringFilter<"Promise"> | string
+  orgId?: Prisma.StringNullableFilter<"Promise"> | string | null
+}
+
+export type PromiseCreateWithoutOrganisationInput = {
+  id?: string
+  description: string
+  promiseTo: string
+  dueDate: Date | string
+  notes?: string | null
+  priority?: $Enums.Priority
+  category?: string | null
+  status?: $Enums.PromiseStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  user: Prisma.UserCreateNestedOneWithoutPromisesInput
+}
+
+export type PromiseUncheckedCreateWithoutOrganisationInput = {
+  id?: string
+  description: string
+  promiseTo: string
+  dueDate: Date | string
+  notes?: string | null
+  priority?: $Enums.Priority
+  category?: string | null
+  status?: $Enums.PromiseStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  userId: string
+}
+
+export type PromiseCreateOrConnectWithoutOrganisationInput = {
+  where: Prisma.PromiseWhereUniqueInput
+  create: Prisma.XOR<Prisma.PromiseCreateWithoutOrganisationInput, Prisma.PromiseUncheckedCreateWithoutOrganisationInput>
+}
+
+export type PromiseCreateManyOrganisationInputEnvelope = {
+  data: Prisma.PromiseCreateManyOrganisationInput | Prisma.PromiseCreateManyOrganisationInput[]
+  skipDuplicates?: boolean
+}
+
+export type PromiseUpsertWithWhereUniqueWithoutOrganisationInput = {
+  where: Prisma.PromiseWhereUniqueInput
+  update: Prisma.XOR<Prisma.PromiseUpdateWithoutOrganisationInput, Prisma.PromiseUncheckedUpdateWithoutOrganisationInput>
+  create: Prisma.XOR<Prisma.PromiseCreateWithoutOrganisationInput, Prisma.PromiseUncheckedCreateWithoutOrganisationInput>
+}
+
+export type PromiseUpdateWithWhereUniqueWithoutOrganisationInput = {
+  where: Prisma.PromiseWhereUniqueInput
+  data: Prisma.XOR<Prisma.PromiseUpdateWithoutOrganisationInput, Prisma.PromiseUncheckedUpdateWithoutOrganisationInput>
+}
+
+export type PromiseUpdateManyWithWhereWithoutOrganisationInput = {
+  where: Prisma.PromiseScalarWhereInput
+  data: Prisma.XOR<Prisma.PromiseUpdateManyMutationInput, Prisma.PromiseUncheckedUpdateManyWithoutOrganisationInput>
 }
 
 export type PromiseCreateManyUserInput = {
@@ -579,6 +702,7 @@ export type PromiseCreateManyUserInput = {
   status?: $Enums.PromiseStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  orgId?: string | null
 }
 
 export type PromiseUpdateWithoutUserInput = {
@@ -592,6 +716,7 @@ export type PromiseUpdateWithoutUserInput = {
   status?: Prisma.EnumPromiseStatusFieldUpdateOperationsInput | $Enums.PromiseStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organisation?: Prisma.OrganisationUpdateOneWithoutPromisesNestedInput
 }
 
 export type PromiseUncheckedUpdateWithoutUserInput = {
@@ -605,6 +730,7 @@ export type PromiseUncheckedUpdateWithoutUserInput = {
   status?: Prisma.EnumPromiseStatusFieldUpdateOperationsInput | $Enums.PromiseStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type PromiseUncheckedUpdateManyWithoutUserInput = {
@@ -618,6 +744,63 @@ export type PromiseUncheckedUpdateManyWithoutUserInput = {
   status?: Prisma.EnumPromiseStatusFieldUpdateOperationsInput | $Enums.PromiseStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type PromiseCreateManyOrganisationInput = {
+  id?: string
+  description: string
+  promiseTo: string
+  dueDate: Date | string
+  notes?: string | null
+  priority?: $Enums.Priority
+  category?: string | null
+  status?: $Enums.PromiseStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  userId: string
+}
+
+export type PromiseUpdateWithoutOrganisationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  promiseTo?: Prisma.StringFieldUpdateOperationsInput | string
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumPromiseStatusFieldUpdateOperationsInput | $Enums.PromiseStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  user?: Prisma.UserUpdateOneRequiredWithoutPromisesNestedInput
+}
+
+export type PromiseUncheckedUpdateWithoutOrganisationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  promiseTo?: Prisma.StringFieldUpdateOperationsInput | string
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumPromiseStatusFieldUpdateOperationsInput | $Enums.PromiseStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
+}
+
+export type PromiseUncheckedUpdateManyWithoutOrganisationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.StringFieldUpdateOperationsInput | string
+  promiseTo?: Prisma.StringFieldUpdateOperationsInput | string
+  dueDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  notes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  priority?: Prisma.EnumPriorityFieldUpdateOperationsInput | $Enums.Priority
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumPromiseStatusFieldUpdateOperationsInput | $Enums.PromiseStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  userId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
 
@@ -634,7 +817,9 @@ export type PromiseSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
+  orgId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organisation?: boolean | Prisma.Promise$organisationArgs<ExtArgs>
 }, ExtArgs["result"]["promise"]>
 
 export type PromiseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -649,7 +834,9 @@ export type PromiseSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
+  orgId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organisation?: boolean | Prisma.Promise$organisationArgs<ExtArgs>
 }, ExtArgs["result"]["promise"]>
 
 export type PromiseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -664,7 +851,9 @@ export type PromiseSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
+  orgId?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organisation?: boolean | Prisma.Promise$organisationArgs<ExtArgs>
 }, ExtArgs["result"]["promise"]>
 
 export type PromiseSelectScalar = {
@@ -679,23 +868,28 @@ export type PromiseSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   userId?: boolean
+  orgId?: boolean
 }
 
-export type PromiseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "description" | "promiseTo" | "dueDate" | "notes" | "priority" | "category" | "status" | "createdAt" | "updatedAt" | "userId", ExtArgs["result"]["promise"]>
+export type PromiseOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "description" | "promiseTo" | "dueDate" | "notes" | "priority" | "category" | "status" | "createdAt" | "updatedAt" | "userId" | "orgId", ExtArgs["result"]["promise"]>
 export type PromiseInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organisation?: boolean | Prisma.Promise$organisationArgs<ExtArgs>
 }
 export type PromiseIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organisation?: boolean | Prisma.Promise$organisationArgs<ExtArgs>
 }
 export type PromiseIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  organisation?: boolean | Prisma.Promise$organisationArgs<ExtArgs>
 }
 
 export type $PromisePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Promise"
   objects: {
     user: Prisma.$UserPayload<ExtArgs>
+    organisation: Prisma.$OrganisationPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -709,6 +903,7 @@ export type $PromisePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     createdAt: Date
     updatedAt: Date
     userId: string
+    orgId: string | null
   }, ExtArgs["result"]["promise"]>
   composites: {}
 }
@@ -1104,6 +1299,7 @@ readonly fields: PromiseFieldRefs;
 export interface Prisma__PromiseClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  organisation<T extends Prisma.Promise$organisationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Promise$organisationArgs<ExtArgs>>): Prisma.Prisma__OrganisationClient<runtime.Types.Result.GetResult<Prisma.$OrganisationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1144,6 +1340,7 @@ export interface PromiseFieldRefs {
   readonly createdAt: Prisma.FieldRef<"Promise", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Promise", 'DateTime'>
   readonly userId: Prisma.FieldRef<"Promise", 'String'>
+  readonly orgId: Prisma.FieldRef<"Promise", 'String'>
 }
     
 
@@ -1537,6 +1734,25 @@ export type PromiseDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Promises to delete.
    */
   limit?: number
+}
+
+/**
+ * Promise.organisation
+ */
+export type Promise$organisationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Organisation
+   */
+  select?: Prisma.OrganisationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Organisation
+   */
+  omit?: Prisma.OrganisationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrganisationInclude<ExtArgs> | null
+  where?: Prisma.OrganisationWhereInput
 }
 
 /**
