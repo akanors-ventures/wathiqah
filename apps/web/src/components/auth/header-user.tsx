@@ -5,7 +5,6 @@ import {
   ChevronDown,
   FileSignature,
   Laptop,
-  LayoutGrid,
   Loader2,
   LogOut,
   Moon,
@@ -208,38 +207,7 @@ export default function HeaderUser() {
 
             <DropdownMenuSeparator />
 
-            {/* Org nav */}
-            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-2 py-1">
-              Organisation
-            </DropdownMenuLabel>
-            <DropdownMenuItem asChild>
-              <Link to="/" className="cursor-pointer">
-                <LayoutGrid className="mr-2 h-4 w-4" />
-                Dashboard
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/org/${activeOrg.slug}/events` as never} className="cursor-pointer">
-                <CalendarDays className="mr-2 h-4 w-4" />
-                Events &amp; Notes
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/org/${activeOrg.slug}/members` as never} className="cursor-pointer">
-                <Users className="mr-2 h-4 w-4" />
-                Members
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to={`/org/${activeOrg.slug}/settings` as never} className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </Link>
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            {/* Switch context */}
+            {/* Switch context — kept near the top to match personal-mode layout */}
             <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-2 py-1">
               Switch context
             </DropdownMenuLabel>
@@ -292,6 +260,31 @@ export default function HeaderUser() {
               <Link to="/org/create">
                 <Plus className="mr-2 h-4 w-4" />
                 Create organisation
+              </Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator />
+
+            {/* Org nav — below context switcher */}
+            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-2 py-1">
+              Organisation
+            </DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+              <Link to={`/org/${activeOrg.slug}/events` as never} className="cursor-pointer">
+                <CalendarDays className="mr-2 h-4 w-4" />
+                Events &amp; Notes
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={`/org/${activeOrg.slug}/members` as never} className="cursor-pointer">
+                <Users className="mr-2 h-4 w-4" />
+                Members
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to={`/org/${activeOrg.slug}/settings` as never} className="cursor-pointer">
+                <Settings className="mr-2 h-4 w-4" />
+                Settings
               </Link>
             </DropdownMenuItem>
 

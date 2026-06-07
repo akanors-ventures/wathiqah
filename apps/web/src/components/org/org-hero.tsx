@@ -25,16 +25,16 @@ export function OrgHero({ org, isAdmin }: OrgHeroProps) {
     .toUpperCase();
 
   return (
-    <div className="bg-gradient-to-br from-slate-900 to-slate-700 dark:from-slate-950 dark:to-slate-800 rounded-xl p-6 flex items-start justify-between gap-4">
+    <div className="bg-gradient-to-br from-emerald-900 to-emerald-700 dark:from-emerald-950 dark:to-emerald-800 rounded-xl p-6 flex items-start justify-between gap-4">
       <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-600 text-white text-xl font-black border-2 border-white/10 flex-shrink-0">
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/15 text-white text-xl font-black border-2 border-white/20 flex-shrink-0">
           {initials}
         </div>
         <div>
           <h1 className="text-xl font-black text-white tracking-tight">{org.name}</h1>
-          {org.description && <p className="text-sm text-blue-200 mt-0.5">{org.description}</p>}
+          {org.description && <p className="text-sm text-emerald-200 mt-0.5">{org.description}</p>}
           <div className="flex items-center gap-2 mt-2">
-            <Badge className="bg-blue-600 hover:bg-blue-600 text-white text-[10px] font-black uppercase">
+            <Badge className="bg-white/20 hover:bg-white/25 text-white text-[10px] font-black uppercase border-0">
               PRO
             </Badge>
             {org.industry && (
@@ -52,7 +52,7 @@ export function OrgHero({ org, isAdmin }: OrgHeroProps) {
         <Button
           asChild
           size="sm"
-          className="hidden md:inline-flex bg-white text-slate-900 hover:bg-white/90 font-semibold flex-shrink-0"
+          className="hidden md:inline-flex bg-white text-emerald-900 hover:bg-white/90 font-semibold flex-shrink-0"
         >
           <Link to="/transactions/new" search={{ contactId: undefined }}>
             <Plus className="h-4 w-4 mr-1.5" />
