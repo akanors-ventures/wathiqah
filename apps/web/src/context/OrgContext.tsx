@@ -14,7 +14,10 @@ import {
   SWITCH_ORG_CONTEXT_MUTATION,
 } from "@/lib/apollo/queries/organisations";
 import { suppressForbiddenFor } from "@/lib/apollo-links";
-import type { Organisation } from "@/types/__generated__/graphql";
+import type { MyOrganisationsQuery } from "@/types/__generated__/graphql";
+
+// Full org type as returned by MY_ORGANISATIONS_QUERY — includes members array.
+type OrgItem = MyOrganisationsQuery["myOrganisations"][number];
 
 const ORG_STORAGE_KEY = "wathiqah_active_org_id";
 
@@ -31,8 +34,8 @@ function getActiveOrgIdSignal(): string | null {
 }
 
 interface OrgContextType {
-  activeOrg: Organisation | null;
-  myOrgs: Organisation[];
+  activeOrg: OrgItem | null;
+  myOrgs: OrgItem[];
   loadingOrgs: boolean;
   switchToOrg: (orgId: string | null) => Promise<void>;
   isOrgMode: boolean;

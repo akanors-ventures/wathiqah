@@ -1570,21 +1570,21 @@ export type PromoteContactToOrgMutationVariables = Exact<{
 
 export type PromoteContactToOrgMutation = { promoteContactToOrg: { __typename: 'Contact', id: string, firstName: string, lastName: string } };
 
-export type OrgEventFieldsFragment = { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string };
+export type OrgEventFieldsFragment = { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string };
 
 export type OrgUpcomingEventsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type OrgUpcomingEventsQuery = { orgUpcomingEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string }> };
+export type OrgUpcomingEventsQuery = { orgUpcomingEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string }> };
 
 export type OrgEventsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type OrgEventsQuery = { orgEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string }> };
+export type OrgEventsQuery = { orgEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string }> };
 
 export type OrgEventCategorySuggestionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1596,7 +1596,7 @@ export type CreateOrgEventMutationVariables = Exact<{
 }>;
 
 
-export type CreateOrgEventMutation = { createOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string } };
+export type CreateOrgEventMutation = { createOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
 
 export type UpdateOrgEventMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1604,7 +1604,7 @@ export type UpdateOrgEventMutationVariables = Exact<{
 }>;
 
 
-export type UpdateOrgEventMutation = { updateOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string } };
+export type UpdateOrgEventMutation = { updateOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
 
 export type RemoveOrgEventMutationVariables = Exact<{
   id: Scalars['ID']['input'];

@@ -183,6 +183,7 @@ export const ORG_EVENT_FIELDS = gql`
     recurrence
     createdById
     createdAt
+    updatedAt
   }
 `;
 

@@ -54,7 +54,7 @@ export function OrgHero({ org, isAdmin }: OrgHeroProps) {
           size="sm"
           className="hidden md:inline-flex bg-white text-slate-900 hover:bg-white/90 font-semibold flex-shrink-0"
         >
-          <Link to="/transactions/new">
+          <Link to="/transactions/new" search={{ contactId: undefined }}>
             <Plus className="h-4 w-4 mr-1.5" />
             New Transaction
           </Link>

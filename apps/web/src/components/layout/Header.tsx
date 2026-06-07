@@ -9,7 +9,6 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { AccountSwitcher } from "@/components/org/account-switcher";
 import { AppLogo } from "@/components/ui/app-logo";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +39,7 @@ type NavItem = {
 export default function Header() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
-  const { activeOrg, isOrgMode } = useActiveOrg();
+  const { isOrgMode } = useActiveOrg();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const ledgerItems: NavItem[] = [
@@ -108,7 +107,7 @@ export default function Header() {
       )}
     >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left: logo + org badge + nav */}
+        {/* Left: logo + nav */}
         <div className="flex items-center gap-3 lg:gap-5 min-w-0">
           {/* Logo */}
           <Link
@@ -124,28 +123,6 @@ export default function Header() {
               Wathīqah
             </span>
           </Link>
-
-          {/* Divider (large desktop only) */}
-          {isOrgMode && activeOrg && (
-            <span className="hidden lg:block h-5 w-px bg-blue-200 dark:bg-blue-700 shrink-0" />
-          )}
-
-          {/* Active org badge — large desktop only.
-              Hidden on mobile (AccountSwitcher covers it) and on tablet
-              (not enough room alongside the full nav + AccountSwitcher). */}
-          {isOrgMode && activeOrg && (
-            <Link
-              to={`/org/${activeOrg.slug}`}
-              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-150 shrink-0
-                bg-blue-600/10 border-blue-300/60 hover:bg-blue-600/20 hover:border-blue-400
-                dark:bg-blue-500/15 dark:border-blue-600/50 dark:hover:bg-blue-500/25"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse flex-shrink-0" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300 max-w-[110px] sm:max-w-[150px] truncate">
-                {activeOrg.name}
-              </span>
-            </Link>
-          )}
 
           {/* Desktop nav — hidden on mobile (bottom nav handles it) */}
           <nav className="hidden md:flex items-center gap-0.5">
@@ -170,7 +147,7 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Right: Go Pro + AccountSwitcher + user */}
+        {/* Right: Go Pro + user menu (context switcher is inside the menu) */}
         <div className="flex items-center gap-2 shrink-0">
           {user && !isPro && !subLoading && (
             <Button
@@ -185,7 +162,6 @@ export default function Header() {
               </Link>
             </Button>
           )}
-          <AccountSwitcher />
           <HeaderUser />
         </div>
       </div>
