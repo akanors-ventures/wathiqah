@@ -176,9 +176,10 @@ function LandingPage() {
                   <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6 group-hover:scale-110 transition-transform">
                     <Lock className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold mb-3">Secure Access</h3>
+                  <h3 className="text-base font-bold mb-3">Shared Access</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                    Read-only sharing for partners without compromising your account.
+                    Grant time-limited, read-only access to a partner or accountant — no credentials
+                    shared.
                   </p>
                 </div>
               </div>
@@ -187,9 +188,10 @@ function LandingPage() {
                   <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 mb-6 group-hover:scale-110 transition-transform">
                     <Handshake className="w-6 h-6" />
                   </div>
-                  <h3 className="text-base font-bold mb-3">Verified IOUs</h3>
+                  <h3 className="text-base font-bold mb-3">Promises & IOUs</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed font-medium">
-                    Promises with due dates and priorities that stay verified by both parties.
+                    Capture informal commitments before they become transactions. Set due dates and
+                    convert once fulfilled.
                   </p>
                 </div>
                 <div className="p-8 bg-card border border-border/50 rounded-[32px] shadow-sm hover:shadow-xl transition-all duration-500 group translate-y-4">

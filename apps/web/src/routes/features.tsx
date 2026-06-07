@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRightLeft,
-  BarChart3,
   Building2,
   CheckCircle2,
   Eye,
@@ -9,6 +8,7 @@ import {
   Gift,
   Globe,
   Handshake,
+  History,
   Lock,
   Package,
   RefreshCw,
@@ -119,9 +119,10 @@ function FeaturesPage() {
               search={{ tab: "funds" }}
             />
             <FeatureCard
-              icon={<BarChart3 className="w-8 h-8 text-yellow-500" />}
-              title="Financial Dashboard"
-              description="Period-filtered snapshot of inflows, outflows, total balance, contact obligations, and active commitments. Filter by month, year, or all time."
+              icon={<History className="w-8 h-8 text-blue-500" />}
+              title="Audit Log"
+              description="Every change to a transaction is captured permanently — who changed what, when, and exactly which fields. Field-level before/after diffs, searchable and filterable."
+              to="/transactions"
             />
           </div>
         </div>
