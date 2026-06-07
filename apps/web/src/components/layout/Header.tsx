@@ -102,7 +102,7 @@ export default function Header() {
       className={cn(
         "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm transition-colors duration-300",
         isOrgMode
-          ? "border-blue-200 bg-blue-50/95 dark:border-blue-800 dark:bg-blue-950/95"
+          ? "border-emerald-200 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/95"
           : "border-border",
       )}
     >
@@ -260,7 +260,7 @@ function NavDropdown({
                     isActive
                       ? "bg-primary/10"
                       : isOrgMode
-                        ? "bg-blue-50 dark:bg-blue-950 group-hover:bg-muted"
+                        ? "bg-emerald-50 dark:bg-emerald-950 group-hover:bg-muted"
                         : "bg-muted group-hover:bg-muted/80",
                   )}
                 >

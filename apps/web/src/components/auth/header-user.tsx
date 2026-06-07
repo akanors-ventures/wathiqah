@@ -150,7 +150,7 @@ export default function HeaderUser() {
           className={cn(
             "flex items-center gap-2 px-2 py-1.5 h-9 rounded-lg border transition-all duration-200",
             isOrgMode
-              ? "border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 dark:border-blue-800 dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-200"
+              ? "border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950 dark:hover:bg-emerald-900 dark:text-emerald-200"
               : "border-border bg-background hover:bg-muted/50",
           )}
         >
@@ -158,7 +158,7 @@ export default function HeaderUser() {
             className={cn(
               "flex h-6 w-6 items-center justify-center rounded-md text-[10px] font-bold flex-shrink-0",
               isOrgMode
-                ? "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200"
+                ? "bg-emerald-200 text-emerald-800 dark:bg-emerald-800 dark:text-emerald-200"
                 : "bg-muted text-muted-foreground",
             )}
           >
@@ -171,7 +171,7 @@ export default function HeaderUser() {
             <span
               className={cn(
                 "text-[9px] uppercase tracking-wide font-bold leading-none mt-0.5",
-                isOrgMode ? "text-blue-500" : "text-muted-foreground",
+                isOrgMode ? "text-emerald-500" : "text-muted-foreground",
               )}
             >
               {isSwitching ? "Switching…" : isOrgMode ? "Organisation" : "Personal"}
@@ -189,7 +189,7 @@ export default function HeaderUser() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white text-[11px] font-black">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white text-[11px] font-black">
                     {activeOrg.name
                       .split(" ")
                       .slice(0, 2)
@@ -269,7 +269,7 @@ export default function HeaderUser() {
                 disabled={isSwitching}
                 onClick={() => handleSwitchToOrg(org.id, org.slug)}
               >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-[9px] font-bold mr-2">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[9px] font-bold mr-2">
                   {org.name
                     .split(" ")
                     .slice(0, 2)
@@ -331,7 +331,7 @@ export default function HeaderUser() {
                     disabled={isSwitching}
                     onClick={() => handleSwitchToOrg(org.id, org.slug)}
                   >
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-[9px] font-bold mr-2">
+                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[9px] font-bold mr-2">
                       {org.name
                         .split(" ")
                         .slice(0, 2)

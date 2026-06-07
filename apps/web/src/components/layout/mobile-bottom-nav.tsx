@@ -50,7 +50,7 @@ function NavTab({ tab, pathname, isOrgMode }: { tab: Tab; pathname: string; isOr
         "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors",
         isActive
           ? isOrgMode
-            ? "text-blue-600 dark:text-blue-400"
+            ? "text-emerald-600 dark:text-emerald-400"
             : "text-primary"
           : "text-muted-foreground",
       )}
@@ -88,7 +88,7 @@ function MoreSheet({
             "data-[state=open]:animate-in data-[state=closed]:animate-out",
             "data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom",
             "duration-300",
-            isOrgMode ? "border-blue-200 dark:border-blue-800" : "border-border",
+            isOrgMode ? "border-emerald-200 dark:border-emerald-800" : "border-border",
           )}
         >
           {/* Handle bar */}
@@ -119,7 +119,7 @@ function MoreSheet({
                   <div
                     className={cn(
                       "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
-                      isOrgMode ? "bg-blue-50 dark:bg-blue-950" : "bg-muted",
+                      isOrgMode ? "bg-emerald-50 dark:bg-emerald-950" : "bg-muted",
                     )}
                   >
                     <Icon className={cn("h-4.5 w-4.5", iconColor)} />
@@ -274,7 +274,7 @@ export function MobileBottomNav() {
           "md:hidden fixed bottom-0 left-0 right-0 z-40",
           "border-t backdrop-blur-md bg-background/95",
           isOrgMode
-            ? "border-blue-200 bg-blue-50/95 dark:border-blue-800 dark:bg-blue-950/95"
+            ? "border-emerald-200 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/95"
             : "border-border",
         )}
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
@@ -293,7 +293,7 @@ export function MobileBottomNav() {
               "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors",
               isMoreActive || sheetOpen
                 ? isOrgMode
-                  ? "text-blue-600 dark:text-blue-400"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : "text-primary"
                 : "text-muted-foreground",
             )}

@@ -1,15 +1,11 @@
-import { useQuery } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   ArrowRightLeft,
-  CalendarDays,
   Handshake,
   History,
   Lock,
   Package,
-  Plus,
-  UserPlus,
   Users,
   Wallet,
 } from "lucide-react";
@@ -20,37 +16,29 @@ import { IslamicFoundation } from "@/components/marketing/IslamicFoundation";
 import { SecurityFeatures } from "@/components/marketing/SecurityFeatures";
 import { TrustSignals } from "@/components/marketing/TrustSignals";
 import { SharedHistoryInterstitial } from "@/components/onboarding/SharedHistoryInterstitial";
-import { OrgHero } from "@/components/org/org-hero";
-import { OrgStatsRow } from "@/components/org/org-stats-row";
 import { Button } from "@/components/ui/button";
 import { BrandLoader, PageLoader } from "@/components/ui/page-loader";
 import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
-import { ORG_UPCOMING_EVENTS_QUERY } from "@/lib/apollo/queries/organisations";
-import { OrgRole } from "@/types/__generated__/graphql";
 
 export const Route = createFileRoute("/")({ component: LandingPage });
 
 function LandingPage() {
   const { user, loading } = useAuth();
-  const { activeOrg, isOrgMode, loadingOrgs } = useOrgContext();
+  const { activeOrg, loadingOrgs } = useOrgContext();
 
   if (loading) return <PageLoader />;
 
   if (user) {
-    // If orgs are still resolving and we might be in org mode, wait briefly
-    // to avoid flashing personal content before switching to org content.
+    // Wait briefly while orgs resolve to avoid flashing skeleton content.
     if (loadingOrgs && !activeOrg) return <BrandLoader />;
-
-    if (isOrgMode && activeOrg) {
-      return <OrgDashboard />;
-    }
 
     // New users who have pre-existing transactions recorded against their contact
     // entry see a dedicated interstitial before the dashboard.
     if (!user.hasSeenSharedHistory) {
       return <SharedHistoryInterstitial />;
     }
+    // Single unified dashboard — shows org content when in org mode.
     return <Dashboard />;
   }
 
@@ -264,119 +252,6 @@ function LandingPage() {
 
       {/* Footer */}
       <Footer />
-    </div>
-  );
-}
-
-/**
- * Org dashboard content rendered at "/" when the user is in org mode.
- * Reads from activeOrg — no slug needed since OrgContext already holds the right org.
- */
-function OrgDashboard() {
-  const { activeOrg } = useOrgContext();
-  const { user } = useAuth();
-
-  const { data: eventsData } = useQuery(ORG_UPCOMING_EVENTS_QUERY, {
-    skip: !activeOrg,
-  });
-
-  if (!activeOrg) return <BrandLoader />;
-
-  const isAdmin = activeOrg.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
-
-  const upcomingEvents = eventsData?.orgUpcomingEvents ?? [];
-
-  const quickActions = [
-    {
-      icon: Plus,
-      label: "Record transaction",
-      sub: "Log a sale, payment or loan",
-      href: "/transactions/new",
-    },
-    {
-      icon: CalendarDays,
-      label: "Add event",
-      sub: "Vaccination, Eid, breeding",
-      href: `/org/${activeOrg.slug}/events`,
-    },
-    {
-      icon: UserPlus,
-      label: "Add contact",
-      sub: "Buyer, vet, partner",
-      href: "/contacts/new",
-    },
-    {
-      icon: Users,
-      label: "Invite member",
-      sub: "Add staff or operator",
-      href: `/org/${activeOrg.slug}/members`,
-    },
-  ];
-
-  return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <OrgHero org={activeOrg} isAdmin={isAdmin} />
-      <OrgStatsRow
-        transactionCount={activeOrg.transactionCount}
-        contactCount={activeOrg.contactCount}
-        upcomingEventCount={upcomingEvents.length}
-        activeProjectCount={activeOrg.activeProjectCount}
-      />
-
-      {/* Quick actions */}
-      <div>
-        <h2 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground mb-3">
-          Quick actions
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {quickActions.map(({ icon: Icon, label, sub, href }) => (
-            <Link
-              key={label}
-              to={href as never}
-              className="flex flex-col gap-1 p-4 rounded-xl border border-border bg-card hover:border-primary/30 hover:bg-primary/5 transition-all duration-150"
-            >
-              <Icon className="h-5 w-5 text-muted-foreground mb-1" />
-              <span className="text-[13px] font-semibold">{label}</span>
-              <span className="text-[11px] text-muted-foreground">{sub}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
-      {/* Upcoming events preview */}
-      {upcomingEvents.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-[11px] font-black uppercase tracking-widest text-muted-foreground">
-              Upcoming events
-            </h2>
-            <Button asChild variant="ghost" size="sm" className="text-xs">
-              <Link to={`/org/${activeOrg.slug}/events` as never}>View all →</Link>
-            </Button>
-          </div>
-          <div className="space-y-2">
-            {upcomingEvents.slice(0, 3).map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
-              >
-                <div className="flex-shrink-0 w-10 text-center">
-                  <p className="text-[9px] font-bold uppercase text-muted-foreground">
-                    {new Date(event.date).toLocaleDateString("en-NG", { month: "short" })}
-                  </p>
-                  <p className="text-lg font-black leading-tight">
-                    {new Date(event.date).getDate()}
-                  </p>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold truncate">{event.title}</p>
-                  <p className="text-[11px] text-muted-foreground">{event.category}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
