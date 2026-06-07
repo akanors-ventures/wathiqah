@@ -7,13 +7,15 @@ export function OrgNavBar() {
   const { activeOrg, isOrgMode } = useActiveOrg();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Only render on org-scoped pages
-  if (!isOrgMode || !activeOrg || !pathname.startsWith("/org/")) return null;
+  // Render on the unified home dashboard (when in org mode) and all /org/* pages
+  if (!isOrgMode || !activeOrg) return null;
+  if (pathname !== "/" && !pathname.startsWith("/org/")) return null;
 
   const base = `/org/${activeOrg.slug}`;
 
   const tabs = [
-    { label: "Dashboard", href: base, icon: LayoutGrid, exact: true },
+    // Dashboard lives at "/" (unified route) — the /org/$slug/ variant redirects there
+    { label: "Dashboard", href: "/", icon: LayoutGrid, exact: true },
     { label: "Events & Notes", href: `${base}/events`, icon: CalendarDays, exact: false },
     { label: "Members", href: `${base}/members`, icon: Users, exact: false },
     { label: "Settings", href: `${base}/settings`, icon: Settings, exact: false },

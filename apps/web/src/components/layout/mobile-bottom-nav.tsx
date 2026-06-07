@@ -170,7 +170,8 @@ export function MobileBottomNav() {
 
   const orgTabs: Tab[] = activeOrg
     ? [
-        { label: "Dashboard", href: `/org/${activeOrg.slug}`, icon: LayoutGrid, exact: true },
+        // Dashboard is the unified "/" route in org mode (org/$slug/ redirects there)
+        { label: "Dashboard", href: "/", icon: LayoutGrid, exact: true },
         { label: "Events", href: `/org/${activeOrg.slug}/events`, icon: CalendarDays },
         { label: "Members", href: `/org/${activeOrg.slug}/members`, icon: Users },
         { label: "Settings", href: `/org/${activeOrg.slug}/settings`, icon: Settings },
