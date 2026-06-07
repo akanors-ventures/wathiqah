@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowRight, CheckCircle2, PartyPopper } from "lucide-react";
 import { useEffect } from "react";
 import { toast } from "sonner";
@@ -8,7 +8,13 @@ import { useAuth } from "@/hooks/use-auth";
 export const Route = createFileRoute("/payment/success")({
   validateSearch: (search: Record<string, unknown>) => ({
     type: (search.type as string) || "subscription",
+    status: (search.status as string) || "successful",
   }),
+  beforeLoad: ({ search }) => {
+    if (search.status === "cancelled" || search.status === "failed") {
+      throw redirect({ to: "/payment/cancel" });
+    }
+  },
   component: PaymentSuccessPage,
 });
 
