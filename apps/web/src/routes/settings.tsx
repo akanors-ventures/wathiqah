@@ -72,8 +72,8 @@ export function SettingsPage() {
   if (!user) return <div className="p-8">Please log in to view settings.</div>;
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
+    <div className="container mx-auto py-6 sm:py-10 px-4 max-w-4xl">
+      <h1 className="text-3xl font-bold mb-6 sm:mb-8">Account Settings</h1>
 
       <div className="grid gap-8">
         <BillingSection />
@@ -454,10 +454,10 @@ export function SharedAccessSection() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Shared With Me Section */}
-      <div className="group relative bg-card border border-border/50 rounded-[32px] p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 relative z-10">
+      <div className="group relative bg-card border border-border/50 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 sm:mb-8 gap-3 sm:gap-4 relative z-10">
           <div className="space-y-1">
             <h2 className="text-base font-black flex items-center gap-3 uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
               <div className="p-2.5 rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:rotate-3">
@@ -465,7 +465,7 @@ export function SharedAccessSection() {
               </div>
               Shared With Me
             </h2>
-            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider pl-14">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider sm:pl-14">
               Profiles you have been granted read-only access to
             </p>
           </div>
@@ -551,8 +551,8 @@ export function SharedAccessSection() {
       </div>
 
       {/* Grant Access Section */}
-      <div className="group relative bg-card border border-border/50 rounded-[32px] p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 relative z-10">
+      <div className="group relative bg-card border border-border/50 rounded-2xl sm:rounded-[32px] p-4 sm:p-8 transition-all duration-500 hover:shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-5 sm:mb-8 gap-3 sm:gap-4 relative z-10">
           <div className="space-y-1">
             <h2 className="text-base font-black flex items-center gap-3 uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
               <div className="p-2.5 rounded-2xl bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-500 shadow-sm group-hover:-rotate-3">
@@ -560,7 +560,7 @@ export function SharedAccessSection() {
               </div>
               Share My Profile
             </h2>
-            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider pl-14">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider sm:pl-14">
               Grant read-only access to your transactions and promises
             </p>
           </div>
@@ -568,7 +568,7 @@ export function SharedAccessSection() {
 
         <form
           onSubmit={handleGrant}
-          className="flex flex-col sm:flex-row gap-4 mb-10 items-end relative z-10"
+          className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-10 items-end relative z-10"
         >
           <div className="flex-1 w-full space-y-2.5">
             <Label

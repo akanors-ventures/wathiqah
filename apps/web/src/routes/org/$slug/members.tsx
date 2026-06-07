@@ -49,8 +49,8 @@ function MembersPage() {
 
   // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
   // Keep the per-page query only for refetch after mutations (cache update).
-  const { myOrgs } = useOrgContext();
-  const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
+  const { myOrgs, loadingOrgs } = useOrgContext();
+  const { data, loading: loadingOrgQuery, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org =
     myOrgs.find((o) => o.slug === slug) ??
     data?.myOrganisations.find((o) => o.slug === slug) ??
@@ -104,7 +104,17 @@ function MembersPage() {
     }
   }
 
-  if (isSyncing || !org) return <BrandLoader />;
+  if (isSyncing) return <BrandLoader />;
+  if (!org && (loadingOrgs || loadingOrgQuery)) return <BrandLoader />;
+  if (!org) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <p className="text-sm text-muted-foreground">
+          Organisation not found or you no longer have access.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">

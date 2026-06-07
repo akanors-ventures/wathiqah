@@ -41,8 +41,8 @@ function SettingsPage() {
 
   // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
   // Keep the per-page query only for refetch after saving settings.
-  const { myOrgs } = useOrgContext();
-  const { data, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
+  const { myOrgs, loadingOrgs } = useOrgContext();
+  const { data, loading: loadingOrgQuery, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
   const org =
     myOrgs.find((o) => o.slug === slug) ??
     data?.myOrganisations.find((o) => o.slug === slug) ??
@@ -82,7 +82,19 @@ function SettingsPage() {
     }
   }
 
-  if (isSyncing || !org || !user) return <BrandLoader />;
+  if (isSyncing || !user) return <BrandLoader />;
+  // Show loader only while data is still in flight — prevents infinite spinner
+  // when myOrgs is temporarily empty due to a refetch during a JWT switch.
+  if (!org && (loadingOrgs || loadingOrgQuery)) return <BrandLoader />;
+  if (!org) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-xl">
+        <p className="text-sm text-muted-foreground">
+          Organisation not found or you no longer have access.
+        </p>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (

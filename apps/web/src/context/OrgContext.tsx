@@ -64,7 +64,16 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     fetchPolicy: "cache-and-network",
   });
 
-  const myOrgs = data?.myOrganisations ?? [];
+  // Sticky orgs list: once populated, never falls back to [] due to a transient
+  // refetch error (e.g. a FORBIDDEN on a @ResolveField during a JWT switch).
+  // Only a successful non-empty response can update the list.
+  const [myOrgs, setMyOrgs] = useState<OrgItem[]>([]);
+  useEffect(() => {
+    if (data?.myOrganisations && data.myOrganisations.length > 0) {
+      setMyOrgs(data.myOrganisations);
+    }
+  }, [data?.myOrganisations]);
+
   const activeOrg = myOrgs.find((o) => o.id === activeOrgId) ?? null;
 
   const [switchOrgContextMutation] = useMutation(SWITCH_ORG_CONTEXT_MUTATION);
