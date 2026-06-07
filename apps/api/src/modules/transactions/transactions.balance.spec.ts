@@ -503,7 +503,7 @@ describe('TransactionsService - Balance & Audit', () => {
         .mockResolvedValueOnce([]);
 
       const result = await service.findAll(userId, null);
-      expect(result.summary.netBalance).toBe(0);
+      expect(result.summary.netBalance).toBe(0); // equal gifts cancel out
     });
   });
 });

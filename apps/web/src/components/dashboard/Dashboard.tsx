@@ -324,6 +324,19 @@ export function Dashboard() {
 
         {/* Inflow + Outflow — always side-by-side (1 col each) */}
         <StatsCard
+          title="Cash Position"
+          value={
+            <BalanceIndicator
+              amount={cashSummary?.netCashPosition ?? 0}
+              currency={balanceCurrency}
+              overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
+              className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
+            />
+          }
+          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+          description="Personal income minus expenses (All Time)"
+        />
+        <StatsCard
           title={`Inflow (${getPeriodLabel()})`}
           value={
             <BalanceIndicator

@@ -57,11 +57,6 @@ export enum AssetCategory {
   Item = 'ITEM'
 }
 
-export enum AttributionMode {
-  OrgAndOperator = 'ORG_AND_OPERATOR',
-  OrgOnly = 'ORG_ONLY'
-}
-
 export type AuthPayload = {
   __typename: 'AuthPayload';
   accessToken: Maybe<Scalars['String']['output']>;
@@ -99,7 +94,6 @@ export type Contact = {
   lastName: Scalars['String']['output'];
   linkedUserId: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
-  orgId: Maybe<Scalars['String']['output']>;
   phoneNumber: Maybe<Scalars['String']['output']>;
   transactions: Maybe<Array<Transaction>>;
   user: User;
@@ -128,28 +122,6 @@ export type CreateContactInput = {
   email?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type CreateNoteInput = {
-  body: Scalars['String']['input'];
-  category?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type CreateOrgEventInput = {
-  category: Scalars['String']['input'];
-  date: Scalars['String']['input'];
-  endDate?: InputMaybe<Scalars['String']['input']>;
-  isRecurring?: InputMaybe<Scalars['Boolean']['input']>;
-  notes?: InputMaybe<Scalars['String']['input']>;
-  recurrence?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-};
-
-export type CreateOrganisationInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  industry?: InputMaybe<Scalars['String']['input']>;
-  name: Scalars['String']['input'];
 };
 
 export type CreatePersonalEntryInput = {
@@ -295,11 +267,6 @@ export type InviteContactResponse = {
   success: Scalars['Boolean']['output'];
 };
 
-export type InviteMemberInput = {
-  email: Scalars['String']['input'];
-  role: OrgRole;
-};
-
 export type LogProjectTransactionInput = {
   amount: Scalars['Float']['input'];
   category?: InputMaybe<Scalars['String']['input']>;
@@ -326,10 +293,6 @@ export type Mutation = {
   changePassword: Scalars['Boolean']['output'];
   createCheckoutSession: CheckoutSession;
   createContact: Contact;
-  createNote: Note;
-  createOrgEvent: OrgEvent;
-  createOrgNote: Note;
-  createOrganisation: Organisation;
   createPersonalEntry: PersonalEntry;
   createProject: Project;
   createPromise: Promise;
@@ -341,20 +304,14 @@ export type Mutation = {
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
   inviteContactToPlatform: InviteContactResponse;
-  inviteMember: OrganisationMember;
   logProjectTransaction: ProjectTransaction;
   login: AuthPayload;
   logout: Scalars['Boolean']['output'];
   markSharedHistorySeen: Scalars['Boolean']['output'];
-  promoteContactToOrg: Contact;
   provisionPro: User;
   reactivateSubscription: Scalars['Boolean']['output'];
   refreshToken: AuthPayload;
   removeContact: Contact;
-  removeMember: Scalars['Boolean']['output'];
-  removeNote: Scalars['Boolean']['output'];
-  removeOrgEvent: Scalars['Boolean']['output'];
-  removeOrgNote: Scalars['Boolean']['output'];
   removePromise: Promise;
   removeTransaction: Transaction;
   removeWitness: Witness;
@@ -365,13 +322,7 @@ export type Mutation = {
   revokeAccess: AccessGrant;
   setUserRole: User;
   signup: AuthPayload;
-  switchOrgContext: AuthPayload;
   updateContact: Contact;
-  updateMemberRole: OrganisationMember;
-  updateNote: Note;
-  updateOrgEvent: OrgEvent;
-  updateOrgNote: Note;
-  updateOrganisation: Organisation;
   updatePersonalEntry: PersonalEntry;
   updateProject: Project;
   updateProjectTransaction: ProjectTransaction;
@@ -416,26 +367,6 @@ export type MutationCreateCheckoutSessionArgs = {
 
 export type MutationCreateContactArgs = {
   createContactInput: CreateContactInput;
-};
-
-
-export type MutationCreateNoteArgs = {
-  input: CreateNoteInput;
-};
-
-
-export type MutationCreateOrgEventArgs = {
-  input: CreateOrgEventInput;
-};
-
-
-export type MutationCreateOrgNoteArgs = {
-  input: CreateNoteInput;
-};
-
-
-export type MutationCreateOrganisationArgs = {
-  input: CreateOrganisationInput;
 };
 
 
@@ -495,11 +426,6 @@ export type MutationInviteContactToPlatformArgs = {
 };
 
 
-export type MutationInviteMemberArgs = {
-  input: InviteMemberInput;
-};
-
-
 export type MutationLogProjectTransactionArgs = {
   input: LogProjectTransactionInput;
 };
@@ -507,11 +433,6 @@ export type MutationLogProjectTransactionArgs = {
 
 export type MutationLoginArgs = {
   loginInput: LoginInput;
-};
-
-
-export type MutationPromoteContactToOrgArgs = {
-  contactId: Scalars['ID']['input'];
 };
 
 
@@ -526,26 +447,6 @@ export type MutationRefreshTokenArgs = {
 
 
 export type MutationRemoveContactArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationRemoveMemberArgs = {
-  memberId: Scalars['ID']['input'];
-};
-
-
-export type MutationRemoveNoteArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationRemoveOrgEventArgs = {
-  id: Scalars['ID']['input'];
-};
-
-
-export type MutationRemoveOrgNoteArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -600,42 +501,8 @@ export type MutationSignupArgs = {
 };
 
 
-export type MutationSwitchOrgContextArgs = {
-  orgId?: InputMaybe<Scalars['String']['input']>;
-};
-
-
 export type MutationUpdateContactArgs = {
   updateContactInput: UpdateContactInput;
-};
-
-
-export type MutationUpdateMemberRoleArgs = {
-  memberId: Scalars['ID']['input'];
-  role: OrgRole;
-};
-
-
-export type MutationUpdateNoteArgs = {
-  id: Scalars['ID']['input'];
-  input: UpdateNoteInput;
-};
-
-
-export type MutationUpdateOrgEventArgs = {
-  id: Scalars['ID']['input'];
-  input: UpdateOrgEventInput;
-};
-
-
-export type MutationUpdateOrgNoteArgs = {
-  id: Scalars['ID']['input'];
-  input: UpdateNoteInput;
-};
-
-
-export type MutationUpdateOrganisationArgs = {
-  input: UpdateOrganisationInput;
 };
 
 
@@ -671,68 +538,6 @@ export type MutationUpdateUserArgs = {
 
 export type MutationVerifyEmailArgs = {
   token: Scalars['String']['input'];
-};
-
-export type Note = {
-  __typename: 'Note';
-  body: Scalars['String']['output'];
-  category: Maybe<Scalars['String']['output']>;
-  createdAt: Scalars['DateTime']['output'];
-  createdById: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  orgId: Maybe<Scalars['String']['output']>;
-  title: Maybe<Scalars['String']['output']>;
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-export type OrgEvent = {
-  __typename: 'OrgEvent';
-  category: Scalars['String']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  createdById: Scalars['String']['output'];
-  date: Scalars['DateTime']['output'];
-  endDate: Maybe<Scalars['DateTime']['output']>;
-  id: Scalars['ID']['output'];
-  isRecurring: Scalars['Boolean']['output'];
-  notes: Maybe<Scalars['String']['output']>;
-  orgId: Scalars['String']['output'];
-  recurrence: Maybe<Scalars['String']['output']>;
-  title: Scalars['String']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-export enum OrgRole {
-  Admin = 'ADMIN',
-  Operator = 'OPERATOR',
-  Viewer = 'VIEWER'
-}
-
-export type Organisation = {
-  __typename: 'Organisation';
-  activeProjectCount: Scalars['Int']['output'];
-  attributionMode: AttributionMode;
-  contactCount: Scalars['Int']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  description: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  industry: Maybe<Scalars['String']['output']>;
-  logoUrl: Maybe<Scalars['String']['output']>;
-  members: Array<OrganisationMember>;
-  name: Scalars['String']['output'];
-  slug: Scalars['String']['output'];
-  transactionCount: Scalars['Int']['output'];
-  updatedAt: Scalars['DateTime']['output'];
-};
-
-export type OrganisationMember = {
-  __typename: 'OrganisationMember';
-  id: Scalars['ID']['output'];
-  joinedAt: Scalars['DateTime']['output'];
-  orgId: Scalars['String']['output'];
-  organisation: Organisation;
-  role: OrgRole;
-  user: User;
-  userId: Scalars['String']['output'];
 };
 
 export type PaginatedContactsResponse = {
@@ -916,17 +721,11 @@ export type Query = {
   me: User;
   myAccessGrants: Array<AccessGrant>;
   myContactTransactions: PaginatedSharedHistoryResponse;
-  myOrganisations: Array<Organisation>;
   myProjects: PaginatedProjectsResponse;
   myPromises: Array<Promise>;
   mySubscription: SubscriptionInfo;
   mySupports: Array<Support>;
   myWitnessRequests: PaginatedWitnessesResponse;
-  orgEventCategorySuggestions: Array<Scalars['String']['output']>;
-  orgEvents: Array<OrgEvent>;
-  orgNotes: Array<Note>;
-  orgUpcomingEvents: Array<OrgEvent>;
-  organisation: Organisation;
   personalEntries: PaginatedPersonalEntriesResponse;
   personalEntrySummary: PersonalEntrySummary;
   project: Project;
@@ -942,7 +741,6 @@ export type Query = {
   transactions: TransactionsResponse;
   transactionsGroupedByContact: Array<ContactGroupedSummary>;
   user: Maybe<User>;
-  userNotes: Array<Note>;
 };
 
 
@@ -986,26 +784,6 @@ export type QueryMyProjectsArgs = {
 export type QueryMyWitnessRequestsArgs = {
   filter?: InputMaybe<FilterWitnessInput>;
   status?: InputMaybe<WitnessStatus>;
-};
-
-
-export type QueryOrgEventsArgs = {
-  category?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryOrgNotesArgs = {
-  category?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryOrgUpcomingEventsArgs = {
-  category?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryOrganisationArgs = {
-  slug: Scalars['String']['input'];
 };
 
 
@@ -1072,11 +850,6 @@ export type QueryTransactionsGroupedByContactArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['String']['input'];
-};
-
-
-export type QueryUserNotesArgs = {
-  category?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type RefreshTokenInput = {
@@ -1267,30 +1040,6 @@ export type UpdateContactInput = {
   id: Scalars['ID']['input'];
   name?: InputMaybe<Scalars['String']['input']>;
   phoneNumber?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateNoteInput = {
-  body?: InputMaybe<Scalars['String']['input']>;
-  category?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateOrgEventInput = {
-  category?: InputMaybe<Scalars['String']['input']>;
-  date?: InputMaybe<Scalars['String']['input']>;
-  endDate?: InputMaybe<Scalars['String']['input']>;
-  isRecurring?: InputMaybe<Scalars['Boolean']['input']>;
-  notes?: InputMaybe<Scalars['String']['input']>;
-  recurrence?: InputMaybe<Scalars['String']['input']>;
-  title?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateOrganisationInput = {
-  attributionMode?: InputMaybe<AttributionMode>;
-  description?: InputMaybe<Scalars['String']['input']>;
-  industry?: InputMaybe<Scalars['String']['input']>;
-  logoUrl?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePersonalEntryInput = {
@@ -1540,137 +1289,6 @@ export type GetGeoIpInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: string, countryCode: string, countryName: string, regionName: string, cityName: string, currencyCode: string | null, isVpn: boolean } };
-
-export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number };
-
-export type MyOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type MyOrganisationsQuery = { myOrganisations: Array<{ __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number, members: Array<{ __typename: 'OrganisationMember', id: string, userId: string, role: OrgRole, joinedAt: string, user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } }> }> };
-
-export type SwitchOrgContextMutationVariables = Exact<{
-  orgId?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type SwitchOrgContextMutation = { switchOrgContext: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } } };
-
-export type CreateOrganisationMutationVariables = Exact<{
-  input: CreateOrganisationInput;
-}>;
-
-
-export type CreateOrganisationMutation = { createOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number } };
-
-export type UpdateOrganisationMutationVariables = Exact<{
-  input: UpdateOrganisationInput;
-}>;
-
-
-export type UpdateOrganisationMutation = { updateOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number } };
-
-export type InviteMemberMutationVariables = Exact<{
-  input: InviteMemberInput;
-}>;
-
-
-export type InviteMemberMutation = { inviteMember: { __typename: 'OrganisationMember', id: string, userId: string, role: OrgRole, joinedAt: string } };
-
-export type UpdateMemberRoleMutationVariables = Exact<{
-  memberId: Scalars['ID']['input'];
-  role: OrgRole;
-}>;
-
-
-export type UpdateMemberRoleMutation = { updateMemberRole: { __typename: 'OrganisationMember', id: string, role: OrgRole } };
-
-export type RemoveMemberMutationVariables = Exact<{
-  memberId: Scalars['ID']['input'];
-}>;
-
-
-export type RemoveMemberMutation = { removeMember: boolean };
-
-export type PromoteContactToOrgMutationVariables = Exact<{
-  contactId: Scalars['ID']['input'];
-}>;
-
-
-export type PromoteContactToOrgMutation = { promoteContactToOrg: { __typename: 'Contact', id: string, firstName: string, lastName: string } };
-
-export type OrgEventFieldsFragment = { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string };
-
-export type OrgUpcomingEventsQueryVariables = Exact<{
-  category?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type OrgUpcomingEventsQuery = { orgUpcomingEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string }> };
-
-export type OrgEventsQueryVariables = Exact<{
-  category?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type OrgEventsQuery = { orgEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string }> };
-
-export type OrgEventCategorySuggestionsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type OrgEventCategorySuggestionsQuery = { orgEventCategorySuggestions: Array<string> };
-
-export type CreateOrgEventMutationVariables = Exact<{
-  input: CreateOrgEventInput;
-}>;
-
-
-export type CreateOrgEventMutation = { createOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
-
-export type UpdateOrgEventMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  input: UpdateOrgEventInput;
-}>;
-
-
-export type UpdateOrgEventMutation = { updateOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
-
-export type RemoveOrgEventMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type RemoveOrgEventMutation = { removeOrgEvent: boolean };
-
-export type OrgNoteFieldsFragment = { __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string };
-
-export type OrgNotesQueryVariables = Exact<{
-  category?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type OrgNotesQuery = { orgNotes: Array<{ __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string }> };
-
-export type CreateOrgNoteMutationVariables = Exact<{
-  input: CreateNoteInput;
-}>;
-
-
-export type CreateOrgNoteMutation = { createOrgNote: { __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
-
-export type UpdateOrgNoteMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  input: UpdateNoteInput;
-}>;
-
-
-export type UpdateOrgNoteMutation = { updateOrgNote: { __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
-
-export type RemoveOrgNoteMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type RemoveOrgNoteMutation = { removeOrgNote: boolean };
 
 export type CreateCheckoutSessionMutationVariables = Exact<{
   tier: SubscriptionTier;
