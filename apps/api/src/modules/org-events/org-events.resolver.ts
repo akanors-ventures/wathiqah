@@ -48,8 +48,9 @@ export class OrgEventsResolver {
   }
 
   @Query(() => [String], { name: 'orgEventCategorySuggestions' })
-  categorySuggestions() {
-    return this.orgEventsService.categorySuggestions();
+  @OrgRoles(OrgRole.ADMIN, OrgRole.OPERATOR, OrgRole.VIEWER)
+  categorySuggestions(@ActiveOrg() orgId: string) {
+    return this.orgEventsService.usedCategories(orgId);
   }
 
   @Mutation(() => OrgEvent)

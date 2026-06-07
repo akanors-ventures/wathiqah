@@ -151,6 +151,15 @@ export type CreateOrganisationInput = {
   name: Scalars['String']['input'];
 };
 
+export type CreatePersonalEntryInput = {
+  amount: Scalars['Float']['input'];
+  category?: InputMaybe<Scalars['String']['input']>;
+  currency?: Scalars['String']['input'];
+  date: Scalars['DateTime']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  type: PersonalEntryType;
+};
+
 export type CreateProjectInput = {
   budget?: InputMaybe<Scalars['Float']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -198,6 +207,16 @@ export type FilterContactInput = {
   limit?: InputMaybe<Scalars['Int']['input']>;
   page?: InputMaybe<Scalars['Int']['input']>;
   search?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type FilterPersonalEntryInput = {
+  currency?: InputMaybe<Scalars['String']['input']>;
+  endDate?: InputMaybe<Scalars['DateTime']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  startDate?: InputMaybe<Scalars['DateTime']['input']>;
+  type?: InputMaybe<PersonalEntryType>;
 };
 
 export type FilterProjectInput = {
@@ -309,11 +328,13 @@ export type Mutation = {
   createOrgEvent: OrgEvent;
   createOrgNote: OrgNote;
   createOrganisation: Organisation;
+  createPersonalEntry: PersonalEntry;
   createProject: Project;
   createPromise: Promise;
   createSupport: Support;
   createSupportSession: CheckoutSession;
   createTransaction: Transaction;
+  deletePersonalEntry: Scalars['Boolean']['output'];
   deprovisionPro: User;
   forgotPassword: Scalars['Boolean']['output'];
   grantAccess: AccessGrant;
@@ -347,6 +368,7 @@ export type Mutation = {
   updateOrgEvent: OrgEvent;
   updateOrgNote: OrgNote;
   updateOrganisation: Organisation;
+  updatePersonalEntry: PersonalEntry;
   updateProject: Project;
   updateProjectTransaction: ProjectTransaction;
   updatePromise: Promise;
@@ -408,6 +430,11 @@ export type MutationCreateOrganisationArgs = {
 };
 
 
+export type MutationCreatePersonalEntryArgs = {
+  input: CreatePersonalEntryInput;
+};
+
+
 export type MutationCreateProjectArgs = {
   input: CreateProjectInput;
 };
@@ -431,6 +458,11 @@ export type MutationCreateSupportSessionArgs = {
 
 export type MutationCreateTransactionArgs = {
   input: CreateTransactionInput;
+};
+
+
+export type MutationDeletePersonalEntryArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -587,6 +619,11 @@ export type MutationUpdateOrganisationArgs = {
 };
 
 
+export type MutationUpdatePersonalEntryArgs = {
+  input: UpdatePersonalEntryInput;
+};
+
+
 export type MutationUpdateProjectArgs = {
   input: UpdateProjectInput;
 };
@@ -651,7 +688,9 @@ export enum OrgRole {
 
 export type Organisation = {
   __typename: 'Organisation';
+  activeProjectCount: Scalars['Int']['output'];
   attributionMode: AttributionMode;
+  contactCount: Scalars['Int']['output'];
   createdAt: Scalars['DateTime']['output'];
   description: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
@@ -660,6 +699,7 @@ export type Organisation = {
   members: Array<OrganisationMember>;
   name: Scalars['String']['output'];
   slug: Scalars['String']['output'];
+  transactionCount: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -677,6 +717,14 @@ export type OrganisationMember = {
 export type PaginatedContactsResponse = {
   __typename: 'PaginatedContactsResponse';
   items: Array<Contact>;
+  limit: Scalars['Int']['output'];
+  page: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type PaginatedPersonalEntriesResponse = {
+  __typename: 'PaginatedPersonalEntriesResponse';
+  items: Array<PersonalEntry>;
   limit: Scalars['Int']['output'];
   page: Scalars['Int']['output'];
   total: Scalars['Int']['output'];
@@ -713,6 +761,32 @@ export type PaginatedWitnessesResponse = {
   page: Scalars['Int']['output'];
   total: Scalars['Int']['output'];
 };
+
+export type PersonalEntry = {
+  __typename: 'PersonalEntry';
+  amount: Scalars['Float']['output'];
+  category: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  createdById: Scalars['String']['output'];
+  currency: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  description: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  type: PersonalEntryType;
+};
+
+export type PersonalEntrySummary = {
+  __typename: 'PersonalEntrySummary';
+  currency: Scalars['String']['output'];
+  netCashPosition: Scalars['Float']['output'];
+  totalExpenses: Scalars['Float']['output'];
+  totalIncome: Scalars['Float']['output'];
+};
+
+export enum PersonalEntryType {
+  Expense = 'EXPENSE',
+  Income = 'INCOME'
+}
 
 export enum Priority {
   High = 'HIGH',
@@ -832,6 +906,8 @@ export type Query = {
   orgNotes: Array<OrgNote>;
   orgUpcomingEvents: Array<OrgEvent>;
   organisation: Organisation;
+  personalEntries: PaginatedPersonalEntriesResponse;
+  personalEntrySummary: PersonalEntrySummary;
   project: Project;
   promise: Promise;
   receivedAccessGrants: Array<AccessGrant>;
@@ -845,7 +921,6 @@ export type Query = {
   transactions: TransactionsResponse;
   transactionsGroupedByContact: Array<ContactGroupedSummary>;
   user: Maybe<User>;
-  witnessInvitation: Witness;
 };
 
 
@@ -912,6 +987,16 @@ export type QueryOrganisationArgs = {
 };
 
 
+export type QueryPersonalEntriesArgs = {
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+};
+
+
+export type QueryPersonalEntrySummaryArgs = {
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+};
+
+
 export type QueryProjectArgs = {
   id: Scalars['ID']['input'];
 };
@@ -965,11 +1050,6 @@ export type QueryTransactionsGroupedByContactArgs = {
 
 export type QueryUserArgs = {
   id: Scalars['String']['input'];
-};
-
-
-export type QueryWitnessInvitationArgs = {
-  token: Scalars['String']['input'];
 };
 
 export type RefreshTokenInput = {
@@ -1119,10 +1199,8 @@ export enum TransactionType {
   DepositPaid = 'DEPOSIT_PAID',
   DepositReceived = 'DEPOSIT_RECEIVED',
   Escrowed = 'ESCROWED',
-  Expense = 'EXPENSE',
   GiftGiven = 'GIFT_GIVEN',
   GiftReceived = 'GIFT_RECEIVED',
-  Income = 'INCOME',
   LoanGiven = 'LOAN_GIVEN',
   LoanReceived = 'LOAN_RECEIVED',
   Remitted = 'REMITTED',
@@ -1185,6 +1263,16 @@ export type UpdateOrganisationInput = {
   industry?: InputMaybe<Scalars['String']['input']>;
   logoUrl?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdatePersonalEntryInput = {
+  amount?: InputMaybe<Scalars['Float']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
+  date?: InputMaybe<Scalars['DateTime']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
+  type?: InputMaybe<PersonalEntryType>;
 };
 
 export type UpdateProjectInput = {
@@ -1425,12 +1513,12 @@ export type GetGeoIpInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: string, countryCode: string, countryName: string, regionName: string, cityName: string, currencyCode: string | null, isVpn: boolean } };
 
-export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string };
+export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number };
 
 export type MyOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MyOrganisationsQuery = { myOrganisations: Array<{ __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, members: Array<{ __typename: 'OrganisationMember', id: string, userId: string, role: OrgRole, joinedAt: string, user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } }> }> };
+export type MyOrganisationsQuery = { myOrganisations: Array<{ __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number, members: Array<{ __typename: 'OrganisationMember', id: string, userId: string, role: OrgRole, joinedAt: string, user: { __typename: 'User', id: string, firstName: string, lastName: string, email: string } }> }> };
 
 export type SwitchOrgContextMutationVariables = Exact<{
   orgId?: InputMaybe<Scalars['String']['input']>;
@@ -1444,14 +1532,14 @@ export type CreateOrganisationMutationVariables = Exact<{
 }>;
 
 
-export type CreateOrganisationMutation = { createOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string } };
+export type CreateOrganisationMutation = { createOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number } };
 
 export type UpdateOrganisationMutationVariables = Exact<{
   input: UpdateOrganisationInput;
 }>;
 
 
-export type UpdateOrganisationMutation = { updateOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string } };
+export type UpdateOrganisationMutation = { updateOrganisation: { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number } };
 
 export type InviteMemberMutationVariables = Exact<{
   input: InviteMemberInput;
@@ -1482,21 +1570,21 @@ export type PromoteContactToOrgMutationVariables = Exact<{
 
 export type PromoteContactToOrgMutation = { promoteContactToOrg: { __typename: 'Contact', id: string, firstName: string, lastName: string } };
 
-export type OrgEventFieldsFragment = { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string };
+export type OrgEventFieldsFragment = { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string };
 
 export type OrgUpcomingEventsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type OrgUpcomingEventsQuery = { orgUpcomingEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string }> };
+export type OrgUpcomingEventsQuery = { orgUpcomingEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string }> };
 
 export type OrgEventsQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type OrgEventsQuery = { orgEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string }> };
+export type OrgEventsQuery = { orgEvents: Array<{ __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string }> };
 
 export type OrgEventCategorySuggestionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1508,7 +1596,7 @@ export type CreateOrgEventMutationVariables = Exact<{
 }>;
 
 
-export type CreateOrgEventMutation = { createOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string } };
+export type CreateOrgEventMutation = { createOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
 
 export type UpdateOrgEventMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1516,7 +1604,7 @@ export type UpdateOrgEventMutationVariables = Exact<{
 }>;
 
 
-export type UpdateOrgEventMutation = { updateOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string } };
+export type UpdateOrgEventMutation = { updateOrgEvent: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
 
 export type RemoveOrgEventMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1582,6 +1670,43 @@ export type ReactivateSubscriptionMutationVariables = Exact<{ [key: string]: nev
 
 
 export type ReactivateSubscriptionMutation = { reactivateSubscription: boolean };
+
+export type PersonalEntryFieldsFragment = { __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string };
+
+export type GetPersonalEntriesQueryVariables = Exact<{
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+}>;
+
+
+export type GetPersonalEntriesQuery = { personalEntries: { __typename: 'PaginatedPersonalEntriesResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string }> } };
+
+export type GetPersonalEntrySummaryQueryVariables = Exact<{
+  filter?: InputMaybe<FilterPersonalEntryInput>;
+}>;
+
+
+export type GetPersonalEntrySummaryQuery = { personalEntrySummary: { __typename: 'PersonalEntrySummary', totalIncome: number, totalExpenses: number, netCashPosition: number, currency: string } };
+
+export type CreatePersonalEntryMutationVariables = Exact<{
+  input: CreatePersonalEntryInput;
+}>;
+
+
+export type CreatePersonalEntryMutation = { createPersonalEntry: { __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string } };
+
+export type UpdatePersonalEntryMutationVariables = Exact<{
+  input: UpdatePersonalEntryInput;
+}>;
+
+
+export type UpdatePersonalEntryMutation = { updatePersonalEntry: { __typename: 'PersonalEntry', id: string, type: PersonalEntryType, amount: number, currency: string, category: string | null, date: string, description: string | null, createdAt: string, createdById: string } };
+
+export type DeletePersonalEntryMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type DeletePersonalEntryMutation = { deletePersonalEntry: boolean };
 
 export type ProjectFieldsFragment = { __typename: 'Project', id: string, name: string, description: string | null, budget: number | null, balance: number, totalIncome: number, totalExpenses: number, currency: string, status: ProjectStatus, userId: string, createdAt: string, updatedAt: string };
 
@@ -1816,4 +1941,4 @@ export type GetWitnessInvitationQueryVariables = Exact<{
 }>;
 
 
-export type GetWitnessInvitationQuery = { witnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };
+export type GetWitnessInvitationQuery = { getWitnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };

@@ -16,7 +16,6 @@ import {
   TransactionType,
   Prisma,
   Witness,
-  ProjectTransactionType,
 } from '../../generated/prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
@@ -943,84 +942,7 @@ export class TransactionsService {
       this.applyPerspective(item, userId),
     );
 
-    // Fetch and map project transactions (skip when filtering by a specific
-    // contact — project transactions belong to projects, not contacts).
-    const projects = filter?.contactId
-      ? []
-      : await this.prisma.project.findMany({
-          where: { userId },
-          select: { id: true },
-        });
-
-    const projectWhere: Prisma.ProjectTransactionWhereInput = {
-      projectId: { in: projects.map((p) => p.id) },
-    };
-
-    if (where.date) {
-      projectWhere.date = where.date as Prisma.DateTimeFilter;
-    }
-    if (where.amount) {
-      projectWhere.amount = where.amount as Prisma.DecimalFilter;
-    }
-    if (filter?.search) {
-      projectWhere.OR = [
-        { description: { contains: filter.search, mode: 'insensitive' } },
-      ];
-    }
-
-    const projectTransactions = await this.prisma.projectTransaction.findMany({
-      where: projectWhere,
-      include: {
-        project: {
-          include: {
-            user: true,
-          },
-        },
-      },
-      orderBy: {
-        date: 'desc',
-      },
-    });
-
-    const mappedProjectTransactions = projectTransactions.map((pt) => ({
-      id: pt.id,
-      amount: Number(pt.amount),
-      type:
-        pt.type === ProjectTransactionType.INCOME
-          ? TransactionType.INCOME
-          : TransactionType.EXPENSE,
-      category: AssetCategory.FUNDS,
-      status: TransactionStatus.COMPLETED,
-      currency: pt.project.currency,
-      date: pt.date,
-      description: pt.description || '',
-      createdAt: pt.createdAt,
-      createdById: pt.project.userId,
-      createdBy: {
-        ...pt.project.user,
-        // `name` is a @ResolveField on UsersResolver; compute it explicitly here
-        // so callers that read createdBy.name get the correct full name.
-        name: `${pt.project.user.firstName ?? ''} ${pt.project.user.lastName ?? ''}`.trim(),
-      },
-      contactId: pt.projectId,
-      contact: {
-        id: pt.projectId,
-        name: pt.project.name,
-        isSupporter: false,
-      },
-      witnesses: [],
-      itemName: null,
-      quantity: null,
-      parentId: null,
-      parent: null,
-      conversions: [],
-    }));
-
-    // Combine and sort
-    const combinedItems = [
-      ...transformedItems,
-      ...mappedProjectTransactions,
-    ].sort((a, b) => b.date.getTime() - a.date.getTime());
+    const combinedItems = transformedItems;
 
     // Determine target currency for summary
     let targetCurrency = filter?.summaryCurrency || filter?.currency;
@@ -1145,7 +1067,6 @@ export class TransactionsService {
       DEPOSIT_RECEIVED: 'totalDepositReceived',
       ESCROWED: 'totalEscrowed',
       REMITTED: 'totalRemitted',
-      // EXPENSE and INCOME deliberately omitted — legacy rows ignored in summaries
     };
     const field = fieldMap[type];
     if (field) (summary[field] as number) += amount;

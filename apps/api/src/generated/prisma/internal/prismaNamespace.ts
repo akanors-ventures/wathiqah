@@ -395,6 +395,7 @@ export const ModelName = {
   Project: 'Project',
   ProjectTransaction: 'ProjectTransaction',
   ProjectTransactionHistory: 'ProjectTransactionHistory',
+  PersonalEntry: 'PersonalEntry',
   Promise: 'Promise',
   AccessGrant: 'AccessGrant',
   ExchangeRate: 'ExchangeRate',
@@ -406,8 +407,7 @@ export const ModelName = {
   OrganisationMember: 'OrganisationMember',
   OrgSubscription: 'OrgSubscription',
   OrgEvent: 'OrgEvent',
-  OrgNote: 'OrgNote',
-  UserNote: 'UserNote'
+  OrgNote: 'OrgNote'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -423,7 +423,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "projectTransactionHistory" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support" | "smsOptOut" | "organisation" | "organisationMember" | "orgSubscription" | "orgEvent" | "orgNote" | "userNote"
+    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "project" | "projectTransaction" | "projectTransactionHistory" | "personalEntry" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support" | "smsOptOut" | "organisation" | "organisationMember" | "orgSubscription" | "orgEvent" | "orgNote"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1238,6 +1238,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProjectTransactionHistoryCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProjectTransactionHistoryCountAggregateOutputType> | number
+        }
+      }
+    }
+    PersonalEntry: {
+      payload: Prisma.$PersonalEntryPayload<ExtArgs>
+      fields: Prisma.PersonalEntryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PersonalEntryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PersonalEntryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        findFirst: {
+          args: Prisma.PersonalEntryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PersonalEntryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        findMany: {
+          args: Prisma.PersonalEntryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>[]
+        }
+        create: {
+          args: Prisma.PersonalEntryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        createMany: {
+          args: Prisma.PersonalEntryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PersonalEntryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>[]
+        }
+        delete: {
+          args: Prisma.PersonalEntryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        update: {
+          args: Prisma.PersonalEntryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        deleteMany: {
+          args: Prisma.PersonalEntryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PersonalEntryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PersonalEntryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>[]
+        }
+        upsert: {
+          args: Prisma.PersonalEntryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PersonalEntryPayload>
+        }
+        aggregate: {
+          args: Prisma.PersonalEntryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePersonalEntry>
+        }
+        groupBy: {
+          args: Prisma.PersonalEntryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonalEntryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PersonalEntryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PersonalEntryCountAggregateOutputType> | number
         }
       }
     }
@@ -2129,80 +2203,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
-    UserNote: {
-      payload: Prisma.$UserNotePayload<ExtArgs>
-      fields: Prisma.UserNoteFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.UserNoteFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.UserNoteFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>
-        }
-        findFirst: {
-          args: Prisma.UserNoteFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.UserNoteFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>
-        }
-        findMany: {
-          args: Prisma.UserNoteFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>[]
-        }
-        create: {
-          args: Prisma.UserNoteCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>
-        }
-        createMany: {
-          args: Prisma.UserNoteCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.UserNoteCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>[]
-        }
-        delete: {
-          args: Prisma.UserNoteDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>
-        }
-        update: {
-          args: Prisma.UserNoteUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>
-        }
-        deleteMany: {
-          args: Prisma.UserNoteDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.UserNoteUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.UserNoteUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>[]
-        }
-        upsert: {
-          args: Prisma.UserNoteUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserNotePayload>
-        }
-        aggregate: {
-          args: Prisma.UserNoteAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateUserNote>
-        }
-        groupBy: {
-          args: Prisma.UserNoteGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.UserNoteGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.UserNoteCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.UserNoteCountAggregateOutputType> | number
-        }
-      }
-    }
   }
 } & {
   other: {
@@ -2425,6 +2425,21 @@ export const ProjectTransactionHistoryScalarFieldEnum = {
 export type ProjectTransactionHistoryScalarFieldEnum = (typeof ProjectTransactionHistoryScalarFieldEnum)[keyof typeof ProjectTransactionHistoryScalarFieldEnum]
 
 
+export const PersonalEntryScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  amount: 'amount',
+  currency: 'currency',
+  category: 'category',
+  date: 'date',
+  description: 'description',
+  createdAt: 'createdAt',
+  createdById: 'createdById'
+} as const
+
+export type PersonalEntryScalarFieldEnum = (typeof PersonalEntryScalarFieldEnum)[keyof typeof PersonalEntryScalarFieldEnum]
+
+
 export const PromiseScalarFieldEnum = {
   id: 'id',
   description: 'description',
@@ -2595,19 +2610,6 @@ export const OrgNoteScalarFieldEnum = {
 } as const
 
 export type OrgNoteScalarFieldEnum = (typeof OrgNoteScalarFieldEnum)[keyof typeof OrgNoteScalarFieldEnum]
-
-
-export const UserNoteScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  title: 'title',
-  body: 'body',
-  category: 'category',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type UserNoteScalarFieldEnum = (typeof UserNoteScalarFieldEnum)[keyof typeof UserNoteScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2882,6 +2884,20 @@ export type ListEnumProjectTransactionTypeFieldRefInput<$PrismaModel> = FieldRef
 
 
 /**
+ * Reference to a field of type 'PersonalEntryType'
+ */
+export type EnumPersonalEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PersonalEntryType'>
+    
+
+
+/**
+ * Reference to a field of type 'PersonalEntryType[]'
+ */
+export type ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PersonalEntryType[]'>
+    
+
+
+/**
  * Reference to a field of type 'Priority'
  */
 export type EnumPriorityFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Priority'>
@@ -3112,6 +3128,7 @@ export type GlobalOmitConfig = {
   project?: Prisma.ProjectOmit
   projectTransaction?: Prisma.ProjectTransactionOmit
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryOmit
+  personalEntry?: Prisma.PersonalEntryOmit
   promise?: Prisma.PromiseOmit
   accessGrant?: Prisma.AccessGrantOmit
   exchangeRate?: Prisma.ExchangeRateOmit
@@ -3124,7 +3141,6 @@ export type GlobalOmitConfig = {
   orgSubscription?: Prisma.OrgSubscriptionOmit
   orgEvent?: Prisma.OrgEventOmit
   orgNote?: Prisma.OrgNoteOmit
-  userNote?: Prisma.UserNoteOmit
 }
 
 /* Types for Logging */

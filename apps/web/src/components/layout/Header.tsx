@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ArrowRightLeft,
   ChevronDown,
@@ -6,7 +6,6 @@ import {
   FolderKanban,
   Handshake,
   History,
-  LayoutGrid,
   Users,
   Zap,
 } from "lucide-react";
@@ -15,202 +14,147 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
+import { cn } from "@/lib/utils";
 import HeaderUser from "../auth/header-user";
+
+// ─── Nav item type ────────────────────────────────────────────────────────────
+
+type NavItem = {
+  icon: React.ElementType;
+  iconColor: string;
+  label: string;
+  description: string;
+  href: string;
+  search?: Record<string, string>;
+  match: string; // prefix to test against pathname for active state
+};
+
+// ─── Header ──────────────────────────────────────────────────────────────────
 
 export default function Header() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
+  const { isOrgMode } = useActiveOrg();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  const ledgerItems: NavItem[] = [
+    {
+      icon: ArrowRightLeft,
+      iconColor: "text-blue-500",
+      label: "Transactions",
+      description: "Funds, loans, gifts & payments",
+      href: "/transactions",
+      search: { tab: "funds" },
+      match: "/transactions",
+    },
+    {
+      icon: History,
+      iconColor: "text-orange-500",
+      label: "My Records",
+      description: "Transactions you appear in",
+      href: "/transactions/my-contact-transactions",
+      match: "/transactions/my-contact-transactions",
+    },
+    {
+      icon: FolderKanban,
+      iconColor: "text-violet-500",
+      label: "Projects",
+      description: "Budget & expense tracking",
+      href: "/projects",
+      match: "/projects",
+    },
+  ];
+
+  const networkItems: NavItem[] = [
+    {
+      icon: Users,
+      iconColor: "text-indigo-500",
+      label: "Contacts",
+      description: "People you transact with",
+      href: "/contacts",
+      match: "/contacts",
+    },
+    {
+      icon: Handshake,
+      iconColor: "text-emerald-500",
+      label: "Promises",
+      description: "Track commitments & agreements",
+      href: "/promises",
+      match: "/promises",
+    },
+    {
+      icon: FileSignature,
+      iconColor: "text-purple-500",
+      label: "Witnesses",
+      description: "Transaction witness requests",
+      href: "/witnesses",
+      match: "/witnesses",
+    },
+  ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm transition-colors duration-300">
+    <header
+      className={cn(
+        "sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm transition-colors duration-300",
+        isOrgMode
+          ? "border-emerald-200 bg-emerald-50/95 dark:border-emerald-800 dark:bg-emerald-950/95"
+          : "border-border",
+      )}
+    >
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-4 lg:gap-8 min-w-0">
+        {/* Left: logo + nav */}
+        <div className="flex items-center gap-3 lg:gap-5 min-w-0">
+          {/* Logo */}
           <Link
             to="/"
-            className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02]"
+            className="group flex items-center gap-2.5 transition-transform duration-200 hover:scale-[1.02] shrink-0"
             aria-label="Wathīqah Home"
           >
             <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-primary-foreground shadow-sm group-hover:shadow-md">
               <AppLogo className="h-5 w-5" />
               <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-primary/20 group-hover:ring-transparent transition-all duration-300" />
             </div>
-            <div className="hidden lg:grid grid-cols-1 grid-rows-1 h-9 items-center overflow-hidden text-left pr-1 w-max">
-              <span className="col-start-1 row-start-1 font-bold text-xl leading-none tracking-tight text-primary transition-all duration-300 group-hover:-translate-y-2 group-hover:text-primary whitespace-nowrap">
-                Wathīqah
-              </span>
-              <span className="col-start-1 row-start-1 self-end text-[0.6rem] font-medium tracking-normal text-muted-foreground uppercase opacity-0 translate-y-full group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 ease-out text-nowrap">
-                Ledger of Trust
-              </span>
-            </div>
+            <span className="hidden lg:block font-bold text-xl leading-none tracking-tight text-primary whitespace-nowrap">
+              Wathīqah
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1 min-w-0">
-            <NavDropdown label="Ledger" icon={<ArrowRightLeft className="w-4 h-4" />}>
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/transactions"
-                  search={{ tab: "funds" }}
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <ArrowRightLeft className="w-4 h-4 text-blue-500" />
-                  <span>Transactions</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link
-                  to="/transactions/my-contact-transactions"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <History className="w-4 h-4 text-orange-500" />
-                  <span>My Records</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/projects" className="flex items-center gap-2 cursor-pointer">
-                  <FolderKanban className="w-4 h-4 text-violet-500" />
-                  <span>Projects</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/promises" className="flex items-center gap-2 cursor-pointer">
-                  <Handshake className="w-4 h-4 text-emerald-500" />
-                  <span>Promises</span>
-                </Link>
-              </DropdownMenuItem>
-            </NavDropdown>
-
-            <NavDropdown label="Network" icon={<Users className="w-4 h-4" />}>
-              <DropdownMenuItem asChild>
-                <Link to="/contacts" className="flex items-center gap-2 cursor-pointer">
-                  <Users className="w-4 h-4 text-indigo-500" />
-                  <span>Contacts</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/witnesses" className="flex items-center gap-2 cursor-pointer">
-                  <FileSignature className="w-4 h-4 text-purple-500" />
-                  <span>Witness Requests</span>
-                </Link>
-              </DropdownMenuItem>
-            </NavDropdown>
-
-            <NavLink to="/features">Features</NavLink>
-            <NavLink to="/pricing">Pricing</NavLink>
+          {/* Desktop nav — hidden on mobile (bottom nav handles it) */}
+          <nav className="hidden md:flex items-center gap-0.5">
+            <NavDropdown
+              label="Ledger"
+              items={ledgerItems}
+              pathname={pathname}
+              isOrgMode={isOrgMode}
+            />
+            <NavDropdown
+              label="Network"
+              items={networkItems}
+              pathname={pathname}
+              isOrgMode={isOrgMode}
+            />
+            <NavLink to="/features" pathname={pathname}>
+              Features
+            </NavLink>
+            <NavLink to="/pricing" pathname={pathname}>
+              Pricing
+            </NavLink>
           </nav>
-
-          {/* Mobile Navigation (Dropdown) */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="group flex items-center gap-2 px-3 data-[state=open]:bg-muted"
-                >
-                  <LayoutGrid className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                  <span className="font-medium">Menu</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-60 mt-2">
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                  Ledger
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/transactions"
-                    search={{ tab: "funds" }}
-                    className="cursor-pointer flex items-center gap-2"
-                  >
-                    <ArrowRightLeft className="h-4 w-4 text-blue-500" />
-                    <span>Transactions</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link
-                    to="/transactions/my-contact-transactions"
-                    className="cursor-pointer flex items-center gap-2"
-                  >
-                    <History className="h-4 w-4 text-orange-500" />
-                    <span>My Records</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/projects" className="cursor-pointer flex items-center gap-2">
-                    <FolderKanban className="h-4 w-4 text-violet-500" />
-                    <span>Projects</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/promises" className="cursor-pointer flex items-center gap-2">
-                    <Handshake className="h-4 w-4 text-emerald-500" />
-                    <span>Promises</span>
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                  Network
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link to="/contacts" className="cursor-pointer flex items-center gap-2">
-                    <Users className="h-4 w-4 text-indigo-500" />
-                    <span>Contacts</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/witnesses" className="cursor-pointer flex items-center gap-2">
-                    <FileSignature className="h-4 w-4 text-purple-500" />
-                    <span>Witness Requests</span>
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/70 px-2 py-1.5">
-                  Explore
-                </DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link to="/features" className="cursor-pointer flex items-center gap-2">
-                    <LayoutGrid className="h-4 w-4 text-primary" />
-                    <span>Features</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/pricing" className="cursor-pointer flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-primary" />
-                    <span>Pricing</span>
-                  </Link>
-                </DropdownMenuItem>
-                {!isPro && (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to="/pricing"
-                      className="cursor-pointer flex items-center gap-2 font-bold text-primary"
-                    >
-                      <Zap className="h-4 w-4 fill-primary" />
-                      <span>Go Pro</span>
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
 
-        <div className="flex items-center gap-4 shrink-0">
+        {/* Right: Go Pro + user menu (context switcher is inside the menu) */}
+        <div className="flex items-center gap-2 shrink-0">
           {user && !isPro && !subLoading && (
             <Button
               asChild
               size="sm"
               variant="outline"
-              className="hidden lg:flex rounded-md border-primary/20 text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-[10px] h-9 px-4 gap-2 animate-in fade-in slide-in-from-right duration-500"
+              className="hidden lg:flex h-8 px-3 gap-1.5 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5 animate-in fade-in slide-in-from-right duration-500"
             >
               <Link to="/pricing">
                 <Zap className="w-3 h-3 fill-primary" />
@@ -225,56 +169,120 @@ export default function Header() {
   );
 }
 
+// ─── NavLink ─────────────────────────────────────────────────────────────────
+
 function NavLink({
   to,
-  search,
+  pathname,
   children,
 }: {
   to: string;
-  search?: Record<string, unknown>;
+  pathname: string;
   children: React.ReactNode;
 }) {
+  const isActive = pathname === to || pathname.startsWith(`${to}/`);
   return (
     <Link
       to={to}
-      search={search}
-      className="relative px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 [&.active]:text-primary [&.active]:bg-primary/5 [&.active]:font-semibold group overflow-hidden"
+      className={cn(
+        "relative px-3.5 py-2 text-sm font-medium rounded-lg transition-colors",
+        isActive
+          ? "text-primary bg-primary/8"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+      )}
     >
-      <span className="relative z-10">{children}</span>
-      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100 [&.active]:scale-x-100 opacity-0 group-hover:opacity-100 [&.active]:opacity-100" />
+      {children}
+      {isActive && (
+        <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+      )}
     </Link>
   );
 }
 
+// ─── NavDropdown ─────────────────────────────────────────────────────────────
+
 function NavDropdown({
   label,
-  icon,
-  children,
+  items,
+  pathname,
+  isOrgMode,
 }: {
   label: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
+  items: NavItem[];
+  pathname: string;
+  isOrgMode: boolean;
 }) {
+  const isAnyActive = items.some((item) => pathname.startsWith(item.match));
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
-          className="relative px-4 py-2 h-9 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted/50 data-[state=open]:text-primary data-[state=open]:bg-primary/5 group"
+          className={cn(
+            "relative h-9 px-3.5 text-sm font-medium rounded-lg transition-colors gap-1.5",
+            isAnyActive
+              ? "text-primary bg-primary/8 hover:bg-primary/12"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/60",
+            "data-[state=open]:bg-muted/60 data-[state=open]:text-foreground",
+          )}
         >
-          <div className="flex items-center gap-2">
-            {icon}
-            <span>{label}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
-          </div>
+          {label}
+          <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+          {isAnyActive && (
+            <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-0.5 rounded-full bg-primary" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-52 mt-1 animate-in fade-in zoom-in duration-200"
+        className="w-72 p-2 mt-1.5 animate-in fade-in-0 zoom-in-95 duration-150"
+        sideOffset={4}
       >
-        {children}
+        <div className="space-y-0.5">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname.startsWith(item.match);
+            return (
+              <Link
+                key={item.href}
+                to={item.href as never}
+                search={item.search as never}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors group",
+                  isActive ? "bg-primary/8 text-primary" : "hover:bg-muted/70 text-foreground",
+                )}
+              >
+                <div
+                  className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                    isActive
+                      ? "bg-primary/10"
+                      : isOrgMode
+                        ? "bg-emerald-50 dark:bg-emerald-950 group-hover:bg-muted"
+                        : "bg-muted group-hover:bg-muted/80",
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4", isActive ? "text-primary" : item.iconColor)} />
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className={cn(
+                      "text-[13px] font-semibold leading-tight",
+                      isActive ? "text-primary" : "text-foreground",
+                    )}
+                  >
+                    {item.label}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                    {item.description}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

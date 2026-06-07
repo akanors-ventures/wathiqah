@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@apollo/client/react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowLeft,
@@ -49,7 +49,15 @@ import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/contacts/$contactId")({
   component: ContactDetailsPage,
-  beforeLoad: (ctx) => authGuard({ location: ctx.location }),
+  beforeLoad: (ctx) => {
+    // "new" is not a real contact ID — redirect to the contacts list with the
+    // add-contact dialog open. This handles direct navigation to /contacts/new
+    // before the dedicated new.tsx route file is registered in the route tree.
+    if (ctx.params.contactId === "new") {
+      throw redirect({ to: "/contacts", search: { new: true } });
+    }
+    return authGuard({ location: ctx.location });
+  },
 });
 
 function ContactDetailsPage() {

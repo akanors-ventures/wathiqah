@@ -129,6 +129,15 @@ input CreateOrganisationInput {
   name: String!
 }
 
+input CreatePersonalEntryInput {
+  amount: Float!
+  category: String
+  currency: String! = "NGN"
+  date: DateTime!
+  description: String
+  type: PersonalEntryType!
+}
+
 input CreateProjectInput {
   budget: Float
   currency: String
@@ -181,6 +190,16 @@ input FilterContactInput {
   limit: Int = 25
   page: Int = 1
   search: String
+}
+
+input FilterPersonalEntryInput {
+  currency: String
+  endDate: DateTime
+  limit: Int = 25
+  page: Int = 1
+  search: String
+  startDate: DateTime
+  type: PersonalEntryType
 }
 
 input FilterProjectInput {
@@ -294,11 +313,13 @@ type Mutation {
   createOrgEvent(input: CreateOrgEventInput!): OrgEvent!
   createOrgNote(input: CreateOrgNoteInput!): OrgNote!
   createOrganisation(input: CreateOrganisationInput!): Organisation!
+  createPersonalEntry(input: CreatePersonalEntryInput!): PersonalEntry!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
   createSupport(createSupportInput: CreateSupportInput!): Support!
   createSupportSession(amount: Float, currency: String): CheckoutSession!
   createTransaction(input: CreateTransactionInput!): Transaction!
+  deletePersonalEntry(id: ID!): Boolean!
   deprovisionPro(userId: ID!): User!
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
@@ -332,6 +353,7 @@ type Mutation {
   updateOrgEvent(id: ID!, input: UpdateOrgEventInput!): OrgEvent!
   updateOrgNote(id: ID!, input: UpdateOrgNoteInput!): OrgNote!
   updateOrganisation(input: UpdateOrganisationInput!): Organisation!
+  updatePersonalEntry(input: UpdatePersonalEntryInput!): PersonalEntry!
   updateProject(input: UpdateProjectInput!): Project!
   updateProjectTransaction(input: UpdateProjectTransactionInput!): ProjectTransaction!
   updatePromise(updatePromiseInput: UpdatePromiseInput!): Promise!
@@ -372,7 +394,9 @@ enum OrgRole {
 }
 
 type Organisation {
+  activeProjectCount: Int!
   attributionMode: AttributionMode!
+  contactCount: Int!
   createdAt: DateTime!
   description: String
   id: ID!
@@ -381,6 +405,7 @@ type Organisation {
   members: [OrganisationMember!]!
   name: String!
   slug: String!
+  transactionCount: Int!
   updatedAt: DateTime!
 }
 
@@ -396,6 +421,13 @@ type OrganisationMember {
 
 type PaginatedContactsResponse {
   items: [Contact!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
+
+type PaginatedPersonalEntriesResponse {
+  items: [PersonalEntry!]!
   limit: Int!
   page: Int!
   total: Int!
@@ -427,6 +459,30 @@ type PaginatedWitnessesResponse {
   limit: Int!
   page: Int!
   total: Int!
+}
+
+type PersonalEntry {
+  amount: Float!
+  category: String
+  createdAt: DateTime!
+  createdById: String!
+  currency: String!
+  date: DateTime!
+  description: String
+  id: ID!
+  type: PersonalEntryType!
+}
+
+type PersonalEntrySummary {
+  currency: String!
+  netCashPosition: Float!
+  totalExpenses: Float!
+  totalIncome: Float!
+}
+
+enum PersonalEntryType {
+  EXPENSE
+  INCOME
 }
 
 enum Priority {
@@ -537,6 +593,8 @@ type Query {
   orgNotes(category: String): [OrgNote!]!
   orgUpcomingEvents(category: String): [OrgEvent!]!
   organisation(slug: String!): Organisation!
+  personalEntries(filter: FilterPersonalEntryInput): PaginatedPersonalEntriesResponse!
+  personalEntrySummary(filter: FilterPersonalEntryInput): PersonalEntrySummary!
   project(id: ID!): Project!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
@@ -550,7 +608,6 @@ type Query {
   transactions(filter: FilterTransactionInput): TransactionsResponse!
   transactionsGroupedByContact(filter: FilterTransactionInput): [ContactGroupedSummary!]!
   user(id: String!): User
-  witnessInvitation(token: String!): Witness!
 }
 
 input RefreshTokenInput {
@@ -693,10 +750,8 @@ enum TransactionType {
   DEPOSIT_PAID
   DEPOSIT_RECEIVED
   ESCROWED
-  EXPENSE
   GIFT_GIVEN
   GIFT_RECEIVED
-  INCOME
   LOAN_GIVEN
   LOAN_RECEIVED
   REMITTED
@@ -757,6 +812,16 @@ input UpdateOrganisationInput {
   industry: String
   logoUrl: String
   name: String
+}
+
+input UpdatePersonalEntryInput {
+  amount: Float
+  category: String
+  currency: String
+  date: DateTime
+  description: String
+  id: ID!
+  type: PersonalEntryType
 }
 
 input UpdateProjectInput {

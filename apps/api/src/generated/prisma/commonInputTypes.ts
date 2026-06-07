@@ -501,6 +501,23 @@ export type EnumProjectTransactionTypeWithAggregatesFilter<$PrismaModel = never>
   _max?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
 }
 
+export type EnumPersonalEntryTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.PersonalEntryType | Prisma.EnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPersonalEntryTypeFilter<$PrismaModel> | $Enums.PersonalEntryType
+}
+
+export type EnumPersonalEntryTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PersonalEntryType | Prisma.EnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPersonalEntryTypeWithAggregatesFilter<$PrismaModel> | $Enums.PersonalEntryType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPersonalEntryTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPersonalEntryTypeFilter<$PrismaModel>
+}
+
 export type EnumPriorityFilter<$PrismaModel = never> = {
   equals?: $Enums.Priority | Prisma.EnumPriorityFieldRefInput<$PrismaModel>
   in?: $Enums.Priority[] | Prisma.ListEnumPriorityFieldRefInput<$PrismaModel>
@@ -1081,6 +1098,23 @@ export type NestedEnumProjectTransactionTypeWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumPersonalEntryTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.PersonalEntryType | Prisma.EnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPersonalEntryTypeFilter<$PrismaModel> | $Enums.PersonalEntryType
+}
+
+export type NestedEnumPersonalEntryTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.PersonalEntryType | Prisma.EnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.PersonalEntryType[] | Prisma.ListEnumPersonalEntryTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumPersonalEntryTypeWithAggregatesFilter<$PrismaModel> | $Enums.PersonalEntryType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumPersonalEntryTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumPersonalEntryTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumPriorityFilter<$PrismaModel = never> = {

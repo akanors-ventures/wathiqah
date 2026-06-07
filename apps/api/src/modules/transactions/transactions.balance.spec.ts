@@ -99,7 +99,7 @@ describe('TransactionsService - Balance & Audit', () => {
   describe('Balance Calculation (calculateConvertedSummary)', () => {
     const userId = 'user-1';
 
-    it('should ignore legacy INCOME and EXPENSE in net balance', async () => {
+    it('should include GIFT types in net balance with correct sign', async () => {
       // Mock user preferred currency
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         preferredCurrency: 'NGN',
@@ -108,25 +108,25 @@ describe('TransactionsService - Balance & Audit', () => {
       // Mock findAll transactions (items) - irrelevant for summary but required
       (prisma.transaction.findMany as jest.Mock).mockResolvedValue([]);
 
-      // Legacy INCOME/EXPENSE rows — should be ignored in the new summary
+      // GIFT_GIVEN=1000, GIFT_RECEIVED=1000 — net effect is zero
       (prisma.transaction.groupBy as jest.Mock)
         .mockResolvedValueOnce([
           {
-            type: TransactionType.INCOME,
+            type: TransactionType.GIFT_GIVEN,
             currency: 'NGN',
             _sum: { amount: 1000 },
           },
           {
-            type: TransactionType.EXPENSE,
+            type: TransactionType.GIFT_RECEIVED,
             currency: 'NGN',
-            _sum: { amount: 500 },
+            _sum: { amount: 1000 },
           },
         ]) // ownAggregations
         .mockResolvedValueOnce([]); // contactAggregations
 
       const result = await service.findAll(userId, null);
 
-      expect(result.summary.netBalance).toBe(0); // INCOME/EXPENSE excluded
+      expect(result.summary.netBalance).toBe(0); // equal gifts cancel out in netBalance
     });
 
     it('should correctly handle shared transactions (flipping perspective)', async () => {
@@ -245,7 +245,7 @@ describe('TransactionsService - Balance & Audit', () => {
       expect(result.summary.netBalance).toBe(0);
     });
 
-    it('should include project transactions in items list', async () => {
+    it('should exclude project transactions from the unified items list', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
         preferredCurrency: 'NGN',
       });
@@ -268,7 +268,7 @@ describe('TransactionsService - Balance & Audit', () => {
       };
       (prisma.project.findMany as jest.Mock).mockResolvedValue([projectA]);
 
-      // Mock Project Transactions
+      // Mock Project Transactions — these should NOT appear in the unified items list
       const ptDate = new Date();
       (prisma.projectTransaction.findMany as jest.Mock).mockResolvedValue([
         {
@@ -282,16 +282,12 @@ describe('TransactionsService - Balance & Audit', () => {
           createdAt: ptDate,
         },
       ]);
-      (prisma.projectTransaction.groupBy as jest.Mock).mockResolvedValue([]); // Simplified for this test
+      (prisma.projectTransaction.groupBy as jest.Mock).mockResolvedValue([]);
 
       const result = await service.findAll(userId, null);
 
-      expect(result.items).toHaveLength(1);
-      expect(result.items[0].id).toBe('pt-1');
-      expect(result.items[0].amount).toBe(2000);
-      expect(result.items[0].currency).toBe('NGN');
-      expect(result.items[0].type).toBe('INCOME');
-      expect(result.items[0].description).toContain('Project Income');
+      // Project transactions are excluded from the unified feed (they have their own resolver)
+      expect(result.items).toHaveLength(0);
     });
   });
 
@@ -490,18 +486,18 @@ describe('TransactionsService - Balance & Audit', () => {
       expect(result.summary.netBalance).toBe(800 - 600); // 200
     });
 
-    it('ignores legacy EXPENSE and INCOME rows in summary', async () => {
+    it('accumulates GIFT types in net balance with equal given/received cancelling out', async () => {
       (prisma.transaction.groupBy as jest.Mock)
         .mockResolvedValueOnce([
           {
-            type: TransactionType.EXPENSE,
+            type: TransactionType.GIFT_GIVEN,
             currency: 'NGN',
-            _sum: { amount: 500 },
+            _sum: { amount: 750 },
           },
           {
-            type: TransactionType.INCOME,
+            type: TransactionType.GIFT_RECEIVED,
             currency: 'NGN',
-            _sum: { amount: 1000 },
+            _sum: { amount: 750 },
           },
         ])
         .mockResolvedValueOnce([]);

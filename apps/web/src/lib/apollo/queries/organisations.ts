@@ -48,6 +48,9 @@ export const ORGANISATION_FIELDS = gql`
     logoUrl
     attributionMode
     createdAt
+    transactionCount
+    contactCount
+    activeProjectCount
   }
 `;
 
@@ -180,6 +183,7 @@ export const ORG_EVENT_FIELDS = gql`
     recurrence
     createdById
     createdAt
+    updatedAt
   }
 `;
 

@@ -7,7 +7,7 @@ import {
 import { createRouter } from "@tanstack/react-router";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import * as TanstackQuery from "./integrations/tanstack-query/root-provider";
-import { authLink, errorLink } from "./lib/apollo-links";
+import { errorLink } from "./lib/apollo-links";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -19,11 +19,7 @@ export const getRouter = () => {
   // Configure Apollo Client
   const apolloClient = new ApolloClient({
     cache: new InMemoryCache(),
-    link: ApolloLink.from([
-      authLink,
-      errorLink(uri),
-      new HttpLink({ uri, credentials: "include" }),
-    ]),
+    link: ApolloLink.from([errorLink(uri), new HttpLink({ uri, credentials: "include" })]),
   });
 
   const rqContext = TanstackQuery.getContext();

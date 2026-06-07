@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, registerEnumType } from '@nestjs/graphql';
 import { AttributionMode } from '../../../generated/prisma/client';
 import { OrganisationMember } from './organisation-member.entity';
 
@@ -35,4 +35,13 @@ export class Organisation {
 
   @Field(() => [OrganisationMember])
   members?: OrganisationMember[];
+
+  @Field(() => Int)
+  transactionCount: number;
+
+  @Field(() => Int)
+  contactCount: number;
+
+  @Field(() => Int)
+  activeProjectCount: number;
 }
