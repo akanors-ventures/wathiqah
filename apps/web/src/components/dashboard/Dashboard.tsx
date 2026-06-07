@@ -340,9 +340,8 @@ export function Dashboard() {
           title={`Outflow (${getPeriodLabel()})`}
           value={
             <BalanceIndicator
-              amount={periodExpense}
+              amount={-periodExpense}
               currency={balanceCurrency}
-              overrideColor="red"
               className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
             />
           }
