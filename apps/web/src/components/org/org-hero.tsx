@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
+import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -14,9 +15,12 @@ interface OrgHeroOrg {
 interface OrgHeroProps {
   org: OrgHeroOrg;
   isAdmin: boolean;
+  /** Rendered next to "New Transaction" on desktop (md+). Hidden on mobile — the
+   *  dashboard header handles the mobile layout for this control. */
+  periodSelector?: ReactNode;
 }
 
-export function OrgHero({ org, isAdmin }: OrgHeroProps) {
+export function OrgHero({ org, isAdmin, periodSelector }: OrgHeroProps) {
   const initials = org.name
     .split(" ")
     .slice(0, 2)
@@ -46,19 +50,23 @@ export function OrgHero({ org, isAdmin }: OrgHeroProps) {
         </div>
       </div>
 
-      {isAdmin && (
-        // Hidden on mobile — Settings is in the bottom nav, New Transaction is
-        // in Quick Actions below. Only shown on desktop where there's room.
-        <Button
-          asChild
-          size="sm"
-          className="hidden md:inline-flex bg-white text-emerald-900 hover:bg-white/90 font-semibold flex-shrink-0"
-        >
-          <Link to="/transactions/new" search={{ contactId: undefined }}>
-            <Plus className="h-4 w-4 mr-1.5" />
-            New Transaction
-          </Link>
-        </Button>
+      {/* Right controls — hidden on mobile (dashboard header handles mobile layout) */}
+      {(isAdmin || periodSelector) && (
+        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          {periodSelector}
+          {isAdmin && (
+            <Button
+              asChild
+              size="sm"
+              className="bg-white text-emerald-900 hover:bg-white/90 font-semibold"
+            >
+              <Link to="/transactions/new" search={{ contactId: undefined }}>
+                <Plus className="h-4 w-4 mr-1.5" />
+                New Transaction
+              </Link>
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

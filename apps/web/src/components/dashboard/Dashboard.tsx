@@ -190,7 +190,25 @@ export function Dashboard() {
       {/* Org Hero — only in org mode, replaces the page title section */}
       {isOrgMode && activeOrg && (
         <>
-          <OrgHero org={activeOrg} isAdmin={isAdmin} />
+          <OrgHero
+            org={activeOrg}
+            isAdmin={isAdmin}
+            periodSelector={
+              <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+                <SelectTrigger className="w-[130px] h-9 bg-white/15 border-white/20 text-white hover:bg-white/20 focus:ring-white/30 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-white/70" />
+                    <SelectValue />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="MONTH">This Month</SelectItem>
+                  <SelectItem value="YEAR">This Year</SelectItem>
+                  <SelectItem value="ALL">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            }
+          />
           <OrgStatsRow
             transactionCount={activeOrg.transactionCount}
             contactCount={activeOrg.contactCount}
@@ -213,7 +231,10 @@ export function Dashboard() {
           </div>
         )}
         {/* sm:ml-auto pushes this group to the right whether or not the title is present */}
-        <div className="flex gap-3 w-full sm:w-auto items-center sm:ml-auto">
+        {/* In org mode this row is mobile-only — desktop uses the OrgHero right section */}
+        <div
+          className={`flex gap-3 w-full sm:w-auto items-center sm:ml-auto${isOrgMode ? " md:hidden" : ""}`}
+        >
           <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
             <SelectTrigger className="flex-1 sm:w-[120px] h-11 sm:h-12 bg-background border-input shadow-sm">
               <div className="flex items-center gap-2">
