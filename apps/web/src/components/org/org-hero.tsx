@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Plus, Settings } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -47,29 +47,18 @@ export function OrgHero({ org, isAdmin }: OrgHeroProps) {
       </div>
 
       {isAdmin && (
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button
-            asChild
-            variant="ghost"
-            size="sm"
-            className="text-white/70 hover:text-white hover:bg-white/10 border border-white/20"
-          >
-            <Link to={`/org/${org.slug}/settings`}>
-              <Settings className="h-4 w-4 mr-1.5" />
-              Settings
-            </Link>
-          </Button>
-          <Button
-            asChild
-            size="sm"
-            className="bg-white text-slate-900 hover:bg-white/90 font-semibold"
-          >
-            <Link to="/transactions/new">
-              <Plus className="h-4 w-4 mr-1.5" />
-              New Transaction
-            </Link>
-          </Button>
-        </div>
+        // Hidden on mobile — Settings is in the bottom nav, New Transaction is
+        // in Quick Actions below. Only shown on desktop where there's room.
+        <Button
+          asChild
+          size="sm"
+          className="hidden md:inline-flex bg-white text-slate-900 hover:bg-white/90 font-semibold flex-shrink-0"
+        >
+          <Link to="/transactions/new">
+            <Plus className="h-4 w-4 mr-1.5" />
+            New Transaction
+          </Link>
+        </Button>
       )}
     </div>
   );

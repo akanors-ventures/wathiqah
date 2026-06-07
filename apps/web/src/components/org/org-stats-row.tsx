@@ -6,8 +6,8 @@ interface StatCellProps {
 
 function StatCell({ label, value, sub }: StatCellProps) {
   return (
-    <div className="px-5 py-4 border-r border-border last:border-r-0">
-      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+    <div className="px-4 py-4">
+      <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground leading-tight">
         {label}
       </p>
       <p className="text-2xl font-black tracking-tight mt-0.5">{value}</p>
@@ -30,7 +30,7 @@ export function OrgStatsRow({
   activeProjectCount,
 }: OrgStatsRowProps) {
   return (
-    <div className="grid grid-cols-4 bg-card border border-border rounded-xl overflow-hidden">
+    <div className="grid grid-cols-2 md:grid-cols-4 bg-card border border-border rounded-xl overflow-hidden [&>*]:border-border [&>*]:border-r [&>*]:border-b [&>*:nth-child(2n)]:border-r-0 [&>*:nth-last-child(-n+2)]:border-b-0 md:[&>*:not(:last-child)]:border-r md:[&>*:last-child]:border-r-0 md:[&>*]:border-b-0">
       <StatCell label="Transactions" value={transactionCount} />
       <StatCell label="Contacts" value={contactCount} />
       <StatCell
