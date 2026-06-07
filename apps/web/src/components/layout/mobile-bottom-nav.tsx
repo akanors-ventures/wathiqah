@@ -7,7 +7,6 @@ import {
   FolderKanban,
   Handshake,
   History,
-  LayoutGrid,
   MoreHorizontal,
   Settings,
   Sparkles,
@@ -170,8 +169,7 @@ export function MobileBottomNav() {
 
   const orgTabs: Tab[] = activeOrg
     ? [
-        // Dashboard is the unified "/" route in org mode (org/$slug/ redirects there)
-        { label: "Dashboard", href: "/", icon: LayoutGrid, exact: true },
+        { label: "Ledger", href: "/transactions", icon: ArrowRightLeft },
         { label: "Events", href: `/org/${activeOrg.slug}/events`, icon: CalendarDays },
         { label: "Members", href: `/org/${activeOrg.slug}/members`, icon: Users },
         { label: "Settings", href: `/org/${activeOrg.slug}/settings`, icon: Settings },
@@ -189,13 +187,6 @@ export function MobileBottomNav() {
 
   // Items shown in the "More" sheet vary by mode
   const orgMoreItems: SheetItem[] = [
-    {
-      label: "Ledger",
-      description: "Transactions, loans & payments",
-      href: "/transactions",
-      icon: ArrowRightLeft,
-      iconColor: "text-blue-500",
-    },
     {
       label: "Contacts",
       description: "People you transact with",
