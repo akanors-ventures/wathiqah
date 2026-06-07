@@ -130,11 +130,11 @@ export default function Header() {
             <span className="hidden md:block h-5 w-px bg-blue-200 dark:bg-blue-700 shrink-0" />
           )}
 
-          {/* Active org badge */}
+          {/* Active org badge — desktop only; AccountSwitcher covers this on mobile */}
           {isOrgMode && activeOrg && (
             <Link
               to={`/org/${activeOrg.slug}`}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-150 shrink-0
+              className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all duration-150 shrink-0
                 bg-blue-600/10 border-blue-300/60 hover:bg-blue-600/20 hover:border-blue-400
                 dark:bg-blue-500/15 dark:border-blue-600/50 dark:hover:bg-blue-500/25"
             >
