@@ -118,8 +118,8 @@ export function Dashboard() {
             icon: UserPlus,
             label: "Add contact",
             sub: "Buyer, vet, partner",
-            href: "/contacts/new",
-            search: undefined,
+            href: "/contacts",
+            search: { new: true } as never,
           },
           {
             icon: Users,
