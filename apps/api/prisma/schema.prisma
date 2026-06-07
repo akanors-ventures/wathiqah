@@ -44,8 +44,7 @@ model User {
   provisionedSubscriptions   Subscription[]       @relation("ProvisionedBy")
   organisationMembers        OrganisationMember[]
   orgEventsCreated           OrgEvent[]           @relation("OrgEventCreator")
-  orgNotesCreated            OrgNote[]            @relation("OrgNoteCreator")
-  userNotes                  UserNote[]
+  notes                      Note[]               @relation("NoteCreator")
 
   @@index([phoneNumber])
   @@map("users")
@@ -483,7 +482,7 @@ model Organisation {
   projects        Project[]            @relation("OrgProjects")
   promises        Promise[]            @relation("OrgPromises")
   events          OrgEvent[]
-  notes           OrgNote[]
+  notes           Note[]
   subscription    OrgSubscription?
 
   @@map("organisations")
@@ -539,20 +538,6 @@ model OrgEvent {
   @@map("org_events")
 }
 
-model OrgNote {
-  id           String       @id @default(uuid())
-  orgId        String
-  body         String
-  category     String?
-  createdById  String
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  organisation Organisation @relation(fields: [orgId], references: [id])
-  createdBy    User         @relation("OrgNoteCreator", fields: [createdById], references: [id])
-
-  @@index([orgId, createdAt])
-  @@map("org_notes")
-}
 
 enum OrgRole {
   ADMIN
@@ -565,16 +550,19 @@ enum AttributionMode {
   ORG_AND_OPERATOR
 }
 
-model UserNote {
-  id        String   @id @default(uuid())
-  userId    String
-  title     String
-  body      String
-  category  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Note {
+  id           String        @id @default(uuid())
+  createdById  String
+  orgId        String?
+  title        String?
+  body         String
+  category     String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  createdBy    User          @relation("NoteCreator", fields: [createdById], references: [id])
+  organisation Organisation? @relation(fields: [orgId], references: [id])
 
-  @@index([userId, createdAt])
-  @@map("user_notes")
+  @@index([orgId, createdAt])
+  @@index([createdById, createdAt])
+  @@map("notes")
 }
