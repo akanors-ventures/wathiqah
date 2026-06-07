@@ -34,12 +34,12 @@ import {
   UPDATE_ORG_NOTE_MUTATION,
 } from "@/lib/apollo/queries/organisations";
 import type {
+  CreateNoteInput,
   CreateOrgEventInput,
-  CreateOrgNoteInput,
+  Note,
   OrgEvent,
-  OrgNote,
+  UpdateNoteInput,
   UpdateOrgEventInput,
-  UpdateOrgNoteInput,
 } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -83,7 +83,7 @@ function EventsPage() {
   const [editingEvent, setEditingEvent] = useState<OrgEvent | null>(null);
 
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<OrgNote | null>(null);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
 
   // ── Queries ──
   // Note: category filtering is done client-side so sidebar counts remain accurate across
@@ -195,7 +195,7 @@ function EventsPage() {
     setNoteDialogOpen(true);
   }
 
-  function openEditNote(note: OrgNote) {
+  function openEditNote(note: Note) {
     setEditingNote(note);
     setNoteDialogOpen(true);
   }
@@ -210,14 +210,14 @@ function EventsPage() {
   async function handleNoteSubmit(formData: NoteFormValues) {
     try {
       if (editingNote) {
-        const updateInput: UpdateOrgNoteInput = {
+        const updateInput: UpdateNoteInput = {
           body: formData.body,
           category: formData.category || undefined,
         };
         await updateOrgNote({ variables: { id: editingNote.id, input: updateInput } });
         toast.success("Note updated");
       } else {
-        const createInput: CreateOrgNoteInput = {
+        const createInput: CreateNoteInput = {
           body: formData.body,
           category: formData.category || undefined,
         };

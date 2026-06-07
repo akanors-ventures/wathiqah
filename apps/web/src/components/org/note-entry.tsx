@@ -1,11 +1,11 @@
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import type { OrgNote } from "@/types/__generated__/graphql";
+import type { Note } from "@/types/__generated__/graphql";
 
 interface NoteEntryProps {
-  note: OrgNote;
+  note: Note;
   authorName?: string;
-  onEdit?: (note: OrgNote) => void;
+  onEdit?: (note: Note) => void;
 }
 
 export function NoteEntry({ note, authorName, onEdit }: NoteEntryProps) {
