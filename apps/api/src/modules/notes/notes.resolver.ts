@@ -44,6 +44,27 @@ export class NotesResolver {
     return this.notesService.findByOrg(orgId, category);
   }
 
+  @Mutation(() => Note)
+  @UseGuards(OrgRolesGuard)
+  @OrgRoles(OrgRole.ADMIN, OrgRole.OPERATOR)
+  updateOrgNote(
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdateNoteInput,
+    @ActiveOrg() orgId: string,
+  ) {
+    return this.notesService.updateOrgNote(id, input, orgId);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(OrgRolesGuard)
+  @OrgRoles(OrgRole.ADMIN, OrgRole.OPERATOR)
+  removeOrgNote(
+    @Args('id', { type: () => ID }) id: string,
+    @ActiveOrg() orgId: string,
+  ) {
+    return this.notesService.removeOrgNote(id, orgId);
+  }
+
   // ── Personal notes ─────────────────────────────────────────────────────────
 
   @Mutation(() => Note)

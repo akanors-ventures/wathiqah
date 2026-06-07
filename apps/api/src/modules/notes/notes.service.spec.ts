@@ -104,4 +104,22 @@ describe('NotesService', () => {
       NotFoundException,
     );
   });
+
+  it('throws ForbiddenException when updating note from another org', async () => {
+    prisma.note.findUnique.mockResolvedValue({
+      id: 'n1',
+      orgId: 'other-org',
+      createdById: 'user1',
+    });
+    await expect(
+      service.updateOrgNote('n1', { body: 'updated' }, 'org1'),
+    ).rejects.toThrow(ForbiddenException);
+  });
+
+  it('throws NotFoundException when org note does not exist', async () => {
+    prisma.note.findUnique.mockResolvedValue(null);
+    await expect(service.removeOrgNote('n1', 'org1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
 });

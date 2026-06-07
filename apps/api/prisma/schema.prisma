@@ -559,7 +559,7 @@ model Note {
   category     String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  createdBy    User          @relation("NoteCreator", fields: [createdById], references: [id])
+  createdBy    User          @relation("NoteCreator", fields: [createdById], references: [id], onDelete: Cascade)
   organisation Organisation? @relation(fields: [orgId], references: [id])
 
   @@index([orgId, createdAt])

@@ -65,4 +65,29 @@ export class NotesService {
     if (note.createdById !== userId)
       throw new ForbiddenException('Note does not belong to this user');
   }
+
+  async updateOrgNote(id: string, input: UpdateNoteInput, orgId: string) {
+    await this.assertOrgOwnership(id, orgId);
+    return this.prisma.note.update({
+      where: { id },
+      data: {
+        title: input.title,
+        body: input.body,
+        category: input.category,
+      },
+    });
+  }
+
+  async removeOrgNote(id: string, orgId: string) {
+    await this.assertOrgOwnership(id, orgId);
+    await this.prisma.note.delete({ where: { id } });
+    return true;
+  }
+
+  private async assertOrgOwnership(id: string, orgId: string) {
+    const note = await this.prisma.note.findUnique({ where: { id } });
+    if (!note) throw new NotFoundException('Note not found');
+    if (note.orgId !== orgId)
+      throw new ForbiddenException('Note does not belong to this org');
+  }
 }
