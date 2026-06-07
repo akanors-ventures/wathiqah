@@ -84,7 +84,7 @@ export function Dashboard() {
 
   const { requests: witnessRequests, loading: loadingWitnesses } = useMyWitnessRequests();
   const { promises, loading: loadingPromises } = usePromises();
-  const { summary: cashSummary } = usePersonalEntrySummary();
+  const { summary: cashSummary, loading: loadingCashSummary } = usePersonalEntrySummary();
 
   // Org-specific data
   const isAdmin =
@@ -137,7 +137,8 @@ export function Dashboard() {
     loadingWitnesses ||
     loadingPromises ||
     loadingTotalBalance ||
-    loadingPeriodBalance;
+    loadingPeriodBalance ||
+    loadingCashSummary;
 
   // Calculate Stats
   const totalBalance = totalBalanceData?.netBalance || 0;
@@ -242,9 +243,13 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Financial Stats */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
-        <div className="col-span-2 sm:col-span-1">
+      {/* Financial Stats
+          Layout: 2-col on mobile/tablet, 4-col on lg+
+          Total Balance + Cash Position each span full width below lg so they
+          never leave an orphaned card — Inflow/Outflow always sit side-by-side. */}
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        {/* Total Balance — full width below lg */}
+        <div className="col-span-2 lg:col-span-1">
           <StatsCard
             title="Total Balance"
             variant="primary"
@@ -277,19 +282,25 @@ export function Dashboard() {
             description="Net amount owed to / by your contacts (All Time)"
           />
         </div>
-        <StatsCard
-          title="Cash Position"
-          value={
-            <BalanceIndicator
-              amount={cashSummary?.netCashPosition ?? 0}
-              currency={balanceCurrency}
-              overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
-              className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
-            />
-          }
-          icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-          description="Personal income minus expenses (All Time)"
-        />
+
+        {/* Cash Position — full width below lg */}
+        <div className="col-span-2 lg:col-span-1">
+          <StatsCard
+            title="Cash Position"
+            value={
+              <BalanceIndicator
+                amount={cashSummary?.netCashPosition ?? 0}
+                currency={balanceCurrency}
+                overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
+                className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
+              />
+            }
+            icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+            description="Personal income minus expenses (All Time)"
+          />
+        </div>
+
+        {/* Inflow + Outflow — always side-by-side (1 col each) */}
         <StatsCard
           title={`Inflow (${getPeriodLabel()})`}
           value={
