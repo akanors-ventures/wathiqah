@@ -44,7 +44,7 @@ export function UpgradePromptDialog({ open, onOpenChange, limitType }: UpgradePr
             Not now
           </Button>
           <Button asChild onClick={() => onOpenChange(false)}>
-            <Link to="/pricing">
+            <Link to="/pricing" search={{ reason: undefined }}>
               <Sparkles className="w-4 h-4 mr-2" />
               Upgrade to Pro
             </Link>

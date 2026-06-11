@@ -118,11 +118,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (data.login.user) {
             setUser(data.login.user as User);
           }
-          // Use clearStore instead of resetStore to avoid "Invariant Violation: Store reset while query was in flight"
-          // clearStore wipes the cache without attempting to refetch active queries immediately.
-          client.clearStore().catch((err) => {
-            console.error("Error clearing store after login:", err);
-          });
+          // Use clearStore instead of resetStore to avoid "Invariant Violation: Store reset while query
+          // was in flight". clearStore wipes the cache without re-fetching active queries immediately.
+          // Follow up with refetchQueries so persistent providers (OrgContext, etc.) that were active
+          // during the unauthenticated phase re-run with the new JWT and populate correctly — without
+          // this, MY_ORGANISATIONS_QUERY stays empty until the user refreshes the page.
+          client
+            .clearStore()
+            .then(() => client.refetchQueries({ include: "active" }))
+            .catch((err) => {
+              console.error("Error clearing store after login:", err);
+            });
         }
         return data?.login;
       } catch (error) {
@@ -217,9 +223,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (data.acceptInvitation.user) {
             setUser(data.acceptInvitation.user as User);
           }
-          client.clearStore().catch((err) => {
-            console.error("Error clearing store after accept invitation:", err);
-          });
+          client
+            .clearStore()
+            .then(() => client.refetchQueries({ include: "active" }))
+            .catch((err) => {
+              console.error("Error clearing store after accept invitation:", err);
+            });
         }
         return data?.acceptInvitation;
       } catch (error) {

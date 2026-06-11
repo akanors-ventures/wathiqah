@@ -6,6 +6,7 @@ import {
   FileSignature,
   Laptop,
   Loader2,
+  Lock,
   LogOut,
   Moon,
   Plus,
@@ -312,45 +313,53 @@ export default function HeaderUser() {
             <DropdownMenuSeparator />
 
             {/* Org switching */}
-            {myOrgs.length > 0 && (
-              <>
-                <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-2 py-1">
-                  Organisations
-                </DropdownMenuLabel>
-                {myOrgs.map((org) => (
-                  <DropdownMenuItem
-                    key={org.id}
-                    className="cursor-pointer"
-                    disabled={isSwitching}
-                    onClick={() => handleSwitchToOrg(org.id, org.slug)}
-                  >
-                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[9px] font-bold mr-2">
-                      {org.name
-                        .split(" ")
-                        .slice(0, 2)
-                        .map((w) => w[0])
-                        .join("")
-                        .toUpperCase()}
-                    </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                      <span className="text-[13px] font-semibold leading-tight truncate">
-                        {org.name}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {org.industry ?? "Organisation"}
-                      </span>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuItem asChild className="cursor-pointer text-muted-foreground">
-                  <Link to="/org/create">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create organisation
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
+            <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-2 py-1">
+              Organisations
+            </DropdownMenuLabel>
+            {myOrgs.map((org) => (
+              <DropdownMenuItem
+                key={org.id}
+                className="cursor-pointer"
+                disabled={isSwitching}
+                onClick={() => handleSwitchToOrg(org.id, org.slug)}
+              >
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-[9px] font-bold mr-2">
+                  {org.name
+                    .split(" ")
+                    .slice(0, 2)
+                    .map((w) => w[0])
+                    .join("")
+                    .toUpperCase()}
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <span className="text-[13px] font-semibold leading-tight truncate">
+                    {org.name}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {org.industry ?? "Organisation"}
+                  </span>
+                </div>
+              </DropdownMenuItem>
+            ))}
+            {isPro ? (
+              <DropdownMenuItem asChild className="cursor-pointer text-muted-foreground">
+                <Link to="/org/create">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create organisation
+                </Link>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem asChild className="cursor-pointer text-muted-foreground">
+                <Link to="/pricing" search={{ reason: "org-creation" }}>
+                  <Lock className="mr-2 h-4 w-4" />
+                  <span>Create organisation</span>
+                  <span className="ml-auto text-[9px] font-black uppercase tracking-widest bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+                    Pro
+                  </span>
+                </Link>
+              </DropdownMenuItem>
             )}
+            <DropdownMenuSeparator />
 
             {/* Upgrade */}
             {!isPro && (
@@ -359,7 +368,7 @@ export default function HeaderUser() {
                   asChild
                   className="text-primary focus:text-primary focus:bg-primary/5 cursor-pointer font-bold"
                 >
-                  <Link to="/pricing">
+                  <Link to="/pricing" search={{ reason: undefined }}>
                     <Zap className="mr-2 h-4 w-4 fill-primary" />
                     <span>Upgrade to Pro</span>
                   </Link>

@@ -2,7 +2,12 @@ import { InputType, Field } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 @InputType()
-export class CreateOrgNoteInput {
+export class CreateNoteInput {
+  @Field({ nullable: true })
+  @IsOptional()
+  @IsString()
+  title?: string;
+
   @Field()
   @IsNotEmpty()
   @IsString()

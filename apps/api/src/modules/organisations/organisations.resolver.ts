@@ -8,7 +8,7 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { UseGuards } from '@nestjs/common';
+import { ForbiddenException, UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { OrgRolesGuard, OrgRoles } from './guards/org-roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -19,7 +19,11 @@ import { OrganisationMember } from './entities/organisation-member.entity';
 import { CreateOrganisationInput } from './dto/create-organisation.input';
 import { UpdateOrganisationInput } from './dto/update-organisation.input';
 import { InviteMemberInput } from './dto/invite-member.input';
-import { OrgRole, ProjectStatus } from '../../generated/prisma/client';
+import {
+  OrgRole,
+  ProjectStatus,
+  SubscriptionTier,
+} from '../../generated/prisma/client';
 import { User } from '../users/entities/user.entity';
 import { Contact } from '../contacts/entities/contact.entity';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -37,6 +41,11 @@ export class OrganisationsResolver {
     @Args('input') input: CreateOrganisationInput,
     @CurrentUser() user: User,
   ) {
+    if (user.tier !== SubscriptionTier.PRO) {
+      throw new ForbiddenException(
+        'Creating an organisation requires a Pro subscription.',
+      );
+    }
     return this.orgsService.create(input, user.id);
   }
 

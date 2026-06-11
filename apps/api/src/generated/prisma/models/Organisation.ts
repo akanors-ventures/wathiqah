@@ -220,7 +220,7 @@ export type OrganisationWhereInput = {
   projects?: Prisma.ProjectListRelationFilter
   promises?: Prisma.PromiseListRelationFilter
   events?: Prisma.OrgEventListRelationFilter
-  notes?: Prisma.OrgNoteListRelationFilter
+  notes?: Prisma.NoteListRelationFilter
   subscription?: Prisma.XOR<Prisma.OrgSubscriptionNullableScalarRelationFilter, Prisma.OrgSubscriptionWhereInput> | null
 }
 
@@ -240,7 +240,7 @@ export type OrganisationOrderByWithRelationInput = {
   projects?: Prisma.ProjectOrderByRelationAggregateInput
   promises?: Prisma.PromiseOrderByRelationAggregateInput
   events?: Prisma.OrgEventOrderByRelationAggregateInput
-  notes?: Prisma.OrgNoteOrderByRelationAggregateInput
+  notes?: Prisma.NoteOrderByRelationAggregateInput
   subscription?: Prisma.OrgSubscriptionOrderByWithRelationInput
 }
 
@@ -263,7 +263,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   projects?: Prisma.ProjectListRelationFilter
   promises?: Prisma.PromiseListRelationFilter
   events?: Prisma.OrgEventListRelationFilter
-  notes?: Prisma.OrgNoteListRelationFilter
+  notes?: Prisma.NoteListRelationFilter
   subscription?: Prisma.XOR<Prisma.OrgSubscriptionNullableScalarRelationFilter, Prisma.OrgSubscriptionWhereInput> | null
 }, "id" | "slug">
 
@@ -313,7 +313,7 @@ export type OrganisationCreateInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -333,7 +333,7 @@ export type OrganisationUncheckedCreateInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -353,7 +353,7 @@ export type OrganisationUpdateInput = {
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -373,7 +373,7 @@ export type OrganisationUncheckedUpdateInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -575,10 +575,12 @@ export type OrganisationCreateNestedOneWithoutNotesInput = {
   connect?: Prisma.OrganisationWhereUniqueInput
 }
 
-export type OrganisationUpdateOneRequiredWithoutNotesNestedInput = {
+export type OrganisationUpdateOneWithoutNotesNestedInput = {
   create?: Prisma.XOR<Prisma.OrganisationCreateWithoutNotesInput, Prisma.OrganisationUncheckedCreateWithoutNotesInput>
   connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutNotesInput
   upsert?: Prisma.OrganisationUpsertWithoutNotesInput
+  disconnect?: Prisma.OrganisationWhereInput | boolean
+  delete?: Prisma.OrganisationWhereInput | boolean
   connect?: Prisma.OrganisationWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutNotesInput, Prisma.OrganisationUpdateWithoutNotesInput>, Prisma.OrganisationUncheckedUpdateWithoutNotesInput>
 }
@@ -598,7 +600,7 @@ export type OrganisationCreateWithoutContactsInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -617,7 +619,7 @@ export type OrganisationUncheckedCreateWithoutContactsInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -652,7 +654,7 @@ export type OrganisationUpdateWithoutContactsInput = {
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -671,7 +673,7 @@ export type OrganisationUncheckedUpdateWithoutContactsInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -690,7 +692,7 @@ export type OrganisationCreateWithoutTransactionsInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -709,7 +711,7 @@ export type OrganisationUncheckedCreateWithoutTransactionsInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -744,7 +746,7 @@ export type OrganisationUpdateWithoutTransactionsInput = {
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -763,7 +765,7 @@ export type OrganisationUncheckedUpdateWithoutTransactionsInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -782,7 +784,7 @@ export type OrganisationCreateWithoutProjectsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -801,7 +803,7 @@ export type OrganisationUncheckedCreateWithoutProjectsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -836,7 +838,7 @@ export type OrganisationUpdateWithoutProjectsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -855,7 +857,7 @@ export type OrganisationUncheckedUpdateWithoutProjectsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -874,7 +876,7 @@ export type OrganisationCreateWithoutPromisesInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutOrganisationInput
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -893,7 +895,7 @@ export type OrganisationUncheckedCreateWithoutPromisesInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutOrganisationInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -928,7 +930,7 @@ export type OrganisationUpdateWithoutPromisesInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutOrganisationNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -947,7 +949,7 @@ export type OrganisationUncheckedUpdateWithoutPromisesInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutOrganisationNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -966,7 +968,7 @@ export type OrganisationCreateWithoutMembersInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -985,7 +987,7 @@ export type OrganisationUncheckedCreateWithoutMembersInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -1020,7 +1022,7 @@ export type OrganisationUpdateWithoutMembersInput = {
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -1039,7 +1041,7 @@ export type OrganisationUncheckedUpdateWithoutMembersInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -1059,7 +1061,7 @@ export type OrganisationCreateWithoutSubscriptionInput = {
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutSubscriptionInput = {
@@ -1078,7 +1080,7 @@ export type OrganisationUncheckedCreateWithoutSubscriptionInput = {
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutSubscriptionInput = {
@@ -1113,7 +1115,7 @@ export type OrganisationUpdateWithoutSubscriptionInput = {
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutSubscriptionInput = {
@@ -1132,7 +1134,7 @@ export type OrganisationUncheckedUpdateWithoutSubscriptionInput = {
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutEventsInput = {
@@ -1150,7 +1152,7 @@ export type OrganisationCreateWithoutEventsInput = {
   transactions?: Prisma.TransactionCreateNestedManyWithoutOrganisationInput
   projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
 }
 
@@ -1169,7 +1171,7 @@ export type OrganisationUncheckedCreateWithoutEventsInput = {
   transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutOrganisationInput
   projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
-  notes?: Prisma.OrgNoteUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
 }
 
@@ -1204,7 +1206,7 @@ export type OrganisationUpdateWithoutEventsInput = {
   transactions?: Prisma.TransactionUpdateManyWithoutOrganisationNestedInput
   projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -1223,7 +1225,7 @@ export type OrganisationUncheckedUpdateWithoutEventsInput = {
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutOrganisationNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
-  notes?: Prisma.OrgNoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
 }
 
@@ -1400,7 +1402,7 @@ export type OrganisationCountOutputTypeCountEventsArgs<ExtArgs extends runtime.T
  * OrganisationCountOutputType without action
  */
 export type OrganisationCountOutputTypeCountNotesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.OrgNoteWhereInput
+  where?: Prisma.NoteWhereInput
 }
 
 
@@ -1485,7 +1487,7 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     projects: Prisma.$ProjectPayload<ExtArgs>[]
     promises: Prisma.$PromisePayload<ExtArgs>[]
     events: Prisma.$OrgEventPayload<ExtArgs>[]
-    notes: Prisma.$OrgNotePayload<ExtArgs>[]
+    notes: Prisma.$NotePayload<ExtArgs>[]
     subscription: Prisma.$OrgSubscriptionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1898,7 +1900,7 @@ export interface Prisma__OrganisationClient<T, Null = never, ExtArgs extends run
   projects<T extends Prisma.Organisation$projectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$projectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   promises<T extends Prisma.Organisation$promisesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$promisesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PromisePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   events<T extends Prisma.Organisation$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  notes<T extends Prisma.Organisation$notesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$notesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgNotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notes<T extends Prisma.Organisation$notesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$notesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscription<T extends Prisma.Organisation$subscriptionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$subscriptionArgs<ExtArgs>>): Prisma.Prisma__OrgSubscriptionClient<runtime.Types.Result.GetResult<Prisma.$OrgSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2474,23 +2476,23 @@ export type Organisation$eventsArgs<ExtArgs extends runtime.Types.Extensions.Int
  */
 export type Organisation$notesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the OrgNote
+   * Select specific fields to fetch from the Note
    */
-  select?: Prisma.OrgNoteSelect<ExtArgs> | null
+  select?: Prisma.NoteSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the OrgNote
+   * Omit specific fields from the Note
    */
-  omit?: Prisma.OrgNoteOmit<ExtArgs> | null
+  omit?: Prisma.NoteOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.OrgNoteInclude<ExtArgs> | null
-  where?: Prisma.OrgNoteWhereInput
-  orderBy?: Prisma.OrgNoteOrderByWithRelationInput | Prisma.OrgNoteOrderByWithRelationInput[]
-  cursor?: Prisma.OrgNoteWhereUniqueInput
+  include?: Prisma.NoteInclude<ExtArgs> | null
+  where?: Prisma.NoteWhereInput
+  orderBy?: Prisma.NoteOrderByWithRelationInput | Prisma.NoteOrderByWithRelationInput[]
+  cursor?: Prisma.NoteWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.OrgNoteScalarFieldEnum | Prisma.OrgNoteScalarFieldEnum[]
+  distinct?: Prisma.NoteScalarFieldEnum | Prisma.NoteScalarFieldEnum[]
 }
 
 /**

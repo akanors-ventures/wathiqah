@@ -11,6 +11,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Always target `dev` branch for PRs and merges — use `gh pr create --base dev`. Never target `main` unless explicitly told.
 - Never delete git worktree directories directly. Use `git worktree remove <path>` from outside the worktree to avoid breaking the shell session.
 
+## Testing
+
+- Run targeted backend tests from the api directory: `cd apps/api && npx jest --testPathPattern="<pattern>" --no-coverage`
+- `pnpm --filter api test -- --testPathPattern=<x>` mangles args in worktrees — use the `cd apps/api && npx jest` form instead.
+- In test files, use `as unknown as T` double-cast to access private members — never `as any` and never eslint-disable comments to suppress `no-explicit-any`.
+- When using `jest.spyOn`, always add `afterEach(() => jest.restoreAllMocks())` in the same describe block to prevent cross-test mock leakage.
+
 ## Configuration Changes
 
 - Before modifying any config (lefthook, Atlas, CI, lint-staged), read the existing config files first. Never assume defaults.
@@ -145,9 +152,11 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 ### GraphQL Schema Generation
 
-- `apps/api/src/schema.gql` is **auto-generated at runtime** when NestJS starts — do NOT edit it manually
-- When adding new `@Field()` decorators, run `pnpm --filter api dev` once to regenerate `schema.gql`, then `pnpm --filter web build` will succeed
-- Frontend codegen reads from `../api/src/schema.gql` — see `apps/web/codegen.ts`
+- `apps/api/src/schema.gql` is **auto-generated at runtime** when NestJS starts — do NOT edit it manually.
+- After adding or changing `@Field()` decorators, run `pnpm --filter api dev` once to regenerate `schema.gql`. Kill it as soon as the server prints "Nest application successfully started".
+- After regenerating `schema.gql`, run `pnpm --filter web codegen` to regenerate `apps/web/src/types/__generated__/graphql.ts`.
+- Commit both `schema.gql` and `graphql.ts` together — a stale `schema.gql` in the repo will break CI codegen validation even if the backend code is correct.
+- Frontend codegen reads from `../api/src/schema.gql` — see `apps/web/codegen.ts`.
 
 ## Backend Conventions
 
@@ -164,28 +173,29 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 **Atlas is the only migration tool.** Never use `prisma migrate dev`, `prisma migrate deploy`, or any Prisma migrate command — they are disabled. All schema changes go through Atlas.
 
-#### Workflow
+#### Normal workflow (covers 95% of cases)
 1. Edit `apps/api/prisma/schema.prisma`
-2. Run `pnpm --filter api db:generate` to regenerate the Prisma client
-3. Run `pnpm --filter api db:migrate` (from repo root) to generate an Atlas migration
-4. Run `pnpm --filter api db:apply` to apply it locally — **verify it succeeds with zero errors before committing**
-5. Commit the migration file and updated `atlas.sum` together
+2. `pnpm --filter api db:generate` — regenerates the Prisma client
+3. `pnpm --filter api db:migrate` — Atlas diffs schema.prisma against the DB and **auto-generates** both the migration SQL file and the updated `atlas.sum`. Do not write migration SQL manually.
+4. `pnpm --filter api db:apply` — applies the migration locally. Verify zero errors before continuing.
+5. Commit `apps/api/atlas/migrations/<timestamp>.sql` and the updated `apps/api/atlas/migrations/atlas.sum` together. Never commit one without the other.
 
 #### Rules
-- **Never use `atlas migrate set`** to mark a migration as applied unless you have manually verified that every SQL statement in that migration has already been executed in the target database. Marking without running causes silent schema drift — columns referenced in code will be missing at runtime, crashing the app on startup.
-- **Do not run `db:apply` on production manually** — CI applies migrations automatically via `.github/workflows/ci-atlas.yaml` on merge to `main`
-- **After editing any migration SQL manually**, run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum` — CI will fail with a checksum mismatch otherwise
-- **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted
-- Atlas requires `atlas login` (browser-based); token expires periodically
+- **Never use `atlas migrate set`** to mark a migration as applied unless every SQL statement in that file has already been executed. Marking without running causes silent schema drift — missing columns crash the app on startup.
+- **Do not run `db:apply` on production manually** — CI applies migrations automatically via `.github/workflows/ci-atlas.yaml` on merge to `main`.
+- **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted.
+- Atlas requires `atlas login` (browser-based); token expires periodically.
+- **Worktrees**: if two worktrees both run `db:migrate`, each generates its own migration file with its own timestamp. They will conflict when merged. Coordinate: only one worktree should generate a schema-changing migration at a time, or rebase and re-generate after merging the other.
 
-#### Removing PostgreSQL enum values
+#### Special case: removing a PostgreSQL enum value
 
-PostgreSQL does not support `ALTER TYPE ... DROP VALUE`. Atlas will error with "reordering enum value is not supported" if you try to auto-generate a migration that removes enum values. The correct approach:
-1. Write the migration SQL manually (see `20260403120000.sql` as a reference)
-2. `CREATE TYPE foo_new AS ENUM (...)` with only the desired values
-3. `ALTER TABLE ... ALTER COLUMN type TYPE foo_new USING type::text::foo_new`
-4. `DROP TYPE foo_old; ALTER TYPE foo_new RENAME TO foo_old;`
-5. Run `atlas migrate hash --dir file://atlas/migrations` (from `apps/api/`) to rehash `atlas.sum`
+PostgreSQL does not support `ALTER TYPE ... DROP VALUE`. Atlas will error with "reordering enum value is not supported" if you auto-generate a migration that removes enum values. This is the **only** case where you write migration SQL manually:
+1. Write the SQL by hand (see `20260403120000.sql` as a reference):
+   - `CREATE TYPE foo_new AS ENUM (...)` with only the desired values
+   - `ALTER TABLE ... ALTER COLUMN type TYPE foo_new USING type::text::foo_new`
+   - `DROP TYPE foo_old; ALTER TYPE foo_new RENAME TO foo_old;`
+2. Run `atlas migrate hash --dir file://atlas/migrations` from `apps/api/` to rehash `atlas.sum` — CI will fail with a checksum mismatch if you skip this.
+3. Do NOT write migration SQL manually for any other reason — let `db:migrate` generate it.
 
 #### PostgreSQL column naming
 

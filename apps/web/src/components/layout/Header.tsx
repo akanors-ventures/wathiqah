@@ -156,7 +156,7 @@ export default function Header() {
               variant="outline"
               className="hidden lg:flex h-8 px-3 gap-1.5 text-[10px] font-black uppercase tracking-widest border-primary/20 text-primary hover:bg-primary/5 animate-in fade-in slide-in-from-right duration-500"
             >
-              <Link to="/pricing">
+              <Link to="/pricing" search={{ reason: undefined }}>
                 <Zap className="w-3 h-3 fill-primary" />
                 Go Pro
               </Link>

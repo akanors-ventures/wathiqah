@@ -133,7 +133,7 @@ export type OrgSubscription = Prisma.OrgSubscriptionModel
  */
 export type OrgEvent = Prisma.OrgEventModel
 /**
- * Model OrgNote
+ * Model Note
  * 
  */
-export type OrgNote = Prisma.OrgNoteModel
+export type Note = Prisma.NoteModel

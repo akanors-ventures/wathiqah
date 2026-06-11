@@ -25,7 +25,7 @@ import { PersonalEntriesModule } from './modules/personal-entries/personal-entri
 import { GeoIPModule } from './modules/geoip/geoip.module';
 import { OrganisationsModule } from './modules/organisations/organisations.module';
 import { OrgEventsModule } from './modules/org-events/org-events.module';
-import { OrgNotesModule } from './modules/org-notes/org-notes.module';
+import { NotesModule } from './modules/notes/notes.module';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
@@ -216,7 +216,7 @@ import { GraphQLError } from 'graphql';
     GeoIPModule,
     OrganisationsModule,
     OrgEventsModule,
-    OrgNotesModule,
+    NotesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

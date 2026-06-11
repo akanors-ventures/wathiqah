@@ -3,6 +3,7 @@ import { useMutation } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
+  Building2,
   Check,
   Globe,
   Heart,
@@ -42,6 +43,9 @@ import { redirectToLogin } from "@/utils/auth";
 
 export const Route = createFileRoute("/pricing")({
   component: PricingPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    reason: typeof search.reason === "string" ? search.reason : undefined,
+  }),
 });
 
 type Feature = {
@@ -70,6 +74,7 @@ function getAnnualPrice(currencyCode: string, monthlyPrice: number): number {
 function PricingPage() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
+  const { reason } = Route.useSearch();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
   const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
   const [billingInterval, setBillingInterval] = useState<BillingInterval>(BillingInterval.Monthly);
@@ -200,6 +205,21 @@ function PricingPage() {
             financial relationships.
           </p>
         </div>
+
+        {reason === "org-creation" && (
+          <div className="max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-700">
+            <Alert className="bg-primary/5 border-primary/20 rounded-[32px] p-6">
+              <Building2 className="h-5 w-5 text-primary" />
+              <AlertTitle className="font-black uppercase tracking-widest text-[10px] mb-2">
+                Pro Feature
+              </AlertTitle>
+              <AlertDescription className="text-sm font-medium">
+                Organisation accounts are a Pro feature. Upgrade to create shared workspaces for
+                your team.
+              </AlertDescription>
+            </Alert>
+          </div>
+        )}
 
         {isVpn && (
           <div className="max-w-2xl mx-auto mb-8 animate-in fade-in slide-in-from-top-4 duration-700">

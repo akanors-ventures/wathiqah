@@ -74,7 +74,7 @@ export const ModelName = {
   OrganisationMember: 'OrganisationMember',
   OrgSubscription: 'OrgSubscription',
   OrgEvent: 'OrgEvent',
-  OrgNote: 'OrgNote'
+  Note: 'Note'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -450,17 +450,18 @@ export const OrgEventScalarFieldEnum = {
 export type OrgEventScalarFieldEnum = (typeof OrgEventScalarFieldEnum)[keyof typeof OrgEventScalarFieldEnum]
 
 
-export const OrgNoteScalarFieldEnum = {
+export const NoteScalarFieldEnum = {
   id: 'id',
+  createdById: 'createdById',
   orgId: 'orgId',
+  title: 'title',
   body: 'body',
   category: 'category',
-  createdById: 'createdById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
-export type OrgNoteScalarFieldEnum = (typeof OrgNoteScalarFieldEnum)[keyof typeof OrgNoteScalarFieldEnum]
+export type NoteScalarFieldEnum = (typeof NoteScalarFieldEnum)[keyof typeof NoteScalarFieldEnum]
 
 
 export const SortOrder = {

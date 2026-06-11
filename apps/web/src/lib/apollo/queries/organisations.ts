@@ -253,7 +253,7 @@ export const REMOVE_ORG_EVENT_MUTATION: TypedDocumentNode<
 // ── Notes ────────────────────────────────────────────────────────────────────
 
 export const ORG_NOTE_FIELDS = gql`
-  fragment OrgNoteFields on OrgNote {
+  fragment OrgNoteFields on Note {
     id
     orgId
     body
@@ -278,7 +278,7 @@ export const CREATE_ORG_NOTE_MUTATION: TypedDocumentNode<
   CreateOrgNoteMutationVariables
 > = gql`
   ${ORG_NOTE_FIELDS}
-  mutation CreateOrgNote($input: CreateOrgNoteInput!) {
+  mutation CreateOrgNote($input: CreateNoteInput!) {
     createOrgNote(input: $input) {
       ...OrgNoteFields
     }
@@ -290,7 +290,7 @@ export const UPDATE_ORG_NOTE_MUTATION: TypedDocumentNode<
   UpdateOrgNoteMutationVariables
 > = gql`
   ${ORG_NOTE_FIELDS}
-  mutation UpdateOrgNote($id: ID!, $input: UpdateOrgNoteInput!) {
+  mutation UpdateOrgNote($id: ID!, $input: UpdateNoteInput!) {
     updateOrgNote(id: $id, input: $input) {
       ...OrgNoteFields
     }
