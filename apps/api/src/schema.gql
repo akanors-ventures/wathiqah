@@ -40,6 +40,11 @@ enum AssetCategory {
   ITEM
 }
 
+enum AttributionMode {
+  ORG_AND_OPERATOR
+  ORG_ONLY
+}
+
 type AuthPayload {
   accessToken: String
   refreshToken: String
@@ -74,6 +79,7 @@ type Contact {
   lastName: String!
   linkedUserId: String
   name: String!
+  orgId: String
   phoneNumber: String
   transactions: [Transaction!]
   user: User!
@@ -100,6 +106,28 @@ input CreateContactInput {
   email: String
   name: String!
   phoneNumber: String
+}
+
+input CreateNoteInput {
+  body: String!
+  category: String
+  title: String
+}
+
+input CreateOrgEventInput {
+  category: String!
+  date: String!
+  endDate: String
+  isRecurring: Boolean = false
+  notes: String
+  recurrence: String
+  title: String!
+}
+
+input CreateOrganisationInput {
+  description: String
+  industry: String
+  name: String!
 }
 
 input CreatePersonalEntryInput {
@@ -248,6 +276,11 @@ type InviteContactResponse {
   success: Boolean!
 }
 
+input InviteMemberInput {
+  email: String!
+  role: OrgRole!
+}
+
 """
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -278,6 +311,10 @@ type Mutation {
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createCheckoutSession(currency: String, interval: BillingInterval = MONTHLY, tier: SubscriptionTier!): CheckoutSession!
   createContact(createContactInput: CreateContactInput!): Contact!
+  createNote(input: CreateNoteInput!): Note!
+  createOrgEvent(input: CreateOrgEventInput!): OrgEvent!
+  createOrgNote(input: CreateNoteInput!): Note!
+  createOrganisation(input: CreateOrganisationInput!): Organisation!
   createPersonalEntry(input: CreatePersonalEntryInput!): PersonalEntry!
   createProject(input: CreateProjectInput!): Project!
   createPromise(createPromiseInput: CreatePromiseInput!): Promise!
@@ -289,14 +326,20 @@ type Mutation {
   forgotPassword(forgotPasswordInput: ForgotPasswordInput!): Boolean!
   grantAccess(grantAccessInput: GrantAccessInput!): AccessGrant!
   inviteContactToPlatform(contactId: ID!): InviteContactResponse!
+  inviteMember(input: InviteMemberInput!): OrganisationMember!
   logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
   markSharedHistorySeen: Boolean!
+  promoteContactToOrg(contactId: ID!): Contact!
   provisionPro(input: ProvisionProInput!): User!
   reactivateSubscription: Boolean!
   refreshToken(refreshTokenInput: RefreshTokenInput!): AuthPayload!
   removeContact(id: ID!): Contact!
+  removeMember(memberId: ID!): Boolean!
+  removeNote(id: ID!): Boolean!
+  removeOrgEvent(id: ID!): Boolean!
+  removeOrgNote(id: ID!): Boolean!
   removePromise(id: String!): Promise!
   removeTransaction(id: ID!): Transaction!
   removeWitness(witnessId: ID!): Witness!
@@ -307,7 +350,13 @@ type Mutation {
   revokeAccess(id: String!): AccessGrant!
   setUserRole(input: SetUserRoleInput!): User!
   signup(signupInput: SignupInput!): AuthPayload!
+  switchOrgContext(orgId: String): AuthPayload!
   updateContact(updateContactInput: UpdateContactInput!): Contact!
+  updateMemberRole(memberId: ID!, role: OrgRole!): OrganisationMember!
+  updateNote(id: ID!, input: UpdateNoteInput!): Note!
+  updateOrgEvent(id: ID!, input: UpdateOrgEventInput!): OrgEvent!
+  updateOrgNote(id: ID!, input: UpdateNoteInput!): Note!
+  updateOrganisation(input: UpdateOrganisationInput!): Organisation!
   updatePersonalEntry(input: UpdatePersonalEntryInput!): PersonalEntry!
   updateProject(input: UpdateProjectInput!): Project!
   updateProjectTransaction(input: UpdateProjectTransactionInput!): ProjectTransaction!
@@ -315,6 +364,64 @@ type Mutation {
   updateTransaction(input: UpdateTransactionInput!): Transaction!
   updateUser(updateUserInput: UpdateUserInput!): User!
   verifyEmail(token: String!): AuthPayload!
+}
+
+type Note {
+  body: String!
+  category: String
+  createdAt: DateTime!
+  createdById: String!
+  id: ID!
+  orgId: String
+  title: String
+  updatedAt: DateTime!
+}
+
+type OrgEvent {
+  category: String!
+  createdAt: DateTime!
+  createdById: String!
+  date: DateTime!
+  endDate: DateTime
+  id: ID!
+  isRecurring: Boolean!
+  notes: String
+  orgId: String!
+  recurrence: String
+  title: String!
+  updatedAt: DateTime!
+}
+
+enum OrgRole {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+type Organisation {
+  activeProjectCount: Int!
+  attributionMode: AttributionMode!
+  contactCount: Int!
+  createdAt: DateTime!
+  description: String
+  id: ID!
+  industry: String
+  logoUrl: String
+  members: [OrganisationMember!]!
+  name: String!
+  slug: String!
+  transactionCount: Int!
+  updatedAt: DateTime!
+}
+
+type OrganisationMember {
+  id: ID!
+  joinedAt: DateTime!
+  orgId: String!
+  organisation: Organisation!
+  role: OrgRole!
+  user: User!
+  userId: String!
 }
 
 type PaginatedContactsResponse {
@@ -480,11 +587,17 @@ type Query {
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions(filter: FilterSharedHistoryInput): PaginatedSharedHistoryResponse!
+  myOrganisations: [Organisation!]!
   myProjects(filter: FilterProjectInput): PaginatedProjectsResponse!
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
   mySupports: [Support!]!
   myWitnessRequests(filter: FilterWitnessInput, status: WitnessStatus): PaginatedWitnessesResponse!
+  orgEventCategorySuggestions: [String!]!
+  orgEvents(category: String): [OrgEvent!]!
+  orgNotes(category: String): [Note!]!
+  orgUpcomingEvents(category: String): [OrgEvent!]!
+  organisation(slug: String!): Organisation!
   personalEntries(filter: FilterPersonalEntryInput): PaginatedPersonalEntriesResponse!
   personalEntrySummary(filter: FilterPersonalEntryInput): PersonalEntrySummary!
   project(id: ID!): Project!
@@ -500,6 +613,7 @@ type Query {
   transactions(filter: FilterTransactionInput): TransactionsResponse!
   transactionsGroupedByContact(filter: FilterTransactionInput): [ContactGroupedSummary!]!
   user(id: String!): User
+  userNotes(category: String): [Note!]!
 }
 
 input RefreshTokenInput {
@@ -681,6 +795,30 @@ input UpdateContactInput {
   id: ID!
   name: String
   phoneNumber: String
+}
+
+input UpdateNoteInput {
+  body: String
+  category: String
+  title: String
+}
+
+input UpdateOrgEventInput {
+  category: String
+  date: String
+  endDate: String
+  isRecurring: Boolean
+  notes: String
+  recurrence: String
+  title: String
+}
+
+input UpdateOrganisationInput {
+  attributionMode: AttributionMode
+  description: String
+  industry: String
+  logoUrl: String
+  name: String
 }
 
 input UpdatePersonalEntryInput {
