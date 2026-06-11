@@ -109,10 +109,10 @@ describe('AuthResolver — cookie maxAge from config', () => {
   beforeEach(async () => {
     cookieCalls = [];
     mockRes = {
-      cookie: jest.fn((...args: [string, string, object]) => {
-        cookieCalls.push(args);
+      cookie: jest.fn((...args: unknown[]) => {
+        cookieCalls.push(args as [string, string, object]);
         return mockRes as Response;
-      }),
+      }) as unknown as Response['cookie'],
     };
 
     const moduleRef = await Test.createTestingModule({
@@ -147,7 +147,6 @@ describe('AuthResolver — cookie maxAge from config', () => {
       refreshToken: 'rt',
       user: null,
     } as unknown as AuthPayload;
-    // @ts-expect-error access private method for testing
     (resolver as unknown as PrivateResolver).setCookies(
       mockRes as Response,
       payload,
@@ -164,7 +163,6 @@ describe('AuthResolver — cookie maxAge from config', () => {
       refreshToken: 'rt',
       user: null,
     } as unknown as AuthPayload;
-    // @ts-expect-error access private method for testing
     (resolver as unknown as PrivateResolver).setCookies(
       mockRes as Response,
       payload,
