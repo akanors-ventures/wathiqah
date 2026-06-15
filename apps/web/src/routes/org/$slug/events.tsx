@@ -5,6 +5,8 @@ import { CalendarDays, PenLine, Plus } from "lucide-react";
 import { useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import type { NoteFormValues } from "@/components/notes/NoteForm";
+import { NoteForm } from "@/components/notes/NoteForm";
 import { EventCard } from "@/components/org/event-card";
 import { NoteEntry } from "@/components/org/note-entry";
 import { Badge } from "@/components/ui/badge";
@@ -57,12 +59,6 @@ type EventFormValues = {
   notes: string;
   isRecurring: boolean;
   recurrence: string;
-};
-
-type NoteFormValues = {
-  title?: string;
-  body: string;
-  category: string;
 };
 
 // ─── Helper: format DateTime string to YYYY-MM-DD ────────────────────────────
@@ -585,87 +581,6 @@ function EventForm({
         )}
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? "Saving…" : defaultValues?.title ? "Save changes" : "Add Event"}
-        </Button>
-      </DialogFooter>
-    </form>
-  );
-}
-
-// ─── NoteForm ────────────────────────────────────────────────────────────────
-
-function NoteForm({
-  defaultValues,
-  onSubmit,
-  onDelete,
-}: {
-  defaultValues?: Partial<NoteFormValues>;
-  onSubmit: (values: NoteFormValues) => Promise<void>;
-  onDelete?: () => Promise<void>;
-}) {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<NoteFormValues>({
-    defaultValues: {
-      title: "",
-      body: "",
-      category: "",
-      ...defaultValues,
-    },
-  });
-
-  const noteTitleId = useId();
-  const bodyId = useId();
-  const noteCategoryId = useId();
-
-  async function handleFormSubmit(values: NoteFormValues) {
-    await onSubmit(values);
-    reset();
-  }
-
-  return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-2">
-      <div className="space-y-1.5">
-        <Label htmlFor={noteTitleId}>Title (optional)</Label>
-        <Input id={noteTitleId} placeholder="Note title (optional)" {...register("title")} />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor={bodyId}>Note</Label>
-        <Textarea
-          id={bodyId}
-          rows={5}
-          placeholder="Write your note here…"
-          {...register("body", { required: "Note body is required" })}
-        />
-        {errors.body && <p className="text-xs text-destructive">{errors.body.message}</p>}
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor={noteCategoryId}>Category (optional)</Label>
-        <Input
-          id={noteCategoryId}
-          placeholder="e.g. Meeting notes, Decision, Observation"
-          {...register("category")}
-        />
-      </div>
-
-      <DialogFooter className="gap-2 pt-2">
-        {onDelete && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="text-destructive border-destructive hover:bg-destructive/10 mr-auto"
-            onClick={onDelete}
-            disabled={isSubmitting}
-          >
-            Delete
-          </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Saving…" : defaultValues?.body ? "Save changes" : "Save Note"}
         </Button>
       </DialogFooter>
     </form>
