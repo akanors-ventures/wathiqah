@@ -45,6 +45,11 @@
 				"^db:generate"
 			]
 		},
+		"typecheck": {
+			"dependsOn": [
+				"^typecheck"
+			]
+		},
 		"test": {
 			"dependsOn": [
 				"^test"
