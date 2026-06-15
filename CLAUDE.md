@@ -219,6 +219,17 @@ if (!user || user.tier !== SubscriptionTier.PRO) {
 ```
 `@CheckFeature` always operates on the authenticated caller — using it for cross-user tier checks is wrong.
 
+### Subscription Feature Limit Patterns
+
+Two check patterns exist in `SubscriptionService.checkFeatureLimit` (`apps/api/src/modules/subscription/subscription.service.ts`):
+
+- **DB-count** (`maxContacts`, `maxNotes`): counts actual Prisma rows. `incrementFeatureUsage` skips these (no counter). Add a special-case block in `checkFeatureLimit` to implement a new one.
+- **Monthly counter** (`maxWitnessesPerMonth`, `contactNotificationSms`): tracked in `featureUsage` JSON with key `${feature}_${year}_${month}`. `incrementFeatureUsage` bumps these automatically. New monthly-counter features work without any special-casing.
+
+### TanStack Router — Route Registration
+
+`apps/web/src/routeTree.gen.ts` is **auto-generated** by the TanStack Router dev server. When adding a new route file without running the server, TypeScript will error: `Argument of type '"/new-route"' is not assignable to parameter of type 'keyof FileRoutesByPath'` in many places. Fix: run `pnpm --filter web dev` briefly — it regenerates the file within seconds of startup. Never edit `routeTree.gen.ts` manually.
+
 ### GraphQL Schema Generation
 
 - `apps/api/src/schema.gql` is **auto-generated at runtime** when NestJS starts — do NOT edit it manually.
@@ -237,6 +248,7 @@ if (!user || user.tier !== SubscriptionTier.PRO) {
 - `SubscriptionModule` is `@Global()` — `SubscriptionService` is injectable anywhere without adding it to module imports
 - BullMQ queue name is `'notifications'`; see `NotificationsProcessor` for existing job patterns
 - Format currency amounts with `getLocaleForCurrency` + `Intl.NumberFormat` — never concatenate raw ISO codes (e.g. `"NGN"`)
+- Two separate SMS gates: `allowSMS` (witness invite SMS — boolean, Pro only) and `contactNotificationSms` (contact notification SMS sent when a witness verifies a transaction — monthly counter, 10/month free, unlimited Pro). These gate independent code paths and are not redundant.
 
 ### Database Migrations
 
