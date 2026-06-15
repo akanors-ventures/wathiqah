@@ -29,16 +29,24 @@ function SharedAccessView() {
           <Lock className="w-6 h-6 text-muted-foreground" />
         </div>
         <h2 className="text-xl font-bold mb-2">
-          {isProGate ? "Records not available" : "Access Denied"}
+          {isProGate ? "Pro subscription required" : "Access Denied"}
         </h2>
         <p className="text-muted-foreground mb-6">
           {isProGate
-            ? "The account owner does not currently have a Pro subscription, so their records cannot be viewed. If you need access urgently, you may wish to contact them or their representative about upgrading their account."
+            ? "Viewing shared records requires a Pro subscription. Upgrade your account to access the financial records that have been shared with you."
             : error.message || "You do not have permission to view this profile."}
         </p>
-        <Button variant="outline" asChild>
-          <Link to="/settings">Return to Settings</Link>
-        </Button>
+        {isProGate ? (
+          <Button asChild>
+            <Link to="/pricing" search={{ reason: undefined }}>
+              Upgrade to Pro
+            </Link>
+          </Button>
+        ) : (
+          <Button variant="outline" asChild>
+            <Link to="/settings">Return to Settings</Link>
+          </Button>
+        )}
       </div>
     );
   }

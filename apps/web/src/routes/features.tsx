@@ -92,7 +92,7 @@ function FeaturesPage() {
             <FeatureCard
               icon={<Lock className="w-8 h-8 text-red-500" />}
               title="Shared Access"
-              description="Grant read-only access to a partner, accountant, or family member. Anyone can create a grant for free — Pro subscribers unlock full record viewing for their designated contacts."
+              description="Grant read-only access to a partner, accountant, or family member — creating a grant is free. Recipients need a Pro subscription to view the shared records."
               to="/settings"
             />
             <FeatureCard
