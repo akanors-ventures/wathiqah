@@ -12,6 +12,7 @@
     "check": "biome check",
     "format:fix": "biome format --write",
     "lint:fix": "biome lint --write",
+    "typecheck": "tsc --noEmit",
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
