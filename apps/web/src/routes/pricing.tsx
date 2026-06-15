@@ -144,7 +144,7 @@ function PricingPage() {
         { name: "Unlimited Transactions", included: true },
         { name: "Unlimited Items", included: true },
         { name: "10 Witness Requests / month", included: true },
-        { name: "5 Personal Notes / month", included: true },
+        { name: "Up to 5 Personal Notes", included: true },
         { name: "Basic Analytics", included: true },
         { name: "Email Notifications", included: true },
         { name: "Contact Notification SMS (10/month)", included: true, highlight: false },

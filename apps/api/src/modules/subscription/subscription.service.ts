@@ -189,9 +189,8 @@ export class SubscriptionService {
     }
 
     if (typeof limitValue === 'number') {
-      // Special handling for maxContacts which is a total count, not per month
+      // Special handling for features checked against actual DB record counts
       if (feature === 'maxContacts') {
-        // -1 means unlimited
         if (limitValue === -1) return true;
 
         const contactCount = await this.prisma.contact.count({
@@ -201,6 +200,21 @@ export class SubscriptionService {
         if (contactCount + required > limitValue) {
           throw new ForbiddenException(
             `You have reached the maximum number of contacts (${limitValue}) allowed on your current plan.`,
+          );
+        }
+        return true;
+      }
+
+      if (feature === 'maxNotes') {
+        if (limitValue === -1) return true;
+
+        const noteCount = await this.prisma.note.count({
+          where: { createdById: userId, orgId: null },
+        });
+
+        if (noteCount + required > limitValue) {
+          throw new ForbiddenException(
+            `You have reached the maximum number of personal notes (${limitValue}) allowed on your current plan. Upgrade to Pro for unlimited notes.`,
           );
         }
         return true;
@@ -229,8 +243,8 @@ export class SubscriptionService {
     feature: keyof TierLimits,
     increment = 1,
   ) {
-    // maxContacts doesn't need incrementing as it's checked by counting records
-    if (feature === 'maxContacts') return;
+    // DB-count features don't need incrementing — they're checked against live record counts
+    if (feature === 'maxContacts' || feature === 'maxNotes') return;
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

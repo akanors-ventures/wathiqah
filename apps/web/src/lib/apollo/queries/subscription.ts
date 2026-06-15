@@ -14,7 +14,7 @@ export const MY_SUBSCRIPTION_QUERY: TypedDocumentNode<
       limits {
         maxContacts
         maxWitnessesPerMonth
-        maxNotesPerMonth
+        maxNotes
         contactNotificationSms
         allowSMS
         allowAdvancedAnalytics
