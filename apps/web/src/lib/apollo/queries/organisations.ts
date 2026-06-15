@@ -256,6 +256,7 @@ export const ORG_NOTE_FIELDS = gql`
   fragment OrgNoteFields on Note {
     id
     orgId
+    title
     body
     category
     createdById

@@ -1641,21 +1641,21 @@ export type RemoveOrgEventMutationVariables = Exact<{
 
 export type RemoveOrgEventMutation = { removeOrgEvent: boolean };
 
-export type OrgNoteFieldsFragment = { __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string };
+export type OrgNoteFieldsFragment = { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string };
 
 export type OrgNotesQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type OrgNotesQuery = { orgNotes: Array<{ __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string }> };
+export type OrgNotesQuery = { orgNotes: Array<{ __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string }> };
 
 export type CreateOrgNoteMutationVariables = Exact<{
   input: CreateNoteInput;
 }>;
 
 
-export type CreateOrgNoteMutation = { createOrgNote: { __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
+export type CreateOrgNoteMutation = { createOrgNote: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
 
 export type UpdateOrgNoteMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -1663,7 +1663,7 @@ export type UpdateOrgNoteMutationVariables = Exact<{
 }>;
 
 
-export type UpdateOrgNoteMutation = { updateOrgNote: { __typename: 'Note', id: string, orgId: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
+export type UpdateOrgNoteMutation = { updateOrgNote: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
 
 export type RemoveOrgNoteMutationVariables = Exact<{
   id: Scalars['ID']['input'];
