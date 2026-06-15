@@ -68,7 +68,7 @@ export class NotesResolver {
   // ── Personal notes ─────────────────────────────────────────────────────────
 
   @Mutation(() => Note)
-  @CheckFeature('maxNotesPerMonth')
+  @CheckFeature('maxNotes')
   @UseInterceptors(FeatureLimitInterceptor)
   createNote(@Args('input') input: CreateNoteInput, @CurrentUser() user: User) {
     return this.notesService.create(input, user.id);

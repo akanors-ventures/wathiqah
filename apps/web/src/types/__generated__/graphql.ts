@@ -1174,7 +1174,7 @@ export type TierLimitsEntity = {
   allowSMS: Scalars['Boolean']['output'];
   contactNotificationSms: Scalars['Int']['output'];
   maxContacts: Scalars['Int']['output'];
-  maxNotesPerMonth: Scalars['Int']['output'];
+  maxNotes: Scalars['Int']['output'];
   maxWitnessesPerMonth: Scalars['Int']['output'];
 };
 
@@ -1851,7 +1851,7 @@ export type SharedDataQuery = { sharedData: { __typename: 'SharedDataEntity', us
 export type MySubscriptionQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, maxNotesPerMonth: number, contactNotificationSms: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
+export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionInfo', tier: string, featureUsage: Record<string, unknown> | null, subscriptionStatus: string | null, cancelAtPeriodEnd: boolean | null, currentPeriodEnd: string | null, limits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, maxNotes: number, contactNotificationSms: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean } } };
 
 export type TotalBalanceQueryVariables = Exact<{
   currency?: InputMaybe<Scalars['String']['input']>;

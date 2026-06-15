@@ -34,7 +34,7 @@ type NoteFormValues = {
 };
 
 function PersonalNotesPage() {
-  const { isPro, maxNotesPerMonth, notesUsage, notesRemaining } = useSubscription();
+  const { isPro, maxNotes } = useSubscription();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
@@ -45,7 +45,7 @@ function PersonalNotesPage() {
   const [removeNote] = useMutation(REMOVE_NOTE);
 
   const notes = data?.userNotes ?? [];
-  const atLimit = !isPro && notesRemaining === 0;
+  const atLimit = !isPro && maxNotes !== Infinity && notes.length >= maxNotes;
 
   function openCreate() {
     setEditingNote(null);
@@ -120,14 +120,14 @@ function PersonalNotesPage() {
       </div>
 
       {/* Usage indicator for Free users */}
-      {!isPro && maxNotesPerMonth !== Infinity && (
+      {!isPro && maxNotes !== Infinity && (
         <div className="mb-5">
           {atLimit ? (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-primary/5 border border-primary/20">
               <Zap className="h-4 w-4 text-primary shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold text-foreground">
-                  Monthly note limit reached ({maxNotesPerMonth} / {maxNotesPerMonth})
+                  Free note limit reached ({notes.length} / {maxNotes})
                 </p>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
                   Upgrade to Pro for unlimited notes.
@@ -141,7 +141,7 @@ function PersonalNotesPage() {
             </div>
           ) : (
             <p className="text-[11px] text-muted-foreground">
-              {notesUsage} / {maxNotesPerMonth} notes used this month
+              {notes.length} / {maxNotes} notes used
             </p>
           )}
         </div>

@@ -13,7 +13,7 @@ export class TierLimitsEntity {
   contactNotificationSms: number;
 
   @Field(() => Int)
-  maxNotesPerMonth: number;
+  maxNotes: number;
 
   @Field()
   allowSMS: boolean;
