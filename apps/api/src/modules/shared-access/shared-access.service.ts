@@ -143,9 +143,14 @@ export class SharedAccessService {
       throw new ForbiddenException('You must accept the invitation first');
     }
 
-    if (grant.granter.tier !== SubscriptionTier.PRO) {
+    const viewer = await this.prisma.user.findUnique({
+      where: { email: viewerEmail.toLowerCase() },
+      select: { tier: true },
+    });
+
+    if (!viewer || viewer.tier !== SubscriptionTier.PRO) {
       throw new ForbiddenException(
-        'The account owner does not have an active Pro subscription. They need to upgrade to allow access to their records.',
+        'You need a Pro subscription to view shared records.',
       );
     }
 
