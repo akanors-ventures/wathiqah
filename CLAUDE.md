@@ -18,6 +18,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - In test files, use `as unknown as T` double-cast to access private members — never `as any` and never eslint-disable comments to suppress `no-explicit-any`.
 - When using `jest.spyOn`, always add `afterEach(() => jest.restoreAllMocks())` in the same describe block to prevent cross-test mock leakage.
 
+## TypeScript Checks
+
+- `pnpm typecheck` runs `tsc --noEmit` across both apps via Turbo. Use it for full-monorepo type validation.
+
+## TanStack Router — Typed Search Params
+
+- Routes with `validateSearch` (e.g. `/pricing`, `/transactions`) require all search params to be passed explicitly in `<Link search={{ ... }}>`. Omitting `search` is a TypeScript error. Use `search={{ param: undefined }}` when no value is needed.
+
+## Pre-commit Hook Auto-formats Files
+
+- lefthook runs `api-format` (Prettier) and `web-biome` on staged files. If you get "file has been modified since read" on a second edit to the same file, the formatter ran between edits — re-read the file before editing again.
+
 ## Configuration Changes
 
 - Before modifying any config (lefthook, Atlas, CI, lint-staged), read the existing config files first. Never assume defaults.
