@@ -19,18 +19,16 @@ describe('SUBSCRIPTION_LIMITS', () => {
     ).toBe(-1);
   });
 
-  it('defines maxNotesPerMonth on TierLimits interface', () => {
+  it('defines maxNotes on TierLimits interface', () => {
     const freeLimits: TierLimits = SUBSCRIPTION_LIMITS[SubscriptionTier.FREE];
-    expect(typeof freeLimits.maxNotesPerMonth).toBe('number');
+    expect(typeof freeLimits.maxNotes).toBe('number');
   });
 
-  it('sets FREE tier maxNotesPerMonth to 10', () => {
-    expect(SUBSCRIPTION_LIMITS[SubscriptionTier.FREE].maxNotesPerMonth).toBe(
-      10,
-    );
+  it('sets FREE tier maxNotes to 5', () => {
+    expect(SUBSCRIPTION_LIMITS[SubscriptionTier.FREE].maxNotes).toBe(5);
   });
 
-  it('sets PRO tier maxNotesPerMonth to -1 (unlimited)', () => {
-    expect(SUBSCRIPTION_LIMITS[SubscriptionTier.PRO].maxNotesPerMonth).toBe(-1);
+  it('sets PRO tier maxNotes to -1 (unlimited)', () => {
+    expect(SUBSCRIPTION_LIMITS[SubscriptionTier.PRO].maxNotes).toBe(-1);
   });
 });
