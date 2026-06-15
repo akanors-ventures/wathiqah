@@ -147,7 +147,7 @@ function PricingPage() {
         { name: "Up to 5 Personal Notes", included: true },
         { name: "Basic Analytics", included: true },
         { name: "Email Notifications", included: true },
-        { name: "Contact Notification SMS (10 / transaction)", included: true, highlight: false },
+        { name: "Contact Notification SMS (10/month)", included: true, highlight: false },
         { name: "Grant read-only access to trusted contacts (legacy access)", included: true },
         { name: "Advanced Analytics", included: false },
         { name: "Professional PDF Reports", included: false },
