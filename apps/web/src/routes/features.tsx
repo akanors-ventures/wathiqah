@@ -11,6 +11,7 @@ import {
   History,
   Lock,
   Package,
+  PenLine,
   RefreshCw,
   Users,
 } from "lucide-react";
@@ -123,6 +124,12 @@ function FeaturesPage() {
               title="Audit Log"
               description="Every change to a transaction is captured permanently — who changed what, when, and exactly which fields. Field-level before/after diffs, searchable and filterable."
               to="/transactions"
+            />
+            <FeatureCard
+              icon={<PenLine className="w-8 h-8 text-amber-500" />}
+              title="Personal Notes"
+              description="Keep private notes on your financial interactions — context, reminders, observations. Accessible only to you, never visible to contacts or witnesses."
+              to="/notes"
             />
           </div>
         </div>

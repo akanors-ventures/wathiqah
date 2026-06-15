@@ -144,6 +144,7 @@ function PricingPage() {
         { name: "Unlimited Transactions", included: true },
         { name: "Unlimited Items", included: true },
         { name: "10 Witness Requests / month", included: true },
+        { name: "5 Personal Notes / month", included: true },
         { name: "Basic Analytics", included: true },
         { name: "Email Notifications", included: true },
         { name: "Contact Notification SMS (10/month)", included: true, highlight: false },
@@ -178,6 +179,7 @@ function PricingPage() {
       features: [
         { name: "Everything in Ledger", included: true },
         { name: "Unlimited Witness Requests", included: true },
+        { name: "Unlimited Personal Notes", included: true },
         { name: "Unlimited Contact Notification SMS", included: true, highlight: true },
         { name: "Advanced Financial Analytics", included: true },
         { name: "Professional PDF Reports", included: true },
