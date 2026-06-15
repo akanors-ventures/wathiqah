@@ -52,6 +52,10 @@ export class SharedAccessResolver {
   @Query(() => SharedDataEntity, { name: 'sharedData' })
   @UseGuards(GqlAuthGuard)
   getSharedData(@Args('grantId') grantId: string, @CurrentUser() user: User) {
-    return this.sharedAccessService.getSharedData(grantId, user.email);
+    return this.sharedAccessService.getSharedData(
+      grantId,
+      user.email,
+      user.tier,
+    );
   }
 }
