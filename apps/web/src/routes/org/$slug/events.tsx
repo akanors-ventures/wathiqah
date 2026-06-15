@@ -60,6 +60,7 @@ type EventFormValues = {
 };
 
 type NoteFormValues = {
+  title?: string;
   body: string;
   category: string;
 };
@@ -211,6 +212,7 @@ function EventsPage() {
     try {
       if (editingNote) {
         const updateInput: UpdateNoteInput = {
+          title: formData.title || undefined,
           body: formData.body,
           category: formData.category || undefined,
         };
@@ -218,6 +220,7 @@ function EventsPage() {
         toast.success("Note updated");
       } else {
         const createInput: CreateNoteInput = {
+          title: formData.title || undefined,
           body: formData.body,
           category: formData.category || undefined,
         };
@@ -427,6 +430,7 @@ function EventsPage() {
             defaultValues={
               editingNote
                 ? {
+                    title: editingNote.title ?? "",
                     body: editingNote.body,
                     category: editingNote.category ?? "",
                   }
@@ -605,12 +609,14 @@ function NoteForm({
     formState: { errors, isSubmitting },
   } = useForm<NoteFormValues>({
     defaultValues: {
+      title: "",
       body: "",
       category: "",
       ...defaultValues,
     },
   });
 
+  const noteTitleId = useId();
   const bodyId = useId();
   const noteCategoryId = useId();
 
@@ -621,6 +627,10 @@ function NoteForm({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 mt-2">
+      <div className="space-y-1.5">
+        <Label htmlFor={noteTitleId}>Title (optional)</Label>
+        <Input id={noteTitleId} placeholder="Note title (optional)" {...register("title")} />
+      </div>
       <div className="space-y-1.5">
         <Label htmlFor={bodyId}>Note</Label>
         <Textarea
