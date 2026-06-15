@@ -8,6 +8,7 @@ import {
   Handshake,
   History,
   MoreHorizontal,
+  PenLine,
   Settings,
   Sparkles,
   Users,
@@ -226,6 +227,13 @@ export function MobileBottomNav() {
   ];
 
   const personalMoreItems: SheetItem[] = [
+    {
+      label: "Notes",
+      description: "Private notes on your interactions",
+      href: "/notes",
+      icon: PenLine,
+      iconColor: "text-amber-500",
+    },
     {
       label: "My Records",
       description: "Transactions you appear in",

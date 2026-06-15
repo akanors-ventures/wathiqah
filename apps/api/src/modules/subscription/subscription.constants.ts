@@ -20,7 +20,7 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
     allowSMS: false,
     allowAdvancedAnalytics: false,
     allowProfessionalReports: false,
-    maxNotesPerMonth: 10,
+    maxNotesPerMonth: 5,
   },
   [SubscriptionTier.PRO]: {
     maxContacts: -1,

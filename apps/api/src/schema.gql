@@ -706,6 +706,7 @@ type TierLimitsEntity {
   allowSMS: Boolean!
   contactNotificationSms: Int!
   maxContacts: Int!
+  maxNotesPerMonth: Int!
   maxWitnessesPerMonth: Int!
 }
 
