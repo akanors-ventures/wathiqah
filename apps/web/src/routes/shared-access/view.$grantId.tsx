@@ -21,21 +21,27 @@ function SharedAccessView() {
   const { data, loading, error } = useSharedData(grantId);
 
   if (loading) return <PageLoader />;
-  if (error)
+  if (error) {
+    const isProGate = error.message?.includes("Pro subscription");
     return (
-      <div className="p-8 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-destructive/10 text-destructive mb-4">
-          <Lock className="w-6 h-6" />
+      <div className="p-8 text-center max-w-md mx-auto mt-12">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
+          <Lock className="w-6 h-6 text-muted-foreground" />
         </div>
-        <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+        <h2 className="text-xl font-bold mb-2">
+          {isProGate ? "Records not available" : "Access Denied"}
+        </h2>
         <p className="text-muted-foreground mb-6">
-          {error.message || "You do not have permission to view this profile."}
+          {isProGate
+            ? "The account owner does not currently have a Pro subscription, so their records cannot be viewed. If you need access urgently, you may wish to contact them or their representative about upgrading their account."
+            : error.message || "You do not have permission to view this profile."}
         </p>
-        <Button asChild>
+        <Button variant="outline" asChild>
           <Link to="/settings">Return to Settings</Link>
         </Button>
       </div>
     );
+  }
 
   if (!data) return <div className="p-8">No data found.</div>;
 
