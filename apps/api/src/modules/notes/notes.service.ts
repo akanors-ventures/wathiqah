@@ -46,9 +46,9 @@ export class NotesService {
     return this.prisma.note.update({
       where: { id },
       data: {
-        title: input.title,
+        title: input.title ?? undefined,
         body: input.body,
-        category: input.category,
+        category: input.category ?? undefined,
       },
     });
   }
@@ -62,6 +62,10 @@ export class NotesService {
   private async assertOwnership(id: string, userId: string) {
     const note = await this.prisma.note.findUnique({ where: { id } });
     if (!note) throw new NotFoundException('Note not found');
+    if (note.orgId !== null)
+      throw new ForbiddenException(
+        'Organisation notes must be modified through the org note mutations',
+      );
     if (note.createdById !== userId)
       throw new ForbiddenException('Note does not belong to this user');
   }
@@ -71,9 +75,9 @@ export class NotesService {
     return this.prisma.note.update({
       where: { id },
       data: {
-        title: input.title,
+        title: input.title ?? undefined,
         body: input.body,
-        category: input.category,
+        category: input.category ?? undefined,
       },
     });
   }

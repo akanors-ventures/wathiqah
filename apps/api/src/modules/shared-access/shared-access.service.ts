@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
+import { GraphQLError } from 'graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../../modules/notifications/notification.service';
 import { GrantAccessInput } from './dto/grant-access.input';
@@ -125,7 +126,11 @@ export class SharedAccessService {
     });
   }
 
-  async getSharedData(grantId: string, viewerEmail: string) {
+  async getSharedData(
+    grantId: string,
+    viewerEmail: string,
+    viewerTier: SubscriptionTier,
+  ) {
     const grant = await this.prisma.accessGrant.findUnique({
       where: { id: grantId },
       include: { granter: true },
@@ -139,18 +144,20 @@ export class SharedAccessService {
       throw new ForbiddenException('You do not have access to this data');
     }
 
+    if (grant.status === 'REVOKED') {
+      throw new ForbiddenException(
+        'This shared access has been revoked by the account owner.',
+      );
+    }
+
     if (grant.status !== 'ACCEPTED') {
       throw new ForbiddenException('You must accept the invitation first');
     }
 
-    const viewer = await this.prisma.user.findUnique({
-      where: { email: viewerEmail.toLowerCase() },
-      select: { tier: true },
-    });
-
-    if (!viewer || viewer.tier !== SubscriptionTier.PRO) {
-      throw new ForbiddenException(
+    if (viewerTier !== SubscriptionTier.PRO) {
+      throw new GraphQLError(
         'You need a Pro subscription to view shared records.',
+        { extensions: { code: 'PRO_REQUIRED' } },
       );
     }
 

@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Briefcase, Eye, History, Lock, Package, User } from "lucide-react";
 import { PromiseCard } from "@/components/promises/PromiseCard";
@@ -16,13 +17,27 @@ export const Route = createFileRoute("/shared-access/view/$grantId")({
   component: SharedAccessView,
 });
 
+function getTxTypeColor(type: string): string {
+  if (type === "LOAN_GIVEN" || type === "REPAYMENT_MADE") return "blue";
+  if (type === "LOAN_RECEIVED" || type === "REPAYMENT_RECEIVED" || type === "EXPENSE")
+    return "rose";
+  if (type === "ESCROWED" || type === "INCOME") return "emerald";
+  if (type === "GIFT_RECEIVED" || type === "ADVANCE_RECEIVED" || type === "DEPOSIT_RECEIVED")
+    return "purple";
+  if (type === "GIFT_GIVEN") return "pink";
+  if (type === "ADVANCE_PAID" || type === "DEPOSIT_PAID" || type === "REMITTED") return "orange";
+  return "slate";
+}
+
 function SharedAccessView() {
   const { grantId } = Route.useParams();
   const { data, loading, error } = useSharedData(grantId);
 
   if (loading) return <PageLoader />;
   if (error) {
-    const isProGate = error.message?.includes("Pro subscription");
+    const isProGate =
+      CombinedGraphQLErrors.is(error) &&
+      error.errors.some((e) => e.extensions?.code === "PRO_REQUIRED");
     return (
       <div className="p-8 text-center max-w-md mx-auto mt-12">
         <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
@@ -232,25 +247,7 @@ function SharedAccessView() {
                                 variant="outline"
                                 className={cn(
                                   "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-0 shadow-sm",
-                                  tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
-                                    ? "text-blue-600 bg-blue-500/10"
-                                    : tx.type === "LOAN_RECEIVED" ||
-                                        tx.type === "REPAYMENT_RECEIVED" ||
-                                        (tx.type as string) === "EXPENSE"
-                                      ? "text-rose-600 bg-rose-500/10"
-                                      : tx.type === "ESCROWED" || (tx.type as string) === "INCOME"
-                                        ? "text-emerald-600 bg-emerald-500/10"
-                                        : tx.type === "GIFT_RECEIVED" ||
-                                            tx.type === "ADVANCE_RECEIVED" ||
-                                            tx.type === "DEPOSIT_RECEIVED"
-                                          ? "text-purple-600 bg-purple-500/10"
-                                          : tx.type === "GIFT_GIVEN"
-                                            ? "text-pink-600 bg-pink-500/10"
-                                            : tx.type === "ADVANCE_PAID" ||
-                                                tx.type === "DEPOSIT_PAID" ||
-                                                tx.type === "REMITTED"
-                                              ? "text-orange-600 bg-orange-500/10"
-                                              : "text-slate-600 bg-slate-500/10",
+                                  `text-${getTxTypeColor(tx.type)}-600 bg-${getTxTypeColor(tx.type)}-500/10`,
                                 )}
                               >
                                 {tx.type.toLowerCase().replace(/_/g, " ")}
@@ -287,25 +284,9 @@ function SharedAccessView() {
                                 <div
                                   className={cn(
                                     "text-sm font-black tracking-tight",
-                                    tx.type === "LOAN_GIVEN" || tx.type === "REPAYMENT_MADE"
-                                      ? "text-blue-600"
-                                      : tx.type === "LOAN_RECEIVED" ||
-                                          tx.type === "REPAYMENT_RECEIVED" ||
-                                          (tx.type as string) === "EXPENSE"
-                                        ? "text-rose-600"
-                                        : tx.type === "ESCROWED" || (tx.type as string) === "INCOME"
-                                          ? "text-emerald-600"
-                                          : tx.type === "GIFT_RECEIVED" ||
-                                              tx.type === "ADVANCE_RECEIVED" ||
-                                              tx.type === "DEPOSIT_RECEIVED"
-                                            ? "text-purple-600"
-                                            : tx.type === "GIFT_GIVEN"
-                                              ? "text-pink-600"
-                                              : tx.type === "ADVANCE_PAID" ||
-                                                  tx.type === "DEPOSIT_PAID" ||
-                                                  tx.type === "REMITTED"
-                                                ? "text-orange-600"
-                                                : "text-foreground",
+                                    getTxTypeColor(tx.type as string) === "slate"
+                                      ? "text-foreground"
+                                      : `text-${getTxTypeColor(tx.type as string)}-600`,
                                   )}
                                 >
                                   {tx.type === "LOAN_RECEIVED" ||
