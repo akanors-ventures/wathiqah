@@ -4,7 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { GraphQLError } from 'graphql';
+import { ProRequiredException } from '../../common/exceptions/pro-required.exception';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../../modules/notifications/notification.service';
 import { GrantAccessInput } from './dto/grant-access.input';
@@ -155,9 +155,8 @@ export class SharedAccessService {
     }
 
     if (viewerTier !== SubscriptionTier.PRO) {
-      throw new GraphQLError(
+      throw new ProRequiredException(
         'You need a Pro subscription to view shared records.',
-        { extensions: { code: 'PRO_REQUIRED' } },
       );
     }
 
