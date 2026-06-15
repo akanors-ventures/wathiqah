@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../../modules/notifications/notification.service';
 import { GrantAccessInput } from './dto/grant-access.input';
+import { SubscriptionTier } from '../../generated/prisma/enums';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -140,6 +141,12 @@ export class SharedAccessService {
 
     if (grant.status !== 'ACCEPTED') {
       throw new ForbiddenException('You must accept the invitation first');
+    }
+
+    if (grant.granter.tier !== SubscriptionTier.PRO) {
+      throw new ForbiddenException(
+        'The account owner does not have an active Pro subscription. They need to upgrade to allow access to their records.',
+      );
     }
 
     const [transactions, promises, projects] = await Promise.all([
