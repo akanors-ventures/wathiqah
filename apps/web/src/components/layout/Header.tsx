@@ -6,6 +6,7 @@ import {
   FolderKanban,
   Handshake,
   History,
+  PenLine,
   Users,
   Zap,
 } from "lucide-react";
@@ -94,6 +95,14 @@ export default function Header() {
       description: "Transaction witness requests",
       href: "/witnesses",
       match: "/witnesses",
+    },
+    {
+      icon: PenLine,
+      iconColor: "text-amber-500",
+      label: "Notes",
+      description: "Private notes on your interactions",
+      href: "/notes",
+      match: "/notes",
     },
   ];
 
