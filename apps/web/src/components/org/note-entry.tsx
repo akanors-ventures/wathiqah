@@ -21,6 +21,7 @@ export function NoteEntry({ note, authorName, onEdit }: NoteEntryProps) {
         </p>
         {authorName && <p className="text-[11px] text-muted-foreground">{authorName}</p>}
       </div>
+      {note.title && <p className="text-[13px] font-bold text-foreground mb-1">{note.title}</p>}
       <p className="text-[13px] text-foreground leading-relaxed whitespace-pre-wrap">{note.body}</p>
       {note.category && (
         <div className="mt-3">
