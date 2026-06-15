@@ -147,8 +147,65 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 - **Net Balance (contact-obligation)**: Computed by `computeNetBalance()` in `transactions.service.ts` using all 12 new types. EXPENSE/INCOME are excluded from this computation. Formula: `(LOAN_RECEIVED − LOAN_GIVEN) + (REPAYMENT_RECEIVED − REPAYMENT_MADE) + (GIFT_RECEIVED − GIFT_GIVEN) + (ADVANCE_RECEIVED − ADVANCE_PAID) + (DEPOSIT_RECEIVED − DEPOSIT_PAID) + (ESCROWED − REMITTED)`
 - **Contact Standing**: Computed via `CONTACT_STANDING_SIGN` in `contacts.service.ts`. GIFT types are excluded (no ongoing obligation). Positive = contact owes me, negative = I owe contact.
-- **Cash Position (Dashboard)**: Deferred to the PersonalEntry follow-up plan (see `docs/pending/personal-entry-plan.md`) once EXPENSE/INCOME have their own model.
+- **Cash Position (Dashboard)**: Displayed as a dedicated stat card in `components/dashboard/Dashboard.tsx` alongside Total Balance, Inflow, and Outflow. Sourced from `PersonalEntriesTab` cash position computation — not from transaction types.
 - **Project Balance**: `project.balance` = `totalIncome − totalExpenses` — `totalIncome`/`totalExpenses` are `@ResolveField` on `Project`, unrelated to transaction types above.
+
+### Dashboard Stat Cards
+
+The personal dashboard (`components/dashboard/Dashboard.tsx`) shows exactly 4 cards:
+1. **Total Balance** — net contact-obligation balance, always all-time
+2. **Cash Position** — personal income minus expenses
+3. **Inflow** — period-filtered inflows
+4. **Outflow** — period-filtered outflows
+
+Do not add a fifth card or duplicate Cash Position. Layout: Total Balance and Cash Position each span full width below `lg`; Inflow and Outflow are always side-by-side.
+
+### Personal Notes (`/notes` route)
+
+Route: `apps/web/src/routes/notes.tsx`. Backend module: `apps/api/src/modules/notes/`.
+
+- Fields: optional `title`, required `body`, optional `category`
+- Free tier: 5 notes lifetime max (checked against DB count via `@CheckFeature('maxNotes')` on `createNote` resolver). UI shows usage indicator and disables the form with an upgrade prompt at the limit.
+- Pro tier: unlimited (`maxNotes: -1` in `subscription.constants.ts`)
+- Nav placement: Header "Network" dropdown (desktop) and mobile More sheet
+- The limit field is `maxNotes` in both `TierLimits` interface and `SUBSCRIPTION_LIMITS` — not `maxNotesPerMonth` (that name is stale and does not exist)
+
+### Org Notes — Optional Title Field
+
+The org notes `title` field (`string?`) is wired end-to-end:
+- Backend DTO: `CreateNoteInput` and `UpdateNoteInput` both declare `title?: string`
+- Backend entity: `Note` entity exposes `title` as an optional `@Field`
+- Backend service: `createNote` and `updateNote` both pass `title: input.title`
+- Frontend: `NoteFormValues` includes `title?: string`; edit pre-populates `title`; `note-entry.tsx` renders the title conditionally when present
+
+### Shared Access — Purpose and Gating
+
+**Intent**: Legacy/estate access — users pre-grant trusted contacts (family, executors) read-only access to their records so those records can be reviewed if the user is deceased or incapacitated.
+
+**Gate rules**:
+- Granting access (`grantAccess`) → **free**, no subscription check
+- Accepting a grant (`acceptAccess`) → **free**, no subscription check
+- Viewing records (`getSharedData` → `sharedData` query) → **viewer must be Pro**
+
+**Implementation** (`shared-access.service.ts`, `getSharedData`): after verifying the grant is `ACCEPTED` and the caller is the correct recipient, look up the viewer's user record by email and check `viewer.tier !== SubscriptionTier.PRO`. Throw `ForbiddenException('You need a Pro subscription to view shared records.')` if not Pro. The granter's tier is irrelevant.
+
+**Frontend locked state** (`routes/shared-access/view.$grantId.tsx`): detects `error.message.includes('Pro subscription')`, shows heading "Pro subscription required" with viewer-centric body copy and an "Upgrade to Pro" CTA linking to `/pricing` (with `search={{ reason: undefined }}`).
+
+### Subscription Tier Check Pattern
+
+**For checking the authenticated caller's features**: use `@CheckFeature('featureName')` decorator on the resolver method. This is the standard path.
+
+**For checking a *different* user's tier** (e.g. checking the granter's or viewer's subscription in shared-access scenarios): do NOT use `@CheckFeature`. Instead, look up that user inline in the service method:
+```ts
+const user = await this.prisma.user.findUnique({
+  where: { id: userId },   // or { email }
+  select: { tier: true },
+});
+if (!user || user.tier !== SubscriptionTier.PRO) {
+  throw new ForbiddenException('...');
+}
+```
+`@CheckFeature` always operates on the authenticated caller — using it for cross-user tier checks is wrong.
 
 ### GraphQL Schema Generation
 
