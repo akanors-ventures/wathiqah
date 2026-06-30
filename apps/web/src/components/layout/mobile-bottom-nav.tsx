@@ -214,7 +214,12 @@ export function MobileBottomNav() {
 
   const tabs = isOrgMode && orgTabs.length ? orgTabs : personalTabs;
 
-  // Items shown in the "More" sheet vary by mode
+  // Items shown in the "More" sheet vary by mode. Contacts, Promises, and
+  // Projects are backend org-scoped (@ActiveOrg() resolves orgId from the
+  // JWT automatically) — same route in both modes — so they belong here in
+  // org mode the same way they're primary tabs in personal mode, matching
+  // their placement one level deep under Header.tsx's Ledger/Network
+  // dropdowns on desktop.
   const orgMoreItems: SheetItem[] = [
     {
       label: "Contacts",
@@ -222,6 +227,20 @@ export function MobileBottomNav() {
       href: "/contacts",
       icon: Users,
       iconColor: "text-indigo-500",
+    },
+    {
+      label: "Promises",
+      description: "Track commitments & agreements",
+      href: "/promises",
+      icon: Handshake,
+      iconColor: "text-emerald-500",
+    },
+    {
+      label: "Projects",
+      description: "Budget & expense tracking",
+      href: "/projects",
+      icon: FolderKanban,
+      iconColor: "text-violet-500",
     },
     {
       label: "My Records",
