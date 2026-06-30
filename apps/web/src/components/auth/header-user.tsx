@@ -288,19 +288,31 @@ export default function HeaderUser() {
               Organisation
             </DropdownMenuLabel>
             <DropdownMenuItem asChild>
-              <Link to={`/org/${activeOrg.slug}/events` as never} className="cursor-pointer">
+              <Link
+                to="/org/$slug/events"
+                params={{ slug: activeOrg.slug } as never}
+                className="cursor-pointer"
+              >
                 <CalendarDays className="mr-2 h-4 w-4" />
                 Events &amp; Notes
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to={`/org/${activeOrg.slug}/members` as never} className="cursor-pointer">
+              <Link
+                to="/org/$slug/members"
+                params={{ slug: activeOrg.slug } as never}
+                className="cursor-pointer"
+              >
                 <Users className="mr-2 h-4 w-4" />
                 Members
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link to={`/org/${activeOrg.slug}/settings` as never} className="cursor-pointer">
+              <Link
+                to="/org/$slug/settings"
+                params={{ slug: activeOrg.slug } as never}
+                className="cursor-pointer"
+              >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
               </Link>

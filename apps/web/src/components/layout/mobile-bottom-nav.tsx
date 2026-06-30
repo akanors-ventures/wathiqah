@@ -26,6 +26,13 @@ import { cn } from "@/lib/utils";
 type Tab = {
   label: string;
   href: string;
+  // Dynamic-segment routes (e.g. /org/$slug/members) must navigate via
+  // TanStack Router's typed `params`, not a pre-interpolated href string —
+  // see the matching note in Header.tsx's NavItem type. When set, `href` is
+  // the route template ("/org/$slug/members") and `matchPath` is the real
+  // interpolated path used for active-tab comparison against pathname.
+  params?: Record<string, string>;
+  matchPath?: string;
   icon: React.ElementType;
   exact?: boolean;
 };
@@ -41,11 +48,13 @@ type SheetItem = {
 // ─── NavTab ───────────────────────────────────────────────────────────────────
 
 function NavTab({ tab, pathname, isOrgMode }: { tab: Tab; pathname: string; isOrgMode: boolean }) {
-  const { href, label, icon: Icon, exact } = tab;
-  const isActive = exact ? pathname === href : pathname.startsWith(href);
+  const { href, params, matchPath, label, icon: Icon, exact } = tab;
+  const comparePath = matchPath ?? href;
+  const isActive = exact ? pathname === comparePath : pathname.startsWith(comparePath);
   return (
     <Link
       to={href as never}
+      params={params as never}
       className={cn(
         "flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors",
         isActive
@@ -172,9 +181,27 @@ export function MobileBottomNav() {
   const orgTabs: Tab[] = activeOrg
     ? [
         { label: "Ledger", href: "/transactions", icon: ArrowRightLeft },
-        { label: "Events", href: `/org/${activeOrg.slug}/events`, icon: CalendarDays },
-        { label: "Members", href: `/org/${activeOrg.slug}/members`, icon: Users },
-        { label: "Settings", href: `/org/${activeOrg.slug}/settings`, icon: Settings },
+        {
+          label: "Events",
+          href: "/org/$slug/events",
+          params: { slug: activeOrg.slug },
+          matchPath: `/org/${activeOrg.slug}/events`,
+          icon: CalendarDays,
+        },
+        {
+          label: "Members",
+          href: "/org/$slug/members",
+          params: { slug: activeOrg.slug },
+          matchPath: `/org/${activeOrg.slug}/members`,
+          icon: Users,
+        },
+        {
+          label: "Settings",
+          href: "/org/$slug/settings",
+          params: { slug: activeOrg.slug },
+          matchPath: `/org/${activeOrg.slug}/settings`,
+          icon: Settings,
+        },
       ]
     : [];
 
