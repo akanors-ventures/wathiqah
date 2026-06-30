@@ -177,13 +177,25 @@ When a transaction's contact is a registered user (`linkedUserId`):
 
 ### Dashboard Stat Cards
 
-The personal dashboard (`components/dashboard/Dashboard.tsx`) shows exactly 4 cards:
+`components/dashboard/Dashboard.tsx` is the single unified dashboard for both personal and org mode (`isOrgMode` from `useOrgContext()`). The financial stats row differs by mode:
+
+**Personal mode** — exactly 4 cards:
 1. **Total Balance** — net contact-obligation balance, always all-time
-2. **Cash Position** — personal income minus expenses
+2. **Cash Position** — personal income minus expenses (sourced from Personal Entries — no org equivalent exists)
 3. **Inflow** — period-filtered inflows
 4. **Outflow** — period-filtered outflows
 
-Do not add a fifth card or duplicate Cash Position. Layout: Total Balance and Cash Position each span full width below `lg`; Inflow and Outflow are always side-by-side.
+**Org mode** — exactly 3 cards (no Cash Position — it's explicitly personal-only data, hiding it avoids showing the admin's own personal finances on what's meant to be the org's view): Total Balance, Inflow, Outflow.
+
+Do not add a fifth card or duplicate Cash Position in personal mode, and do not show Cash Position in org mode. Layout: Total Balance (and Cash Position, in personal mode) span full width below `lg`; Inflow and Outflow are always side-by-side. The grid is `lg:grid-cols-4` in personal mode, `lg:grid-cols-3` in org mode.
+
+### Org-Scoped vs Personal-Only Features
+
+Backend resolvers that accept `@ActiveOrg() orgId: string | null` (Transactions, Contacts, Promises, Projects) automatically scope to the active org's data when an org JWT is present, and to the user's personal data otherwise — **same route, same query, no frontend branching needed**. The "Activity Stats" row's Promises/Contacts counts on the dashboard already reflect this correctly with zero extra logic.
+
+Features with **no org-scoping at all** (always the individual user's own data, regardless of active org): Witness requests, Personal Entries (Cash Position), Personal Notes. These either have no org equivalent (Cash Position, Personal Notes — org notes live under the separate Events & Notes page) or are intentionally personal action items shown in both modes (Witnesses).
+
+`Header.tsx`'s nav dropdowns (desktop) and `mobile-bottom-nav.tsx` (mobile) must stay aligned on this: Transactions/Ledger, Contacts, Promises, Projects, and Witnesses are reachable in both modes; personal Notes is hidden in org mode; Events & Notes/Members/Org Settings are org-mode-only (desktop: dedicated "Organisation" dropdown; mobile: primary tabs).
 
 ### Personal Notes (`/notes` route)
 
