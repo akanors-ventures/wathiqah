@@ -4,7 +4,6 @@ import { useOrgBySlug } from "./use-org-by-slug";
 
 const mockUseOrgFromSlug = vi.fn();
 const mockUseOrgContext = vi.fn();
-const mockUseQuery = vi.fn();
 
 vi.mock("@/hooks/use-org-from-slug", () => ({
   useOrgFromSlug: (slug: string) => mockUseOrgFromSlug(slug),
@@ -12,14 +11,6 @@ vi.mock("@/hooks/use-org-from-slug", () => ({
 
 vi.mock("@/context/OrgContext", () => ({
   useOrgContext: () => mockUseOrgContext(),
-}));
-
-vi.mock("@apollo/client/react", () => ({
-  useQuery: () => mockUseQuery(),
-}));
-
-vi.mock("@/lib/apollo/queries/organisations", () => ({
-  MY_ORGANISATIONS_QUERY: {},
 }));
 
 function org(slug: string) {
@@ -31,13 +22,12 @@ describe("useOrgBySlug", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns the org immediately once it's present in either source", () => {
+  it("returns the org immediately once it's present in OrgContext's myOrgs", () => {
     mockUseOrgFromSlug.mockReturnValue({ isSyncing: false });
-    mockUseOrgContext.mockReturnValue({ myOrgs: [org("acme")], loadingOrgs: false });
-    mockUseQuery.mockReturnValue({
-      data: { myOrganisations: [] },
-      loading: false,
-      refetch: vi.fn(),
+    mockUseOrgContext.mockReturnValue({
+      myOrgs: [org("acme")],
+      loadingOrgs: false,
+      refetchOrgs: vi.fn(),
     });
 
     const { result } = renderHook(() => useOrgBySlug("acme"));
@@ -47,51 +37,52 @@ describe("useOrgBySlug", () => {
     expect(result.current.notFound).toBe(false);
   });
 
-  it("stays loading and confirms with a refetch before declaring not-found, instead of trusting a stale cache read", async () => {
+  it("stays loading and confirms with a refetch before declaring not-found, instead of trusting a stale read", async () => {
     mockUseOrgFromSlug.mockReturnValue({ isSyncing: false });
-    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: false });
-    const refetch = vi.fn().mockResolvedValue(undefined);
-    mockUseQuery.mockReturnValue({
-      data: { myOrganisations: [] },
-      loading: false,
-      refetch,
-    });
+    const refetchOrgs = vi.fn().mockResolvedValue(undefined);
+    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: false, refetchOrgs });
 
     const { result } = renderHook(() => useOrgBySlug("brand-new-org"));
 
-    // org genuinely absent from a stale cache read, but we must not declare
+    // org genuinely absent from the current read, but we must not declare
     // notFound until a confirmatory refetch has actually run.
     expect(result.current.org).toBeNull();
     expect(result.current.isLoading).toBe(true);
     expect(result.current.notFound).toBe(false);
 
-    await waitFor(() => expect(refetch).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(refetchOrgs).toHaveBeenCalledTimes(1));
     await waitFor(() => expect(result.current.notFound).toBe(true));
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("does not declare not-found while org-context or the org-list query is still loading", () => {
+  it("does not declare not-found while org-context is still loading", () => {
     mockUseOrgFromSlug.mockReturnValue({ isSyncing: false });
-    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: true });
-    const refetch = vi.fn();
-    mockUseQuery.mockReturnValue({ data: undefined, loading: false, refetch });
+    const refetchOrgs = vi.fn();
+    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: true, refetchOrgs });
 
     const { result } = renderHook(() => useOrgBySlug("brand-new-org"));
 
     expect(result.current.isLoading).toBe(true);
     expect(result.current.notFound).toBe(false);
-    expect(refetch).not.toHaveBeenCalled();
+    expect(refetchOrgs).not.toHaveBeenCalled();
+  });
+
+  it("does not declare not-found while useOrgFromSlug is still syncing the JWT", () => {
+    mockUseOrgFromSlug.mockReturnValue({ isSyncing: true });
+    const refetchOrgs = vi.fn();
+    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: false, refetchOrgs });
+
+    const { result } = renderHook(() => useOrgBySlug("brand-new-org"));
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.notFound).toBe(false);
+    expect(refetchOrgs).not.toHaveBeenCalled();
   });
 
   it("re-confirms when the slug changes after a previous slug was confirmed missing", async () => {
     mockUseOrgFromSlug.mockReturnValue({ isSyncing: false });
-    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: false });
-    const refetch = vi.fn().mockResolvedValue(undefined);
-    mockUseQuery.mockReturnValue({
-      data: { myOrganisations: [] },
-      loading: false,
-      refetch,
-    });
+    const refetchOrgs = vi.fn().mockResolvedValue(undefined);
+    mockUseOrgContext.mockReturnValue({ myOrgs: [], loadingOrgs: false, refetchOrgs });
 
     const { result, rerender } = renderHook(({ slug }) => useOrgBySlug(slug), {
       initialProps: { slug: "org-a" },
@@ -106,7 +97,19 @@ describe("useOrgBySlug", () => {
     expect(result.current.notFound).toBe(false);
     expect(result.current.isLoading).toBe(true);
 
-    await waitFor(() => expect(refetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(refetchOrgs).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(result.current.notFound).toBe(true));
+  });
+
+  it("does not refetch again once the org appears (e.g. another consumer's refetch resolved first)", async () => {
+    mockUseOrgFromSlug.mockReturnValue({ isSyncing: false });
+    const refetchOrgs = vi.fn().mockResolvedValue(undefined);
+    mockUseOrgContext.mockReturnValue({ myOrgs: [org("acme")], loadingOrgs: false, refetchOrgs });
+
+    const { result } = renderHook(() => useOrgBySlug("acme"));
+
+    expect(result.current.org).toEqual(org("acme"));
+    expect(result.current.notFound).toBe(false);
+    expect(refetchOrgs).not.toHaveBeenCalled();
   });
 });
