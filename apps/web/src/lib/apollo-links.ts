@@ -102,12 +102,30 @@ const SKIP_REFRESH_OPERATIONS = new Set([
 
 /**
  * Operations whose component renders its own error UI/toast for failures
- * (e.g. a dedicated "wrong email" screen), so the generic link-level toast
- * would be redundant — but unlike SKIP_REFRESH_OPERATIONS, these still
- * attempt a silent token refresh on auth errors (e.g. AcceptAccess should
- * retry transparently when the caller's access token has simply expired).
+ * (e.g. a dedicated "wrong email" screen, or a try/catch around the mutation
+ * that already calls toast.error), so the generic link-level toast would be
+ * redundant — but unlike SKIP_REFRESH_OPERATIONS, these still attempt a
+ * silent token refresh on auth errors (e.g. AcceptAccess should retry
+ * transparently when the caller's access token has simply expired).
+ *
+ * The org-scoped mutations below are all role-gated (OrgRolesGuard) and
+ * their callers already catch+toast on failure — e.g. a member demoted from
+ * Operator to Viewer mid-session hitting "Save" on a note shows the
+ * permission error from both the route's own catch block and this link,
+ * stacking two identical toasts. Skip the generic one for these.
  */
-const SKIP_TOAST_OPERATIONS = new Set(["AcceptAccess"]);
+const SKIP_TOAST_OPERATIONS = new Set([
+  "AcceptAccess",
+  "CreateOrgNote",
+  "UpdateOrgNote",
+  "RemoveOrgNote",
+  "CreateOrgEvent",
+  "UpdateOrgEvent",
+  "RemoveOrgEvent",
+  "UpdateOrganisation",
+  "UpdateMemberRole",
+  "RemoveMember",
+]);
 
 export const errorLink = (uri: string) =>
   new ErrorLink(({ error, operation, forward }) => {
