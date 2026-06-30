@@ -59,7 +59,7 @@ function needsSwitch(
  * round-trip after an AccountSwitcher-initiated switch).
  */
 export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
-  const { myOrgs, activeOrg, switchToOrg, autoSwitchBlocked } = useOrgContext();
+  const { myOrgs, activeOrg, switchToOrg, autoSwitchBlocked, syncActiveOrgId } = useOrgContext();
   const switchingRef = useRef(false);
 
   // Initialise synchronously so the very first render reflects reality.
@@ -83,10 +83,13 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
     // Signal cookie matches — server already has the right context.
     const signalOrgId = getActiveOrgIdSignal();
     if (signalOrgId !== null && signalOrgId === targetOrg.id) {
-      // Sync React state to match if it hasn't caught up yet.
+      // React state/localStorage can lag the server (a different tab
+      // switched orgs, or localStorage was cleared independently of the
+      // cookie) — repair it directly instead of leaving header/nav stuck
+      // showing the wrong mode indefinitely. No mutation needed since the
+      // JWT is already correct.
       if (activeOrg?.id !== targetOrg.id) {
-        // React state is stale but server is fine; just wait for it to commit.
-        // No mutation needed.
+        syncActiveOrgId(targetOrg.id);
       }
       switchingRef.current = false;
       setIsSyncing(false);
@@ -115,7 +118,7 @@ export function useOrgFromSlug(slug: string): { isSyncing: boolean } {
         switchingRef.current = false;
         setIsSyncing(false);
       });
-  }, [slug, myOrgs, activeOrg, switchToOrg, autoSwitchBlocked]);
+  }, [slug, myOrgs, activeOrg, switchToOrg, autoSwitchBlocked, syncActiveOrgId]);
 
   return { isSyncing };
 }
