@@ -223,7 +223,7 @@ describe("Header UI", () => {
     expect(screen.queryByText("Members")).not.toBeInTheDocument();
   });
 
-  it("hides personal-only nav items and shows the Organisation group pointing at the active org in org mode", () => {
+  it("keeps org-scoped nav items, hides personal-only Notes, and shows the Organisation group pointing at the active org in org mode", () => {
     (useAuthContext as Mock).mockReturnValue({
       user: { name: "Test User", firstName: "Test", lastName: "User" },
       loading: false,
@@ -241,10 +241,14 @@ describe("Header UI", () => {
       </ThemeProvider>,
     );
 
-    // Personal-only items must not be reachable while in org mode — a user
-    // shouldn't be able to mistake a personal action for an org one.
-    expect(screen.queryByText("Projects")).not.toBeInTheDocument();
-    expect(screen.queryByText("Promises")).not.toBeInTheDocument();
+    // Projects and Promises are backend org-scoped (@ActiveOrg() resolves
+    // orgId from the JWT automatically) -- same route works in both modes --
+    // so they must stay reachable in org mode, not be hidden.
+    expect(screen.getByText("Projects")).toBeInTheDocument();
+    expect(screen.getByText("Promises")).toBeInTheDocument();
+    // Personal Notes has no org equivalent (org notes live under the
+    // dedicated Events & Notes page instead) — must not be reachable while
+    // in org mode, so a user can't mistake a personal note for an org one.
     expect(screen.queryByText("Notes")).not.toBeInTheDocument();
 
     expect(screen.getByText("Organisation")).toBeInTheDocument();
