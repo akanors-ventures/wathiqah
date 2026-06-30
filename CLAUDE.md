@@ -176,13 +176,17 @@ Do not add a fifth card or duplicate Cash Position. Layout: Total Balance and Ca
 
 Route: `apps/web/src/routes/notes.tsx`. Backend module: `apps/api/src/modules/notes/`.
 
+**Purpose**: A personal journal — users document anything they want: important events, life milestones, activities, or day-to-day happenings. Not limited to transactions or financial activity. Think of it as a general-purpose life tracker the user owns.
+
 - Fields: optional `title`, required `body`, optional `category`
 - Free tier: 5 notes lifetime max (checked against DB count via `@CheckFeature('maxNotes')` on `createNote` resolver). UI shows usage indicator and disables the form with an upgrade prompt at the limit.
 - Pro tier: unlimited (`maxNotes: -1` in `subscription.constants.ts`)
 - Nav placement: Header "Network" dropdown (desktop) and mobile More sheet
 - The limit field is `maxNotes` in both `TierLimits` interface and `SUBSCRIPTION_LIMITS` — not `maxNotesPerMonth` (that name is stale and does not exist)
 
-### Org Notes — Optional Title Field
+### Org Notes (`/org/:orgId/notes` route)
+
+**Purpose**: Same journal concept as personal notes but scoped to a specific organisation — members document anything relevant to that org: operational events, decisions, activities, or context about that organisation's work.
 
 The org notes `title` field (`string?`) is wired end-to-end:
 - Backend DTO: `CreateNoteInput` and `UpdateNoteInput` both declare `title?: string`
