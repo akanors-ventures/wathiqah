@@ -34,6 +34,15 @@ type NavItem = {
   label: string;
   description: string;
   href: string;
+  // Dynamic-segment routes (e.g. /org/$slug/members) must navigate via
+  // TanStack Router's typed `params`, not a pre-interpolated string passed
+  // to `to`. A literal `to="/org/some-slug/members" as never` updates the
+  // URL bar correctly but Route.useParams() comes back undefined on the
+  // resulting client-side transition (it only resolves correctly on a full
+  // document load, which re-parses the URL through route matching from
+  // scratch) — causing the destination page's own slug-based org lookup to
+  // report "not found" even though the org list has it.
+  params?: Record<string, string>;
   search?: Record<string, string>;
   match: string; // prefix to test against pathname for active state
 };
@@ -129,7 +138,8 @@ export default function Header() {
             iconColor: "text-blue-500",
             label: "Events & Notes",
             description: "Org-wide dates, schedules & records",
-            href: `/org/${activeOrg.slug}/events`,
+            href: "/org/$slug/events",
+            params: { slug: activeOrg.slug },
             match: `/org/${activeOrg.slug}/events`,
           },
           {
@@ -137,7 +147,8 @@ export default function Header() {
             iconColor: "text-emerald-500",
             label: "Members",
             description: "Manage who has access",
-            href: `/org/${activeOrg.slug}/members`,
+            href: "/org/$slug/members",
+            params: { slug: activeOrg.slug },
             match: `/org/${activeOrg.slug}/members`,
           },
           {
@@ -145,7 +156,8 @@ export default function Header() {
             iconColor: "text-muted-foreground",
             label: "Settings",
             description: "Organisation profile & preferences",
-            href: `/org/${activeOrg.slug}/settings`,
+            href: "/org/$slug/settings",
+            params: { slug: activeOrg.slug },
             match: `/org/${activeOrg.slug}/settings`,
           },
         ]
@@ -310,6 +322,7 @@ function NavDropdown({
               <DropdownMenuItem key={item.href} asChild className="p-0 focus:bg-transparent">
                 <Link
                   to={item.href as never}
+                  params={item.params as never}
                   search={item.search as never}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors group cursor-pointer",
