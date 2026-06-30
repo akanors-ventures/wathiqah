@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { OrgEventsService } from './org-events.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PUB_SUB } from '../../common/pubsub/pubsub.module';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('OrgEventsService', () => {
@@ -14,6 +15,7 @@ describe('OrgEventsService', () => {
       delete: jest.Mock;
     };
   };
+  let pubSub: { publish: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -25,10 +27,12 @@ describe('OrgEventsService', () => {
         delete: jest.fn(),
       },
     };
+    pubSub = { publish: jest.fn().mockResolvedValue(undefined) };
     const module = await Test.createTestingModule({
       providers: [
         OrgEventsService,
         { provide: PrismaService, useValue: prisma },
+        { provide: PUB_SUB, useValue: pubSub },
       ],
     }).compile();
     service = module.get(OrgEventsService);
@@ -53,6 +57,10 @@ describe('OrgEventsService', () => {
       }),
     );
     expect(result.orgId).toBe('org1');
+    expect(pubSub.publish).toHaveBeenCalledWith('orgEventCreated', {
+      orgEventCreated: result,
+      orgId: 'org1',
+    });
   });
 
   it('returns upcoming events sorted by date ascending', async () => {
@@ -77,5 +85,29 @@ describe('OrgEventsService', () => {
     await expect(service.remove('e1', 'org1')).rejects.toThrow(
       NotFoundException,
     );
+  });
+
+  it('publishes orgEventUpdated after a successful update', async () => {
+    prisma.orgEvent.findUnique.mockResolvedValue({ id: 'e1', orgId: 'org1' });
+    const updated = { id: 'e1', orgId: 'org1', title: 'Updated' };
+    prisma.orgEvent.update.mockResolvedValue(updated);
+
+    await service.update('e1', { title: 'Updated' }, 'org1');
+
+    expect(pubSub.publish).toHaveBeenCalledWith('orgEventUpdated', {
+      orgEventUpdated: updated,
+      orgId: 'org1',
+    });
+  });
+
+  it('publishes orgEventRemoved after a successful delete', async () => {
+    prisma.orgEvent.findUnique.mockResolvedValue({ id: 'e1', orgId: 'org1' });
+
+    await service.remove('e1', 'org1');
+
+    expect(pubSub.publish).toHaveBeenCalledWith('orgEventRemoved', {
+      orgEventRemoved: 'e1',
+      orgId: 'org1',
+    });
   });
 });

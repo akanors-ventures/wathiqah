@@ -57,7 +57,9 @@
     "class-validator": "^0.14.3",
     "cookie-parser": "^1.4.7",
     "graphql": "^16.12.0",
+    "graphql-subscriptions": "^3.0.0",
     "graphql-type-json": "^0.3.2",
+    "graphql-ws": "^6.0.8",
     "handlebars": "^4.7.8",
     "ip2location-io-nodejs": "^1.1.1",
     "mailtrap": "^4.4.0",
@@ -72,7 +74,8 @@
     "rxjs": "^7.8.1",
     "stripe": "^20.3.1",
     "twilio": "^5.12.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
