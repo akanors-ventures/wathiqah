@@ -19,17 +19,27 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({
     children,
     to,
+    params,
     onClick,
     ...props
   }: {
     children: React.ReactNode;
     to: string;
+    params?: Record<string, string>;
     onClick?: () => void;
-  }) => (
-    <a href={to} onClick={onClick} {...props}>
-      {children}
-    </a>
-  ),
+  }) => {
+    // Mirror TanStack Router's $param substitution so tests can assert on
+    // the resolved href, the same way a real <Link to="/org/$slug/x"
+    // params={{ slug }}> resolves at runtime.
+    const href = params
+      ? Object.entries(params).reduce((acc, [key, value]) => acc.replace(`$${key}`, value), to)
+      : to;
+    return (
+      <a href={href} onClick={onClick} {...props}>
+        {children}
+      </a>
+    );
+  },
 }));
 
 // Mock sonner
