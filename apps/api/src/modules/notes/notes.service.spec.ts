@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { NotesService } from './notes.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PUB_SUB } from '../../common/pubsub/pubsub.module';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 describe('NotesService', () => {
@@ -14,6 +15,7 @@ describe('NotesService', () => {
       delete: jest.Mock;
     };
   };
+  let pubSub: { publish: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -25,8 +27,13 @@ describe('NotesService', () => {
         delete: jest.fn(),
       },
     };
+    pubSub = { publish: jest.fn().mockResolvedValue(undefined) };
     const module = await Test.createTestingModule({
-      providers: [NotesService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        NotesService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: PUB_SUB, useValue: pubSub },
+      ],
     }).compile();
     service = module.get(NotesService);
   });
@@ -49,6 +56,7 @@ describe('NotesService', () => {
       }),
     );
     expect(result.orgId).toBeNull();
+    expect(pubSub.publish).not.toHaveBeenCalled();
   });
 
   it('creates an org note with orgId', async () => {
@@ -70,6 +78,10 @@ describe('NotesService', () => {
       }),
     );
     expect(result.orgId).toBe('org1');
+    expect(pubSub.publish).toHaveBeenCalledWith('orgNoteCreated', {
+      orgNoteCreated: result,
+      orgId: 'org1',
+    });
   });
 
   it('findByOrg returns notes sorted by createdAt descending', async () => {
@@ -121,5 +133,29 @@ describe('NotesService', () => {
     await expect(service.removeOrgNote('n1', 'org1')).rejects.toThrow(
       NotFoundException,
     );
+  });
+
+  it('publishes orgNoteUpdated after a successful org note update', async () => {
+    prisma.note.findUnique.mockResolvedValue({ id: 'n1', orgId: 'org1' });
+    const updated = { id: 'n1', orgId: 'org1', body: 'updated' };
+    prisma.note.update.mockResolvedValue(updated);
+
+    await service.updateOrgNote('n1', { body: 'updated' }, 'org1');
+
+    expect(pubSub.publish).toHaveBeenCalledWith('orgNoteUpdated', {
+      orgNoteUpdated: updated,
+      orgId: 'org1',
+    });
+  });
+
+  it('publishes orgNoteRemoved after a successful org note delete', async () => {
+    prisma.note.findUnique.mockResolvedValue({ id: 'n1', orgId: 'org1' });
+
+    await service.removeOrgNote('n1', 'org1');
+
+    expect(pubSub.publish).toHaveBeenCalledWith('orgNoteRemoved', {
+      orgNoteRemoved: 'n1',
+      orgId: 'org1',
+    });
   });
 });
