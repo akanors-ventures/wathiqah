@@ -2,17 +2,23 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
+import type { PubSub } from 'graphql-subscriptions';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PUB_SUB } from '../../common/pubsub/pubsub.module';
 import { CreateNoteInput } from './dto/create-note.input';
 import { UpdateNoteInput } from './dto/update-note.input';
 
 @Injectable()
 export class NotesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   async create(input: CreateNoteInput, createdById: string, orgId?: string) {
-    return this.prisma.note.create({
+    const note = await this.prisma.note.create({
       data: {
         createdById,
         orgId: orgId ?? null,
@@ -21,6 +27,13 @@ export class NotesService {
         category: input.category,
       },
     });
+    if (orgId) {
+      await this.pubSub.publish('orgNoteCreated', {
+        orgNoteCreated: note,
+        orgId,
+      });
+    }
+    return note;
   }
 
   async findByOrg(orgId: string, category?: string) {
@@ -72,7 +85,7 @@ export class NotesService {
 
   async updateOrgNote(id: string, input: UpdateNoteInput, orgId: string) {
     await this.assertOrgOwnership(id, orgId);
-    return this.prisma.note.update({
+    const note = await this.prisma.note.update({
       where: { id },
       data: {
         title: input.title ?? undefined,
@@ -80,11 +93,20 @@ export class NotesService {
         category: input.category ?? undefined,
       },
     });
+    await this.pubSub.publish('orgNoteUpdated', {
+      orgNoteUpdated: note,
+      orgId,
+    });
+    return note;
   }
 
   async removeOrgNote(id: string, orgId: string) {
     await this.assertOrgOwnership(id, orgId);
     await this.prisma.note.delete({ where: { id } });
+    await this.pubSub.publish('orgNoteRemoved', {
+      orgNoteRemoved: id,
+      orgId,
+    });
     return true;
   }
 

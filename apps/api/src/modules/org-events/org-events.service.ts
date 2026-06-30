@@ -2,17 +2,23 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
+import type { PubSub } from 'graphql-subscriptions';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PUB_SUB } from '../../common/pubsub/pubsub.module';
 import { CreateOrgEventInput } from './dto/create-org-event.input';
 import { UpdateOrgEventInput } from './dto/update-org-event.input';
 
 @Injectable()
 export class OrgEventsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   async create(input: CreateOrgEventInput, orgId: string, userId: string) {
-    return this.prisma.orgEvent.create({
+    const event = await this.prisma.orgEvent.create({
       data: {
         orgId,
         createdById: userId,
@@ -25,6 +31,11 @@ export class OrgEventsService {
         recurrence: input.recurrence,
       },
     });
+    await this.pubSub.publish('orgEventCreated', {
+      orgEventCreated: event,
+      orgId,
+    });
+    return event;
   }
 
   async findUpcoming(orgId: string, category?: string) {
@@ -57,7 +68,7 @@ export class OrgEventsService {
 
   async update(id: string, input: UpdateOrgEventInput, orgId: string) {
     await this.assertOwnership(id, orgId);
-    return this.prisma.orgEvent.update({
+    const event = await this.prisma.orgEvent.update({
       where: { id },
       data: {
         ...input,
@@ -65,11 +76,20 @@ export class OrgEventsService {
         endDate: input.endDate ? new Date(input.endDate) : undefined,
       },
     });
+    await this.pubSub.publish('orgEventUpdated', {
+      orgEventUpdated: event,
+      orgId,
+    });
+    return event;
   }
 
   async remove(id: string, orgId: string) {
     await this.assertOwnership(id, orgId);
     await this.prisma.orgEvent.delete({ where: { id } });
+    await this.pubSub.publish('orgEventRemoved', {
+      orgEventRemoved: id,
+      orgId,
+    });
     return true;
   }
 

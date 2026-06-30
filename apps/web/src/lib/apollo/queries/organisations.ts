@@ -12,10 +12,22 @@ import type {
   MyOrganisationsQueryVariables,
   OrgEventCategorySuggestionsQuery,
   OrgEventCategorySuggestionsQueryVariables,
+  OrgEventCreatedSubscription,
+  OrgEventCreatedSubscriptionVariables,
+  OrgEventRemovedSubscription,
+  OrgEventRemovedSubscriptionVariables,
   OrgEventsQuery,
   OrgEventsQueryVariables,
+  OrgEventUpdatedSubscription,
+  OrgEventUpdatedSubscriptionVariables,
+  OrgNoteCreatedSubscription,
+  OrgNoteCreatedSubscriptionVariables,
+  OrgNoteRemovedSubscription,
+  OrgNoteRemovedSubscriptionVariables,
   OrgNotesQuery,
   OrgNotesQueryVariables,
+  OrgNoteUpdatedSubscription,
+  OrgNoteUpdatedSubscriptionVariables,
   OrgUpcomingEventsQuery,
   OrgUpcomingEventsQueryVariables,
   PromoteContactToOrgMutation,
@@ -250,6 +262,43 @@ export const REMOVE_ORG_EVENT_MUTATION: TypedDocumentNode<
   }
 `;
 
+// ── Org event live updates ──────────────────────────────────────────────────
+// Broadcasts changes another member of the same org makes, so events appear
+// without a manual refresh. Scoped server-side to the subscriber's active org.
+
+export const ORG_EVENT_CREATED_SUBSCRIPTION: TypedDocumentNode<
+  OrgEventCreatedSubscription,
+  OrgEventCreatedSubscriptionVariables
+> = gql`
+  ${ORG_EVENT_FIELDS}
+  subscription OrgEventCreated {
+    orgEventCreated {
+      ...OrgEventFields
+    }
+  }
+`;
+
+export const ORG_EVENT_UPDATED_SUBSCRIPTION: TypedDocumentNode<
+  OrgEventUpdatedSubscription,
+  OrgEventUpdatedSubscriptionVariables
+> = gql`
+  ${ORG_EVENT_FIELDS}
+  subscription OrgEventUpdated {
+    orgEventUpdated {
+      ...OrgEventFields
+    }
+  }
+`;
+
+export const ORG_EVENT_REMOVED_SUBSCRIPTION: TypedDocumentNode<
+  OrgEventRemovedSubscription,
+  OrgEventRemovedSubscriptionVariables
+> = gql`
+  subscription OrgEventRemoved {
+    orgEventRemoved
+  }
+`;
+
 // ── Notes ────────────────────────────────────────────────────────────────────
 
 export const ORG_NOTE_FIELDS = gql`
@@ -304,5 +353,42 @@ export const REMOVE_ORG_NOTE_MUTATION: TypedDocumentNode<
 > = gql`
   mutation RemoveOrgNote($id: ID!) {
     removeOrgNote(id: $id)
+  }
+`;
+
+// ── Org note live updates ───────────────────────────────────────────────────
+// Broadcasts changes another member of the same org makes, so notes appear
+// without a manual refresh. Scoped server-side to the subscriber's active org.
+
+export const ORG_NOTE_CREATED_SUBSCRIPTION: TypedDocumentNode<
+  OrgNoteCreatedSubscription,
+  OrgNoteCreatedSubscriptionVariables
+> = gql`
+  ${ORG_NOTE_FIELDS}
+  subscription OrgNoteCreated {
+    orgNoteCreated {
+      ...OrgNoteFields
+    }
+  }
+`;
+
+export const ORG_NOTE_UPDATED_SUBSCRIPTION: TypedDocumentNode<
+  OrgNoteUpdatedSubscription,
+  OrgNoteUpdatedSubscriptionVariables
+> = gql`
+  ${ORG_NOTE_FIELDS}
+  subscription OrgNoteUpdated {
+    orgNoteUpdated {
+      ...OrgNoteFields
+    }
+  }
+`;
+
+export const ORG_NOTE_REMOVED_SUBSCRIPTION: TypedDocumentNode<
+  OrgNoteRemovedSubscription,
+  OrgNoteRemovedSubscriptionVariables
+> = gql`
+  subscription OrgNoteRemoved {
+    orgNoteRemoved
   }
 `;

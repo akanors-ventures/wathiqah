@@ -30,12 +30,15 @@ import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
 import { QueueModule } from './common/queue/queue.module';
+import { PubSubModule } from './common/pubsub/pubsub.module';
 import { LoggerModule } from 'nestjs-pino';
 import { v4 as uuidv4 } from 'uuid';
 import { GraphQLError } from 'graphql';
+import { buildGraphQLContext, parseCookies } from './common/utils/ws-context';
 
 @Module({
   imports: [
+    PubSubModule,
     ConfigModule.forRoot({
       load: config,
       cache: true,
@@ -133,7 +136,21 @@ import { GraphQLError } from 'graphql';
       sortSchema: true,
       playground: true,
       useGlobalPrefix: true,
-      context: ({ req, res }) => ({ req, res }),
+      context: buildGraphQLContext,
+      subscriptions: {
+        'graphql-ws': {
+          onConnect: (ctx) => {
+            // Light connection-time gate: reject sockets with no auth cookie
+            // at all. Real verification happens per-operation via the
+            // existing GqlAuthGuard (see buildGraphQLContext), same as HTTP.
+            const request = (
+              ctx.extra as { request?: { headers: { cookie?: string } } }
+            )?.request;
+            const cookies = parseCookies(request?.headers.cookie);
+            return Boolean(cookies.accessToken);
+          },
+        },
+      },
       formatError: (error) => {
         const originalError = error.extensions?.originalError as {
           message?: string | string[];

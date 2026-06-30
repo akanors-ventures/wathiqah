@@ -654,6 +654,15 @@ input SignupInput {
   token: String
 }
 
+type Subscription {
+  orgEventCreated: OrgEvent!
+  orgEventRemoved: ID!
+  orgEventUpdated: OrgEvent!
+  orgNoteCreated: Note!
+  orgNoteRemoved: ID!
+  orgNoteUpdated: Note!
+}
+
 type SubscriptionInfo {
   cancelAtPeriodEnd: Boolean
   currentPeriodEnd: DateTime

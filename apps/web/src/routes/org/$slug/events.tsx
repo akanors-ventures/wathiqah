@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation, useQuery, useSubscription } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { isThisMonth, isThisWeek } from "date-fns";
 import { CalendarDays, PenLine, Plus } from "lucide-react";
@@ -24,10 +24,17 @@ import { BrandLoader } from "@/components/ui/page-loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
+import { removeById, replaceById, upsertById } from "@/lib/apollo/org-live-updates";
 import {
   CREATE_ORG_EVENT_MUTATION,
   CREATE_ORG_NOTE_MUTATION,
   ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY,
+  ORG_EVENT_CREATED_SUBSCRIPTION,
+  ORG_EVENT_REMOVED_SUBSCRIPTION,
+  ORG_EVENT_UPDATED_SUBSCRIPTION,
+  ORG_NOTE_CREATED_SUBSCRIPTION,
+  ORG_NOTE_REMOVED_SUBSCRIPTION,
+  ORG_NOTE_UPDATED_SUBSCRIPTION,
   ORG_NOTES_QUERY,
   ORG_UPCOMING_EVENTS_QUERY,
   REMOVE_ORG_EVENT_MUTATION,
@@ -92,6 +99,68 @@ function EventsPage() {
   } = useQuery(ORG_UPCOMING_EVENTS_QUERY);
   const { data: notesData, refetch: refetchNotes } = useQuery(ORG_NOTES_QUERY);
   const { data: suggestionsData } = useQuery(ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY);
+
+  // ── Live updates ──
+  // Another org member's create/update/delete arrives here and is merged
+  // directly into the cache so this page updates without a manual refresh.
+  // The acting member already sees their own change via the refetch in each
+  // handler below; these merges are id-deduped so a redundant delivery of
+  // the actor's own event (the server broadcasts to all org subscribers,
+  // including the sender) is a harmless no-op.
+  useSubscription(ORG_NOTE_CREATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const note = data.data?.orgNoteCreated;
+      if (!note) return;
+      client.cache.updateQuery({ query: ORG_NOTES_QUERY }, (existing) =>
+        existing ? { orgNotes: upsertById(existing.orgNotes, note) } : existing,
+      );
+    },
+  });
+  useSubscription(ORG_NOTE_UPDATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const note = data.data?.orgNoteUpdated;
+      if (!note) return;
+      client.cache.updateQuery({ query: ORG_NOTES_QUERY }, (existing) =>
+        existing ? { orgNotes: replaceById(existing.orgNotes, note) } : existing,
+      );
+    },
+  });
+  useSubscription(ORG_NOTE_REMOVED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const id = data.data?.orgNoteRemoved;
+      if (!id) return;
+      client.cache.updateQuery({ query: ORG_NOTES_QUERY }, (existing) =>
+        existing ? { orgNotes: removeById(existing.orgNotes, id) } : existing,
+      );
+    },
+  });
+  useSubscription(ORG_EVENT_CREATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const event = data.data?.orgEventCreated;
+      if (!event) return;
+      client.cache.updateQuery({ query: ORG_UPCOMING_EVENTS_QUERY }, (existing) =>
+        existing ? { orgUpcomingEvents: upsertById(existing.orgUpcomingEvents, event) } : existing,
+      );
+    },
+  });
+  useSubscription(ORG_EVENT_UPDATED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const event = data.data?.orgEventUpdated;
+      if (!event) return;
+      client.cache.updateQuery({ query: ORG_UPCOMING_EVENTS_QUERY }, (existing) =>
+        existing ? { orgUpcomingEvents: replaceById(existing.orgUpcomingEvents, event) } : existing,
+      );
+    },
+  });
+  useSubscription(ORG_EVENT_REMOVED_SUBSCRIPTION, {
+    onData: ({ client, data }) => {
+      const id = data.data?.orgEventRemoved;
+      if (!id) return;
+      client.cache.updateQuery({ query: ORG_UPCOMING_EVENTS_QUERY }, (existing) =>
+        existing ? { orgUpcomingEvents: removeById(existing.orgUpcomingEvents, id) } : existing,
+      );
+    },
+  });
 
   // ── Mutations ──
   const [createOrgEvent] = useMutation(CREATE_ORG_EVENT_MUTATION);

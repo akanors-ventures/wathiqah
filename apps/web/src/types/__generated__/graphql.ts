@@ -1118,6 +1118,16 @@ export type SignupInput = {
   token?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type Subscription = {
+  __typename: 'Subscription';
+  orgEventCreated: OrgEvent;
+  orgEventRemoved: Scalars['ID']['output'];
+  orgEventUpdated: OrgEvent;
+  orgNoteCreated: Note;
+  orgNoteRemoved: Scalars['ID']['output'];
+  orgNoteUpdated: Note;
+};
+
 export type SubscriptionInfo = {
   __typename: 'SubscriptionInfo';
   cancelAtPeriodEnd: Maybe<Scalars['Boolean']['output']>;
@@ -1673,6 +1683,21 @@ export type RemoveOrgEventMutationVariables = Exact<{
 
 export type RemoveOrgEventMutation = { removeOrgEvent: boolean };
 
+export type OrgEventCreatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgEventCreatedSubscription = { orgEventCreated: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
+
+export type OrgEventUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgEventUpdatedSubscription = { orgEventUpdated: { __typename: 'OrgEvent', id: string, orgId: string, title: string, date: string, endDate: string | null, category: string, notes: string | null, isRecurring: boolean, recurrence: string | null, createdById: string, createdAt: string, updatedAt: string } };
+
+export type OrgEventRemovedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgEventRemovedSubscription = { orgEventRemoved: string };
+
 export type OrgNoteFieldsFragment = { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string };
 
 export type OrgNotesQueryVariables = Exact<{
@@ -1703,6 +1728,21 @@ export type RemoveOrgNoteMutationVariables = Exact<{
 
 
 export type RemoveOrgNoteMutation = { removeOrgNote: boolean };
+
+export type OrgNoteCreatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgNoteCreatedSubscription = { orgNoteCreated: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
+
+export type OrgNoteUpdatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgNoteUpdatedSubscription = { orgNoteUpdated: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
+
+export type OrgNoteRemovedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OrgNoteRemovedSubscription = { orgNoteRemoved: string };
 
 export type CreateCheckoutSessionMutationVariables = Exact<{
   tier: SubscriptionTier;
