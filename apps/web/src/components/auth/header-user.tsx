@@ -43,8 +43,16 @@ export default function HeaderUser() {
   const { user, loading, logout, isAuthenticated } = useAuth();
   const { tier, isPro } = useSubscription();
   const { theme, setTheme } = useTheme();
-  const { activeOrg, myOrgs, isOrgMode, switchToOrg, blockAutoSwitch, unblockAutoSwitch } =
-    useOrgContext();
+  const {
+    activeOrg,
+    myOrgs,
+    loadingOrgs,
+    isOrgMode,
+    switchToOrg,
+    refetchOrgs,
+    blockAutoSwitch,
+    unblockAutoSwitch,
+  } = useOrgContext();
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
@@ -141,7 +149,16 @@ export default function HeaderUser() {
   const otherOrgs = myOrgs.filter((o) => o.id !== activeOrg?.id);
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      onOpenChange={(open) => {
+        // The org list (myOrgs) is fetched once at app mount and can go
+        // stale relative to org membership changes (creating/joining an org,
+        // a switch-triggered background refetch still in flight) with no
+        // automatic self-correction. Force a fresh fetch whenever the user
+        // is about to look at it instead of risking a stale/empty list.
+        if (open) void refetchOrgs();
+      }}
+    >
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -316,6 +333,12 @@ export default function HeaderUser() {
             <DropdownMenuLabel className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 px-2 py-1">
               Organisations
             </DropdownMenuLabel>
+            {loadingOrgs && myOrgs.length === 0 && (
+              <div className="flex items-center gap-2 px-2 py-1.5 text-[12px] text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Loading organisations…
+              </div>
+            )}
             {myOrgs.map((org) => (
               <DropdownMenuItem
                 key={org.id}
