@@ -40,6 +40,12 @@ function wrongEmailError() {
   ]);
 }
 
+function forbiddenError() {
+  return new CombinedGraphQLErrors({ data: null }, [
+    { message: "Forbidden resource", extensions: { code: "FORBIDDEN" } },
+  ]);
+}
+
 const client = new ApolloClient({ cache: new InMemoryCache(), link: ApolloLink.empty() });
 
 function mockRefreshFetch(succeeds: boolean) {
@@ -148,4 +154,36 @@ describe("errorLink", () => {
     // generic errorLink toast must stay silent or the user sees it twice.
     expect(toast.error).not.toHaveBeenCalled();
   });
+
+  it.each([
+    "CreateOrgNote",
+    "UpdateOrgNote",
+    "RemoveOrgNote",
+    "CreateOrgEvent",
+    "UpdateOrgEvent",
+    "RemoveOrgEvent",
+    "UpdateOrganisation",
+    "UpdateMemberRole",
+    "RemoveMember",
+  ])(
+    "does not show a generic toast for %s FORBIDDEN errors (role-demoted member, route owns its own toast)",
+    async (operationName) => {
+      const query = gql`
+        mutation ${operationName} {
+          ${operationName[0].toLowerCase()}${operationName.slice(1)}
+        }
+      `;
+      const terminatingLink = new ApolloLink(
+        () => new RxObservable((observer) => observer.error(forbiddenError())),
+      );
+
+      const link = ApolloLink.from([errorLink(URI), terminatingLink]);
+
+      await expect(
+        firstValueFrom(ApolloLink.execute(link, { query }, { client })),
+      ).rejects.toThrow();
+
+      expect(toast.error).not.toHaveBeenCalled();
+    },
+  );
 });
