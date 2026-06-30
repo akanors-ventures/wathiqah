@@ -3,6 +3,7 @@ import * as React from "react";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuthContext } from "@/context/AuthContext";
+import { useActiveOrg } from "@/hooks/use-active-org";
 import { useSubscription } from "@/hooks/useSubscription";
 import Header from "./Header";
 
@@ -187,5 +188,67 @@ describe("Header UI", () => {
     );
     // When loading, it shows a pulse div, not the menu or buttons
     expect(screen.getByLabelText("Loading user profile")).toBeInTheDocument();
+  });
+
+  it("shows personal-only nav items and no Organisation group in personal mode", () => {
+    (useAuthContext as Mock).mockReturnValue({
+      user: { name: "Test User", firstName: "Test", lastName: "User" },
+      loading: false,
+      logout: vi.fn(),
+      isAuthenticated: () => true,
+    });
+    (useActiveOrg as Mock).mockReturnValue({ activeOrg: null, isOrgMode: false });
+
+    render(
+      <ThemeProvider>
+        <Header />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByText("Projects")).toBeInTheDocument();
+    expect(screen.getByText("Promises")).toBeInTheDocument();
+    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(screen.queryByText("Organisation")).not.toBeInTheDocument();
+    expect(screen.queryByText("Events & Notes")).not.toBeInTheDocument();
+    expect(screen.queryByText("Members")).not.toBeInTheDocument();
+  });
+
+  it("hides personal-only nav items and shows the Organisation group pointing at the active org in org mode", () => {
+    (useAuthContext as Mock).mockReturnValue({
+      user: { name: "Test User", firstName: "Test", lastName: "User" },
+      loading: false,
+      logout: vi.fn(),
+      isAuthenticated: () => true,
+    });
+    (useActiveOrg as Mock).mockReturnValue({
+      activeOrg: { id: "org-1", slug: "akanors-livestock" },
+      isOrgMode: true,
+    });
+
+    render(
+      <ThemeProvider>
+        <Header />
+      </ThemeProvider>,
+    );
+
+    // Personal-only items must not be reachable while in org mode — a user
+    // shouldn't be able to mistake a personal action for an org one.
+    expect(screen.queryByText("Projects")).not.toBeInTheDocument();
+    expect(screen.queryByText("Promises")).not.toBeInTheDocument();
+    expect(screen.queryByText("Notes")).not.toBeInTheDocument();
+
+    expect(screen.getByText("Organisation")).toBeInTheDocument();
+    expect(screen.getByText("Events & Notes")).toBeInTheDocument();
+    expect(screen.getByText("Members")).toBeInTheDocument();
+    expect(screen.getByText("Settings")).toBeInTheDocument();
+
+    expect(screen.getByText("Events & Notes").closest("a")).toHaveAttribute(
+      "href",
+      "/org/akanors-livestock/events",
+    );
+    expect(screen.getByText("Members").closest("a")).toHaveAttribute(
+      "href",
+      "/org/akanors-livestock/members",
+    );
   });
 });
