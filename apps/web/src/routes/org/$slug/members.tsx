@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
@@ -23,12 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
-import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
+import { useOrgBySlug } from "@/hooks/use-org-by-slug";
 import {
   INVITE_MEMBER_MUTATION,
-  MY_ORGANISATIONS_QUERY,
   REMOVE_MEMBER_MUTATION,
   UPDATE_MEMBER_ROLE_MUTATION,
 } from "@/lib/apollo/queries/organisations";
@@ -43,18 +41,10 @@ export const Route = createFileRoute("/org/$slug/members")({
 
 function MembersPage() {
   const { slug } = Route.useParams();
-  const { isSyncing } = useOrgFromSlug(slug);
   const { user } = useAuth();
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
-  // Keep the per-page query only for refetch after mutations (cache update).
-  const { myOrgs, loadingOrgs } = useOrgContext();
-  const { data, loading: loadingOrgQuery, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
-  const org =
-    myOrgs.find((o) => o.slug === slug) ??
-    data?.myOrganisations.find((o) => o.slug === slug) ??
-    null;
+  const { org, isLoading, notFound, refetch } = useOrgBySlug(slug);
   const members = org?.members ?? [];
 
   const currentMember = members.find((m) => m.userId === user?.id);
@@ -104,9 +94,8 @@ function MembersPage() {
     }
   }
 
-  if (isSyncing) return <BrandLoader />;
-  if (!org && (loadingOrgs || loadingOrgQuery)) return <BrandLoader />;
-  if (!org) {
+  if (isLoading) return <BrandLoader />;
+  if (notFound) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         <p className="text-sm text-muted-foreground">

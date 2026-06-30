@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@apollo/client/react";
+import { useMutation } from "@apollo/client/react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useId } from "react";
 import { useForm } from "react-hook-form";
@@ -15,13 +15,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
-import { useOrgFromSlug } from "@/hooks/use-org-from-slug";
-import {
-  MY_ORGANISATIONS_QUERY,
-  UPDATE_ORGANISATION_MUTATION,
-} from "@/lib/apollo/queries/organisations";
+import { useOrgBySlug } from "@/hooks/use-org-by-slug";
+import { UPDATE_ORGANISATION_MUTATION } from "@/lib/apollo/queries/organisations";
 import type { UpdateOrganisationInput } from "@/types/__generated__/graphql";
 import { AttributionMode, OrgRole } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
@@ -33,20 +29,12 @@ export const Route = createFileRoute("/org/$slug/settings")({
 
 function SettingsPage() {
   const { slug } = Route.useParams();
-  const { isSyncing } = useOrgFromSlug(slug);
   const { user } = useAuth();
   const nameId = useId();
   const industryId = useId();
   const descriptionId = useId();
 
-  // Use OrgContext for the org so this page doesn't race with useOrgFromSlug.
-  // Keep the per-page query only for refetch after saving settings.
-  const { myOrgs, loadingOrgs } = useOrgContext();
-  const { data, loading: loadingOrgQuery, refetch } = useQuery(MY_ORGANISATIONS_QUERY);
-  const org =
-    myOrgs.find((o) => o.slug === slug) ??
-    data?.myOrganisations.find((o) => o.slug === slug) ??
-    null;
+  const { org, isLoading, notFound, refetch } = useOrgBySlug(slug);
 
   const isAdmin = org?.members.find((m) => m.userId === user?.id)?.role === OrgRole.Admin;
 
@@ -82,11 +70,8 @@ function SettingsPage() {
     }
   }
 
-  if (isSyncing || !user) return <BrandLoader />;
-  // Show loader only while data is still in flight — prevents infinite spinner
-  // when myOrgs is temporarily empty due to a refetch during a JWT switch.
-  if (!org && (loadingOrgs || loadingOrgQuery)) return <BrandLoader />;
-  if (!org) {
+  if (isLoading || !user) return <BrandLoader />;
+  if (notFound) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-xl">
         <p className="text-sm text-muted-foreground">
