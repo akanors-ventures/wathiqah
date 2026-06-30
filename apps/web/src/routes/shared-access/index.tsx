@@ -1,12 +1,14 @@
+import { useMutation } from "@apollo/client/react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { CheckCircle2, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
-import { useSharedAccess } from "@/hooks/useSharedAccess";
+import { useAuth } from "@/hooks/use-auth";
+import { ACCEPT_ACCESS_MUTATION } from "@/lib/apollo/queries/shared-access";
 
-import { authGuard } from "@/utils/auth";
+import { authGuard, isAuthenticated, redirectToLogin } from "@/utils/auth";
 
 export const Route = createFileRoute("/shared-access/")({
   component: SharedAccessIndex,
@@ -15,37 +17,43 @@ export const Route = createFileRoute("/shared-access/")({
 
 function SharedAccessIndex() {
   const navigate = useNavigate();
-  const { acceptAccess, accepting } = useSharedAccess();
+  const { logout } = useAuth();
+  const [acceptAccessMutation] = useMutation(ACCEPT_ACCESS_MUTATION);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const called = useRef(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: must run once per mount on the token from the URL, not on identity changes of navigate/acceptAccessMutation
   useEffect(() => {
-    const handleAccept = async (token: string) => {
-      try {
-        await acceptAccess(token);
+    if (called.current) return;
+    called.current = true;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (!token) {
+      navigate({ to: "/settings" });
+      return;
+    }
+
+    if (!isAuthenticated()) {
+      redirectToLogin();
+      return;
+    }
+
+    acceptAccessMutation({ variables: { token } })
+      .then(() => {
         setStatus("success");
         toast.success("Invitation accepted successfully!");
-      } catch (err: unknown) {
-        console.error(err);
+      })
+      .catch((err: unknown) => {
         setStatus("error");
         const msg = err instanceof Error ? err.message : "Failed to accept invitation";
         setErrorMsg(msg);
         toast.error(msg);
-      }
-    };
+      });
+  }, []);
 
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("token");
-
-    if (token) {
-      handleAccept(token);
-    } else {
-      // If no token, check if we should show something else or redirect
-      navigate({ to: "/settings" });
-    }
-  }, [acceptAccess, navigate]);
-
-  if (status === "idle" || accepting) {
+  if (status === "idle") {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <PageLoader />
@@ -74,6 +82,8 @@ function SharedAccessIndex() {
     );
   }
 
+  const isWrongEmail = errorMsg.toLowerCase().includes("different email");
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center px-4">
       <div className="w-20 h-20 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -81,11 +91,22 @@ function SharedAccessIndex() {
       </div>
       <div className="space-y-2">
         <h1 className="text-3xl font-bold">Invitation Failed</h1>
-        <p className="text-muted-foreground max-w-md mx-auto">{errorMsg}</p>
+        <p className="text-muted-foreground max-w-md mx-auto">
+          {isWrongEmail
+            ? "This invitation was sent to a different email address. Please sign out and sign in with the email that received the invitation."
+            : errorMsg}
+        </p>
       </div>
-      <Button asChild variant="outline" size="lg">
-        <Link to="/settings">Back to Settings</Link>
-      </Button>
+      <div className="flex gap-3">
+        {isWrongEmail ? (
+          <Button size="lg" onClick={() => logout()}>
+            Sign out
+          </Button>
+        ) : null}
+        <Button asChild variant="outline" size="lg">
+          <Link to="/settings">Back to Settings</Link>
+        </Button>
+      </div>
     </div>
   );
 }
