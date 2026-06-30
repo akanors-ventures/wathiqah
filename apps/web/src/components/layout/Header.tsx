@@ -1,12 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ArrowRightLeft,
+  CalendarDays,
   ChevronDown,
   FileSignature,
   FolderKanban,
   Handshake,
   History,
   PenLine,
+  Settings,
   Users,
   Zap,
 } from "lucide-react";
@@ -15,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useActiveOrg } from "@/hooks/use-active-org";
@@ -40,9 +43,13 @@ type NavItem = {
 export default function Header() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
-  const { isOrgMode } = useActiveOrg();
+  const { isOrgMode, activeOrg } = useActiveOrg();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // Ledger/Network mirror the mobile bottom nav's mode split: Projects,
+  // Promises, and personal Notes only apply to the individual's own ledger
+  // and have no org equivalent, so they're hidden in org mode rather than
+  // silently writing org-mode actions to the user's personal account.
   const ledgerItems: NavItem[] = [
     {
       icon: ArrowRightLeft,
@@ -61,14 +68,18 @@ export default function Header() {
       href: "/transactions/my-contact-transactions",
       match: "/transactions/my-contact-transactions",
     },
-    {
-      icon: FolderKanban,
-      iconColor: "text-violet-500",
-      label: "Projects",
-      description: "Budget & expense tracking",
-      href: "/projects",
-      match: "/projects",
-    },
+    ...(isOrgMode
+      ? []
+      : [
+          {
+            icon: FolderKanban,
+            iconColor: "text-violet-500",
+            label: "Projects",
+            description: "Budget & expense tracking",
+            href: "/projects",
+            match: "/projects",
+          },
+        ]),
   ];
 
   const networkItems: NavItem[] = [
@@ -81,14 +92,6 @@ export default function Header() {
       match: "/contacts",
     },
     {
-      icon: Handshake,
-      iconColor: "text-emerald-500",
-      label: "Promises",
-      description: "Track commitments & agreements",
-      href: "/promises",
-      match: "/promises",
-    },
-    {
       icon: FileSignature,
       iconColor: "text-purple-500",
       label: "Witnesses",
@@ -96,15 +99,57 @@ export default function Header() {
       href: "/witnesses",
       match: "/witnesses",
     },
-    {
-      icon: PenLine,
-      iconColor: "text-amber-500",
-      label: "Notes",
-      description: "Private notes on your interactions",
-      href: "/notes",
-      match: "/notes",
-    },
+    ...(isOrgMode
+      ? []
+      : [
+          {
+            icon: Handshake,
+            iconColor: "text-emerald-500",
+            label: "Promises",
+            description: "Track commitments & agreements",
+            href: "/promises",
+            match: "/promises",
+          },
+          {
+            icon: PenLine,
+            iconColor: "text-amber-500",
+            label: "Notes",
+            description: "Private notes on your interactions",
+            href: "/notes",
+            match: "/notes",
+          },
+        ]),
   ];
+
+  const orgItems: NavItem[] =
+    isOrgMode && activeOrg
+      ? [
+          {
+            icon: CalendarDays,
+            iconColor: "text-blue-500",
+            label: "Events & Notes",
+            description: "Org-wide dates, schedules & records",
+            href: `/org/${activeOrg.slug}/events`,
+            match: `/org/${activeOrg.slug}/events`,
+          },
+          {
+            icon: Users,
+            iconColor: "text-emerald-500",
+            label: "Members",
+            description: "Manage who has access",
+            href: `/org/${activeOrg.slug}/members`,
+            match: `/org/${activeOrg.slug}/members`,
+          },
+          {
+            icon: Settings,
+            iconColor: "text-muted-foreground",
+            label: "Settings",
+            description: "Organisation profile & preferences",
+            href: `/org/${activeOrg.slug}/settings`,
+            match: `/org/${activeOrg.slug}/settings`,
+          },
+        ]
+      : [];
 
   return (
     <header
@@ -147,6 +192,14 @@ export default function Header() {
               pathname={pathname}
               isOrgMode={isOrgMode}
             />
+            {orgItems.length > 0 && (
+              <NavDropdown
+                label="Organisation"
+                items={orgItems}
+                pathname={pathname}
+                isOrgMode={isOrgMode}
+              />
+            )}
             <NavLink to="/features" pathname={pathname}>
               Features
             </NavLink>
@@ -254,41 +307,42 @@ function NavDropdown({
             const Icon = item.icon;
             const isActive = pathname.startsWith(item.match);
             return (
-              <Link
-                key={item.href}
-                to={item.href as never}
-                search={item.search as never}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors group",
-                  isActive ? "bg-primary/8 text-primary" : "hover:bg-muted/70 text-foreground",
-                )}
-              >
-                <div
+              <DropdownMenuItem key={item.href} asChild className="p-0 focus:bg-transparent">
+                <Link
+                  to={item.href as never}
+                  search={item.search as never}
                   className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
-                    isActive
-                      ? "bg-primary/10"
-                      : isOrgMode
-                        ? "bg-emerald-50 dark:bg-emerald-950 group-hover:bg-muted"
-                        : "bg-muted group-hover:bg-muted/80",
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors group cursor-pointer",
+                    isActive ? "bg-primary/8 text-primary" : "hover:bg-muted/70 text-foreground",
                   )}
                 >
-                  <Icon className={cn("h-4 w-4", isActive ? "text-primary" : item.iconColor)} />
-                </div>
-                <div className="min-w-0">
-                  <p
+                  <div
                     className={cn(
-                      "text-[13px] font-semibold leading-tight",
-                      isActive ? "text-primary" : "text-foreground",
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors",
+                      isActive
+                        ? "bg-primary/10"
+                        : isOrgMode
+                          ? "bg-emerald-50 dark:bg-emerald-950 group-hover:bg-muted"
+                          : "bg-muted group-hover:bg-muted/80",
                     )}
                   >
-                    {item.label}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
-                    {item.description}
-                  </p>
-                </div>
-              </Link>
+                    <Icon className={cn("h-4 w-4", isActive ? "text-primary" : item.iconColor)} />
+                  </div>
+                  <div className="min-w-0">
+                    <p
+                      className={cn(
+                        "text-[13px] font-semibold leading-tight",
+                        isActive ? "text-primary" : "text-foreground",
+                      )}
+                    >
+                      {item.label}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">
+                      {item.description}
+                    </p>
+                  </div>
+                </Link>
+              </DropdownMenuItem>
             );
           })}
         </div>
