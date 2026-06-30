@@ -492,8 +492,8 @@ export function SharedAccessSection() {
                     key={grant.id}
                     className="group/item relative border border-border/50 rounded-3xl p-5 flex items-center justify-between bg-card transition-all duration-500 hover:shadow-[0_15px_35px_rgba(0,0,0,0.06)] hover:-translate-y-1 hover:border-primary/30 overflow-hidden"
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary font-black text-lg shadow-sm group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-all duration-500 group-hover/item:scale-110">
+                    <div className="flex items-center gap-4 min-w-0 flex-1">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary font-black text-lg shadow-sm group-hover/item:bg-primary group-hover/item:text-primary-foreground transition-all duration-500 group-hover/item:scale-110 shrink-0">
                         {grant.granter?.firstName?.charAt(0)?.toUpperCase() ?? "U"}
                       </div>
                       <div className="min-w-0">
@@ -522,7 +522,7 @@ export function SharedAccessSection() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       {grant.status === "ACCEPTED" && (
                         <Button
                           size="sm"
