@@ -7,6 +7,7 @@ import {
 } from "@apollo/client";
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
 import { firstValueFrom } from "rxjs";
+import { toast } from "sonner";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { errorLink } from "./apollo-links";
 
@@ -27,6 +28,15 @@ const ACCEPT_ACCESS = gql`
 function unauthenticatedError() {
   return new CombinedGraphQLErrors({ data: null }, [
     { message: "Unauthorized", extensions: { code: "UNAUTHENTICATED" } },
+  ]);
+}
+
+function wrongEmailError() {
+  return new CombinedGraphQLErrors({ data: null }, [
+    {
+      message: "This invitation was sent to a different email address",
+      extensions: { code: "FORBIDDEN" },
+    },
   ]);
 }
 
@@ -119,5 +129,23 @@ describe("errorLink", () => {
     ]);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not show a generic toast for AcceptAccess non-auth errors (component owns its own UI)", async () => {
+    const terminatingLink = new ApolloLink(
+      () => new RxObservable((observer) => observer.error(wrongEmailError())),
+    );
+
+    const link = ApolloLink.from([errorLink(URI), terminatingLink]);
+
+    await expect(
+      firstValueFrom(
+        ApolloLink.execute(link, { query: ACCEPT_ACCESS, variables: { token: "abc" } }, { client }),
+      ),
+    ).rejects.toThrow();
+
+    // The route's own .catch handler shows the user-facing toast; the
+    // generic errorLink toast must stay silent or the user sees it twice.
+    expect(toast.error).not.toHaveBeenCalled();
   });
 });
