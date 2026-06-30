@@ -40,6 +40,14 @@ interface OrgContextType {
   switchToOrg: (orgId: string | null) => Promise<void>;
   /** Force a fresh fetch of the org list — call when the user is about to look at it. */
   refetchOrgs: () => Promise<unknown>;
+  /**
+   * Sync the local activeOrgId (React state + localStorage) to match a
+   * server context that's already correct, without calling switchOrgContext.
+   * Use when the JWT/signal cookie already has the right org but local
+   * bookkeeping hasn't caught up (e.g. a different tab switched orgs, or
+   * localStorage was cleared independently of the cookie).
+   */
+  syncActiveOrgId: (orgId: string | null) => void;
   isOrgMode: boolean;
   /**
    * Call before an explicit user-initiated org switch. Prevents
@@ -82,6 +90,15 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
   const activeOrg = myOrgs.find((o) => o.id === activeOrgId) ?? null;
 
+  const syncActiveOrgId = useCallback((orgId: string | null) => {
+    if (orgId) {
+      localStorage.setItem(ORG_STORAGE_KEY, orgId);
+    } else {
+      localStorage.removeItem(ORG_STORAGE_KEY);
+    }
+    setActiveOrgId(orgId);
+  }, []);
+
   const [switchOrgContextMutation] = useMutation(SWITCH_ORG_CONTEXT_MUTATION);
 
   // When true, useOrgFromSlug must not auto-switch. Set by AccountSwitcher
@@ -110,14 +127,7 @@ export function OrgProvider({ children }: { children: ReactNode }) {
 
       // The server sets httpOnly accessToken and refreshToken cookies on the
       // GraphQL response. We don't need to set them from JS.
-
-      // Persist active org selection
-      if (orgId) {
-        localStorage.setItem(ORG_STORAGE_KEY, orgId);
-      } else {
-        localStorage.removeItem(ORG_STORAGE_KEY);
-      }
-      setActiveOrgId(orgId);
+      syncActiveOrgId(orgId);
 
       // Kick off a background refetch so pages see org-scoped data.
       // Do NOT await — the caller (AccountSwitcher) navigates immediately
@@ -126,39 +136,69 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       // the background without blocking the navigation.
       void apolloClient.refetchQueries({ include: "active" });
     },
-    [switchOrgContextMutation, apolloClient],
+    [switchOrgContextMutation, apolloClient, syncActiveOrgId],
   );
 
-  // Restore org-scoped JWT after a token refresh.
-  // When the Apollo error-link refreshes the access token (expiry), the new
-  // token lacks activeOrgId. This effect re-issues it once on mount.
-  // Skip when the JWT already has the correct org (avoids a mutation every load).
+  // Reconcile local activeOrgId against the server's signal cookie once on
+  // app boot. Two directions can drift out of sync independently of each
+  // other (e.g. another tab switched orgs, localStorage was cleared without
+  // the cookie being cleared, or a token refresh produced a JWT that lost
+  // its activeOrgId claim):
+  //   - Cookie has an org our local state doesn't know about yet: repair
+  //     locally (no mutation — the server is already correct). Previously
+  //     this case had NO repair path at all on non-org-slug routes (e.g.
+  //     the dashboard), leaving the header stuck showing personal mode
+  //     indefinitely despite an org JWT actually being active.
+  //   - Local state has an org the cookie doesn't: re-issue it via
+  //     switchToOrg (mutation) — typically a token refresh that dropped
+  //     the org claim.
   const hasAttemptedRestoration = useRef(false);
 
   useEffect(() => {
     if (hasAttemptedRestoration.current) return;
-    if (!activeOrgId) return;
     if (loadingOrgs) return;
 
-    const orgExists = myOrgs.some((o) => o.id === activeOrgId);
-    if (!orgExists) {
-      localStorage.removeItem(ORG_STORAGE_KEY);
-      setActiveOrgId(null);
+    const signalOrgId = getActiveOrgIdSignal();
+    // Read straight from this render's query result, not the sticky
+    // `myOrgs` state — `myOrgs` is set by a separate effect and lags one
+    // render behind `data` on first load, which would make these checks
+    // wrongly report "not found" and permanently give up (the one-shot
+    // guard below never gets a second chance) before `myOrgs` catches up.
+    const currentOrgs = data?.myOrganisations ?? myOrgs;
+
+    if (signalOrgId && signalOrgId !== activeOrgId) {
+      const signalOrgExists = currentOrgs.some((o) => o.id === signalOrgId);
+      if (signalOrgExists) {
+        hasAttemptedRestoration.current = true;
+        syncActiveOrgId(signalOrgId);
+        return;
+      }
+      // Signal points at an org not yet in myOrgs (still loading/stale) —
+      // don't wipe local state on this alone; fall through.
+    }
+
+    if (!activeOrgId) {
       hasAttemptedRestoration.current = true;
       return;
     }
 
-    if (getActiveOrgIdSignal() === activeOrgId) {
+    const orgExists = currentOrgs.some((o) => o.id === activeOrgId);
+    if (!orgExists) {
+      syncActiveOrgId(null);
+      hasAttemptedRestoration.current = true;
+      return;
+    }
+
+    if (signalOrgId === activeOrgId) {
       hasAttemptedRestoration.current = true;
       return;
     }
 
     hasAttemptedRestoration.current = true;
     switchToOrg(activeOrgId).catch(() => {
-      localStorage.removeItem(ORG_STORAGE_KEY);
-      setActiveOrgId(null);
+      syncActiveOrgId(null);
     });
-  }, [activeOrgId, loadingOrgs, myOrgs, switchToOrg]);
+  }, [activeOrgId, loadingOrgs, myOrgs, data?.myOrganisations, switchToOrg, syncActiveOrgId]);
 
   const value = useMemo(
     () => ({
@@ -167,12 +207,22 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       loadingOrgs,
       switchToOrg,
       refetchOrgs,
+      syncActiveOrgId,
       isOrgMode: activeOrg !== null,
       blockAutoSwitch,
       unblockAutoSwitch,
       autoSwitchBlocked,
     }),
-    [activeOrg, myOrgs, loadingOrgs, switchToOrg, refetchOrgs, blockAutoSwitch, unblockAutoSwitch],
+    [
+      activeOrg,
+      myOrgs,
+      loadingOrgs,
+      switchToOrg,
+      refetchOrgs,
+      syncActiveOrgId,
+      blockAutoSwitch,
+      unblockAutoSwitch,
+    ],
   );
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;
