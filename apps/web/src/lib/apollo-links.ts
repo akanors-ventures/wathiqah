@@ -100,6 +100,15 @@ const SKIP_REFRESH_OPERATIONS = new Set([
   "SwitchOrgContext",
 ]);
 
+/**
+ * Operations whose component renders its own error UI/toast for failures
+ * (e.g. a dedicated "wrong email" screen), so the generic link-level toast
+ * would be redundant — but unlike SKIP_REFRESH_OPERATIONS, these still
+ * attempt a silent token refresh on auth errors (e.g. AcceptAccess should
+ * retry transparently when the caller's access token has simply expired).
+ */
+const SKIP_TOAST_OPERATIONS = new Set(["AcceptAccess"]);
+
 export const errorLink = (uri: string) =>
   new ErrorLink(({ error, operation, forward }) => {
     if (CombinedGraphQLErrors.is(error)) {
@@ -109,6 +118,7 @@ export const errorLink = (uri: string) =>
       const skipRefresh =
         SKIP_REFRESH_OPERATIONS.has(operationName) ||
         (isPublicPath(currentPath) && operationName === "Me");
+      const skipToast = skipRefresh || SKIP_TOAST_OPERATIONS.has(operationName);
 
       let needsRefresh = false;
 
@@ -126,10 +136,10 @@ export const errorLink = (uri: string) =>
           needsRefresh = true;
         }
 
-        if (!skipRefresh && code === "INTERNAL_SERVER_ERROR") {
+        if (!skipToast && code === "INTERNAL_SERVER_ERROR") {
           toast.error("A server error occurred. Please try again later.");
         } else if (
-          !skipRefresh &&
+          !skipToast &&
           !isAuthError &&
           // FORBIDDEN is expected during org context transitions (org queries
           // refetch with the previous JWT briefly after a switch). Suppress
