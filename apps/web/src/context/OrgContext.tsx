@@ -38,6 +38,8 @@ interface OrgContextType {
   myOrgs: OrgItem[];
   loadingOrgs: boolean;
   switchToOrg: (orgId: string | null) => Promise<void>;
+  /** Force a fresh fetch of the org list — call when the user is about to look at it. */
+  refetchOrgs: () => Promise<unknown>;
   isOrgMode: boolean;
   /**
    * Call before an explicit user-initiated org switch. Prevents
@@ -60,7 +62,11 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     typeof window !== "undefined" ? localStorage.getItem(ORG_STORAGE_KEY) : null,
   );
 
-  const { data, loading: loadingOrgs } = useQuery(MY_ORGANISATIONS_QUERY, {
+  const {
+    data,
+    loading: loadingOrgs,
+    refetch: refetchOrgs,
+  } = useQuery(MY_ORGANISATIONS_QUERY, {
     fetchPolicy: "cache-and-network",
   });
 
@@ -160,12 +166,13 @@ export function OrgProvider({ children }: { children: ReactNode }) {
       myOrgs,
       loadingOrgs,
       switchToOrg,
+      refetchOrgs,
       isOrgMode: activeOrg !== null,
       blockAutoSwitch,
       unblockAutoSwitch,
       autoSwitchBlocked,
     }),
-    [activeOrg, myOrgs, loadingOrgs, switchToOrg, blockAutoSwitch, unblockAutoSwitch],
+    [activeOrg, myOrgs, loadingOrgs, switchToOrg, refetchOrgs, blockAutoSwitch, unblockAutoSwitch],
   );
 
   return <OrgContext.Provider value={value}>{children}</OrgContext.Provider>;

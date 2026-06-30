@@ -48,7 +48,11 @@ vi.mock("@/context/OrgContext", () => ({
     myOrgs: [],
     loadingOrgs: false,
     switchToOrg: vi.fn(),
+    refetchOrgs: vi.fn(),
     isOrgMode: false,
+    blockAutoSwitch: vi.fn(),
+    unblockAutoSwitch: vi.fn(),
+    autoSwitchBlocked: { current: false },
   })),
   OrgProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
