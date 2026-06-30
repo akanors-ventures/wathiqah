@@ -9,7 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useOrgContext } from "@/context/OrgContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { CREATE_ORGANISATION_MUTATION } from "@/lib/apollo/queries/organisations";
+import {
+  CREATE_ORGANISATION_MUTATION,
+  MY_ORGANISATIONS_QUERY,
+} from "@/lib/apollo/queries/organisations";
 import type { CreateOrganisationInput } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
@@ -22,7 +25,14 @@ function CreateOrgPage() {
   const { isPro, loading: subLoading } = useSubscription();
   const navigate = useNavigate();
   const { switchToOrg } = useOrgContext();
-  const [createOrg, { loading, error }] = useMutation(CREATE_ORGANISATION_MUTATION);
+  const [createOrg, { loading, error }] = useMutation(CREATE_ORGANISATION_MUTATION, {
+    // Ensure MY_ORGANISATIONS_QUERY's cache already includes the new org
+    // (with its members) before switchToOrg/navigate run, instead of
+    // relying on the unrelated background refetch in switchToOrg or a
+    // consumer-side confirmatory refetch to catch up later.
+    refetchQueries: [{ query: MY_ORGANISATIONS_QUERY }],
+    awaitRefetchQueries: true,
+  });
   const nameId = useId();
   const industryId = useId();
   const descriptionId = useId();
