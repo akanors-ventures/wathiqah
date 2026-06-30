@@ -1542,6 +1542,37 @@ export type GetGeoIpInfoQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetGeoIpInfoQuery = { getGeoIPInfo: { __typename: 'GeoIPInfo', ip: string, countryCode: string, countryName: string, regionName: string, cityName: string, currencyCode: string | null, isVpn: boolean } };
 
+export type UserNoteFieldsFragment = { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string };
+
+export type UserNotesQueryVariables = Exact<{
+  category?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type UserNotesQuery = { userNotes: Array<{ __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string }> };
+
+export type CreateNoteMutationVariables = Exact<{
+  input: CreateNoteInput;
+}>;
+
+
+export type CreateNoteMutation = { createNote: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
+
+export type UpdateNoteMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateNoteInput;
+}>;
+
+
+export type UpdateNoteMutation = { updateNote: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
+
+export type RemoveNoteMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveNoteMutation = { removeNote: boolean };
+
 export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number };
 
 export type MyOrganisationsQueryVariables = Exact<{ [key: string]: never; }>;
@@ -1968,33 +1999,6 @@ export type AcknowledgeWitnessRequestMutation = { acknowledgeWitness: { __typena
 export type GetWitnessInvitationQueryVariables = Exact<{
   token: Scalars['String']['input'];
 }>;
-
-export type UserNoteFieldsFragment = { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string };
-
-export type UserNotesQueryVariables = Exact<{
-  category?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-export type UserNotesQuery = { userNotes: Array<{ __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string }> };
-
-export type CreateNoteMutationVariables = Exact<{
-  input: CreateNoteInput;
-}>;
-
-export type CreateNoteMutation = { createNote: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
-
-export type UpdateNoteMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  input: UpdateNoteInput;
-}>;
-
-export type UpdateNoteMutation = { updateNote: { __typename: 'Note', id: string, orgId: string | null, title: string | null, body: string, category: string | null, createdById: string, createdAt: string, updatedAt: string } };
-
-export type RemoveNoteMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-export type RemoveNoteMutation = { removeNote: boolean };
 
 
 export type GetWitnessInvitationQuery = { getWitnessInvitation: { __typename: 'Witness', id: string, status: WitnessStatus, transaction: { __typename: 'Transaction', id: string, amount: number | null, currency: string, type: TransactionType, category: AssetCategory, itemName: string | null, description: string | null, date: string, createdBy: { __typename: 'User', name: string, isSupporter: boolean } | null, contact: { __typename: 'Contact', id: string, firstName: string, lastName: string, name: string, isSupporter: boolean } | null } | null, user: { __typename: 'User', id: string, email: string, name: string, passwordHash: string | null, isSupporter: boolean } | null } };
