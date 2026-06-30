@@ -96,7 +96,7 @@ function PersonalNotesPage() {
         <div>
           <h1 className="text-3xl font-black tracking-tight">Notes</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Private notes on your financial interactions
+            Your personal journal — capture anything that matters to you
           </p>
         </div>
         <Button size="sm" onClick={openCreate} disabled={atLimit}>
