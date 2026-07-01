@@ -8,7 +8,7 @@ import {
   ResolveField,
   Parent,
 } from '@nestjs/graphql';
-import { ForbiddenException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { OrgRolesGuard, OrgRoles } from './guards/org-roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -19,14 +19,11 @@ import { OrganisationMember } from './entities/organisation-member.entity';
 import { CreateOrganisationInput } from './dto/create-organisation.input';
 import { UpdateOrganisationInput } from './dto/update-organisation.input';
 import { InviteMemberInput } from './dto/invite-member.input';
-import {
-  OrgRole,
-  ProjectStatus,
-  SubscriptionTier,
-} from '../../generated/prisma/client';
+import { OrgRole, ProjectStatus } from '../../generated/prisma/client';
 import { User } from '../users/entities/user.entity';
 import { Contact } from '../contacts/entities/contact.entity';
 import { PrismaService } from '../../prisma/prisma.service';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 @Resolver(() => Organisation)
 @UseGuards(GqlAuthGuard)
@@ -34,18 +31,18 @@ export class OrganisationsResolver {
   constructor(
     private readonly orgsService: OrganisationsService,
     private readonly prisma: PrismaService,
+    private readonly subscriptionService: SubscriptionService,
   ) {}
 
   @Mutation(() => Organisation)
-  createOrganisation(
+  async createOrganisation(
     @Args('input') input: CreateOrganisationInput,
     @CurrentUser() user: User,
   ) {
-    if (user.tier !== SubscriptionTier.PRO) {
-      throw new ForbiddenException(
-        'Creating an organisation requires a Pro subscription.',
-      );
-    }
+    await this.subscriptionService.checkFeatureLimit(
+      user.id,
+      'allowOrganisations',
+    );
     return this.orgsService.create(input, user.id);
   }
 
