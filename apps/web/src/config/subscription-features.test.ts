@@ -43,8 +43,12 @@ describe("getFeaturesForTier", () => {
       expect(labels).toContain("Unlimited Transactions");
       expect(labels).toContain("Unlimited Items");
       expect(labels).toContain("Email Notifications");
-      expect(labels).toContain("Priority Support");
       expect(labels).toContain("Grant read-only access to trusted contacts (legacy access)");
+    });
+
+    it("does not show Priority Support on FREE (it is a Pro incentive)", () => {
+      const labels = getFeaturesForTier("FREE", FREE_LIMITS).map((f) => f.label);
+      expect(labels).not.toContain("Priority Support");
     });
 
     it("renders limit-derived label with finite maxNotes (5)", () => {
@@ -95,6 +99,15 @@ describe("getFeaturesForTier", () => {
       expect(labels).toContain("Professional PDF Reports");
       expect(labels).toContain("Organisation Workspaces");
       expect(labels).toContain("View financial records shared with you by others");
+      expect(labels).toContain("Priority Support");
+    });
+
+    it("does not repeat Free-only base features on PRO", () => {
+      const labels = getFeaturesForTier("PRO", PRO_LIMITS).map((f) => f.label);
+      expect(labels).not.toContain("Unlimited Transactions");
+      expect(labels).not.toContain("Unlimited Items");
+      expect(labels).not.toContain("Email Notifications");
+      expect(labels).not.toContain("Grant read-only access to trusted contacts (legacy access)");
     });
 
     it("does not include Exclusive Supporter Badge", () => {

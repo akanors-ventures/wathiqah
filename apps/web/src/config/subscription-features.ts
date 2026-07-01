@@ -15,24 +15,25 @@ export const TIER_DISPLAY: Record<"FREE" | "PRO", string> = {
 };
 
 // Ordered as they should appear in pricing tier cards.
-// "FREE" + "PRO" = available on both; ["PRO"] = Pro-only.
+// ["FREE"] = Ledger-only (inherited by Pro, not repeated); ["PRO"] = Pro-only; ["FREE","PRO"] = shown on both (because the value differs per tier).
 export const FEATURE_CATALOG: FeatureEntry[] = [
   // ── Always-on capabilities (no backend gate, available to all) ──────────
+  // Listed on the Free card only — Pro inherits them, no need to repeat.
   {
     key: "unlimitedTransactions",
-    tiers: ["FREE", "PRO"],
+    tiers: ["FREE"],
     codeEnforced: false,
     label: "Unlimited Transactions",
   },
   {
     key: "unlimitedItems",
-    tiers: ["FREE", "PRO"],
+    tiers: ["FREE"],
     codeEnforced: false,
     label: "Unlimited Items",
   },
   {
     key: "emailNotifications",
-    tiers: ["FREE", "PRO"],
+    tiers: ["FREE"],
     codeEnforced: false,
     label: "Email Notifications",
   },
@@ -98,17 +99,17 @@ export const FEATURE_CATALOG: FeatureEntry[] = [
     codeEnforced: true,
     label: "View financial records shared with you by others",
   },
-  // ── Always-on: legacy/shared access granting (free for all) ───────────
+  // ── Always-on: legacy/shared access granting (free for all, not repeated on Pro) ──
   {
     key: "sharedAccessGrant",
-    tiers: ["FREE", "PRO"],
+    tiers: ["FREE"],
     codeEnforced: false,
     label: "Grant read-only access to trusted contacts (legacy access)",
   },
-  // ── Policy commitment (no backend gate) ───────────────────────────────
+  // ── Policy commitment (Pro-only incentive) ────────────────────────────
   {
     key: "prioritySupport",
-    tiers: ["FREE", "PRO"],
+    tiers: ["PRO"],
     codeEnforced: false,
     label: "Priority Support",
   },
