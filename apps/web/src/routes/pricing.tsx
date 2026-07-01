@@ -116,11 +116,12 @@ function PricingPage() {
 
   useEffect(() => {
     if (geoIP) {
-      if (isNigeria) setSelectedCurrencyCode("NGN");
+      if (isVpn) setSelectedCurrencyCode("USD");
+      else if (isNigeria) setSelectedCurrencyCode("NGN");
       else if (isUK) setSelectedCurrencyCode("GBP");
       else setSelectedCurrencyCode("USD");
     }
-  }, [geoIP, isNigeria, isUK]);
+  }, [geoIP, isVpn, isNigeria, isUK]);
 
   // Resolve amounts: use backend data when loaded, fall back to constants during load.
   const currencyRow = pricingData?.proPricing.currencies.find(
