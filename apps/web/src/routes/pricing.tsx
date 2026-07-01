@@ -1,5 +1,5 @@
 import { CombinedGraphQLErrors } from "@apollo/client/errors";
-import { useMutation } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AlertTriangle,
@@ -11,7 +11,6 @@ import {
   MessageSquare,
   Shield,
   Sparkles,
-  X,
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -28,10 +27,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { TierBadge } from "@/components/ui/tier-badge";
+import { getFeaturesForTier } from "@/config/subscription-features";
 import { useAuth } from "@/hooks/use-auth";
 import { useGeoIP } from "@/hooks/useGeoIP";
 import { useSubscription } from "@/hooks/useSubscription";
 import { CREATE_CHECKOUT_SESSION } from "@/lib/apollo/queries/payment";
+import { PRO_PRICING_QUERY } from "@/lib/apollo/queries/subscription";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
 import {
@@ -48,36 +49,29 @@ export const Route = createFileRoute("/pricing")({
   }),
 });
 
-type Feature = {
-  name: string;
-  included: boolean;
-  highlight?: boolean;
+// Static region routing and display labels — geo metadata only, no amounts.
+const CURRENCY_META: Record<string, { label: string; regions: string[] }> = {
+  USD: { label: "USD ($)", regions: ["US", "GLOBAL"] },
+  NGN: { label: "NGN (₦)", regions: ["NG"] },
+  GBP: { label: "GBP (£)", regions: ["GB"] },
 };
 
-const CURRENCIES = [
-  { code: "USD", label: "USD ($)", price: 4.99, regions: ["US", "GLOBAL"] },
-  { code: "NGN", label: "NGN (₦)", price: 5000, regions: ["NG"] },
-  { code: "GBP", label: "GBP (£)", price: 3.99, regions: ["GB"] },
-];
-
-const ANNUAL_PRICES: Record<string, number> = {
-  USD: 49.9,
-  NGN: 50000,
-  GBP: 39.9,
+// Fallback amounts shown during the brief initial load, matching PRO_PRICING in backend.
+const FALLBACK_PRICES: Record<string, { monthly: number; annual: number }> = {
+  USD: { monthly: 4.99, annual: 49.9 },
+  NGN: { monthly: 2500, annual: 25000 },
+  GBP: { monthly: 3.99, annual: 39.9 },
 };
-
-function getAnnualPrice(currencyCode: string, monthlyPrice: number): number {
-  // 10 months × monthly = "2 months free"; ANNUAL_PRICES provides exact negotiated prices
-  return ANNUAL_PRICES[currencyCode] ?? monthlyPrice * 10;
-}
 
 function PricingPage() {
   const { user } = useAuth();
   const { isPro, loading: subLoading } = useSubscription();
   const { reason } = Route.useSearch();
   const { geoIP, loading: geoLoading, isNigeria, isUK, isVpn } = useGeoIP();
-  const [selectedCurrency, setSelectedCurrency] = useState(CURRENCIES[0]);
+  const [selectedCurrencyCode, setSelectedCurrencyCode] = useState<string>("USD");
   const [billingInterval, setBillingInterval] = useState<BillingInterval>(BillingInterval.Monthly);
+
+  const { data: pricingData, loading: pricingLoading } = useQuery(PRO_PRICING_QUERY);
 
   const [createCheckoutSession, { loading: checkoutLoading }] = useMutation(
     CREATE_CHECKOUT_SESSION,
@@ -111,7 +105,7 @@ function PricingPage() {
       await createCheckoutSession({
         variables: {
           tier: SubscriptionTier.Pro,
-          currency: selectedCurrency.code,
+          currency: selectedCurrencyCode,
           interval: billingInterval,
         } satisfies CreateCheckoutSessionMutationVariables,
       });
@@ -122,37 +116,42 @@ function PricingPage() {
 
   useEffect(() => {
     if (geoIP) {
-      let autoCurrency = CURRENCIES[0];
-      if (isNigeria) {
-        autoCurrency = CURRENCIES.find((c) => c.code === "NGN") || CURRENCIES[0];
-      } else if (isUK) {
-        autoCurrency = CURRENCIES.find((c) => c.code === "GBP") || CURRENCIES[0];
-      }
-      setSelectedCurrency(autoCurrency);
+      if (isNigeria) setSelectedCurrencyCode("NGN");
+      else if (isUK) setSelectedCurrencyCode("GBP");
+      else setSelectedCurrencyCode("USD");
     }
   }, [geoIP, isNigeria, isUK]);
 
-  const loading = subLoading || geoLoading || checkoutLoading;
+  // Resolve amounts: use backend data when loaded, fall back to constants during load.
+  const currencyRow = pricingData?.proPricing.currencies.find(
+    (c) => c.currency === selectedCurrencyCode,
+  );
+  const monthlyPrice =
+    currencyRow?.monthly ?? FALLBACK_PRICES[selectedCurrencyCode]?.monthly ?? 4.99;
+  const annualPrice = currencyRow?.annual ?? FALLBACK_PRICES[selectedCurrencyCode]?.annual ?? 49.9;
+
+  const displayPrice =
+    billingInterval === BillingInterval.Annual
+      ? formatCurrency(annualPrice, selectedCurrencyCode)
+      : formatCurrency(monthlyPrice, selectedCurrencyCode);
+  const period = billingInterval === BillingInterval.Annual ? "/ year" : "/ month";
+  const perMonthEquivalent =
+    billingInterval === BillingInterval.Annual
+      ? formatCurrency(annualPrice / 12, selectedCurrencyCode)
+      : null;
+
+  // Limits from the public proPricing query — works for logged-out visitors.
+  const freeLimits = pricingData?.proPricing.freeLimits;
+  const proLimits = pricingData?.proPricing.proLimits;
+
+  const loading = subLoading || geoLoading || checkoutLoading || pricingLoading;
 
   const tiers = [
     {
       name: "Ledger",
-      tierKey: "FREE",
+      tierKey: "FREE" as const,
       price: "Free",
       description: "Perfect for individuals tracking personal transactions.",
-      features: [
-        { name: "Unlimited Transactions", included: true },
-        { name: "Unlimited Items", included: true },
-        { name: "20 Witness Requests / month", included: true },
-        { name: "Up to 5 Personal Notes", included: true },
-        { name: "Basic Analytics", included: true },
-        { name: "Email Notifications", included: true },
-        { name: "Contact Notification SMS (10/month)", included: true, highlight: false },
-        { name: "Grant read-only access to trusted contacts (legacy access)", included: true },
-        { name: "Advanced Analytics", included: false },
-        { name: "Professional PDF Reports", included: false },
-        { name: "Priority Support", included: false },
-      ],
       buttonText: isPro ? "Current Plan" : "Get Started Free",
       buttonVariant: "outline" as const,
       highlight: false,
@@ -160,35 +159,11 @@ function PricingPage() {
     },
     {
       name: "Wathīqah Pro",
-      tierKey: "PRO",
-      price:
-        billingInterval === BillingInterval.Annual
-          ? formatCurrency(
-              getAnnualPrice(selectedCurrency.code, selectedCurrency.price),
-              selectedCurrency.code,
-            )
-          : formatCurrency(selectedCurrency.price, selectedCurrency.code),
-      period: billingInterval === BillingInterval.Annual ? "/ year" : "/ month",
-      perMonthEquivalent:
-        billingInterval === BillingInterval.Annual
-          ? formatCurrency(
-              getAnnualPrice(selectedCurrency.code, selectedCurrency.price) / 12,
-              selectedCurrency.code,
-            )
-          : null,
+      tierKey: "PRO" as const,
+      price: displayPrice,
+      period,
+      perMonthEquivalent,
       description: "The ultimate tool for high-trust financial management.",
-      features: [
-        { name: "Everything in Ledger", included: true },
-        { name: "Unlimited Witness Requests", included: true },
-        { name: "Unlimited Personal Notes", included: true },
-        { name: "Unlimited Contact Notification SMS", included: true, highlight: true },
-        { name: "Advanced Financial Analytics", included: true },
-        { name: "Professional PDF Reports", included: true },
-        { name: "Organisation Workspaces", included: true },
-        { name: "View financial records shared with you by others", included: true },
-        { name: "Priority Support", included: true },
-        { name: "Exclusive Supporter Badge", included: true },
-      ],
       buttonText: isPro ? "Current Plan" : "Upgrade to Pro",
       buttonVariant: "default" as const,
       highlight: true,
@@ -250,11 +225,32 @@ function PricingPage() {
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Pricing for:{" "}
                 <span className="text-foreground">
-                  {geoIP?.countryName || selectedCurrency.label.split(" ")[0]}
+                  {geoIP?.countryName ||
+                    CURRENCY_META[selectedCurrencyCode]?.label.split(" ")[0] ||
+                    selectedCurrencyCode}
                 </span>
               </span>
             </div>
           )}
+
+          {/* Manual currency override buttons */}
+          <div className="flex gap-2 flex-wrap justify-center">
+            {Object.entries(CURRENCY_META).map(([code, meta]) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setSelectedCurrencyCode(code)}
+                className={cn(
+                  "px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all",
+                  selectedCurrencyCode === code
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-muted/50 text-muted-foreground border-border/50 hover:border-border",
+                )}
+              >
+                {meta.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Billing Interval Toggle */}
@@ -291,126 +287,123 @@ function PricingPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
-          {tiers.map((t) => (
-            <Card
-              key={t.name}
-              id={t.tierKey === "PRO" ? "pro-card" : undefined}
-              className={cn(
-                "relative flex flex-col transition-all duration-500 rounded-[40px] overflow-hidden border-2",
-                t.highlight
-                  ? "border-primary shadow-2xl shadow-primary/10 scale-105 z-10"
-                  : "border-border/50 hover:border-border shadow-sm",
-              )}
-            >
-              {t.highlight && (
-                <div className="absolute top-0 right-0 left-0 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.2em] py-2 text-center">
-                  Most Popular
-                </div>
-              )}
+          {tiers.map((t) => {
+            const tierLimits = t.tierKey === "FREE" ? freeLimits : proLimits;
+            const features = tierLimits ? getFeaturesForTier(t.tierKey, tierLimits) : [];
 
-              <CardHeader className={cn("pt-12 pb-8", t.highlight && "pt-14")}>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <CardTitle className="text-2xl font-black uppercase tracking-widest flex items-center gap-2">
-                      {t.name}
-                      {t.active && <TierBadge tier={isPro ? "PRO" : "FREE"} showIcon={false} />}
-                    </CardTitle>
-                    <CardDescription className="text-sm font-medium mt-1">
-                      {t.description}
-                    </CardDescription>
-                  </div>
-                  <div
-                    className={cn(
-                      "p-3 rounded-2xl",
-                      t.highlight ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {t.tierKey === "FREE" ? (
-                      <Shield className="w-6 h-6" />
-                    ) : (
-                      <Zap className="w-6 h-6" />
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black">{t.price}</span>
-                  {t.period && <span className="text-muted-foreground font-bold">{t.period}</span>}
-                </div>
-                {"perMonthEquivalent" in t && t.perMonthEquivalent && (
-                  <p className="text-xs text-muted-foreground font-medium mt-1">
-                    ≈ {t.perMonthEquivalent}/mo
-                  </p>
+            return (
+              <Card
+                key={t.name}
+                id={t.tierKey === "PRO" ? "pro-card" : undefined}
+                className={cn(
+                  "relative flex flex-col transition-all duration-500 rounded-[40px] overflow-hidden border-2",
+                  t.highlight
+                    ? "border-primary shadow-2xl shadow-primary/10 scale-105 z-10"
+                    : "border-border/50 hover:border-border shadow-sm",
                 )}
-              </CardHeader>
+              >
+                {t.highlight && (
+                  <div className="absolute top-0 right-0 left-0 bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-[0.2em] py-2 text-center">
+                    Most Popular
+                  </div>
+                )}
 
-              <CardContent className="flex-1 space-y-6">
-                <div className="space-y-3">
-                  {(t.features as Feature[]).map((feature) => (
+                <CardHeader className={cn("pt-12 pb-8", t.highlight && "pt-14")}>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <CardTitle className="text-2xl font-black uppercase tracking-widest flex items-center gap-2">
+                        {t.name}
+                        {t.active && <TierBadge tier={isPro ? "PRO" : "FREE"} showIcon={false} />}
+                      </CardTitle>
+                      <CardDescription className="text-sm font-medium mt-1">
+                        {t.description}
+                      </CardDescription>
+                    </div>
                     <div
-                      key={feature.name}
                       className={cn(
-                        "flex items-center gap-3",
-                        feature.highlight &&
-                          "bg-amber-50 dark:bg-amber-950/20 -mx-3 px-3 py-1.5 rounded-xl border border-amber-200/60 dark:border-amber-800/40",
+                        "p-3 rounded-2xl",
+                        t.highlight
+                          ? "bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground",
                       )}
                     >
-                      <div
-                        className={cn(
-                          "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center",
-                          feature.included
-                            ? "bg-primary/10 text-primary"
-                            : "bg-muted text-muted-foreground/40",
-                        )}
-                      >
-                        {feature.included ? (
-                          <Check className="w-3 h-3" />
-                        ) : (
-                          <X className="w-3 h-3" />
-                        )}
-                      </div>
-                      <span
-                        className={cn(
-                          "text-sm font-medium flex-1",
-                          !feature.included && "text-muted-foreground/60",
-                          feature.highlight && "font-bold text-amber-700 dark:text-amber-400",
-                        )}
-                      >
-                        {feature.name}
-                      </span>
-                      {feature.highlight && (
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 shrink-0">
-                          Key Feature
-                        </span>
+                      {t.tierKey === "FREE" ? (
+                        <Shield className="w-6 h-6" />
+                      ) : (
+                        <Zap className="w-6 h-6" />
                       )}
                     </div>
-                  ))}
-                </div>
-              </CardContent>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-black">{t.price}</span>
+                    {"period" in t && t.period && (
+                      <span className="text-muted-foreground font-bold">{t.period}</span>
+                    )}
+                  </div>
+                  {"perMonthEquivalent" in t && t.perMonthEquivalent && (
+                    <p className="text-xs text-muted-foreground font-medium mt-1">
+                      ≈ {t.perMonthEquivalent}/mo
+                    </p>
+                  )}
+                </CardHeader>
 
-              <CardFooter className="pb-10 pt-6">
-                <Button
-                  className={cn(
-                    "w-full h-14 rounded-md font-black uppercase tracking-widest text-xs transition-all",
-                    t.highlight &&
-                      !t.active &&
-                      "hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20",
-                  )}
-                  variant={t.buttonVariant}
-                  disabled={t.active || loading}
-                  onClick={t.tierKey === "PRO" && !t.active ? handleUpgrade : undefined}
-                  asChild={t.tierKey === "FREE" && !t.active}
-                >
-                  {t.active ? (
-                    <span>{t.buttonText}</span>
-                  ) : t.tierKey === "FREE" ? (
-                    <Link to="/"> {t.buttonText}</Link>
-                  ) : (
-                    <span>{t.buttonText}</span>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
+                <CardContent className="flex-1 space-y-6">
+                  <div className="space-y-3">
+                    {features.map((feature) => (
+                      <div
+                        key={feature.label}
+                        className={cn(
+                          "flex items-center gap-3",
+                          feature.highlight &&
+                            "bg-amber-50 dark:bg-amber-950/20 -mx-3 px-3 py-1.5 rounded-xl border border-amber-200/60 dark:border-amber-800/40",
+                        )}
+                      >
+                        <div className="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center bg-primary/10 text-primary">
+                          <Check className="w-3 h-3" />
+                        </div>
+                        <span
+                          className={cn(
+                            "text-sm font-medium flex-1",
+                            feature.highlight && "font-bold text-amber-700 dark:text-amber-400",
+                          )}
+                        >
+                          {feature.label}
+                        </span>
+                        {feature.highlight && (
+                          <span className="text-[9px] font-black uppercase tracking-widest bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full border border-amber-200/60 dark:border-amber-800/40 shrink-0">
+                            Key Feature
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+
+                <CardFooter className="pb-10 pt-6">
+                  <Button
+                    className={cn(
+                      "w-full h-14 rounded-md font-black uppercase tracking-widest text-xs transition-all",
+                      t.highlight &&
+                        !t.active &&
+                        "hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20",
+                    )}
+                    variant={t.buttonVariant}
+                    disabled={t.active || loading}
+                    onClick={t.tierKey === "PRO" && !t.active ? handleUpgrade : undefined}
+                    asChild={t.tierKey === "FREE" && !t.active}
+                  >
+                    {t.active ? (
+                      <span>{t.buttonText}</span>
+                    ) : t.tierKey === "FREE" ? (
+                      <Link to="/"> {t.buttonText}</Link>
+                    ) : (
+                      <span>{t.buttonText}</span>
+                    )}
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Contact Notification SMS Callout */}
@@ -427,8 +420,10 @@ function PricingPage() {
             <p className="text-muted-foreground font-medium leading-relaxed max-w-lg mx-auto">
               When you record a transaction against someone's phone number, they receive an SMS —
               even if they're not on Wathīqah.{" "}
-              <strong className="text-foreground">Ledger users get 10 per month.</strong> Upgrade to
-              Pro for unlimited contact notifications and full SMS witness support.
+              <strong className="text-foreground">
+                Ledger users get {freeLimits?.contactNotificationSms ?? 10} per month.
+              </strong>{" "}
+              Upgrade to Pro for unlimited contact notifications and full SMS witness support.
             </p>
             <Button
               variant="default"

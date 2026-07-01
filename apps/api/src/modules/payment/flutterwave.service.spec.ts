@@ -7,8 +7,11 @@ import {
   SupportStatus,
   PaymentStatus,
   PaymentType,
+  SubscriptionTier,
 } from '../../generated/prisma/enums';
 import { Prisma } from '../../generated/prisma/client';
+import { PRO_PRICING } from '../subscription/subscription.constants';
+import * as axios from 'axios';
 
 jest.mock('axios');
 
@@ -189,6 +192,43 @@ describe('FlutterwaveService', () => {
       await service.handleWebhook(payload, 'secret_hash');
 
       expect(prismaService.$transaction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('createSubscriptionSession', () => {
+    const mockUser = {
+      id: 'user_123',
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      phoneNumber: '+2341234567890',
+    } as Parameters<FlutterwaveService['createSubscriptionSession']>[0];
+
+    beforeEach(() => {
+      // Return null for plan IDs so the fallback amount path is exercised.
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
+        if (key === 'payment.successUrl')
+          return 'http://localhost:3000/payment/success';
+        return null;
+      });
+    });
+
+    it('uses PRO_PRICING.NGN.monthly (2500) as the NGN fallback amount', async () => {
+      const axiosMock = axios as unknown as Record<string, jest.Mock>;
+      axiosMock.post = jest.fn().mockResolvedValue({
+        data: {
+          status: 'success',
+          data: { link: 'https://checkout.flutterwave.com/v3/hosted/pay/abc' },
+        },
+      });
+
+      await service.createSubscriptionSession(mockUser, SubscriptionTier.PRO);
+
+      const callArgs = axiosMock.post.mock.calls[0];
+      const payload = callArgs[1] as Record<string, unknown>;
+      expect(payload.amount).toBe(String(PRO_PRICING.NGN.monthly));
+      expect(payload.amount).toBe('2500');
     });
   });
 });
