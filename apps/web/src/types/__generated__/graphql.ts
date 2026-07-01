@@ -1943,7 +1943,7 @@ export type MySubscriptionQuery = { mySubscription: { __typename: 'SubscriptionI
 export type ProPricingQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ProPricingQuery = { proPricing: { __typename: 'ProPricing', currencies: Array<{ __typename: 'CurrencyPricing', currency: string, monthly: number, annual: number }> } };
+export type ProPricingQuery = { proPricing: { __typename: 'ProPricing', currencies: Array<{ __typename: 'CurrencyPricing', currency: string, monthly: number, annual: number }>, freeLimits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, maxNotes: number, contactNotificationSms: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean, allowOrganisations: boolean }, proLimits: { __typename: 'TierLimitsEntity', maxContacts: number, maxWitnessesPerMonth: number, maxNotes: number, contactNotificationSms: number, allowSMS: boolean, allowAdvancedAnalytics: boolean, allowProfessionalReports: boolean, allowOrganisations: boolean } } };
 
 export type TotalBalanceQueryVariables = Exact<{
   currency?: InputMaybe<Scalars['String']['input']>;
