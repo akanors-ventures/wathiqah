@@ -224,86 +224,89 @@ function SharedAccessView() {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        transactions?.map((tx) => (
-                          <TableRow
-                            key={tx.id}
-                            className="group/row hover:bg-primary/[0.02] transition-colors border-b border-border/10 last:border-0"
-                          >
-                            <TableCell className="p-5 pl-8">
-                              <div className="flex flex-col gap-0.5">
-                                <span className="text-xs font-black text-foreground">
-                                  {formatDate(tx.date as string)}
-                                </span>
-                                <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                                  {new Date(tx.date as string).toLocaleDateString("en-US", {
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="p-5">
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-0 shadow-sm",
-                                  `text-${getTxTypeColor(tx.type)}-600 bg-${getTxTypeColor(tx.type)}-500/10`,
-                                )}
-                              >
-                                {tx.type.toLowerCase().replace(/_/g, " ")}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="p-5 font-bold text-xs tracking-tight text-foreground/80 group-hover/row:text-primary transition-colors">
-                              {tx.contact?.name || "-"}
-                            </TableCell>
-                            <TableCell className="p-5">
-                              {tx.category === AssetCategory.Item ? (
-                                <div className="flex items-center gap-2 font-extrabold text-xs text-foreground tracking-tight">
-                                  <div className="p-1.5 rounded-lg bg-primary/5 text-primary">
-                                    <Package className="h-3.5 w-3.5" />
-                                  </div>
-                                  <span>
-                                    {tx.quantity}x {tx.itemName}
+                        transactions?.map((tx) => {
+                          const txColor = getTxTypeColor(tx.type);
+                          return (
+                            <TableRow
+                              key={tx.id}
+                              className="group/row hover:bg-primary/[0.02] transition-colors border-b border-border/10 last:border-0"
+                            >
+                              <TableCell className="p-5 pl-8">
+                                <div className="flex flex-col gap-0.5">
+                                  <span className="text-xs font-black text-foreground">
+                                    {formatDate(tx.date as string)}
+                                  </span>
+                                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                                    {new Date(tx.date as string).toLocaleDateString("en-US", {
+                                      month: "short",
+                                      day: "numeric",
+                                    })}
                                   </span>
                                 </div>
-                              ) : (
-                                <span
-                                  className="text-xs font-medium text-muted-foreground truncate block max-w-[200px]"
-                                  title={tx.description as string}
-                                >
-                                  {tx.description || "-"}
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell className="p-5 pr-8 text-right">
-                              {tx.category === AssetCategory.Item ? (
-                                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">
-                                  Physical Item
-                                </span>
-                              ) : (
-                                <div
+                              </TableCell>
+                              <TableCell className="p-5">
+                                <Badge
+                                  variant="outline"
                                   className={cn(
-                                    "text-sm font-black tracking-tight",
-                                    getTxTypeColor(tx.type as string) === "slate"
-                                      ? "text-foreground"
-                                      : `text-${getTxTypeColor(tx.type as string)}-600`,
+                                    "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border-0 shadow-sm",
+                                    `text-${txColor}-600 bg-${txColor}-500/10`,
                                   )}
                                 >
-                                  {tx.type === "LOAN_RECEIVED" ||
-                                  tx.type === "REPAYMENT_RECEIVED" ||
-                                  tx.type === "GIFT_RECEIVED" ||
-                                  tx.type === "ADVANCE_RECEIVED" ||
-                                  tx.type === "DEPOSIT_RECEIVED" ||
-                                  tx.type === "ESCROWED" ||
-                                  (tx.type as string) === "INCOME"
-                                    ? "+"
-                                    : "-"}
-                                  {formatCurrency(tx.amount || 0, tx.currency)}
-                                </div>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        ))
+                                  {tx.type.toLowerCase().replace(/_/g, " ")}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="p-5 font-bold text-xs tracking-tight text-foreground/80 group-hover/row:text-primary transition-colors">
+                                {tx.contact?.name || "-"}
+                              </TableCell>
+                              <TableCell className="p-5">
+                                {tx.category === AssetCategory.Item ? (
+                                  <div className="flex items-center gap-2 font-extrabold text-xs text-foreground tracking-tight">
+                                    <div className="p-1.5 rounded-lg bg-primary/5 text-primary">
+                                      <Package className="h-3.5 w-3.5" />
+                                    </div>
+                                    <span>
+                                      {tx.quantity}x {tx.itemName}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span
+                                    className="text-xs font-medium text-muted-foreground truncate block max-w-[200px]"
+                                    title={tx.description as string}
+                                  >
+                                    {tx.description || "-"}
+                                  </span>
+                                )}
+                              </TableCell>
+                              <TableCell className="p-5 pr-8 text-right">
+                                {tx.category === AssetCategory.Item ? (
+                                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-40">
+                                    Physical Item
+                                  </span>
+                                ) : (
+                                  <div
+                                    className={cn(
+                                      "text-sm font-black tracking-tight",
+                                      txColor === "slate"
+                                        ? "text-foreground"
+                                        : `text-${txColor}-600`,
+                                    )}
+                                  >
+                                    {tx.type === "LOAN_RECEIVED" ||
+                                    tx.type === "REPAYMENT_RECEIVED" ||
+                                    tx.type === "GIFT_RECEIVED" ||
+                                    tx.type === "ADVANCE_RECEIVED" ||
+                                    tx.type === "DEPOSIT_RECEIVED" ||
+                                    tx.type === "ESCROWED" ||
+                                    (tx.type as string) === "INCOME"
+                                      ? "+"
+                                      : "-"}
+                                    {formatCurrency(tx.amount || 0, tx.currency)}
+                                  </div>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
                       )}
                     </TableBody>
                   </Table>
