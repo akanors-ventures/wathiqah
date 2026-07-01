@@ -178,7 +178,13 @@ export function OrgProvider({ children }: { children: ReactNode }) {
     }
 
     if (!activeOrgId) {
-      hasAttemptedRestoration.current = true;
+      // Only abort permanently when there's nothing to wait for. If signalOrgId
+      // is set but the org wasn't in the stale cache yet (fell through above),
+      // don't set the one-shot guard — the effect must re-run when the network
+      // response arrives with the correct org list.
+      if (!signalOrgId) {
+        hasAttemptedRestoration.current = true;
+      }
       return;
     }
 
