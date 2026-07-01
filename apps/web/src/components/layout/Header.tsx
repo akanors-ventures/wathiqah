@@ -55,10 +55,12 @@ export default function Header() {
   const { isOrgMode, activeOrg } = useActiveOrg();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Ledger/Network mirror the mobile bottom nav's mode split: Projects,
-  // Promises, and personal Notes only apply to the individual's own ledger
-  // and have no org equivalent, so they're hidden in org mode rather than
-  // silently writing org-mode actions to the user's personal account.
+  // Ledger/Network: Transactions, My Records, Contacts, Promises, Projects,
+  // and Witnesses are all backend org-scoped (@ActiveOrg() resolves orgId
+  // from the JWT automatically) — same route in both modes, no frontend
+  // branching needed; the org's data shows up automatically in org mode.
+  // Only personal Notes has no org equivalent (org notes live under the
+  // dedicated Events & Notes page instead), so it alone is hidden here.
   const ledgerItems: NavItem[] = [
     {
       icon: ArrowRightLeft,
@@ -77,18 +79,14 @@ export default function Header() {
       href: "/transactions/my-contact-transactions",
       match: "/transactions/my-contact-transactions",
     },
-    ...(isOrgMode
-      ? []
-      : [
-          {
-            icon: FolderKanban,
-            iconColor: "text-violet-500",
-            label: "Projects",
-            description: "Budget & expense tracking",
-            href: "/projects",
-            match: "/projects",
-          },
-        ]),
+    {
+      icon: FolderKanban,
+      iconColor: "text-violet-500",
+      label: "Projects",
+      description: "Budget & expense tracking",
+      href: "/projects",
+      match: "/projects",
+    },
   ];
 
   const networkItems: NavItem[] = [
@@ -101,6 +99,14 @@ export default function Header() {
       match: "/contacts",
     },
     {
+      icon: Handshake,
+      iconColor: "text-emerald-500",
+      label: "Promises",
+      description: "Track commitments & agreements",
+      href: "/promises",
+      match: "/promises",
+    },
+    {
       icon: FileSignature,
       iconColor: "text-purple-500",
       label: "Witnesses",
@@ -111,14 +117,6 @@ export default function Header() {
     ...(isOrgMode
       ? []
       : [
-          {
-            icon: Handshake,
-            iconColor: "text-emerald-500",
-            label: "Promises",
-            description: "Track commitments & agreements",
-            href: "/promises",
-            match: "/promises",
-          },
           {
             icon: PenLine,
             iconColor: "text-amber-500",

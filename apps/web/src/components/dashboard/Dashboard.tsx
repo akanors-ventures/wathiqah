@@ -266,10 +266,15 @@ export function Dashboard() {
       </div>
 
       {/* Financial Stats
-          Layout: 2-col on mobile/tablet, 4-col on lg+
+          Layout: 2-col on mobile/tablet, 4-col on lg+ in personal mode.
+          Cash Position is sourced from Personal Entries, which has no org
+          equivalent (it's explicitly the individual's own income/expense
+          tracking) — shown only in personal mode, so org mode drops to a
+          3-card row (Total Balance, Inflow, Outflow) instead of leaving a
+          stale personal-finance figure on what's meant to be the org's view.
           Total Balance + Cash Position each span full width below lg so they
           never leave an orphaned card — Inflow/Outflow always sit side-by-side. */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 grid-cols-2 ${isOrgMode ? "lg:grid-cols-3" : "lg:grid-cols-4"}`}>
         {/* Total Balance — full width below lg */}
         <div className="col-span-2 lg:col-span-1">
           <StatsCard
@@ -305,22 +310,24 @@ export function Dashboard() {
           />
         </div>
 
-        {/* Cash Position — full width below lg */}
-        <div className="col-span-2 lg:col-span-1">
-          <StatsCard
-            title="Cash Position"
-            value={
-              <BalanceIndicator
-                amount={cashSummary?.netCashPosition ?? 0}
-                currency={balanceCurrency}
-                overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
-                className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
-              />
-            }
-            icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
-            description="Personal income minus expenses (All Time)"
-          />
-        </div>
+        {/* Cash Position — personal mode only, full width below lg */}
+        {!isOrgMode && (
+          <div className="col-span-2 lg:col-span-1">
+            <StatsCard
+              title="Cash Position"
+              value={
+                <BalanceIndicator
+                  amount={cashSummary?.netCashPosition ?? 0}
+                  currency={balanceCurrency}
+                  overrideColor={(cashSummary?.netCashPosition ?? 0) < 0 ? "red" : "green"}
+                  className="text-base sm:text-xl h-auto px-2 py-0 border-0 bg-transparent"
+                />
+              }
+              icon={<CreditCard className="h-4 w-4 text-muted-foreground" />}
+              description="Personal income minus expenses (All Time)"
+            />
+          </div>
+        )}
 
         {/* Inflow + Outflow — always side-by-side (1 col each) */}
         <StatsCard
@@ -350,7 +357,12 @@ export function Dashboard() {
         />
       </div>
 
-      {/* Activity Stats */}
+      {/* Activity Stats
+          Promises and Contacts are backend org-scoped (@ActiveOrg() on the
+          resolver), so these counts are already the org's data in org mode
+          with no extra logic needed. Witnesses has no org-scoping at all —
+          it's always the current user's own pending verifications, shown in
+          both modes intentionally as a personal action item. */}
       <div className="grid gap-3 grid-cols-3">
         <StatsCard
           compact
