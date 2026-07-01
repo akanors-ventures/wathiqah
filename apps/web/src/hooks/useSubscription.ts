@@ -58,6 +58,7 @@ export function useSubscription() {
     allowSMS: limits?.allowSMS ?? false,
     allowAdvancedAnalytics: limits?.allowAdvancedAnalytics ?? false,
     allowProfessionalReports: limits?.allowProfessionalReports ?? false,
+    allowOrganisations: limits?.allowOrganisations ?? false,
     maxContacts,
     maxWitnessesPerMonth,
     witnessUsage,

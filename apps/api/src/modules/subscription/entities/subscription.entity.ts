@@ -1,4 +1,4 @@
-import { ObjectType, Field, Int } from '@nestjs/graphql';
+import { ObjectType, Field, Int, Float } from '@nestjs/graphql';
 import { GraphQLJSON } from 'graphql-type-json';
 
 @ObjectType()
@@ -23,6 +23,33 @@ export class TierLimitsEntity {
 
   @Field()
   allowProfessionalReports: boolean;
+
+  @Field()
+  allowOrganisations: boolean;
+}
+
+@ObjectType()
+export class CurrencyPricing {
+  @Field()
+  currency: string;
+
+  @Field(() => Float)
+  monthly: number;
+
+  @Field(() => Float)
+  annual: number;
+}
+
+@ObjectType()
+export class ProPricing {
+  @Field(() => [CurrencyPricing])
+  currencies: CurrencyPricing[];
+
+  @Field(() => TierLimitsEntity)
+  freeLimits: TierLimitsEntity;
+
+  @Field(() => TierLimitsEntity)
+  proLimits: TierLimitsEntity;
 }
 
 @ObjectType()

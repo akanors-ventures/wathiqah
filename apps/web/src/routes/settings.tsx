@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TIER_DISPLAY } from "@/config/subscription-features";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfile } from "@/hooks/useProfile";
 import { useSharedAccess } from "@/hooks/useSharedAccess";
@@ -47,8 +48,6 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { CANCEL_SUBSCRIPTION, REACTIVATE_SUBSCRIPTION } from "@/lib/apollo/queries/payment";
 import { cn } from "@/lib/utils";
 import { authGuard } from "@/utils/auth";
-
-const TIER_DISPLAY: Record<string, string> = { FREE: "Ledger", PRO: "Wathīqah Pro" };
 
 const SUPPORTED_CURRENCIES = [
   { code: "NGN", name: "Nigerian Naira", symbol: "₦" },
@@ -175,7 +174,9 @@ export function BillingSection() {
                 Current Plan
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-black">{TIER_DISPLAY[tier ?? "FREE"] ?? tier}</span>
+                <span className="text-2xl font-black">
+                  {TIER_DISPLAY[(tier ?? "FREE") as "FREE" | "PRO"] ?? tier}
+                </span>
                 {isPro && (
                   <Badge
                     variant="default"
