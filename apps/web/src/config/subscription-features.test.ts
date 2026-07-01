@@ -110,6 +110,16 @@ describe("getFeaturesForTier", () => {
       expect(labels).not.toContain("Grant read-only access to trusted contacts (legacy access)");
     });
 
+    it("shows 'Everything in Ledger' as the first PRO feature", () => {
+      const features = getFeaturesForTier("PRO", PRO_LIMITS);
+      expect(features[0].label).toBe("Everything in Ledger");
+    });
+
+    it("does not show 'Everything in Ledger' on FREE", () => {
+      const labels = getFeaturesForTier("FREE", FREE_LIMITS).map((f) => f.label);
+      expect(labels).not.toContain("Everything in Ledger");
+    });
+
     it("does not include Exclusive Supporter Badge", () => {
       const labels = getFeaturesForTier("PRO", PRO_LIMITS).map((f) => f.label);
       const hasSupporter = labels.some((l) => l.toLowerCase().includes("supporter"));

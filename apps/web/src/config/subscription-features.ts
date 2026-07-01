@@ -37,6 +37,13 @@ export const FEATURE_CATALOG: FeatureEntry[] = [
     codeEnforced: false,
     label: "Email Notifications",
   },
+  // ── Pro card header — signals Free features are included ──────────────
+  {
+    key: "everythingInLedger",
+    tiers: ["PRO"],
+    codeEnforced: false,
+    label: "Everything in Ledger",
+  },
   // ── Limit-derived (label reflects live backend value) ──────────────────
   {
     key: "maxContacts",
