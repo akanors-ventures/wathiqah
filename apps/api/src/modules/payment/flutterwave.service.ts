@@ -11,6 +11,7 @@ import { BillingInterval } from './dto/billing-interval.enum';
 import { User, Prisma } from '../../generated/prisma/client';
 import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { PRO_PRICING } from '../subscription/subscription.constants';
 
 @Injectable()
 export class FlutterwaveService {
@@ -53,7 +54,7 @@ export class FlutterwaveService {
         'Annual subscription plan is not configured. Contact support.',
       );
     }
-    const fallbackAmount = '5000';
+    const fallbackAmount = String(PRO_PRICING.NGN.monthly);
 
     const payload: Record<string, unknown> = {
       tx_ref: `sub_${user.id}_${Date.now()}`,

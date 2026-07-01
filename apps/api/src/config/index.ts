@@ -10,6 +10,7 @@ import exchangeRateConfig from './exchange-rate.config';
 import geoipConfig from './geoip.config';
 import paymentConfig from './payment.config';
 import adminConfig from './admin.config';
+import pricingConfig from './pricing.config';
 
 export default [
   databaseConfig,
@@ -24,4 +25,5 @@ export default [
   geoipConfig,
   paymentConfig,
   adminConfig,
+  pricingConfig,
 ];

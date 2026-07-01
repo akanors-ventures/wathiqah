@@ -3,10 +3,11 @@ import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
-import { SubscriptionInfo } from './entities/subscription.entity';
+import { SubscriptionInfo, ProPricing } from './entities/subscription.entity';
 import {
   SUBSCRIPTION_LIMITS,
   SubscriptionTier,
+  PRO_PRICING,
 } from './subscription.constants';
 import { UsersService } from '../users/users.service';
 import { SubscriptionService } from './subscription.service';
@@ -36,6 +37,21 @@ export class SubscriptionResolver {
       subscriptionStatus: fullUser?.subscriptionStatus,
       cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd,
       currentPeriodEnd: subscription?.currentPeriodEnd,
+    };
+  }
+
+  // No auth guard — pricing page must work for logged-out visitors
+  @Query(() => ProPricing, { name: 'proPricing' })
+  getProPricing(): ProPricing {
+    return {
+      currencies: (
+        Object.entries(PRO_PRICING) as [
+          string,
+          { monthly: number; annual: number },
+        ][]
+      ).map(([currency, prices]) => ({ currency, ...prices })),
+      freeLimits: SUBSCRIPTION_LIMITS[SubscriptionTier.FREE],
+      proLimits: SUBSCRIPTION_LIMITS[SubscriptionTier.PRO],
     };
   }
 }
