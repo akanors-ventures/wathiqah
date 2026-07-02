@@ -146,6 +146,60 @@ describe("NotificationBell", () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith({ to: "/witnesses" }));
   });
 
+  it("navigates to a transaction link via params, not a pre-built path string", async () => {
+    // Regression test: navigate({ to: link as never }) with a pre-built
+    // "/transactions/<id>" string leaves Route.useParams() undefined on the
+    // client-side transition (confirmed live — the destination page's
+    // GraphQL query errored with "Variable $id ... was not provided").
+    // Dynamic segments must go through `params`.
+    setup(
+      [
+        makeNotification({
+          id: "n2",
+          title: "Witness acknowledged your transaction",
+          link: "/transactions/tx-abc-123",
+        }),
+      ],
+      1,
+    );
+
+    render(<NotificationBell />);
+
+    fireEvent.click(screen.getByText("Witness acknowledged your transaction"));
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/transactions/$id",
+        params: { id: "tx-abc-123" },
+      }),
+    );
+  });
+
+  it("navigates to /pricing with the required search param", async () => {
+    setup(
+      [
+        makeNotification({
+          id: "n3",
+          title: "Pro access expired",
+          link: "/pricing",
+          read: true,
+        }),
+      ],
+      0,
+    );
+
+    render(<NotificationBell />);
+
+    fireEvent.click(screen.getByText("Pro access expired"));
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith({
+        to: "/pricing",
+        search: { reason: undefined },
+      }),
+    );
+  });
+
   it("calls markAllRead when 'Mark all read' is clicked", async () => {
     setup([makeNotification()], 1);
 

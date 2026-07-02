@@ -25,6 +25,29 @@ type NotificationListItem = MyNotificationsQuery["myNotifications"][number];
 // "recent notifications" list is meant to show.
 const MAX_CACHED_NOTIFICATIONS = 30;
 
+// `notification.link` is a plain string built server-side (see
+// notification-templates.ts) — NOT a TanStack Router path template. Passing
+// it straight to `navigate({ to: link })` updates the URL bar correctly but
+// leaves `Route.useParams()` undefined on the resulting client-side
+// transition for any dynamic-segment route (confirmed live: clicking a
+// witness-response notification landed on /transactions/<id> with the GraphQL
+// query erroring "Variable $id ... was not provided"). Per this repo's
+// TanStack Router — Typed Params rule, a dynamic segment must be navigated
+// via `params`, never a pre-built path string, so known dynamic-segment
+// shapes are parsed out and routed through `params` explicitly here.
+function resolveNotificationDestination(link: string) {
+  const transactionId = link.match(/^\/transactions\/(.+)$/)?.[1];
+  if (transactionId) {
+    return { to: "/transactions/$id" as const, params: { id: transactionId } };
+  }
+  if (link === "/pricing") {
+    return { to: "/pricing" as const, search: { reason: undefined } };
+  }
+  // Remaining known link values (e.g. "/witnesses") are static routes with
+  // no dynamic segments, so a plain string `to` resolves correctly.
+  return { to: link as never };
+}
+
 export function NotificationBell() {
   const navigate = useNavigate();
   const { data: listData, refetch: refetchList } = useQuery(MY_NOTIFICATIONS_QUERY);
@@ -93,12 +116,13 @@ export function NotificationBell() {
       if (!listUpdated) refetchList();
       if (!countUpdated) refetchCount();
 
+      const { link } = notification;
       toast(notification.title, {
         description: notification.body,
-        action: notification.link
+        action: link
           ? {
               label: "View",
-              onClick: () => navigate({ to: notification.link as never }),
+              onClick: () => navigate(resolveNotificationDestination(link)),
             }
           : undefined,
       });
@@ -118,7 +142,7 @@ export function NotificationBell() {
       }
     }
     if (notification.link) {
-      navigate({ to: notification.link as never });
+      navigate(resolveNotificationDestination(notification.link));
     }
   }
 
