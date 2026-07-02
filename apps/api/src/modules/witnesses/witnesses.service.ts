@@ -52,13 +52,6 @@ export class WitnessesService {
       );
     }
 
-    // A witness may only ever accept or decline via this mutation — PENDING
-    // and MODIFIED are system-driven states set elsewhere (invite creation,
-    // post-acknowledgment edits), never a direct witness action. Rejecting
-    // anything else here also keeps the notification copy below accurate:
-    // without this guard, any other WitnessStatus value would silently be
-    // treated as DECLINED and tell the transaction creator the witness
-    // declined when they didn't.
     if (
       status !== WitnessStatus.ACKNOWLEDGED &&
       status !== WitnessStatus.DECLINED
