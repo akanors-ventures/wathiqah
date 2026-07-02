@@ -17,6 +17,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm --filter api test -- --testPathPattern=<x>` mangles args in worktrees — use the `cd apps/api && npx jest` form instead.
 - In test files, use `as unknown as T` double-cast to access private members — never `as any` and never eslint-disable comments to suppress `no-explicit-any`.
 - When using `jest.spyOn`, always add `afterEach(() => jest.restoreAllMocks())` in the same describe block to prevent cross-test mock leakage.
+- Frontend (Vitest): `@testing-library/user-event` is **not installed** — use `fireEvent` from `@testing-library/react` for click/interaction tests.
+- When mocking `useQuery`/`useMutation` by GraphQL operation name in Vitest, don't assume `document.definitions[0]` is the operation — a query built with an interpolated fragment (`${SOME_FIELDS}`) puts the FragmentDefinition first. Find it via `definitions.find(d => d.kind === "OperationDefinition")`.
 
 ## TypeScript Checks
 
@@ -30,6 +32,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Never build a dynamic-segment href via string interpolation: `<Link to={`/org/${slug}/members` as never}>` updates the URL bar correctly and the route matches, but `Route.useParams()` comes back `undefined` on the resulting *client-side* transition (a hard reload works fine since it re-parses the URL through route matching from scratch). Always use `<Link to="/org/$slug/members" params={{ slug }}>` instead.
 - Same applies to `navigate({ to: ... })` — pass `params`, never a pre-built path string.
+- This holds even for a fully-resolved concrete path (e.g. a server-generated string like `/transactions/abc-123`, not just a visibly-interpolated template) — confirmed via a live bug where `navigate({ to: someResolvedPath as never })` left `Route.useParams()` undefined and broke the destination page's query. Don't rationalize an exception for "it's already resolved" — always route dynamic segments through `params`.
 
 ## Pre-commit Hook Auto-formats Files
 
@@ -46,6 +49,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Apollo Client — One Watcher Per Query
 
 - Don't run a second `useQuery()` for a query that's already watched elsewhere (e.g. in a context provider) "just to get a local refetch handle." Two independent watchers for the same query can observe different cache snapshots during a race window (one's background refetch hasn't landed when the other's `cache-first` read fires) — this caused an intermittent false "not found" earlier. Read state from the existing context/hook instead, and expose its `refetch` if a consumer needs to trigger one.
+
+## UI Components — radix-ui Package
+
+- Newer shadcn components (e.g. `progress.tsx`) import from the unified `radix-ui` meta-package (`import { X as XPrimitive } from "radix-ui"`) instead of per-primitive `@radix-ui/react-x` packages. Check an existing component's import style before adding a new `@radix-ui/react-*` dependency — it's likely already covered.
 
 ## Quick Start
 
@@ -295,6 +302,8 @@ Two check patterns exist in `SubscriptionService.checkFeatureLimit` (`apps/api/s
 - **Do not run `db:apply` on production manually** — CI applies migrations automatically via `.github/workflows/ci-atlas.yaml` on merge to `main`.
 - **FK constraints must use `NOT VALID`**: `ADD CONSTRAINT ... FOREIGN KEY ... NOT VALID` followed by `ALTER TABLE ... VALIDATE CONSTRAINT ...` — Atlas lint will block CI if `NOT VALID` is omitted.
 - Atlas requires `atlas login` (browser-based); token expires periodically.
+- **Checksum mismatch** on `db:migrate`/`atlas migrate status` (e.g. "X.sql was added... checksum mismatch"): `atlas.sum` is out of sync with files already in `atlas/migrations/` (usually from a merge). Fix with `atlas migrate hash --dir file://atlas/migrations` — recomputes hashes only, applies nothing.
+- **`db:migrate` can bundle in unrelated drift**: if the generated SQL touches tables you didn't change (seen on `contacts`, `notes`, `org_events`, `org_subscriptions`, `organisation_members`, `projects`, `promises`, `transactions` — FK `ON DELETE` behavior drifts from committed schema), that's pre-existing DB drift, not your change. Trim the generated `.sql` to your actual diff before `atlas migrate hash`/`db:apply`.
 - **Worktrees**: if two worktrees both run `db:migrate`, each generates its own migration file with its own timestamp. They will conflict when merged. Coordinate: only one worktree should generate a schema-changing migration at a time, or rebase and re-generate after merging the other.
 
 #### Special case: removing a PostgreSQL enum value
