@@ -7,12 +7,6 @@ export interface NotificationContent {
   link: string | null;
 }
 
-/**
- * Single source of truth for every in-app notification's copy. Keeping this
- * centralized (instead of inline ternaries at each trigger point) means
- * adding a new trigger is one function here plus one call site, and a copy
- * change never has to be found across multiple service files.
- */
 export const NotificationTemplates = {
   witnessInvited(creatorName: string): NotificationContent {
     return {

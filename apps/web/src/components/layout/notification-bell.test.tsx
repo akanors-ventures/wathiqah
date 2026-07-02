@@ -147,11 +147,6 @@ describe("NotificationBell", () => {
   });
 
   it("navigates to a transaction link via params, not a pre-built path string", async () => {
-    // Regression test: navigate({ to: link as never }) with a pre-built
-    // "/transactions/<id>" string leaves Route.useParams() undefined on the
-    // client-side transition (confirmed live — the destination page's
-    // GraphQL query errored with "Variable $id ... was not provided").
-    // Dynamic segments must go through `params`.
     setup(
       [
         makeNotification({

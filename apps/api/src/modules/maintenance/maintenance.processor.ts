@@ -45,11 +45,6 @@ export class MaintenanceProcessor extends WorkerHost {
       include: { user: true },
     });
 
-    // Each subscription's expiry (DB writes + email + in-app notification)
-    // is independent of every other's, so run them concurrently instead of
-    // one at a time — this also isolates a single subscription's failure
-    // (e.g. a bad email address) from blocking the rest of the batch, which
-    // the old sequential-await loop did not.
     const results = await Promise.allSettled(
       expired.map((subscription) => this.expireSubscription(subscription)),
     );
