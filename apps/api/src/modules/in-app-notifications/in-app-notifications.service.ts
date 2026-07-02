@@ -34,12 +34,6 @@ export class InAppNotificationsService {
     return notification;
   }
 
-  /**
-   * Fire-and-forget variant of `create()` for trigger points that must
-   * never let a notification failure interrupt their primary flow (a
-   * witness invite, a role change, etc.). Never throws — failures are
-   * logged with `context` identifying which trigger point failed.
-   */
   async createSafely(
     params: { userId: string } & NotificationContent,
     context: string,

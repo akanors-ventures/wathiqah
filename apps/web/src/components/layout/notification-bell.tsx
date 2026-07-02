@@ -19,22 +19,8 @@ import type { MyNotificationsQuery } from "@/types/__generated__/graphql";
 
 type NotificationListItem = MyNotificationsQuery["myNotifications"][number];
 
-// Mirrors the backend's RECENT_NOTIFICATIONS_LIMIT (in-app-notifications.service.ts)
-// — caps how many items the subscription handler will keep prepending to the
-// cached list over a long-lived session, so it never grows past what the
-// "recent notifications" list is meant to show.
 const MAX_CACHED_NOTIFICATIONS = 30;
 
-// `notification.link` is a plain string built server-side (see
-// notification-templates.ts) — NOT a TanStack Router path template. Passing
-// it straight to `navigate({ to: link })` updates the URL bar correctly but
-// leaves `Route.useParams()` undefined on the resulting client-side
-// transition for any dynamic-segment route (confirmed live: clicking a
-// witness-response notification landed on /transactions/<id> with the GraphQL
-// query erroring "Variable $id ... was not provided"). Per this repo's
-// TanStack Router — Typed Params rule, a dynamic segment must be navigated
-// via `params`, never a pre-built path string, so known dynamic-segment
-// shapes are parsed out and routed through `params` explicitly here.
 function resolveNotificationDestination(link: string) {
   const transactionId = link.match(/^\/transactions\/(.+)$/)?.[1];
   if (transactionId) {
@@ -43,8 +29,6 @@ function resolveNotificationDestination(link: string) {
   if (link === "/pricing") {
     return { to: "/pricing" as const, search: { reason: undefined } };
   }
-  // Remaining known link values (e.g. "/witnesses") are static routes with
-  // no dynamic segments, so a plain string `to` resolves correctly.
   return { to: link as never };
 }
 
@@ -52,9 +36,6 @@ export function NotificationBell() {
   const navigate = useNavigate();
   const { data: listData, refetch: refetchList } = useQuery(MY_NOTIFICATIONS_QUERY);
   const { data: countData, refetch: refetchCount } = useQuery(MY_UNREAD_NOTIFICATION_COUNT_QUERY);
-  // Notifications currently being marked read — guards against a double
-  // click firing markNotificationRead twice for the same id before the
-  // first mutation's result has re-rendered this component with read: true.
   const pendingReadIds = useRef(new Set<string>());
 
   const [markRead] = useMutation(MARK_NOTIFICATION_READ_MUTATION, {
@@ -110,9 +91,6 @@ export function NotificationBell() {
         return { myUnreadNotificationCount: existing.myUnreadNotificationCount + 1 };
       });
 
-      // The initial queries hadn't populated the cache yet when this event
-      // arrived (a narrow startup race) — refetch from the server instead
-      // of silently dropping the event.
       if (!listUpdated) refetchList();
       if (!countUpdated) refetchCount();
 
