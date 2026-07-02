@@ -3,11 +3,18 @@ import { MaintenanceProcessor } from './maintenance.processor';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { Job } from 'bullmq';
-import { SubscriptionTier } from '../../generated/prisma/client';
+import {
+  SubscriptionTier,
+  NotificationType,
+} from '../../generated/prisma/client';
 
 const mockExchangeRateService = { updateRates: jest.fn() };
 const mockNotificationService = { sendProvisioningNotification: jest.fn() };
+const mockInAppNotificationsService = {
+  create: jest.fn().mockResolvedValue({}),
+};
 const mockPrisma = {
   subscription: { findMany: jest.fn(), update: jest.fn() },
   user: { update: jest.fn() },
@@ -26,6 +33,10 @@ describe('MaintenanceProcessor', () => {
         { provide: ExchangeRateService, useValue: mockExchangeRateService },
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationService, useValue: mockNotificationService },
+        {
+          provide: InAppNotificationsService,
+          useValue: mockInAppNotificationsService,
+        },
       ],
     }).compile();
 
@@ -74,6 +85,12 @@ describe('MaintenanceProcessor', () => {
         expect.objectContaining({
           notificationType: 'expired',
           email: 'user@example.com',
+        }),
+      );
+      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: NotificationType.PROVISIONING_EXPIRED,
         }),
       );
     });

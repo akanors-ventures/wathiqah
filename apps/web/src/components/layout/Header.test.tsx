@@ -116,6 +116,12 @@ global.ResizeObserver = class ResizeObserver {
   disconnect() {}
 };
 
+// Mock NotificationBell to isolate the test from Apollo hooks (useQuery,
+// useMutation, useSubscription) which require a real ApolloProvider tree.
+vi.mock("./notification-bell", () => ({
+  NotificationBell: () => <button type="button" aria-label="Notifications" />,
+}));
+
 // Mock HeaderUser to isolate the test from hydration logic and hooks
 vi.mock("../auth/header-user", () => ({
   __esModule: true,

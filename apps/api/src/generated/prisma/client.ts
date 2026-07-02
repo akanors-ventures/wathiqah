@@ -78,6 +78,11 @@ export type TransactionHistory = Prisma.TransactionHistoryModel
  */
 export type Witness = Prisma.WitnessModel
 /**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
  * Model Project
  * 
  */

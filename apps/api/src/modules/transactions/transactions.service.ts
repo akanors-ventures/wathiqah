@@ -14,6 +14,7 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
+  NotificationType,
   Prisma,
   Witness,
 } from '../../generated/prisma/client';
@@ -25,6 +26,7 @@ import { ConfigService } from '@nestjs/config';
 import * as ms from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
@@ -65,6 +67,7 @@ function computeNetBalance(summary: TransactionSummary): number {
 
 export interface WitnessNotification {
   witnessId: string;
+  userId: string;
   email: string;
   firstName: string;
   rawToken: string;
@@ -106,6 +109,7 @@ export class TransactionsService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
     private readonly exchangeRateService: ExchangeRateService,
+    private readonly inAppNotificationsService: InAppNotificationsService,
   ) {}
 
   /**
@@ -279,6 +283,7 @@ export class TransactionsService {
 
         notifications.push({
           witnessId: witness.id,
+          userId: witness.userId,
           email: witness.user.email,
           firstName: witness.user.firstName,
           rawToken,
@@ -345,6 +350,7 @@ export class TransactionsService {
 
         notifications.push({
           witnessId,
+          userId: user.id,
           email: targetEmail,
           firstName: targetName,
           rawToken,
@@ -362,6 +368,7 @@ export class TransactionsService {
     for (const notification of notifications) {
       const {
         witnessId,
+        userId,
         email,
         firstName,
         rawToken,
@@ -391,6 +398,22 @@ export class TransactionsService {
         senderId,
         phoneNumber,
       );
+
+      // In-app notification — fire-and-forget, never blocks the invite flow
+      this.inAppNotificationsService
+        .create({
+          userId,
+          type: NotificationType.WITNESS_INVITED,
+          title: 'You were invited to witness a transaction',
+          body: `${transactionDetails.creatorName} invited you to witness a transaction.`,
+          link: '/witnesses',
+        })
+        .catch((err) =>
+          console.error(
+            'Failed to create in-app notification for witness invite',
+            err,
+          ),
+        );
     }
   }
 
@@ -1461,6 +1484,21 @@ export class TransactionsService {
               ),
             );
         }
+
+        this.inAppNotificationsService
+          .create({
+            userId: witness.userId,
+            type: NotificationType.WITNESS_TRANSACTION_MODIFIED,
+            title: 'A transaction you witnessed was updated',
+            body: `${updaterName} modified a transaction you previously acknowledged.`,
+            link: `/transactions/${id}`,
+          })
+          .catch((err) =>
+            console.error(
+              `Failed to create in-app notification for witness update (${witness.userId})`,
+              err,
+            ),
+          );
       }
     }
 
@@ -1631,6 +1669,21 @@ export class TransactionsService {
               ),
             );
         }
+
+        this.inAppNotificationsService
+          .create({
+            userId: witness.userId,
+            type: NotificationType.WITNESS_TRANSACTION_CANCELLED,
+            title: 'A transaction you witnessed was cancelled',
+            body: `${ownerName} cancelled a transaction you previously acknowledged.`,
+            link: `/transactions/${id}`,
+          })
+          .catch((err) =>
+            console.error(
+              `Failed to create in-app notification for witness cancellation (${witness.userId})`,
+              err,
+            ),
+          );
       }
     }
 

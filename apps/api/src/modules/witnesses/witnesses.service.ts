@@ -16,10 +16,12 @@ import { FilterWitnessInput } from './dto/filter-witness.input';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { NotificationService } from '../notifications/notification.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { hashToken } from '../../common/utils/crypto.utils';
 import * as ms from 'ms';
+import { NotificationType } from '../../generated/prisma/client';
 
 @Injectable()
 export class WitnessesService {
@@ -30,6 +32,7 @@ export class WitnessesService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private notificationService: NotificationService,
     private configService: ConfigService,
+    private inAppNotificationsService: InAppNotificationsService,
   ) {}
 
   async acknowledge(witnessId: string, status: WitnessStatus, userId: string) {
@@ -98,6 +101,35 @@ export class WitnessesService {
 
       return updatedWitness;
     });
+
+    // Notify the transaction creator that their witness responded — fires
+    // for both ACKNOWLEDGED and DECLINED. Independent of the "contact
+    // notification" block below, which notifies a different recipient (the
+    // linked Contact, not the creator) and only for ACKNOWLEDGED.
+    const witnessDisplayName =
+      `${result.user.firstName} ${result.user.lastName}`.trim();
+    this.inAppNotificationsService
+      .create({
+        userId: result.transaction.createdById,
+        type:
+          status === WitnessStatus.ACKNOWLEDGED
+            ? NotificationType.WITNESS_ACKNOWLEDGED
+            : NotificationType.WITNESS_DECLINED,
+        title:
+          status === WitnessStatus.ACKNOWLEDGED
+            ? 'Witness acknowledged your transaction'
+            : 'Witness declined your transaction',
+        body: `${witnessDisplayName} ${
+          status === WitnessStatus.ACKNOWLEDGED ? 'acknowledged' : 'declined'
+        } a transaction you created.`,
+        link: `/transactions/${result.transaction.id}`,
+      })
+      .catch((err) =>
+        this.logger.error(
+          'Failed to create in-app notification for witness response',
+          err,
+        ),
+      );
 
     // Send contact notification on the first acknowledgment only
     if (status === WitnessStatus.ACKNOWLEDGED) {
