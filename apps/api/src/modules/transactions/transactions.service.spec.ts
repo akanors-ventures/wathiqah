@@ -5,10 +5,13 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NotificationService } from '../notifications/notification.service';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import {
   TransactionType,
   AssetCategory,
   TransactionStatus,
+  WitnessStatus,
+  NotificationType,
 } from '../../generated/prisma/client';
 
 const mockPrismaService = {
@@ -26,6 +29,7 @@ const mockPrismaService = {
   },
   witness: {
     updateMany: jest.fn(),
+    upsert: jest.fn(),
   },
   user: {
     findUnique: jest.fn(),
@@ -68,6 +72,10 @@ const mockExchangeRateService = {
   convert: jest.fn((amount) => Promise.resolve(amount)),
 };
 
+const mockInAppNotificationsService = {
+  create: jest.fn().mockResolvedValue({}),
+};
+
 describe('TransactionsService - Pagination', () => {
   let service: TransactionsService;
   let prisma: {
@@ -97,6 +105,10 @@ describe('TransactionsService - Pagination', () => {
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ExchangeRateService, useValue: mockExchangeRateService },
+        {
+          provide: InAppNotificationsService,
+          useValue: mockInAppNotificationsService,
+        },
       ],
     }).compile();
 
@@ -239,6 +251,10 @@ describe('TransactionsService - Pagination', () => {
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
           { provide: NotificationService, useValue: mockNotificationService },
           { provide: ExchangeRateService, useValue: mockExchangeRateService },
+          {
+            provide: InAppNotificationsService,
+            useValue: mockInAppNotificationsService,
+          },
         ],
       }).compile();
       scopeService = module.get(TransactionsService);
@@ -344,5 +360,172 @@ describe('TransactionsService - Pagination', () => {
       expect(capturedFindManyArgs?.skip).toBe(30);
       expect(capturedFindManyArgs?.take).toBe(15);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// In-app notification wiring — witness invite / modified / cancelled
+// ---------------------------------------------------------------------------
+
+describe('TransactionsService — in-app notification wiring', () => {
+  let service: TransactionsService;
+
+  const userId = 'creator-1';
+  const witnessUserId = 'witness-1';
+
+  const baseTransaction = {
+    id: 'tx-1',
+    createdById: userId,
+    parentId: null,
+    status: TransactionStatus.COMPLETED,
+    type: TransactionType.LOAN_GIVEN,
+    category: AssetCategory.FUNDS,
+    amount: 50000,
+    currency: 'NGN',
+    itemName: null,
+    quantity: null,
+    description: 'Original description',
+    date: new Date('2026-01-01'),
+    contactId: null,
+    contact: null,
+    createdBy: { firstName: 'Musa', lastName: 'Ibrahim' },
+    history: [],
+    conversions: [],
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TransactionsService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ConfigService, useValue: mockConfigService },
+        { provide: CACHE_MANAGER, useValue: mockCacheManager },
+        { provide: NotificationService, useValue: mockNotificationService },
+        { provide: ExchangeRateService, useValue: mockExchangeRateService },
+        {
+          provide: InAppNotificationsService,
+          useValue: mockInAppNotificationsService,
+        },
+      ],
+    }).compile();
+
+    service = module.get(TransactionsService);
+    jest.clearAllMocks();
+    mockConfigService.getOrThrow.mockReturnValue('7d');
+    mockNotificationService.sendTransactionWitnessInvite.mockResolvedValue(
+      undefined,
+    );
+    mockNotificationService.sendWitnessUpdateNotification.mockResolvedValue(
+      undefined,
+    );
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('creates an in-app notification for the invited witness on create()', async () => {
+    mockPrismaService.transaction.create.mockResolvedValue({ id: 'tx-1' });
+    mockPrismaService.transaction.findUnique.mockResolvedValue({
+      ...baseTransaction,
+    });
+    mockPrismaService.witness.upsert.mockResolvedValue({
+      id: 'witness-record-1',
+      userId: witnessUserId,
+      user: {
+        id: witnessUserId,
+        email: 'witness@example.com',
+        firstName: 'Aminu',
+        lastName: 'Bello',
+        phoneNumber: null,
+      },
+    });
+
+    await service.create(
+      {
+        category: AssetCategory.FUNDS,
+        amount: 50000,
+        type: TransactionType.LOAN_GIVEN,
+        currency: 'NGN',
+        date: new Date('2026-01-01'),
+        witnessUserIds: [witnessUserId],
+      } as never,
+      userId,
+      null,
+    );
+
+    expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: witnessUserId,
+        type: NotificationType.WITNESS_INVITED,
+        link: '/witnesses',
+      }),
+    );
+  });
+
+  it('creates an in-app notification for each acknowledged witness on update()', async () => {
+    mockPrismaService.transaction.findUnique.mockResolvedValue({
+      ...baseTransaction,
+      witnesses: [
+        {
+          userId: witnessUserId,
+          status: WitnessStatus.ACKNOWLEDGED,
+          user: { email: 'witness@example.com', firstName: 'Aminu' },
+        },
+      ],
+    });
+    mockPrismaService.user.findUnique.mockResolvedValue({
+      firstName: 'Musa',
+      lastName: 'Ibrahim',
+    });
+    mockPrismaService.transaction.update.mockResolvedValue({
+      ...baseTransaction,
+    });
+    mockPrismaService.transactionHistory.create.mockResolvedValue({});
+    mockPrismaService.witness.updateMany.mockResolvedValue({ count: 1 });
+
+    await service.update(
+      'tx-1',
+      { description: 'Updated description' } as never,
+      userId,
+    );
+
+    expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: witnessUserId,
+        type: NotificationType.WITNESS_TRANSACTION_MODIFIED,
+        link: '/transactions/tx-1',
+      }),
+    );
+  });
+
+  it('creates an in-app notification for each acknowledged witness on remove() (cancel)', async () => {
+    mockPrismaService.transaction.findUnique.mockResolvedValue({
+      ...baseTransaction,
+      witnesses: [
+        {
+          userId: witnessUserId,
+          status: WitnessStatus.ACKNOWLEDGED,
+          user: { email: 'witness@example.com', firstName: 'Aminu' },
+        },
+      ],
+    });
+    mockPrismaService.user.findUnique.mockResolvedValue({
+      firstName: 'Musa',
+      lastName: 'Ibrahim',
+    });
+    mockPrismaService.transaction.update.mockResolvedValue({
+      ...baseTransaction,
+      status: TransactionStatus.CANCELLED,
+    });
+    mockPrismaService.transactionHistory.create.mockResolvedValue({});
+
+    await service.remove('tx-1', userId);
+
+    expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: witnessUserId,
+        type: NotificationType.WITNESS_TRANSACTION_CANCELLED,
+        link: '/transactions/tx-1',
+      }),
+    );
   });
 });

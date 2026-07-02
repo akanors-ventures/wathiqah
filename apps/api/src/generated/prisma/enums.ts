@@ -72,6 +72,22 @@ export const WitnessStatus = {
 export type WitnessStatus = (typeof WitnessStatus)[keyof typeof WitnessStatus]
 
 
+export const NotificationType = {
+  WITNESS_INVITED: 'WITNESS_INVITED',
+  WITNESS_ACKNOWLEDGED: 'WITNESS_ACKNOWLEDGED',
+  WITNESS_DECLINED: 'WITNESS_DECLINED',
+  WITNESS_TRANSACTION_MODIFIED: 'WITNESS_TRANSACTION_MODIFIED',
+  WITNESS_TRANSACTION_CANCELLED: 'WITNESS_TRANSACTION_CANCELLED',
+  PROVISIONING_GRANTED: 'PROVISIONING_GRANTED',
+  PROVISIONING_REVOKED: 'PROVISIONING_REVOKED',
+  PROVISIONING_EXPIRED: 'PROVISIONING_EXPIRED',
+  ROLE_PROMOTED: 'ROLE_PROMOTED',
+  ROLE_DEMOTED: 'ROLE_DEMOTED'
+} as const
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType]
+
+
 export const ProjectTransactionType = {
   INCOME: 'INCOME',
   EXPENSE: 'EXPENSE'

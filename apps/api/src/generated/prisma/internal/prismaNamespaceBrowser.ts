@@ -59,6 +59,7 @@ export const ModelName = {
   Transaction: 'Transaction',
   TransactionHistory: 'TransactionHistory',
   Witness: 'Witness',
+  Notification: 'Notification',
   Project: 'Project',
   ProjectTransaction: 'ProjectTransaction',
   ProjectTransactionHistory: 'ProjectTransactionHistory',
@@ -229,6 +230,20 @@ export const WitnessScalarFieldEnum = {
 } as const
 
 export type WitnessScalarFieldEnum = (typeof WitnessScalarFieldEnum)[keyof typeof WitnessScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  read: 'read',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
 
 
 export const ProjectScalarFieldEnum = {

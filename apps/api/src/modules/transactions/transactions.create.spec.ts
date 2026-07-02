@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NotificationService } from '../notifications/notification.service';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { TransactionType, AssetCategory } from '../../generated/prisma/client';
 
 const CREATOR_ID = 'creator-1';
@@ -80,6 +81,9 @@ const mockCacheManager = { get: jest.fn(), set: jest.fn(), del: jest.fn() };
 const mockExchangeRateService = {
   convert: jest.fn((v: number) => Promise.resolve(v)),
 };
+const mockInAppNotificationsService = {
+  create: jest.fn().mockResolvedValue({}),
+};
 
 describe('TransactionsService - create()', () => {
   let service: TransactionsService;
@@ -93,6 +97,10 @@ describe('TransactionsService - create()', () => {
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ExchangeRateService, useValue: mockExchangeRateService },
+        {
+          provide: InAppNotificationsService,
+          useValue: mockInAppNotificationsService,
+        },
       ],
     }).compile();
 

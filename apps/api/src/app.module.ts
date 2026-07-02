@@ -26,6 +26,7 @@ import { GeoIPModule } from './modules/geoip/geoip.module';
 import { OrganisationsModule } from './modules/organisations/organisations.module';
 import { OrgEventsModule } from './modules/org-events/org-events.module';
 import { NotesModule } from './modules/notes/notes.module';
+import { InAppNotificationsModule } from './modules/in-app-notifications/in-app-notifications.module';
 import config from './config';
 import KeyvRedis, { Keyv, RedisClientOptions } from '@keyv/redis';
 import { CacheableMemory } from 'cacheable';
@@ -234,6 +235,7 @@ import { buildGraphQLContext, parseCookies } from './common/utils/ws-context';
     OrganisationsModule,
     OrgEventsModule,
     NotesModule,
+    InAppNotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

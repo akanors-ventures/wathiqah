@@ -293,6 +293,7 @@ export type UserWhereInput = {
   organisationMembers?: Prisma.OrganisationMemberListRelationFilter
   orgEventsCreated?: Prisma.OrgEventListRelationFilter
   notes?: Prisma.NoteListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -332,6 +333,7 @@ export type UserOrderByWithRelationInput = {
   organisationMembers?: Prisma.OrganisationMemberOrderByRelationAggregateInput
   orgEventsCreated?: Prisma.OrgEventOrderByRelationAggregateInput
   notes?: Prisma.NoteOrderByRelationAggregateInput
+  notifications?: Prisma.NotificationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -374,6 +376,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   organisationMembers?: Prisma.OrganisationMemberListRelationFilter
   orgEventsCreated?: Prisma.OrgEventListRelationFilter
   notes?: Prisma.NoteListRelationFilter
+  notifications?: Prisma.NotificationListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -459,6 +462,7 @@ export type UserCreateInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -498,6 +502,7 @@ export type UserUncheckedCreateInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -537,6 +542,7 @@ export type UserUpdateInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -576,6 +582,7 @@ export type UserUncheckedUpdateInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -846,6 +853,20 @@ export type UserUpdateOneRequiredWithoutWitnessRecordsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWitnessRecordsInput, Prisma.UserUpdateWithoutWitnessRecordsInput>, Prisma.UserUncheckedUpdateWithoutWitnessRecordsInput>
 }
 
+export type UserCreateNestedOneWithoutNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutNotificationsInput, Prisma.UserUpdateWithoutNotificationsInput>, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
 export type UserCreateNestedOneWithoutProjectsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutProjectsInput, Prisma.UserUncheckedCreateWithoutProjectsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutProjectsInput
@@ -1040,6 +1061,7 @@ export type UserCreateWithoutProvisionedSubscriptionsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
@@ -1078,6 +1100,7 @@ export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProvisionedSubscriptionsInput = {
@@ -1121,6 +1144,7 @@ export type UserCreateWithoutSubscriptionInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -1159,6 +1183,7 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -1213,6 +1238,7 @@ export type UserUpdateWithoutProvisionedSubscriptionsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
@@ -1251,6 +1277,7 @@ export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutSubscriptionInput = {
@@ -1300,6 +1327,7 @@ export type UserUpdateWithoutSubscriptionInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -1338,6 +1366,7 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPaymentsInput = {
@@ -1376,6 +1405,7 @@ export type UserCreateWithoutPaymentsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -1414,6 +1444,7 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -1468,6 +1499,7 @@ export type UserUpdateWithoutPaymentsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -1506,6 +1538,7 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutLinkedContactsInput = {
@@ -1544,6 +1577,7 @@ export type UserCreateWithoutLinkedContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutLinkedContactsInput = {
@@ -1582,6 +1616,7 @@ export type UserUncheckedCreateWithoutLinkedContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutLinkedContactsInput = {
@@ -1625,6 +1660,7 @@ export type UserCreateWithoutContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1663,6 +1699,7 @@ export type UserUncheckedCreateWithoutContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -1717,6 +1754,7 @@ export type UserUpdateWithoutLinkedContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedContactsInput = {
@@ -1755,6 +1793,7 @@ export type UserUncheckedUpdateWithoutLinkedContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutContactsInput = {
@@ -1804,6 +1843,7 @@ export type UserUpdateWithoutContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -1842,6 +1882,7 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -1880,6 +1921,7 @@ export type UserCreateWithoutTransactionsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -1918,6 +1960,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -1972,6 +2015,7 @@ export type UserUpdateWithoutTransactionsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -2010,6 +2054,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionHistoryInput = {
@@ -2048,6 +2093,7 @@ export type UserCreateWithoutTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionHistoryInput = {
@@ -2086,6 +2132,7 @@ export type UserUncheckedCreateWithoutTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionHistoryInput = {
@@ -2140,6 +2187,7 @@ export type UserUpdateWithoutTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
@@ -2178,6 +2226,7 @@ export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutWitnessRecordsInput = {
@@ -2216,6 +2265,7 @@ export type UserCreateWithoutWitnessRecordsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutWitnessRecordsInput = {
@@ -2254,6 +2304,7 @@ export type UserUncheckedCreateWithoutWitnessRecordsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutWitnessRecordsInput = {
@@ -2308,6 +2359,7 @@ export type UserUpdateWithoutWitnessRecordsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
@@ -2339,6 +2391,179 @@ export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
   transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutNotificationsInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutNotificationsInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+}
+
+export type UserUpsertWithoutNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutNotificationsInput, Prisma.UserUncheckedCreateWithoutNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutNotificationsInput, Prisma.UserUncheckedUpdateWithoutNotificationsInput>
+}
+
+export type UserUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutNotificationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
   supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
   payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
   subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
@@ -2384,6 +2609,7 @@ export type UserCreateWithoutProjectsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProjectsInput = {
@@ -2422,6 +2648,7 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProjectsInput = {
@@ -2476,6 +2703,7 @@ export type UserUpdateWithoutProjectsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsInput = {
@@ -2514,6 +2742,7 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutProjectTransactionHistoryInput = {
@@ -2552,6 +2781,7 @@ export type UserCreateWithoutProjectTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
@@ -2590,6 +2820,7 @@ export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutProjectTransactionHistoryInput = {
@@ -2644,6 +2875,7 @@ export type UserUpdateWithoutProjectTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
@@ -2682,6 +2914,7 @@ export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPersonalEntriesInput = {
@@ -2720,6 +2953,7 @@ export type UserCreateWithoutPersonalEntriesInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPersonalEntriesInput = {
@@ -2758,6 +2992,7 @@ export type UserUncheckedCreateWithoutPersonalEntriesInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPersonalEntriesInput = {
@@ -2812,6 +3047,7 @@ export type UserUpdateWithoutPersonalEntriesInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
@@ -2850,6 +3086,7 @@ export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutPromisesInput = {
@@ -2888,6 +3125,7 @@ export type UserCreateWithoutPromisesInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPromisesInput = {
@@ -2926,6 +3164,7 @@ export type UserUncheckedCreateWithoutPromisesInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPromisesInput = {
@@ -2980,6 +3219,7 @@ export type UserUpdateWithoutPromisesInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPromisesInput = {
@@ -3018,6 +3258,7 @@ export type UserUncheckedUpdateWithoutPromisesInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccessGrantsInput = {
@@ -3056,6 +3297,7 @@ export type UserCreateWithoutAccessGrantsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccessGrantsInput = {
@@ -3094,6 +3336,7 @@ export type UserUncheckedCreateWithoutAccessGrantsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccessGrantsInput = {
@@ -3148,6 +3391,7 @@ export type UserUpdateWithoutAccessGrantsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccessGrantsInput = {
@@ -3186,6 +3430,7 @@ export type UserUncheckedUpdateWithoutAccessGrantsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutContactInvitationsReceivedInput = {
@@ -3224,6 +3469,7 @@ export type UserCreateWithoutContactInvitationsReceivedInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
@@ -3262,6 +3508,7 @@ export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactInvitationsReceivedInput = {
@@ -3305,6 +3552,7 @@ export type UserCreateWithoutContactInvitationsSentInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
@@ -3343,6 +3591,7 @@ export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutContactInvitationsSentInput = {
@@ -3397,6 +3646,7 @@ export type UserUpdateWithoutContactInvitationsReceivedInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
@@ -3435,6 +3685,7 @@ export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserUpsertWithoutContactInvitationsSentInput = {
@@ -3484,6 +3735,7 @@ export type UserUpdateWithoutContactInvitationsSentInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
@@ -3522,6 +3774,7 @@ export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSupportsInput = {
@@ -3560,6 +3813,7 @@ export type UserCreateWithoutSupportsInput = {
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSupportsInput = {
@@ -3598,6 +3852,7 @@ export type UserUncheckedCreateWithoutSupportsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSupportsInput = {
@@ -3652,6 +3907,7 @@ export type UserUpdateWithoutSupportsInput = {
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupportsInput = {
@@ -3690,6 +3946,7 @@ export type UserUncheckedUpdateWithoutSupportsInput = {
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrganisationMembersInput = {
@@ -3728,6 +3985,7 @@ export type UserCreateWithoutOrganisationMembersInput = {
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrganisationMembersInput = {
@@ -3766,6 +4024,7 @@ export type UserUncheckedCreateWithoutOrganisationMembersInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrganisationMembersInput = {
@@ -3820,6 +4079,7 @@ export type UserUpdateWithoutOrganisationMembersInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrganisationMembersInput = {
@@ -3858,6 +4118,7 @@ export type UserUncheckedUpdateWithoutOrganisationMembersInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOrgEventsCreatedInput = {
@@ -3896,6 +4157,7 @@ export type UserCreateWithoutOrgEventsCreatedInput = {
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOrgEventsCreatedInput = {
@@ -3934,6 +4196,7 @@ export type UserUncheckedCreateWithoutOrgEventsCreatedInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOrgEventsCreatedInput = {
@@ -3988,6 +4251,7 @@ export type UserUpdateWithoutOrgEventsCreatedInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgEventsCreatedInput = {
@@ -4026,6 +4290,7 @@ export type UserUncheckedUpdateWithoutOrgEventsCreatedInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutNotesInput = {
@@ -4064,6 +4329,7 @@ export type UserCreateWithoutNotesInput = {
   provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
   organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutNotesInput = {
@@ -4102,6 +4368,7 @@ export type UserUncheckedCreateWithoutNotesInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
   organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
   orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutNotesInput = {
@@ -4156,6 +4423,7 @@ export type UserUpdateWithoutNotesInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
   organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotesInput = {
@@ -4194,6 +4462,7 @@ export type UserUncheckedUpdateWithoutNotesInput = {
   provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
   organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
   orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -4220,6 +4489,7 @@ export type UserCountOutputType = {
   organisationMembers: number
   orgEventsCreated: number
   notes: number
+  notifications: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4241,6 +4511,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   organisationMembers?: boolean | UserCountOutputTypeCountOrganisationMembersArgs
   orgEventsCreated?: boolean | UserCountOutputTypeCountOrgEventsCreatedArgs
   notes?: boolean | UserCountOutputTypeCountNotesArgs
+  notifications?: boolean | UserCountOutputTypeCountNotificationsArgs
 }
 
 /**
@@ -4379,6 +4650,13 @@ export type UserCountOutputTypeCountNotesArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.NoteWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.NotificationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -4417,6 +4695,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   organisationMembers?: boolean | Prisma.User$organisationMembersArgs<ExtArgs>
   orgEventsCreated?: boolean | Prisma.User$orgEventsCreatedArgs<ExtArgs>
   notes?: boolean | Prisma.User$notesArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -4501,6 +4780,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organisationMembers?: boolean | Prisma.User$organisationMembersArgs<ExtArgs>
   orgEventsCreated?: boolean | Prisma.User$orgEventsCreatedArgs<ExtArgs>
   notes?: boolean | Prisma.User$notesArgs<ExtArgs>
+  notifications?: boolean | Prisma.User$notificationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -4528,6 +4808,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     organisationMembers: Prisma.$OrganisationMemberPayload<ExtArgs>[]
     orgEventsCreated: Prisma.$OrgEventPayload<ExtArgs>[]
     notes: Prisma.$NotePayload<ExtArgs>[]
+    notifications: Prisma.$NotificationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4960,6 +5241,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   organisationMembers<T extends Prisma.User$organisationMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$organisationMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganisationMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orgEventsCreated<T extends Prisma.User$orgEventsCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$orgEventsCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notes<T extends Prisma.User$notesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  notifications<T extends Prisma.User$notificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$notificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5842,6 +6124,30 @@ export type User$notesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.NoteScalarFieldEnum | Prisma.NoteScalarFieldEnum[]
+}
+
+/**
+ * User.notifications
+ */
+export type User$notificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Notification
+   */
+  select?: Prisma.NotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Notification
+   */
+  omit?: Prisma.NotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.NotificationInclude<ExtArgs> | null
+  where?: Prisma.NotificationWhereInput
+  orderBy?: Prisma.NotificationOrderByWithRelationInput | Prisma.NotificationOrderByWithRelationInput[]
+  cursor?: Prisma.NotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.NotificationScalarFieldEnum | Prisma.NotificationScalarFieldEnum[]
 }
 
 /**

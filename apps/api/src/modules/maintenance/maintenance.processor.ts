@@ -4,7 +4,11 @@ import { Job } from 'bullmq';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
-import { SubscriptionTier } from '../../generated/prisma/client';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
+import {
+  SubscriptionTier,
+  NotificationType,
+} from '../../generated/prisma/client';
 
 @Processor('maintenance')
 export class MaintenanceProcessor extends WorkerHost {
@@ -14,6 +18,7 @@ export class MaintenanceProcessor extends WorkerHost {
     private readonly exchangeRateService: ExchangeRateService,
     private readonly prisma: PrismaService,
     private readonly notificationService: NotificationService,
+    private readonly inAppNotificationsService: InAppNotificationsService,
   ) {
     super();
   }
@@ -64,6 +69,21 @@ export class MaintenanceProcessor extends WorkerHost {
         name: subscription.user.firstName,
         expiredAt: subscription.currentPeriodEnd ?? new Date(),
       });
+
+      await this.inAppNotificationsService
+        .create({
+          userId: subscription.userId,
+          type: NotificationType.PROVISIONING_EXPIRED,
+          title: 'Pro access expired',
+          body: 'Your Pro subscription has expired.',
+          link: '/pricing',
+        })
+        .catch((err) =>
+          this.logger.error(
+            `Failed to create in-app notification for provisioning expiry (${subscription.userId})`,
+            err,
+          ),
+        );
 
       this.logger.log(
         `Provisioned Pro expired for user ${subscription.userId}`,
