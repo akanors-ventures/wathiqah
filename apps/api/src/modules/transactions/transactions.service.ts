@@ -14,7 +14,6 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
-  NotificationType,
   Prisma,
   Witness,
 } from '../../generated/prisma/client';
@@ -27,6 +26,7 @@ import * as ms from 'ms';
 import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
+import { NotificationTemplates } from '../in-app-notifications/notification-templates';
 import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
@@ -400,20 +400,15 @@ export class TransactionsService {
       );
 
       // In-app notification — fire-and-forget, never blocks the invite flow
-      this.inAppNotificationsService
-        .create({
+      this.inAppNotificationsService.createSafely(
+        {
           userId,
-          type: NotificationType.WITNESS_INVITED,
-          title: 'You were invited to witness a transaction',
-          body: `${transactionDetails.creatorName} invited you to witness a transaction.`,
-          link: '/witnesses',
-        })
-        .catch((err) =>
-          console.error(
-            'Failed to create in-app notification for witness invite',
-            err,
+          ...NotificationTemplates.witnessInvited(
+            transactionDetails.creatorName,
           ),
-        );
+        },
+        `witness invite (${userId})`,
+      );
     }
   }
 
@@ -1485,20 +1480,16 @@ export class TransactionsService {
             );
         }
 
-        this.inAppNotificationsService
-          .create({
+        this.inAppNotificationsService.createSafely(
+          {
             userId: witness.userId,
-            type: NotificationType.WITNESS_TRANSACTION_MODIFIED,
-            title: 'A transaction you witnessed was updated',
-            body: `${updaterName} modified a transaction you previously acknowledged.`,
-            link: `/transactions/${id}`,
-          })
-          .catch((err) =>
-            console.error(
-              `Failed to create in-app notification for witness update (${witness.userId})`,
-              err,
+            ...NotificationTemplates.witnessTransactionModified(
+              updaterName,
+              id,
             ),
-          );
+          },
+          `witness transaction modified (${witness.userId})`,
+        );
       }
     }
 
@@ -1670,20 +1661,13 @@ export class TransactionsService {
             );
         }
 
-        this.inAppNotificationsService
-          .create({
+        this.inAppNotificationsService.createSafely(
+          {
             userId: witness.userId,
-            type: NotificationType.WITNESS_TRANSACTION_CANCELLED,
-            title: 'A transaction you witnessed was cancelled',
-            body: `${ownerName} cancelled a transaction you previously acknowledged.`,
-            link: `/transactions/${id}`,
-          })
-          .catch((err) =>
-            console.error(
-              `Failed to create in-app notification for witness cancellation (${witness.userId})`,
-              err,
-            ),
-          );
+            ...NotificationTemplates.witnessTransactionCancelled(ownerName, id),
+          },
+          `witness transaction cancelled (${witness.userId})`,
+        );
       }
     }
 

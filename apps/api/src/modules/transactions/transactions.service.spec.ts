@@ -74,6 +74,7 @@ const mockExchangeRateService = {
 
 const mockInAppNotificationsService = {
   create: jest.fn().mockResolvedValue({}),
+  createSafely: jest.fn().mockResolvedValue(undefined),
 };
 
 describe('TransactionsService - Pagination', () => {
@@ -452,12 +453,13 @@ describe('TransactionsService — in-app notification wiring', () => {
       null,
     );
 
-    expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+    expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: witnessUserId,
         type: NotificationType.WITNESS_INVITED,
         link: '/witnesses',
       }),
+      expect.any(String),
     );
   });
 
@@ -488,12 +490,13 @@ describe('TransactionsService — in-app notification wiring', () => {
       userId,
     );
 
-    expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+    expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: witnessUserId,
         type: NotificationType.WITNESS_TRANSACTION_MODIFIED,
         link: '/transactions/tx-1',
       }),
+      expect.any(String),
     );
   });
 
@@ -520,12 +523,13 @@ describe('TransactionsService — in-app notification wiring', () => {
 
     await service.remove('tx-1', userId);
 
-    expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+    expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: witnessUserId,
         type: NotificationType.WITNESS_TRANSACTION_CANCELLED,
         link: '/transactions/tx-1',
       }),
+      expect.any(String),
     );
   });
 });

@@ -14,6 +14,7 @@ const mockExchangeRateService = { updateRates: jest.fn() };
 const mockNotificationService = { sendProvisioningNotification: jest.fn() };
 const mockInAppNotificationsService = {
   create: jest.fn().mockResolvedValue({}),
+  createSafely: jest.fn().mockResolvedValue(undefined),
 };
 const mockPrisma = {
   subscription: { findMany: jest.fn(), update: jest.fn() },
@@ -87,11 +88,12 @@ describe('MaintenanceProcessor', () => {
           email: 'user@example.com',
         }),
       );
-      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           type: NotificationType.PROVISIONING_EXPIRED,
         }),
+        expect.any(String),
       );
     });
 
@@ -99,6 +101,48 @@ describe('MaintenanceProcessor', () => {
       mockPrisma.subscription.findMany.mockResolvedValue([]);
       await processor.process(makeJob('check-provisioning-expiry'));
       expect(mockPrisma.subscription.update).not.toHaveBeenCalled();
+    });
+
+    it('processes remaining subscriptions even when one fails', async () => {
+      const subs = [
+        {
+          id: 'sub-1',
+          userId: 'user-1',
+          currentPeriodEnd: new Date('2026-01-01'),
+          user: { email: 'user1@example.com', firstName: 'Amina' },
+        },
+        {
+          id: 'sub-2',
+          userId: 'user-2',
+          currentPeriodEnd: new Date('2026-01-01'),
+          user: { email: 'user2@example.com', firstName: 'Bilal' },
+        },
+      ];
+      mockPrisma.subscription.findMany.mockResolvedValue(subs);
+      mockPrisma.user.update.mockResolvedValue({});
+      mockNotificationService.sendProvisioningNotification.mockResolvedValue(
+        undefined,
+      );
+      // sub-1's transaction fails; sub-2's should still complete.
+      mockPrisma.subscription.update.mockImplementation((args) => {
+        if (args.where.id === 'sub-1') {
+          return Promise.reject(new Error('db error'));
+        }
+        return Promise.resolve({});
+      });
+
+      await processor.process(makeJob('check-provisioning-expiry'));
+
+      expect(
+        mockNotificationService.sendProvisioningNotification,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'user2@example.com' }),
+      );
+      expect(
+        mockNotificationService.sendProvisioningNotification,
+      ).not.toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'user1@example.com' }),
+      );
     });
   });
 });

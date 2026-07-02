@@ -138,4 +138,49 @@ describe('InAppNotificationsService', () => {
     });
     expect(result).toBe(true);
   });
+
+  describe('createSafely', () => {
+    it('delegates to create() with the given params', async () => {
+      const created = { id: 'n1' };
+      prisma.notification.create.mockResolvedValue(created);
+
+      await service.createSafely(
+        {
+          userId: 'user1',
+          type: NotificationType.WITNESS_INVITED,
+          title: 'Title',
+          body: 'Body',
+          link: '/witnesses',
+        },
+        'test context',
+      );
+
+      expect(prisma.notification.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'user1',
+          type: NotificationType.WITNESS_INVITED,
+          title: 'Title',
+          body: 'Body',
+          link: '/witnesses',
+        },
+      });
+    });
+
+    it('never throws when create() rejects, and never rejects itself', async () => {
+      prisma.notification.create.mockRejectedValue(new Error('db down'));
+
+      await expect(
+        service.createSafely(
+          {
+            userId: 'user1',
+            type: NotificationType.WITNESS_INVITED,
+            title: 'Title',
+            body: 'Body',
+            link: null,
+          },
+          'test context',
+        ),
+      ).resolves.toBeUndefined();
+    });
+  });
 });
