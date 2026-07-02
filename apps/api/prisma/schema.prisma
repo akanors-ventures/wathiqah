@@ -45,6 +45,7 @@ model User {
   organisationMembers        OrganisationMember[]
   orgEventsCreated           OrgEvent[]           @relation("OrgEventCreator")
   notes                      Note[]               @relation("NoteCreator")
+  notifications              Notification[]       @relation("UserNotifications")
 
   @@index([phoneNumber])
   @@map("users")
@@ -197,6 +198,22 @@ model Witness {
   @@unique([transactionId, userId])
   @@unique([projectTransactionId, userId])
   @@map("witnesses")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, read])
+  @@map("notifications")
 }
 
 model Project {
@@ -370,6 +387,19 @@ enum WitnessStatus {
   ACKNOWLEDGED
   DECLINED
   MODIFIED
+}
+
+enum NotificationType {
+  WITNESS_INVITED
+  WITNESS_ACKNOWLEDGED
+  WITNESS_DECLINED
+  WITNESS_TRANSACTION_MODIFIED
+  WITNESS_TRANSACTION_CANCELLED
+  PROVISIONING_GRANTED
+  PROVISIONING_REVOKED
+  PROVISIONING_EXPIRED
+  ROLE_PROMOTED
+  ROLE_DEMOTED
 }
 
 enum ProjectTransactionType {

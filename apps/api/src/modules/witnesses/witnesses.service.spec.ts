@@ -3,8 +3,13 @@ import { WitnessesService } from './witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NotificationService } from '../notifications/notification.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { ConfigService } from '@nestjs/config';
-import { WitnessStatus, TransactionType } from '../../generated/prisma/client';
+import {
+  WitnessStatus,
+  TransactionType,
+  NotificationType,
+} from '../../generated/prisma/client';
 
 // ---------------------------------------------------------------------------
 // Shared factory helpers
@@ -82,6 +87,10 @@ describe('WitnessesService — findMyRequests pagination', () => {
           provide: ConfigService,
           useValue: { getOrThrow: jest.fn() },
         },
+        {
+          provide: InAppNotificationsService,
+          useValue: { create: jest.fn().mockResolvedValue({}) },
+        },
       ],
     }).compile();
 
@@ -121,6 +130,7 @@ describe('WitnessesService — acknowledge()', () => {
     $transaction: jest.Mock;
   };
   let notificationService: { sendContactNotification: jest.Mock };
+  let inAppNotificationsService: { create: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -139,6 +149,8 @@ describe('WitnessesService — acknowledge()', () => {
         .fn()
         .mockResolvedValue({ smsSkipped: false }),
     };
+
+    inAppNotificationsService = { create: jest.fn().mockResolvedValue({}) };
 
     const module = await Test.createTestingModule({
       providers: [
@@ -159,10 +171,58 @@ describe('WitnessesService — acknowledge()', () => {
           provide: ConfigService,
           useValue: { getOrThrow: jest.fn() },
         },
+        {
+          provide: InAppNotificationsService,
+          useValue: inAppNotificationsService,
+        },
       ],
     }).compile();
 
     service = module.get(WitnessesService);
+  });
+
+  afterEach(() => jest.restoreAllMocks());
+
+  it('creates an in-app notification for the transaction creator on ACKNOWLEDGED', async () => {
+    prisma.witness.findUnique.mockResolvedValue(makeWitness());
+    prisma.witness.update.mockResolvedValue(makeUpdatedWitness());
+    prisma.transactionHistory.create.mockResolvedValue({});
+    prisma.witness.count.mockResolvedValue(0);
+
+    await service.acknowledge(
+      'witness-1',
+      WitnessStatus.ACKNOWLEDGED,
+      'user-1',
+    );
+
+    expect(inAppNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'creator-1',
+        type: NotificationType.WITNESS_ACKNOWLEDGED,
+        link: '/transactions/tx-1',
+      }),
+    );
+  });
+
+  it('creates an in-app notification for the transaction creator on DECLINED', async () => {
+    prisma.witness.findUnique.mockResolvedValue(makeWitness());
+    prisma.witness.update.mockResolvedValue(
+      makeUpdatedWitness({
+        status: WitnessStatus.DECLINED,
+        acknowledgedAt: null,
+      }),
+    );
+    prisma.transactionHistory.create.mockResolvedValue({});
+
+    await service.acknowledge('witness-1', WitnessStatus.DECLINED, 'user-1');
+
+    expect(inAppNotificationsService.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'creator-1',
+        type: NotificationType.WITNESS_DECLINED,
+        link: '/transactions/tx-1',
+      }),
+    );
   });
 
   it('sends contact notification on first ACKNOWLEDGED witness for LOAN_GIVEN transaction with phone', async () => {

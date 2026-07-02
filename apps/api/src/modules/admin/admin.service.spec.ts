@@ -3,8 +3,13 @@ import { ForbiddenException } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
+import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { ConfigService } from '@nestjs/config';
-import { SubscriptionTier, UserRole } from '../../generated/prisma/client';
+import {
+  SubscriptionTier,
+  UserRole,
+  NotificationType,
+} from '../../generated/prisma/client';
 
 const mockPrisma = {
   user: {
@@ -25,6 +30,10 @@ const mockPrisma = {
 const mockNotificationService = {
   sendProvisioningNotification: jest.fn(),
   sendRoleChangeNotification: jest.fn(),
+};
+
+const mockInAppNotificationsService = {
+  create: jest.fn().mockResolvedValue({}),
 };
 
 const mockConfigService = {
@@ -53,6 +62,10 @@ describe('AdminService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationService, useValue: mockNotificationService },
         { provide: ConfigService, useValue: mockConfigService },
+        {
+          provide: InAppNotificationsService,
+          useValue: mockInAppNotificationsService,
+        },
       ],
     }).compile();
 
@@ -206,6 +219,12 @@ describe('AdminService', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'granted' }),
       );
+      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: NotificationType.PROVISIONING_GRANTED,
+        }),
+      );
     });
   });
 
@@ -238,6 +257,12 @@ describe('AdminService', () => {
         mockNotificationService.sendProvisioningNotification,
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'revoked' }),
+      );
+      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: NotificationType.PROVISIONING_REVOKED,
+        }),
       );
     });
   });
@@ -275,6 +300,12 @@ describe('AdminService', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'promoted' }),
       );
+      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: NotificationType.ROLE_PROMOTED,
+        }),
+      );
     });
 
     it('sends demotion notification when role is set to USER', async () => {
@@ -299,6 +330,12 @@ describe('AdminService', () => {
         mockNotificationService.sendRoleChangeNotification,
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'demoted' }),
+      );
+      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          type: NotificationType.ROLE_DEMOTED,
+        }),
       );
     });
   });

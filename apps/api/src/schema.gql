@@ -336,6 +336,8 @@ type Mutation {
   logProjectTransaction(input: LogProjectTransactionInput!): ProjectTransaction!
   login(loginInput: LoginInput!): AuthPayload!
   logout: Boolean!
+  markAllNotificationsRead: Boolean!
+  markNotificationRead(id: ID!): Notification!
   markSharedHistorySeen: Boolean!
   promoteContactToOrg(contactId: ID!): Contact!
   provisionPro(input: ProvisionProInput!): User!
@@ -381,6 +383,30 @@ type Note {
   orgId: String
   title: String
   updatedAt: DateTime!
+}
+
+type Notification {
+  body: String!
+  createdAt: DateTime!
+  id: ID!
+  link: String
+  read: Boolean!
+  title: String!
+  type: NotificationType!
+  userId: String!
+}
+
+enum NotificationType {
+  PROVISIONING_EXPIRED
+  PROVISIONING_GRANTED
+  PROVISIONING_REVOKED
+  ROLE_DEMOTED
+  ROLE_PROMOTED
+  WITNESS_ACKNOWLEDGED
+  WITNESS_DECLINED
+  WITNESS_INVITED
+  WITNESS_TRANSACTION_CANCELLED
+  WITNESS_TRANSACTION_MODIFIED
 }
 
 type OrgEvent {
@@ -599,11 +625,13 @@ type Query {
   me: User!
   myAccessGrants: [AccessGrant!]!
   myContactTransactions(filter: FilterSharedHistoryInput): PaginatedSharedHistoryResponse!
+  myNotifications: [Notification!]!
   myOrganisations: [Organisation!]!
   myProjects(filter: FilterProjectInput): PaginatedProjectsResponse!
   myPromises: [Promise!]!
   mySubscription: SubscriptionInfo!
   mySupports: [Support!]!
+  myUnreadNotificationCount: Int!
   myWitnessRequests(filter: FilterWitnessInput, status: WitnessStatus): PaginatedWitnessesResponse!
   orgEventCategorySuggestions: [String!]!
   orgEvents(category: String): [OrgEvent!]!
@@ -668,6 +696,7 @@ input SignupInput {
 }
 
 type Subscription {
+  notificationCreated: Notification!
   orgEventCreated: OrgEvent!
   orgEventRemoved: ID!
   orgEventUpdated: OrgEvent!

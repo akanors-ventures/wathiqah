@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
 import HeaderUser from "../auth/header-user";
+import { NotificationBell } from "./notification-bell";
 
 // ─── Nav item type ────────────────────────────────────────────────────────────
 
@@ -234,6 +235,7 @@ export default function Header() {
               </Link>
             </Button>
           )}
+          {user && <NotificationBell />}
           <HeaderUser />
         </div>
       </div>

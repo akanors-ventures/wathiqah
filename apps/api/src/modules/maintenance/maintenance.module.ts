@@ -5,6 +5,7 @@ import { MaintenanceProcessor } from './maintenance.processor';
 import { ExchangeRateModule } from '../exchange-rate/exchange-rate.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PrismaModule } from '../../prisma/prisma.module';
+import { InAppNotificationsModule } from '../in-app-notifications/in-app-notifications.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
     ExchangeRateModule,
     NotificationsModule,
     PrismaModule,
+    InAppNotificationsModule,
   ],
   providers: [MaintenanceService, MaintenanceProcessor],
 })

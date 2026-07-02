@@ -352,6 +352,8 @@ export type Mutation = {
   logProjectTransaction: ProjectTransaction;
   login: AuthPayload;
   logout: Scalars['Boolean']['output'];
+  markAllNotificationsRead: Scalars['Boolean']['output'];
+  markNotificationRead: Notification;
   markSharedHistorySeen: Scalars['Boolean']['output'];
   promoteContactToOrg: Contact;
   provisionPro: User;
@@ -514,6 +516,11 @@ export type MutationLogProjectTransactionArgs = {
 
 export type MutationLoginArgs = {
   loginInput: LoginInput;
+};
+
+
+export type MutationMarkNotificationReadArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -691,6 +698,31 @@ export type Note = {
   title: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['DateTime']['output'];
 };
+
+export type Notification = {
+  __typename: 'Notification';
+  body: Scalars['String']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  link: Maybe<Scalars['String']['output']>;
+  read: Scalars['Boolean']['output'];
+  title: Scalars['String']['output'];
+  type: NotificationType;
+  userId: Scalars['String']['output'];
+};
+
+export enum NotificationType {
+  ProvisioningExpired = 'PROVISIONING_EXPIRED',
+  ProvisioningGranted = 'PROVISIONING_GRANTED',
+  ProvisioningRevoked = 'PROVISIONING_REVOKED',
+  RoleDemoted = 'ROLE_DEMOTED',
+  RolePromoted = 'ROLE_PROMOTED',
+  WitnessAcknowledged = 'WITNESS_ACKNOWLEDGED',
+  WitnessDeclined = 'WITNESS_DECLINED',
+  WitnessInvited = 'WITNESS_INVITED',
+  WitnessTransactionCancelled = 'WITNESS_TRANSACTION_CANCELLED',
+  WitnessTransactionModified = 'WITNESS_TRANSACTION_MODIFIED'
+}
 
 export type OrgEvent = {
   __typename: 'OrgEvent';
@@ -930,11 +962,13 @@ export type Query = {
   me: User;
   myAccessGrants: Array<AccessGrant>;
   myContactTransactions: PaginatedSharedHistoryResponse;
+  myNotifications: Array<Notification>;
   myOrganisations: Array<Organisation>;
   myProjects: PaginatedProjectsResponse;
   myPromises: Array<Promise>;
   mySubscription: SubscriptionInfo;
   mySupports: Array<Support>;
+  myUnreadNotificationCount: Scalars['Int']['output'];
   myWitnessRequests: PaginatedWitnessesResponse;
   orgEventCategorySuggestions: Array<Scalars['String']['output']>;
   orgEvents: Array<OrgEvent>;
@@ -1135,6 +1169,7 @@ export type SignupInput = {
 
 export type Subscription = {
   __typename: 'Subscription';
+  notificationCreated: Notification;
   orgEventCreated: OrgEvent;
   orgEventRemoved: Scalars['ID']['output'];
   orgEventUpdated: OrgEvent;
@@ -1598,6 +1633,35 @@ export type RemoveNoteMutationVariables = Exact<{
 
 
 export type RemoveNoteMutation = { removeNote: boolean };
+
+export type NotificationFieldsFragment = { __typename: 'Notification', id: string, type: NotificationType, title: string, body: string, link: string | null, read: boolean, createdAt: string };
+
+export type MyNotificationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyNotificationsQuery = { myNotifications: Array<{ __typename: 'Notification', id: string, type: NotificationType, title: string, body: string, link: string | null, read: boolean, createdAt: string }> };
+
+export type MyUnreadNotificationCountQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyUnreadNotificationCountQuery = { myUnreadNotificationCount: number };
+
+export type MarkNotificationReadMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type MarkNotificationReadMutation = { markNotificationRead: { __typename: 'Notification', id: string, type: NotificationType, title: string, body: string, link: string | null, read: boolean, createdAt: string } };
+
+export type MarkAllNotificationsReadMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MarkAllNotificationsReadMutation = { markAllNotificationsRead: boolean };
+
+export type NotificationCreatedSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NotificationCreatedSubscription = { notificationCreated: { __typename: 'Notification', id: string, type: NotificationType, title: string, body: string, link: string | null, read: boolean, createdAt: string } };
 
 export type OrganisationFieldsFragment = { __typename: 'Organisation', id: string, name: string, slug: string, description: string | null, industry: string | null, logoUrl: string | null, attributionMode: AttributionMode, createdAt: string, transactionCount: number, contactCount: number, activeProjectCount: number };
 
