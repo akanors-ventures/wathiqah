@@ -34,6 +34,7 @@ const mockNotificationService = {
 
 const mockInAppNotificationsService = {
   create: jest.fn().mockResolvedValue({}),
+  createSafely: jest.fn().mockResolvedValue(undefined),
 };
 
 const mockConfigService = {
@@ -219,11 +220,12 @@ describe('AdminService', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'granted' }),
       );
-      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           type: NotificationType.PROVISIONING_GRANTED,
         }),
+        expect.any(String),
       );
     });
   });
@@ -258,11 +260,12 @@ describe('AdminService', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'revoked' }),
       );
-      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           type: NotificationType.PROVISIONING_REVOKED,
         }),
+        expect.any(String),
       );
     });
   });
@@ -300,11 +303,12 @@ describe('AdminService', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'promoted' }),
       );
-      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           type: NotificationType.ROLE_PROMOTED,
         }),
+        expect.any(String),
       );
     });
 
@@ -331,11 +335,12 @@ describe('AdminService', () => {
       ).toHaveBeenCalledWith(
         expect.objectContaining({ notificationType: 'demoted' }),
       );
-      expect(mockInAppNotificationsService.create).toHaveBeenCalledWith(
+      expect(mockInAppNotificationsService.createSafely).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           type: NotificationType.ROLE_DEMOTED,
         }),
+        expect.any(String),
       );
     });
   });

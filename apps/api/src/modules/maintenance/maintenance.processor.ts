@@ -5,10 +5,8 @@ import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
-import {
-  SubscriptionTier,
-  NotificationType,
-} from '../../generated/prisma/client';
+import { NotificationTemplates } from '../in-app-notifications/notification-templates';
+import { SubscriptionTier, Prisma } from '../../generated/prisma/client';
 
 @Processor('maintenance')
 export class MaintenanceProcessor extends WorkerHost {
@@ -47,51 +45,55 @@ export class MaintenanceProcessor extends WorkerHost {
       include: { user: true },
     });
 
-    for (const subscription of expired) {
-      await this.prisma.$transaction([
-        this.prisma.subscription.update({
-          where: { id: subscription.id },
-          data: {
-            tier: SubscriptionTier.FREE,
-            status: 'canceled',
-            isProvisioned: false,
-          },
-        }),
-        this.prisma.user.update({
-          where: { id: subscription.userId },
-          data: { tier: SubscriptionTier.FREE },
-        }),
-      ]);
-
-      await this.notificationService.sendProvisioningNotification({
-        notificationType: 'expired',
-        email: subscription.user.email,
-        name: subscription.user.firstName,
-        expiredAt: subscription.currentPeriodEnd ?? new Date(),
-      });
-
-      await this.inAppNotificationsService
-        .create({
-          userId: subscription.userId,
-          type: NotificationType.PROVISIONING_EXPIRED,
-          title: 'Pro access expired',
-          body: 'Your Pro subscription has expired.',
-          link: '/pricing',
-        })
-        .catch((err) =>
-          this.logger.error(
-            `Failed to create in-app notification for provisioning expiry (${subscription.userId})`,
-            err,
-          ),
-        );
-
-      this.logger.log(
-        `Provisioned Pro expired for user ${subscription.userId}`,
-      );
-    }
-
-    this.logger.log(
-      `Provisioning expiry check complete — ${expired.length} expired`,
+    // Each subscription's expiry (DB writes + email + in-app notification)
+    // is independent of every other's, so run them concurrently instead of
+    // one at a time — this also isolates a single subscription's failure
+    // (e.g. a bad email address) from blocking the rest of the batch, which
+    // the old sequential-await loop did not.
+    const results = await Promise.allSettled(
+      expired.map((subscription) => this.expireSubscription(subscription)),
     );
+
+    const failed = results.filter((r) => r.status === 'rejected').length;
+    this.logger.log(
+      `Provisioning expiry check complete — ${expired.length} expired` +
+        (failed > 0 ? `, ${failed} failed` : ''),
+    );
+  }
+
+  private async expireSubscription(
+    subscription: Prisma.SubscriptionGetPayload<{ include: { user: true } }>,
+  ): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          tier: SubscriptionTier.FREE,
+          status: 'canceled',
+          isProvisioned: false,
+        },
+      }),
+      this.prisma.user.update({
+        where: { id: subscription.userId },
+        data: { tier: SubscriptionTier.FREE },
+      }),
+    ]);
+
+    await this.notificationService.sendProvisioningNotification({
+      notificationType: 'expired',
+      email: subscription.user.email,
+      name: subscription.user.firstName,
+      expiredAt: subscription.currentPeriodEnd ?? new Date(),
+    });
+
+    await this.inAppNotificationsService.createSafely(
+      {
+        userId: subscription.userId,
+        ...NotificationTemplates.provisioningExpired(),
+      },
+      `provisioning expiry (${subscription.userId})`,
+    );
+
+    this.logger.log(`Provisioned Pro expired for user ${subscription.userId}`);
   }
 }

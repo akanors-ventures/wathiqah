@@ -9,11 +9,8 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
-import {
-  SubscriptionTier,
-  UserRole,
-  NotificationType,
-} from '../../generated/prisma/client';
+import { NotificationTemplates } from '../in-app-notifications/notification-templates';
+import { SubscriptionTier, UserRole } from '../../generated/prisma/client';
 import { normalizeEmail } from '../../common/utils/string.utils';
 import type { User } from '../../generated/prisma/client';
 
@@ -158,20 +155,10 @@ export class AdminService implements OnModuleInit {
       expiresAt,
     });
 
-    this.inAppNotificationsService
-      .create({
-        userId,
-        type: NotificationType.PROVISIONING_GRANTED,
-        title: 'Pro access granted',
-        body: `Your Pro subscription is active until ${expiresAt.toLocaleDateString()}.`,
-        link: '/pricing',
-      })
-      .catch((err) =>
-        this.logger.error(
-          'Failed to create in-app notification for provisioning grant',
-          err,
-        ),
-      );
+    this.inAppNotificationsService.createSafely(
+      { userId, ...NotificationTemplates.provisioningGranted(expiresAt) },
+      `provisioning grant (${userId})`,
+    );
 
     return this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
   }
@@ -207,20 +194,10 @@ export class AdminService implements OnModuleInit {
       name: subscription.user.firstName,
     });
 
-    this.inAppNotificationsService
-      .create({
-        userId,
-        type: NotificationType.PROVISIONING_REVOKED,
-        title: 'Pro access revoked',
-        body: 'Your Pro subscription has been revoked.',
-        link: '/pricing',
-      })
-      .catch((err) =>
-        this.logger.error(
-          'Failed to create in-app notification for provisioning revoke',
-          err,
-        ),
-      );
+    this.inAppNotificationsService.createSafely(
+      { userId, ...NotificationTemplates.provisioningRevoked() },
+      `provisioning revoke (${userId})`,
+    );
 
     return this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
   }
@@ -254,29 +231,13 @@ export class AdminService implements OnModuleInit {
       name: user.firstName,
     });
 
-    this.inAppNotificationsService
-      .create({
+    this.inAppNotificationsService.createSafely(
+      {
         userId,
-        type:
-          role === UserRole.ADMIN
-            ? NotificationType.ROLE_PROMOTED
-            : NotificationType.ROLE_DEMOTED,
-        title:
-          role === UserRole.ADMIN
-            ? 'You were promoted to Admin'
-            : 'Your Admin role was removed',
-        body:
-          role === UserRole.ADMIN
-            ? 'You now have admin privileges.'
-            : 'Your admin privileges have been removed.',
-        link: null,
-      })
-      .catch((err) =>
-        this.logger.error(
-          'Failed to create in-app notification for role change',
-          err,
-        ),
-      );
+        ...NotificationTemplates.roleChanged(role === UserRole.ADMIN),
+      },
+      `role change (${userId})`,
+    );
 
     return updatedUser;
   }

@@ -1,18 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import type { PubSub } from 'graphql-subscriptions';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PUB_SUB } from '../../common/pubsub/pubsub.module';
+import { assertOwnership } from '../../common/utils/assert-ownership.util';
 import { NotificationType } from '../../generated/prisma/client';
+import type { NotificationContent } from './notification-templates';
 
 const RECENT_NOTIFICATIONS_LIMIT = 30;
 
 @Injectable()
 export class InAppNotificationsService {
+  private readonly logger = new Logger(InAppNotificationsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
@@ -33,6 +32,26 @@ export class InAppNotificationsService {
       userId: params.userId,
     });
     return notification;
+  }
+
+  /**
+   * Fire-and-forget variant of `create()` for trigger points that must
+   * never let a notification failure interrupt their primary flow (a
+   * witness invite, a role change, etc.). Never throws — failures are
+   * logged with `context` identifying which trigger point failed.
+   */
+  async createSafely(
+    params: { userId: string } & NotificationContent,
+    context: string,
+  ): Promise<void> {
+    try {
+      await this.create(params);
+    } catch (err) {
+      this.logger.error(
+        `Failed to create in-app notification (${context})`,
+        err,
+      );
+    }
   }
 
   async findMine(userId: string) {
@@ -64,14 +83,12 @@ export class InAppNotificationsService {
   }
 
   private async assertOwnership(id: string, userId: string) {
-    const notification = await this.prisma.notification.findUnique({
-      where: { id },
-    });
-    if (!notification) {
-      throw new NotFoundException('Notification not found');
-    }
-    if (notification.userId !== userId) {
-      throw new ForbiddenException('Notification does not belong to this user');
-    }
+    await assertOwnership(
+      () => this.prisma.notification.findUnique({ where: { id } }),
+      'userId',
+      userId,
+      'Notification not found',
+      'Notification does not belong to this user',
+    );
   }
 }
