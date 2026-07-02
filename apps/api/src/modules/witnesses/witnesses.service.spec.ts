@@ -89,7 +89,10 @@ describe('WitnessesService — findMyRequests pagination', () => {
         },
         {
           provide: InAppNotificationsService,
-          useValue: { create: jest.fn().mockResolvedValue({}) },
+          useValue: {
+            create: jest.fn().mockResolvedValue({}),
+            createSafely: jest.fn().mockResolvedValue(undefined),
+          },
         },
       ],
     }).compile();
@@ -130,7 +133,7 @@ describe('WitnessesService — acknowledge()', () => {
     $transaction: jest.Mock;
   };
   let notificationService: { sendContactNotification: jest.Mock };
-  let inAppNotificationsService: { create: jest.Mock };
+  let inAppNotificationsService: { create: jest.Mock; createSafely: jest.Mock };
 
   beforeEach(async () => {
     prisma = {
@@ -150,7 +153,10 @@ describe('WitnessesService — acknowledge()', () => {
         .mockResolvedValue({ smsSkipped: false }),
     };
 
-    inAppNotificationsService = { create: jest.fn().mockResolvedValue({}) };
+    inAppNotificationsService = {
+      create: jest.fn().mockResolvedValue({}),
+      createSafely: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module = await Test.createTestingModule({
       providers: [
@@ -195,12 +201,13 @@ describe('WitnessesService — acknowledge()', () => {
       'user-1',
     );
 
-    expect(inAppNotificationsService.create).toHaveBeenCalledWith(
+    expect(inAppNotificationsService.createSafely).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'creator-1',
         type: NotificationType.WITNESS_ACKNOWLEDGED,
         link: '/transactions/tx-1',
       }),
+      expect.any(String),
     );
   });
 
@@ -216,13 +223,25 @@ describe('WitnessesService — acknowledge()', () => {
 
     await service.acknowledge('witness-1', WitnessStatus.DECLINED, 'user-1');
 
-    expect(inAppNotificationsService.create).toHaveBeenCalledWith(
+    expect(inAppNotificationsService.createSafely).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: 'creator-1',
         type: NotificationType.WITNESS_DECLINED,
         link: '/transactions/tx-1',
       }),
+      expect.any(String),
     );
+  });
+
+  it('rejects a status other than ACKNOWLEDGED or DECLINED before writing anything or notifying', async () => {
+    prisma.witness.findUnique.mockResolvedValue(makeWitness());
+
+    await expect(
+      service.acknowledge('witness-1', WitnessStatus.MODIFIED, 'user-1'),
+    ).rejects.toThrow('status must be either ACKNOWLEDGED or DECLINED');
+
+    expect(prisma.witness.update).not.toHaveBeenCalled();
+    expect(inAppNotificationsService.createSafely).not.toHaveBeenCalled();
   });
 
   it('sends contact notification on first ACKNOWLEDGED witness for LOAN_GIVEN transaction with phone', async () => {

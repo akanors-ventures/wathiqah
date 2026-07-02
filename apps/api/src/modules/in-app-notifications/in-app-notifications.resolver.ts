@@ -12,19 +12,12 @@ import type { PubSub } from 'graphql-subscriptions';
 import { GqlAuthGuard } from '../../common/guards/gql-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { PUB_SUB } from '../../common/pubsub/pubsub.module';
+import { sameFieldFilter } from '../../common/utils/same-field-filter.util';
 import { InAppNotificationsService } from './in-app-notifications.service';
 import { Notification } from './entities/notification.entity';
 import { User } from '../users/entities/user.entity';
 
-interface GqlSubscriptionContext {
-  req: { user?: { id?: string } };
-}
-
-const sameUserFilter = (
-  payload: { userId: string },
-  _variables: unknown,
-  context: GqlSubscriptionContext,
-) => payload.userId === context.req.user?.id;
+const sameUserFilter = sameFieldFilter<'userId', 'id'>('userId', 'id');
 
 @Resolver(() => Notification)
 @UseGuards(GqlAuthGuard)
@@ -39,6 +32,15 @@ export class InAppNotificationsResolver {
   // change based on which org they're currently viewing, same bucket as
   // Witness requests and Personal Notes. Filtered to the subscriber's own
   // userId so a user only ever receives their own notifications.
+  //
+  // NOTE: PubSubModule is in-memory and single-instance only (see its own
+  // doc comment in common/pubsub/pubsub.module.ts). If the API ever scales
+  // to multiple instances behind a load balancer, a subscriber connected to
+  // a different instance than the one that published won't receive this
+  // event in real time — it'll still show up on the next `myNotifications`
+  // refetch/reload, just not live. Swap PUB_SUB's provider for a
+  // Redis-backed PubSubEngine to fix this for every subscription at once,
+  // not just this one.
 
   @Subscription(() => Notification, { filter: sameUserFilter })
   notificationCreated() {

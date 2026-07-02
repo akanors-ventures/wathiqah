@@ -2,6 +2,7 @@ import { useMutation, useQuery, useSubscription } from "@apollo/client/react";
 import { useNavigate } from "@tanstack/react-router";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, BellOff } from "lucide-react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -18,10 +19,20 @@ import type { MyNotificationsQuery } from "@/types/__generated__/graphql";
 
 type NotificationListItem = MyNotificationsQuery["myNotifications"][number];
 
+// Mirrors the backend's RECENT_NOTIFICATIONS_LIMIT (in-app-notifications.service.ts)
+// — caps how many items the subscription handler will keep prepending to the
+// cached list over a long-lived session, so it never grows past what the
+// "recent notifications" list is meant to show.
+const MAX_CACHED_NOTIFICATIONS = 30;
+
 export function NotificationBell() {
   const navigate = useNavigate();
-  const { data: listData } = useQuery(MY_NOTIFICATIONS_QUERY);
-  const { data: countData } = useQuery(MY_UNREAD_NOTIFICATION_COUNT_QUERY);
+  const { data: listData, refetch: refetchList } = useQuery(MY_NOTIFICATIONS_QUERY);
+  const { data: countData, refetch: refetchCount } = useQuery(MY_UNREAD_NOTIFICATION_COUNT_QUERY);
+  // Notifications currently being marked read — guards against a double
+  // click firing markNotificationRead twice for the same id before the
+  // first mutation's result has re-rendered this component with read: true.
+  const pendingReadIds = useRef(new Set<string>());
 
   const [markRead] = useMutation(MARK_NOTIFICATION_READ_MUTATION, {
     update: (cache, { data }) => {
@@ -57,14 +68,30 @@ export function NotificationBell() {
       const notification = data.data?.notificationCreated;
       if (!notification) return;
 
-      client.cache.updateQuery({ query: MY_NOTIFICATIONS_QUERY }, (existing) =>
-        existing
-          ? { myNotifications: upsertById(existing.myNotifications, notification) }
-          : existing,
-      );
-      client.cache.updateQuery({ query: MY_UNREAD_NOTIFICATION_COUNT_QUERY }, (existing) =>
-        existing ? { myUnreadNotificationCount: existing.myUnreadNotificationCount + 1 } : existing,
-      );
+      let listUpdated = false;
+      client.cache.updateQuery({ query: MY_NOTIFICATIONS_QUERY }, (existing) => {
+        if (!existing) return existing;
+        listUpdated = true;
+        return {
+          myNotifications: upsertById(existing.myNotifications, notification).slice(
+            0,
+            MAX_CACHED_NOTIFICATIONS,
+          ),
+        };
+      });
+
+      let countUpdated = false;
+      client.cache.updateQuery({ query: MY_UNREAD_NOTIFICATION_COUNT_QUERY }, (existing) => {
+        if (!existing) return existing;
+        countUpdated = true;
+        return { myUnreadNotificationCount: existing.myUnreadNotificationCount + 1 };
+      });
+
+      // The initial queries hadn't populated the cache yet when this event
+      // arrived (a narrow startup race) — refetch from the server instead
+      // of silently dropping the event.
+      if (!listUpdated) refetchList();
+      if (!countUpdated) refetchCount();
 
       toast(notification.title, {
         description: notification.body,
@@ -82,8 +109,13 @@ export function NotificationBell() {
   const unreadCount = countData?.myUnreadNotificationCount ?? 0;
 
   async function handleItemClick(notification: NotificationListItem) {
-    if (!notification.read) {
-      await markRead({ variables: { id: notification.id } });
+    if (!notification.read && !pendingReadIds.current.has(notification.id)) {
+      pendingReadIds.current.add(notification.id);
+      try {
+        await markRead({ variables: { id: notification.id } });
+      } finally {
+        pendingReadIds.current.delete(notification.id);
+      }
     }
     if (notification.link) {
       navigate({ to: notification.link as never });

@@ -59,15 +59,20 @@ function makeNotification(overrides: Record<string, unknown> = {}) {
 describe("NotificationBell", () => {
   const mockMarkRead = vi.fn().mockResolvedValue({});
   const mockMarkAllRead = vi.fn().mockResolvedValue({});
+  const mockRefetchList = vi.fn();
+  const mockRefetchCount = vi.fn();
+  let capturedOnData: ((args: { client: unknown; data: unknown }) => void) | undefined;
 
   function setup(notifications: ReturnType<typeof makeNotification>[], unreadCount: number) {
     (useQuery as unknown as Mock).mockImplementation((doc: GqlDoc) => {
       const name = operationName(doc);
-      if (name === "MyNotifications") return { data: { myNotifications: notifications } };
-      if (name === "MyUnreadNotificationCount") {
-        return { data: { myUnreadNotificationCount: unreadCount } };
+      if (name === "MyNotifications") {
+        return { data: { myNotifications: notifications }, refetch: mockRefetchList };
       }
-      return { data: undefined };
+      if (name === "MyUnreadNotificationCount") {
+        return { data: { myUnreadNotificationCount: unreadCount }, refetch: mockRefetchCount };
+      }
+      return { data: undefined, refetch: vi.fn() };
     });
   }
 
@@ -75,6 +80,7 @@ describe("NotificationBell", () => {
     vi.clearAllMocks();
     mockMarkRead.mockResolvedValue({});
     mockMarkAllRead.mockResolvedValue({});
+    capturedOnData = undefined;
 
     (useMutation as unknown as Mock).mockImplementation((doc: GqlDoc) => {
       const name = operationName(doc);
@@ -82,7 +88,12 @@ describe("NotificationBell", () => {
       if (name === "MarkAllNotificationsRead") return [mockMarkAllRead];
       return [vi.fn()];
     });
-    (useSubscription as unknown as Mock).mockReturnValue(undefined);
+    (useSubscription as unknown as Mock).mockImplementation(
+      (_doc: GqlDoc, opts: { onData: (args: { client: unknown; data: unknown }) => void }) => {
+        capturedOnData = opts.onData;
+        return undefined;
+      },
+    );
   });
 
   it("shows no unread badge when there are no unread notifications", () => {
@@ -151,5 +162,65 @@ describe("NotificationBell", () => {
     render(<NotificationBell />);
 
     expect(screen.queryByText("Mark all read")).not.toBeInTheDocument();
+  });
+
+  it("does not fire markRead twice for a rapid double-click on the same item", async () => {
+    // markRead never resolves within this test, simulating the window
+    // between the first click and the mutation settling.
+    mockMarkRead.mockReturnValue(new Promise(() => {}));
+    setup([makeNotification()], 1);
+
+    render(<NotificationBell />);
+
+    const item = screen.getByText("You were invited to witness a transaction");
+    fireEvent.click(item);
+    fireEvent.click(item);
+
+    expect(mockMarkRead).toHaveBeenCalledTimes(1);
+  });
+
+  it("caps the cached notification list at 30 when a subscription event arrives", () => {
+    setup([makeNotification()], 1);
+    render(<NotificationBell />);
+
+    const existingList = Array.from({ length: 30 }, (_, i) => makeNotification({ id: `old-${i}` }));
+    const cacheUpdateQuery = vi.fn(
+      (
+        _opts: { query: unknown },
+        updater: (existing: { myNotifications: typeof existingList } | undefined) => unknown,
+      ) => updater({ myNotifications: existingList }),
+    );
+
+    capturedOnData?.({
+      client: { cache: { updateQuery: cacheUpdateQuery } },
+      data: { data: { notificationCreated: makeNotification({ id: "new-1" }) } },
+    });
+
+    const listUpdateCall = cacheUpdateQuery.mock.calls[0];
+    const result = listUpdateCall[1]({ myNotifications: existingList }) as {
+      myNotifications: unknown[];
+    };
+    expect(result.myNotifications).toHaveLength(30);
+    expect((result.myNotifications[0] as { id: string }).id).toBe("new-1");
+  });
+
+  it("refetches both queries when a subscription event arrives before the initial cache is populated", () => {
+    setup([], 0);
+    render(<NotificationBell />);
+
+    // Simulate the cache not being populated yet: the updateQuery callback
+    // is invoked with existing === undefined, mirroring Apollo's real
+    // behavior for a query that hasn't resolved.
+    const cacheUpdateQuery = vi.fn(
+      (_opts: { query: unknown }, updater: (existing: undefined) => unknown) => updater(undefined),
+    );
+
+    capturedOnData?.({
+      client: { cache: { updateQuery: cacheUpdateQuery } },
+      data: { data: { notificationCreated: makeNotification() } },
+    });
+
+    expect(mockRefetchList).toHaveBeenCalled();
+    expect(mockRefetchCount).toHaveBeenCalled();
   });
 });
