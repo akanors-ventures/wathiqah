@@ -10,6 +10,7 @@ import {
   MoreHorizontal,
   PenLine,
   Settings,
+  ShieldCheck,
   Sparkles,
   Users,
   X,
@@ -20,6 +21,7 @@ import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
+import { isPlatformAdmin } from "@/utils/auth";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -175,6 +177,7 @@ function MoreSheet({
 
 export function MobileBottomNav() {
   const { activeOrg, isOrgMode } = useOrgContext();
+  const { user } = useAuth();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -310,7 +313,18 @@ export function MobileBottomNav() {
     },
   ];
 
-  const moreItems = isOrgMode ? orgMoreItems : personalMoreItems;
+  const adminMoreItem: SheetItem = {
+    label: "Admin",
+    description: "Platform administration",
+    href: "/admin",
+    icon: ShieldCheck,
+    iconColor: "text-indigo-500",
+  };
+
+  const moreItems = [
+    ...(isPlatformAdmin(user?.role) ? [adminMoreItem] : []),
+    ...(isOrgMode ? orgMoreItems : personalMoreItems),
+  ];
   const isMoreActive = moreItems.some((item) => pathname.startsWith(item.href));
 
   return (

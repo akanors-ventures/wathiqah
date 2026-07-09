@@ -32,6 +32,8 @@ export const ME_QUERY: TypedDocumentNode<MeQuery, MeQueryVariables> = gql`
       preferredCurrency
       isSupporter
       hasSeenSharedHistory
+      role
+      tier
     }
   }
 `;
@@ -51,6 +53,8 @@ export const LOGIN_MUTATION: TypedDocumentNode<LoginMutation, LoginMutationVaria
         preferredCurrency
         isSupporter
         hasSeenSharedHistory
+        role
+        tier
       }
     }
   }

@@ -46,6 +46,8 @@ model User {
   orgEventsCreated           OrgEvent[]           @relation("OrgEventCreator")
   notes                      Note[]               @relation("NoteCreator")
   notifications              Notification[]       @relation("UserNotifications")
+  adminActionsPerformed      AdminAuditLog[]      @relation("AdminAuditActor")
+  adminActionsReceived       AdminAuditLog[]      @relation("AdminAuditTarget")
 
   @@index([phoneNumber])
   @@map("users")
@@ -454,6 +456,32 @@ enum UserRole {
   SUPER_ADMIN
 
   @@map("user_role")
+}
+
+model AdminAuditLog {
+  id           String      @id @default(uuid())
+  actorId      String
+  action       AdminAction
+  targetUserId String
+  metadata     Json?
+  createdAt    DateTime    @default(now())
+
+  actor      User @relation("AdminAuditActor", fields: [actorId], references: [id])
+  targetUser User @relation("AdminAuditTarget", fields: [targetUserId], references: [id])
+
+  @@index([actorId])
+  @@index([targetUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
+enum AdminAction {
+  PROVISION_PRO
+  DEPROVISION_PRO
+  SET_USER_ROLE
+
+  @@map("admin_action")
 }
 
 model Support {

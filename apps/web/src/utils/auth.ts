@@ -1,11 +1,22 @@
 import { redirect } from "@tanstack/react-router";
 import { getCookie } from "@/lib/cookies";
+import { UserRole } from "@/types/__generated__/graphql";
 
 export const isAuthenticated = () => {
   if (typeof document === "undefined") return false;
   const token = getCookie("isLoggedIn");
   return token === "true";
 };
+
+/**
+ * Platform-admin check against the global UserRole (distinct from org-scoped OrgRole).
+ * ADMIN and SUPER_ADMIN can both reach the admin area; SUPER_ADMIN-only actions
+ * (e.g. role changes) are gated separately server-side and in the UI.
+ */
+export const isPlatformAdmin = (role?: UserRole | null): boolean =>
+  role === UserRole.Admin || role === UserRole.SuperAdmin;
+
+export const isSuperAdmin = (role?: UserRole | null): boolean => role === UserRole.SuperAdmin;
 
 export const authGuard = (opts?: { location?: { pathname?: string; searchStr?: string } }) => {
   if (typeof window !== "undefined" && !isAuthenticated()) {
