@@ -10,8 +10,16 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { NotificationTemplates } from '../in-app-notifications/notification-templates';
-import { SubscriptionTier, UserRole } from '../../generated/prisma/client';
+import {
+  AdminAction,
+  Prisma,
+  SubscriptionTier,
+  UserRole,
+} from '../../generated/prisma/client';
 import { normalizeEmail } from '../../common/utils/string.utils';
+import { getPrismaSkip } from '../../common/dto/pagination.input';
+import { AdminUsersFilterInput } from './dto/admin-users-filter.input';
+import { AdminAuditLogFilterInput } from './dto/admin-audit-log-filter.input';
 import type { User } from '../../generated/prisma/client';
 
 @Injectable()
@@ -146,6 +154,14 @@ export class AdminService implements OnModuleInit {
         where: { id: userId },
         data: { tier: SubscriptionTier.PRO },
       }),
+      this.prisma.adminAuditLog.create({
+        data: {
+          actorId: adminId,
+          action: AdminAction.PROVISION_PRO,
+          targetUserId: userId,
+          metadata: { expiresAt: expiresAt.toISOString() },
+        },
+      }),
     ]);
 
     await this.notificationService.sendProvisioningNotification({
@@ -164,9 +180,6 @@ export class AdminService implements OnModuleInit {
   }
 
   async deprovisionPro(adminId: string, userId: string): Promise<User> {
-    // adminId retained for future audit logging
-    void adminId;
-
     const subscription = await this.prisma.subscription.findFirstOrThrow({
       where: { userId, isProvisioned: true },
       include: { user: true },
@@ -185,6 +198,13 @@ export class AdminService implements OnModuleInit {
       this.prisma.user.update({
         where: { id: userId },
         data: { tier: SubscriptionTier.FREE },
+      }),
+      this.prisma.adminAuditLog.create({
+        data: {
+          actorId: adminId,
+          action: AdminAction.DEPROVISION_PRO,
+          targetUserId: userId,
+        },
       }),
     ]);
 
@@ -207,9 +227,6 @@ export class AdminService implements OnModuleInit {
     userId: string,
     role: UserRole,
   ): Promise<User> {
-    // adminId retained for future audit logging
-    void adminId;
-
     if (role === UserRole.SUPER_ADMIN) {
       throw new ForbiddenException(
         'SUPER_ADMIN role cannot be assigned via this mutation — it is reserved for the bootstrap account.',
@@ -220,10 +237,20 @@ export class AdminService implements OnModuleInit {
       where: { id: userId },
     });
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: { role },
-    });
+    const [updatedUser] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { role },
+      }),
+      this.prisma.adminAuditLog.create({
+        data: {
+          actorId: adminId,
+          action: AdminAction.SET_USER_ROLE,
+          targetUserId: userId,
+          metadata: { role, previousRole: user.role },
+        },
+      }),
+    ]);
 
     await this.notificationService.sendRoleChangeNotification({
       notificationType: role === UserRole.ADMIN ? 'promoted' : 'demoted',
@@ -240,5 +267,112 @@ export class AdminService implements OnModuleInit {
     );
 
     return updatedUser;
+  }
+
+  async getUsers(filter: AdminUsersFilterInput): Promise<{
+    items: User[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { search, role, tier, page = 1, limit = 25 } = filter;
+
+    const where: Prisma.UserWhereInput = {};
+    if (role) where.role = role;
+    if (tier) where.tier = tier;
+    if (search?.trim()) {
+      const term = search.trim();
+      where.OR = [
+        { email: { contains: term, mode: 'insensitive' } },
+        { firstName: { contains: term, mode: 'insensitive' } },
+        { lastName: { contains: term, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: getPrismaSkip(page, limit),
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
+  async getUserById(id: string): Promise<User> {
+    return this.prisma.user.findUniqueOrThrow({ where: { id } });
+  }
+
+  async getStats(): Promise<{
+    totalUsers: number;
+    freeUsers: number;
+    proUsers: number;
+    provisionedProUsers: number;
+    adminUsers: number;
+    newUsersLast30Days: number;
+    activeSubscriptions: number;
+  }> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [
+      totalUsers,
+      freeUsers,
+      proUsers,
+      provisionedProUsers,
+      adminUsers,
+      newUsersLast30Days,
+      activeSubscriptions,
+    ] = await this.prisma.$transaction([
+      this.prisma.user.count(),
+      this.prisma.user.count({ where: { tier: SubscriptionTier.FREE } }),
+      this.prisma.user.count({ where: { tier: SubscriptionTier.PRO } }),
+      this.prisma.subscription.count({ where: { isProvisioned: true } }),
+      this.prisma.user.count({
+        where: { role: { in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] } },
+      }),
+      this.prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      this.prisma.subscription.count({ where: { status: 'active' } }),
+    ]);
+
+    return {
+      totalUsers,
+      freeUsers,
+      proUsers,
+      provisionedProUsers,
+      adminUsers,
+      newUsersLast30Days,
+      activeSubscriptions,
+    };
+  }
+
+  async getAuditLogs(filter: AdminAuditLogFilterInput): Promise<{
+    items: Prisma.AdminAuditLogGetPayload<{
+      include: { actor: true; targetUser: true };
+    }>[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { action, page = 1, limit = 25 } = filter;
+
+    const where: Prisma.AdminAuditLogWhereInput = {};
+    if (action) where.action = action;
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.adminAuditLog.findMany({
+        where,
+        include: { actor: true, targetUser: true },
+        orderBy: { createdAt: 'desc' },
+        skip: getPrismaSkip(page, limit),
+        take: limit,
+      }),
+      this.prisma.adminAuditLog.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
 }

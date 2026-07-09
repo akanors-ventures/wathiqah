@@ -69,6 +69,7 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
+  AdminAuditLog: 'AdminAuditLog',
   Support: 'Support',
   SmsOptOut: 'SmsOptOut',
   Organisation: 'Organisation',
@@ -374,6 +375,18 @@ export const ContactInvitationScalarFieldEnum = {
 } as const
 
 export type ContactInvitationScalarFieldEnum = (typeof ContactInvitationScalarFieldEnum)[keyof typeof ContactInvitationScalarFieldEnum]
+
+
+export const AdminAuditLogScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  action: 'action',
+  targetUserId: 'targetUserId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AdminAuditLogScalarFieldEnum = (typeof AdminAuditLogScalarFieldEnum)[keyof typeof AdminAuditLogScalarFieldEnum]
 
 
 export const SupportScalarFieldEnum = {

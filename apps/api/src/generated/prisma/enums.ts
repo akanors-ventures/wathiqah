@@ -167,6 +167,15 @@ export const UserRole = {
 export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
 
+export const AdminAction = {
+  PROVISION_PRO: 'PROVISION_PRO',
+  DEPROVISION_PRO: 'DEPROVISION_PRO',
+  SET_USER_ROLE: 'SET_USER_ROLE'
+} as const
+
+export type AdminAction = (typeof AdminAction)[keyof typeof AdminAction]
+
+
 export const SupportStatus = {
   PENDING: 'PENDING',
   SUCCESSFUL: 'SUCCESSFUL',

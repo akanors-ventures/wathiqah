@@ -402,6 +402,7 @@ export const ModelName = {
   ExchangeRate: 'ExchangeRate',
   ExchangeRateHistory: 'ExchangeRateHistory',
   ContactInvitation: 'ContactInvitation',
+  AdminAuditLog: 'AdminAuditLog',
   Support: 'Support',
   SmsOptOut: 'SmsOptOut',
   Organisation: 'Organisation',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "notification" | "project" | "projectTransaction" | "projectTransactionHistory" | "personalEntry" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "support" | "smsOptOut" | "organisation" | "organisationMember" | "orgSubscription" | "orgEvent" | "note"
+    modelProps: "user" | "subscription" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "notification" | "project" | "projectTransaction" | "projectTransactionHistory" | "personalEntry" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "adminAuditLog" | "support" | "smsOptOut" | "organisation" | "organisationMember" | "orgSubscription" | "orgEvent" | "note"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1760,6 +1761,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AdminAuditLog: {
+      payload: Prisma.$AdminAuditLogPayload<ExtArgs>
+      fields: Prisma.AdminAuditLogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AdminAuditLogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AdminAuditLogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>
+        }
+        findFirst: {
+          args: Prisma.AdminAuditLogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AdminAuditLogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>
+        }
+        findMany: {
+          args: Prisma.AdminAuditLogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>[]
+        }
+        create: {
+          args: Prisma.AdminAuditLogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>
+        }
+        createMany: {
+          args: Prisma.AdminAuditLogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AdminAuditLogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>[]
+        }
+        delete: {
+          args: Prisma.AdminAuditLogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>
+        }
+        update: {
+          args: Prisma.AdminAuditLogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>
+        }
+        deleteMany: {
+          args: Prisma.AdminAuditLogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AdminAuditLogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AdminAuditLogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>[]
+        }
+        upsert: {
+          args: Prisma.AdminAuditLogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AdminAuditLogPayload>
+        }
+        aggregate: {
+          args: Prisma.AdminAuditLogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAdminAuditLog>
+        }
+        groupBy: {
+          args: Prisma.AdminAuditLogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdminAuditLogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AdminAuditLogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AdminAuditLogCountAggregateOutputType> | number
+        }
+      }
+    }
     Support: {
       payload: Prisma.$SupportPayload<ExtArgs>
       fields: Prisma.SupportFieldRefs
@@ -2599,6 +2674,18 @@ export const ContactInvitationScalarFieldEnum = {
 export type ContactInvitationScalarFieldEnum = (typeof ContactInvitationScalarFieldEnum)[keyof typeof ContactInvitationScalarFieldEnum]
 
 
+export const AdminAuditLogScalarFieldEnum = {
+  id: 'id',
+  actorId: 'actorId',
+  action: 'action',
+  targetUserId: 'targetUserId',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type AdminAuditLogScalarFieldEnum = (typeof AdminAuditLogScalarFieldEnum)[keyof typeof AdminAuditLogScalarFieldEnum]
+
+
 export const SupportScalarFieldEnum = {
   id: 'id',
   amount: 'amount',
@@ -3058,6 +3145,20 @@ export type ListEnumInvitationStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'AdminAction'
+ */
+export type EnumAdminActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdminAction'>
+    
+
+
+/**
+ * Reference to a field of type 'AdminAction[]'
+ */
+export type ListEnumAdminActionFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AdminAction[]'>
+    
+
+
+/**
  * Reference to a field of type 'SupportStatus'
  */
 export type EnumSupportStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SupportStatus'>
@@ -3239,6 +3340,7 @@ export type GlobalOmitConfig = {
   exchangeRate?: Prisma.ExchangeRateOmit
   exchangeRateHistory?: Prisma.ExchangeRateHistoryOmit
   contactInvitation?: Prisma.ContactInvitationOmit
+  adminAuditLog?: Prisma.AdminAuditLogOmit
   support?: Prisma.SupportOmit
   smsOptOut?: Prisma.SmsOptOutOmit
   organisation?: Prisma.OrganisationOmit

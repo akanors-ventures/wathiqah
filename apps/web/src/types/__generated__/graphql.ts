@@ -52,6 +52,49 @@ export type AddWitnessInput = {
   witnessUserIds?: InputMaybe<Array<Scalars['ID']['input']>>;
 };
 
+export enum AdminAction {
+  DeprovisionPro = 'DEPROVISION_PRO',
+  ProvisionPro = 'PROVISION_PRO',
+  SetUserRole = 'SET_USER_ROLE'
+}
+
+export type AdminAuditLog = {
+  __typename: 'AdminAuditLog';
+  action: AdminAction;
+  actor: Maybe<User>;
+  actorId: Scalars['ID']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  metadata: Maybe<Scalars['JSON']['output']>;
+  targetUser: Maybe<User>;
+  targetUserId: Scalars['ID']['output'];
+};
+
+export type AdminAuditLogFilterInput = {
+  action?: InputMaybe<AdminAction>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type AdminStats = {
+  __typename: 'AdminStats';
+  activeSubscriptions: Scalars['Int']['output'];
+  adminUsers: Scalars['Int']['output'];
+  freeUsers: Scalars['Int']['output'];
+  newUsersLast30Days: Scalars['Int']['output'];
+  proUsers: Scalars['Int']['output'];
+  provisionedProUsers: Scalars['Int']['output'];
+  totalUsers: Scalars['Int']['output'];
+};
+
+export type AdminUsersFilterInput = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  role?: InputMaybe<UserRole>;
+  search?: InputMaybe<Scalars['String']['input']>;
+  tier?: InputMaybe<SubscriptionTier>;
+};
+
 export enum AssetCategory {
   Funds = 'FUNDS',
   Item = 'ITEM'
@@ -774,6 +817,14 @@ export type OrganisationMember = {
   userId: Scalars['String']['output'];
 };
 
+export type PaginatedAuditLogsResponse = {
+  __typename: 'PaginatedAuditLogsResponse';
+  items: Array<AdminAuditLog>;
+  limit: Scalars['Int']['output'];
+  page: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
 export type PaginatedContactsResponse = {
   __typename: 'PaginatedContactsResponse';
   items: Array<Contact>;
@@ -809,6 +860,14 @@ export type PaginatedProjectsResponse = {
 export type PaginatedSharedHistoryResponse = {
   __typename: 'PaginatedSharedHistoryResponse';
   items: Array<Transaction>;
+  limit: Scalars['Int']['output'];
+  page: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+};
+
+export type PaginatedUsersResponse = {
+  __typename: 'PaginatedUsersResponse';
+  items: Array<User>;
   limit: Scalars['Int']['output'];
   page: Scalars['Int']['output'];
   total: Scalars['Int']['output'];
@@ -953,6 +1012,10 @@ export type ProvisionProInput = {
 
 export type Query = {
   __typename: 'Query';
+  adminAuditLogs: PaginatedAuditLogsResponse;
+  adminStats: AdminStats;
+  adminUser: User;
+  adminUsers: PaginatedUsersResponse;
   checkContactOnPlatform: ContactPlatformStatus;
   contact: Contact;
   contacts: PaginatedContactsResponse;
@@ -992,6 +1055,21 @@ export type Query = {
   transactionsGroupedByContact: Array<ContactGroupedSummary>;
   user: Maybe<User>;
   userNotes: Array<Note>;
+};
+
+
+export type QueryAdminAuditLogsArgs = {
+  filter?: InputMaybe<AdminAuditLogFilterInput>;
+};
+
+
+export type QueryAdminUserArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryAdminUsersArgs = {
+  filter?: InputMaybe<AdminUsersFilterInput>;
 };
 
 
@@ -1483,17 +1561,66 @@ export type RefreshTokenMutationVariables = Exact<{
 
 export type RefreshTokenMutation = { refreshToken: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string } } };
 
+export type AdminUserFieldsFragment = { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string };
+
+export type AdminUsersQueryVariables = Exact<{
+  filter?: InputMaybe<AdminUsersFilterInput>;
+}>;
+
+
+export type AdminUsersQuery = { adminUsers: { __typename: 'PaginatedUsersResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string }> } };
+
+export type AdminUserQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type AdminUserQuery = { adminUser: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string } };
+
+export type AdminStatsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AdminStatsQuery = { adminStats: { __typename: 'AdminStats', totalUsers: number, freeUsers: number, proUsers: number, provisionedProUsers: number, adminUsers: number, newUsersLast30Days: number, activeSubscriptions: number } };
+
+export type AdminAuditLogsQueryVariables = Exact<{
+  filter?: InputMaybe<AdminAuditLogFilterInput>;
+}>;
+
+
+export type AdminAuditLogsQuery = { adminAuditLogs: { __typename: 'PaginatedAuditLogsResponse', total: number, page: number, limit: number, items: Array<{ __typename: 'AdminAuditLog', id: string, action: AdminAction, metadata: Record<string, unknown> | null, createdAt: string, actor: { __typename: 'User', id: string, name: string, email: string } | null, targetUser: { __typename: 'User', id: string, name: string, email: string } | null }> } };
+
+export type ProvisionProMutationVariables = Exact<{
+  input: ProvisionProInput;
+}>;
+
+
+export type ProvisionProMutation = { provisionPro: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string } };
+
+export type DeprovisionProMutationVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type DeprovisionProMutation = { deprovisionPro: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string } };
+
+export type SetUserRoleMutationVariables = Exact<{
+  input: SetUserRoleInput;
+}>;
+
+
+export type SetUserRoleMutation = { setUserRole: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } };
+export type MeQuery = { me: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean, role: UserRole, tier: SubscriptionTier } };
 
 export type LoginMutationVariables = Exact<{
   loginInput: LoginInput;
 }>;
 
 
-export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean } } };
+export type LoginMutation = { login: { __typename: 'AuthPayload', accessToken: string | null, refreshToken: string | null, user: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, isSupporter: boolean, hasSeenSharedHistory: boolean, role: UserRole, tier: SubscriptionTier } } };
 
 export type LogoutMutationVariables = Exact<{ [key: string]: never; }>;
 

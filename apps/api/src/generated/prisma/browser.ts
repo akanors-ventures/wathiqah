@@ -108,6 +108,11 @@ export type ExchangeRateHistory = Prisma.ExchangeRateHistoryModel
  */
 export type ContactInvitation = Prisma.ContactInvitationModel
 /**
+ * Model AdminAuditLog
+ * 
+ */
+export type AdminAuditLog = Prisma.AdminAuditLogModel
+/**
  * Model Support
  * 
  */

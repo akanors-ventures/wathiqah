@@ -6,6 +6,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { ConfigService } from '@nestjs/config';
 import {
+  AdminAction,
   SubscriptionTier,
   UserRole,
   NotificationType,
@@ -16,6 +17,8 @@ const mockPrisma = {
     findFirst: jest.fn(),
     findUnique: jest.fn(),
     findUniqueOrThrow: jest.fn(),
+    findMany: jest.fn(),
+    count: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
   },
@@ -23,6 +26,12 @@ const mockPrisma = {
     upsert: jest.fn(),
     findFirstOrThrow: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
+  },
+  adminAuditLog: {
+    create: jest.fn().mockResolvedValue({ id: 'audit-1' }),
+    findMany: jest.fn(),
+    count: jest.fn(),
   },
   $transaction: jest.fn((ops: unknown[]) => Promise.all(ops)),
 };
@@ -228,6 +237,31 @@ describe('AdminService', () => {
         expect.any(String),
       );
     });
+
+    it('writes a PROVISION_PRO audit log entry', async () => {
+      mockPrisma.user.findUniqueOrThrow.mockResolvedValue({
+        id: 'user-1',
+        email: 'user@example.com',
+        firstName: 'Amina',
+      });
+      mockPrisma.subscription.upsert.mockResolvedValue({});
+      mockPrisma.user.update.mockResolvedValue({});
+      mockNotificationService.sendProvisioningNotification.mockResolvedValue(
+        undefined,
+      );
+
+      const expiresAt = new Date('2027-01-01');
+      await service.provisionPro('admin-1', 'user-1', expiresAt);
+
+      expect(mockPrisma.adminAuditLog.create).toHaveBeenCalledWith({
+        data: {
+          actorId: 'admin-1',
+          action: AdminAction.PROVISION_PRO,
+          targetUserId: 'user-1',
+          metadata: { expiresAt: expiresAt.toISOString() },
+        },
+      });
+    });
   });
 
   describe('deprovisionPro', () => {
@@ -267,6 +301,30 @@ describe('AdminService', () => {
         }),
         expect.any(String),
       );
+    });
+
+    it('writes a DEPROVISION_PRO audit log entry', async () => {
+      mockPrisma.subscription.findFirstOrThrow.mockResolvedValue({
+        id: 'sub-1',
+        userId: 'user-1',
+        user: { email: 'user@example.com', firstName: 'Amina' },
+      });
+      mockPrisma.subscription.update.mockResolvedValue({});
+      mockPrisma.user.update.mockResolvedValue({});
+      mockPrisma.user.findUniqueOrThrow.mockResolvedValue({ id: 'user-1' });
+      mockNotificationService.sendProvisioningNotification.mockResolvedValue(
+        undefined,
+      );
+
+      await service.deprovisionPro('admin-1', 'user-1');
+
+      expect(mockPrisma.adminAuditLog.create).toHaveBeenCalledWith({
+        data: {
+          actorId: 'admin-1',
+          action: AdminAction.DEPROVISION_PRO,
+          targetUserId: 'user-1',
+        },
+      });
     });
   });
 
@@ -310,6 +368,14 @@ describe('AdminService', () => {
         }),
         expect.any(String),
       );
+      expect(mockPrisma.adminAuditLog.create).toHaveBeenCalledWith({
+        data: {
+          actorId: 'sa-1',
+          action: AdminAction.SET_USER_ROLE,
+          targetUserId: 'user-1',
+          metadata: { role: UserRole.ADMIN, previousRole: UserRole.USER },
+        },
+      });
     });
 
     it('sends demotion notification when role is set to USER', async () => {
@@ -341,6 +407,125 @@ describe('AdminService', () => {
           type: NotificationType.ROLE_DEMOTED,
         }),
         expect.any(String),
+      );
+    });
+  });
+
+  describe('getUsers', () => {
+    it('returns paginated users with total, page and limit', async () => {
+      const users = [{ id: 'u1' }, { id: 'u2' }];
+      mockPrisma.user.findMany.mockResolvedValue(users);
+      mockPrisma.user.count.mockResolvedValue(42);
+
+      const result = await service.getUsers({ page: 2, limit: 20 });
+
+      expect(result).toEqual({ items: users, total: 42, page: 2, limit: 20 });
+      // page 2 @ limit 20 => skip 20
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          skip: 20,
+          take: 20,
+          orderBy: { createdAt: 'desc' },
+        }),
+      );
+    });
+
+    it('builds a case-insensitive OR search across email and name', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
+
+      await service.getUsers({ search: 'amina' });
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            OR: [
+              { email: { contains: 'amina', mode: 'insensitive' } },
+              { firstName: { contains: 'amina', mode: 'insensitive' } },
+              { lastName: { contains: 'amina', mode: 'insensitive' } },
+            ],
+          },
+        }),
+      );
+    });
+
+    it('applies role and tier filters when provided', async () => {
+      mockPrisma.user.findMany.mockResolvedValue([]);
+      mockPrisma.user.count.mockResolvedValue(0);
+
+      await service.getUsers({
+        role: UserRole.ADMIN,
+        tier: SubscriptionTier.PRO,
+      });
+
+      expect(mockPrisma.user.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { role: UserRole.ADMIN, tier: SubscriptionTier.PRO },
+        }),
+      );
+    });
+  });
+
+  describe('getUserById', () => {
+    it('returns the user via findUniqueOrThrow', async () => {
+      const user = { id: 'user-1', email: 'user@example.com' };
+      mockPrisma.user.findUniqueOrThrow.mockResolvedValue(user);
+
+      const result = await service.getUserById('user-1');
+
+      expect(result).toBe(user);
+      expect(mockPrisma.user.findUniqueOrThrow).toHaveBeenCalledWith({
+        where: { id: 'user-1' },
+      });
+    });
+  });
+
+  describe('getStats', () => {
+    it('aggregates platform counts', async () => {
+      // Order matches the $transaction array in getStats
+      mockPrisma.user.count
+        .mockResolvedValueOnce(100) // totalUsers
+        .mockResolvedValueOnce(70) // freeUsers
+        .mockResolvedValueOnce(30) // proUsers
+        .mockResolvedValueOnce(5) // adminUsers
+        .mockResolvedValueOnce(12); // newUsersLast30Days
+      mockPrisma.subscription.count
+        .mockResolvedValueOnce(8) // provisionedProUsers
+        .mockResolvedValueOnce(25); // activeSubscriptions
+
+      const stats = await service.getStats();
+
+      expect(stats).toEqual({
+        totalUsers: 100,
+        freeUsers: 70,
+        proUsers: 30,
+        provisionedProUsers: 8,
+        adminUsers: 5,
+        newUsersLast30Days: 12,
+        activeSubscriptions: 25,
+      });
+    });
+  });
+
+  describe('getAuditLogs', () => {
+    it('returns paginated logs with actor and target included, newest first', async () => {
+      const logs = [{ id: 'a1' }];
+      mockPrisma.adminAuditLog.findMany.mockResolvedValue(logs);
+      mockPrisma.adminAuditLog.count.mockResolvedValue(1);
+
+      const result = await service.getAuditLogs({
+        action: AdminAction.PROVISION_PRO,
+        page: 1,
+        limit: 20,
+      });
+
+      expect(result).toEqual({ items: logs, total: 1, page: 1, limit: 20 });
+      expect(mockPrisma.adminAuditLog.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { action: AdminAction.PROVISION_PRO },
+          include: { actor: true, targetUser: true },
+          orderBy: { createdAt: 'desc' },
+        }),
       );
     });
   });
