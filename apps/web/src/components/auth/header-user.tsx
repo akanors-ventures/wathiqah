@@ -11,6 +11,7 @@ import {
   Moon,
   Plus,
   Settings,
+  ShieldCheck,
   Sun,
   User,
   Users,
@@ -38,6 +39,7 @@ import { useOrgContext } from "@/context/OrgContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
+import { isPlatformAdmin } from "@/utils/auth";
 
 export default function HeaderUser() {
   const { user, loading, logout, isAuthenticated } = useAuth();
@@ -432,6 +434,19 @@ export default function HeaderUser() {
               </Link>
             </DropdownMenuItem>
 
+            <DropdownMenuSeparator />
+          </>
+        )}
+
+        {/* Platform admin (always shown when the role qualifies) */}
+        {isPlatformAdmin(user.role) && (
+          <>
+            <DropdownMenuItem asChild>
+              <Link to="/admin" className="cursor-pointer">
+                <ShieldCheck className="mr-2 h-4 w-4" />
+                <span>Admin</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         )}

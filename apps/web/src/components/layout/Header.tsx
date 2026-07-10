@@ -9,7 +9,6 @@ import {
   History,
   PenLine,
   Settings,
-  ShieldCheck,
   Users,
   Zap,
 } from "lucide-react";
@@ -25,7 +24,6 @@ import { useActiveOrg } from "@/hooks/use-active-org";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { cn } from "@/lib/utils";
-import { isPlatformAdmin } from "@/utils/auth";
 import HeaderUser from "../auth/header-user";
 import { NotificationBell } from "./notification-bell";
 
@@ -219,14 +217,6 @@ export default function Header() {
             <NavLink to="/pricing" pathname={pathname}>
               Pricing
             </NavLink>
-            {isPlatformAdmin(user?.role) && (
-              <NavLink to="/admin" pathname={pathname}>
-                <span className="flex items-center gap-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                  Admin
-                </span>
-              </NavLink>
-            )}
           </nav>
         </div>
 
