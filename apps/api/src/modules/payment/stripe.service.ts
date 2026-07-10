@@ -48,16 +48,16 @@ export class StripeService {
       throw new Error('Stripe Pro Plan ID not configured');
     }
 
-    let effectivePlanId = proPlanId;
-    if (interval === BillingInterval.ANNUAL) {
-      if (proAnnualPlanId) {
-        effectivePlanId = proAnnualPlanId;
-      } else {
-        this.logger.warn(
-          'Stripe annual plan ID not configured, falling back to monthly plan',
-        );
-      }
+    // Annual requires its own recurring Price — silently falling back to the
+    // monthly Price would enrol the user in the wrong billing cadence.
+    if (interval === BillingInterval.ANNUAL && !proAnnualPlanId) {
+      throw new Error(
+        'Annual subscription plan is not configured. Contact support.',
+      );
     }
+
+    const effectivePlanId =
+      interval === BillingInterval.ANNUAL ? proAnnualPlanId! : proPlanId;
 
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -75,6 +75,7 @@ export class StripeService {
       metadata: {
         userId: user.id,
         tier,
+        interval: interval || BillingInterval.MONTHLY,
       },
     });
 
@@ -203,6 +204,7 @@ export class StripeService {
           'stripe',
           session.metadata?.tier as SubscriptionTier,
           tx,
+          session.metadata?.interval as BillingInterval,
         );
       } else if (
         session.mode === 'payment' &&

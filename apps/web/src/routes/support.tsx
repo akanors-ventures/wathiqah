@@ -1,28 +1,28 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useId } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useGeoIP } from "@/hooks/useGeoIP";
+import { AlertTriangle, Check, Globe, Heart, Loader2, Shield, Zap } from "lucide-react";
+import { useEffect, useId, useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { Footer } from "@/components/layout/Footer";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
   CardDescription,
   CardFooter,
+  CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/utils/formatters";
-import { Heart, Shield, Zap, Globe, AlertTriangle, Check, Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { redirectToLogin } from "@/utils/auth";
-import { z } from "zod";
-import { useSupport } from "@/hooks/useSupport";
+import { useAuth } from "@/hooks/use-auth";
 import { useAmountInput } from "@/hooks/useAmountInput";
-import { Footer } from "@/components/layout/Footer";
+import { useGeoIP } from "@/hooks/useGeoIP";
+import { useSupport } from "@/hooks/useSupport";
+import { cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/formatters";
+import { redirectToLogin } from "@/utils/auth";
 
 const createSupportSchema = (min: number, max: number, currencyCode: string) => {
   return z
@@ -280,8 +280,7 @@ function SupportPage() {
                 )}
               </Button>
               <p className="text-xs text-center text-muted-foreground">
-                Secure payment processing via{" "}
-                {selectedCurrency.code === "NGN" ? "Flutterwave" : "Stripe/LemonSqueezy"}.
+                Secure payment processing via Flutterwave.
                 <br />
                 By supporting, you agree to our Terms of Service.
               </p>

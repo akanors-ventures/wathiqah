@@ -9,6 +9,8 @@ import {
   PaymentType,
 } from '../../generated/prisma/enums';
 import { Prisma } from '../../generated/prisma/client';
+import { SubscriptionTier } from '../../generated/prisma/enums';
+import { BillingInterval } from './dto/billing-interval.enum';
 import * as crypto from 'node:crypto';
 
 // Mock Lemon Squeezy library
@@ -135,6 +137,52 @@ describe('LemonSqueezyService', () => {
         'lemonsqueezy',
         'PRO',
         prismaService,
+        undefined, // no interval in custom_data
+      );
+    });
+
+    it('passes interval through and prefers the real renews_at date when present', async () => {
+      const payload = {
+        meta: {
+          event_name: 'subscription_created',
+          custom_data: {
+            userId: 'user_123',
+            tier: 'PRO',
+            interval: BillingInterval.ANNUAL,
+          },
+        },
+        data: {
+          id: 'sub_annual_123',
+          attributes: {
+            total: 49900,
+            currency: 'USD',
+            status: 'active',
+            renews_at: '2027-07-10T00:00:00.000Z',
+          },
+        },
+      };
+
+      const body = Buffer.from(JSON.stringify(payload));
+
+      await service.handleWebhook(body, validSignature);
+
+      expect(
+        subscriptionService.handleSubscriptionSuccess,
+      ).toHaveBeenCalledWith(
+        'user_123',
+        'sub_annual_123',
+        'lemonsqueezy',
+        'PRO',
+        prismaService,
+        BillingInterval.ANNUAL,
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        {
+          externalId: 'sub_annual_123',
+          status: 'active',
+          currentPeriodEnd: new Date('2027-07-10T00:00:00.000Z'),
+        },
+        prismaService,
       );
     });
 
@@ -191,6 +239,73 @@ describe('LemonSqueezyService', () => {
         where: { id: 'user_123' },
         data: { isSupporter: true },
       });
+    });
+  });
+
+  describe('createSubscriptionSession', () => {
+    const mockUser = {
+      id: 'user_123',
+      email: 'test@example.com',
+    } as Parameters<LemonSqueezyService['createSubscriptionSession']>[0];
+
+    it('throws when annual is requested but no annual variant ID is configured', async () => {
+      (mockConfigService.get as jest.Mock).mockImplementation(
+        (key: string): string | null => {
+          if (key === 'payment.lemonsqueezy.storeId') return 'store_1';
+          if (key === 'payment.lemonsqueezy.proVariantId')
+            return 'variant_monthly';
+          return null;
+        },
+      );
+
+      await expect(
+        service.createSubscriptionSession(
+          mockUser,
+          SubscriptionTier.PRO,
+          BillingInterval.ANNUAL,
+        ),
+      ).rejects.toThrow('Annual subscription plan is not configured');
+    });
+
+    it('uses the annual variant ID when annual is requested and configured', async () => {
+      (mockConfigService.get as jest.Mock).mockImplementation(
+        (key: string): string | null => {
+          if (key === 'payment.lemonsqueezy.storeId') return 'store_1';
+          if (key === 'payment.lemonsqueezy.proVariantId')
+            return 'variant_monthly';
+          if (key === 'payment.lemonsqueezy.proAnnualVariantId')
+            return 'variant_annual';
+          return null;
+        },
+      );
+
+      const { createCheckout } = jest.requireMock(
+        '@lemonsqueezy/lemonsqueezy.js',
+      );
+      (createCheckout as jest.Mock).mockResolvedValue({
+        data: {
+          data: { attributes: { url: 'https://lemonsqueezy.com/checkout' } },
+        },
+        error: null,
+      });
+
+      await service.createSubscriptionSession(
+        mockUser,
+        SubscriptionTier.PRO,
+        BillingInterval.ANNUAL,
+      );
+
+      expect(createCheckout).toHaveBeenCalledWith(
+        'store_1',
+        'variant_annual',
+        expect.objectContaining({
+          checkoutData: expect.objectContaining({
+            custom: expect.objectContaining({
+              interval: BillingInterval.ANNUAL,
+            }),
+          }),
+        }),
+      );
     });
   });
 });
