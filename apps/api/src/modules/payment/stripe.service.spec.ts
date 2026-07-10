@@ -7,8 +7,10 @@ import {
   SupportStatus,
   PaymentStatus,
   PaymentType,
+  SubscriptionTier,
 } from '../../generated/prisma/enums';
 import { Prisma } from '../../generated/prisma/client';
+import { BillingInterval } from './dto/billing-interval.enum';
 
 // Mock Stripe library
 jest.mock('stripe', () => {
@@ -161,6 +163,45 @@ describe('StripeService', () => {
         'stripe',
         'PRO',
         prismaService, // Verify transaction client is passed
+        undefined, // no interval in metadata
+      );
+    });
+
+    it('passes the interval from metadata through to handleSubscriptionSuccess', async () => {
+      const event = {
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_test_annual',
+            client_reference_id: 'user_123',
+            mode: 'subscription',
+            subscription: 'sub_annual_123',
+            amount_total: 4990,
+            currency: 'usd',
+            metadata: {
+              tier: 'PRO',
+              interval: 'annual',
+            },
+            payment_intent: 'pi_annual_123',
+          },
+        },
+      };
+
+      (service['stripe'].webhooks.constructEvent as jest.Mock).mockReturnValue(
+        event,
+      );
+
+      await service.handleWebhook(Buffer.from('payload'), 'signature');
+
+      expect(
+        subscriptionService.handleSubscriptionSuccess,
+      ).toHaveBeenCalledWith(
+        'user_123',
+        'sub_annual_123',
+        'stripe',
+        'PRO',
+        prismaService,
+        'annual',
       );
     });
 
@@ -221,6 +262,59 @@ describe('StripeService', () => {
         where: { id: 'user_123' },
         data: { isSupporter: true },
       });
+    });
+  });
+
+  describe('createSubscriptionSession', () => {
+    const mockUser = {
+      id: 'user_123',
+      email: 'test@example.com',
+    } as Parameters<StripeService['createSubscriptionSession']>[0];
+
+    it('throws when annual is requested but no annual Price ID is configured', async () => {
+      (mockConfigService.get as jest.Mock).mockImplementation(
+        (key: string): string | null => {
+          if (key === 'payment.stripe.proPlanId') return 'price_monthly';
+          return null;
+        },
+      );
+
+      await expect(
+        service.createSubscriptionSession(
+          mockUser,
+          SubscriptionTier.PRO,
+          BillingInterval.ANNUAL,
+        ),
+      ).rejects.toThrow('Annual subscription plan is not configured');
+    });
+
+    it('uses the annual Price ID when annual is requested and configured', async () => {
+      (mockConfigService.get as jest.Mock).mockImplementation(
+        (key: string): string | null => {
+          if (key === 'payment.stripe.proPlanId') return 'price_monthly';
+          if (key === 'payment.stripe.proAnnualPlanId') return 'price_annual';
+          if (key === 'payment.successUrl') return 'http://localhost/success';
+          if (key === 'payment.cancelUrl') return 'http://localhost/cancel';
+          return null;
+        },
+      );
+
+      const mockStripe = service['stripe'] as unknown as {
+        checkout: { sessions: { create: jest.Mock } };
+      };
+      mockStripe.checkout.sessions.create.mockResolvedValue({
+        url: 'https://checkout.stripe.com/pay/cs_test',
+      });
+
+      await service.createSubscriptionSession(
+        mockUser,
+        SubscriptionTier.PRO,
+        BillingInterval.ANNUAL,
+      );
+
+      const callArgs = mockStripe.checkout.sessions.create.mock.calls[0][0];
+      expect(callArgs.line_items[0].price).toBe('price_annual');
+      expect(callArgs.metadata.interval).toBe(BillingInterval.ANNUAL);
     });
   });
 });
