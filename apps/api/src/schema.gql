@@ -35,6 +35,47 @@ input AddWitnessInput {
   witnessUserIds: [ID!]
 }
 
+enum AdminAction {
+  DEPROVISION_PRO
+  PROVISION_PRO
+  SET_USER_ROLE
+}
+
+type AdminAuditLog {
+  action: AdminAction!
+  actor: User
+  actorId: ID!
+  createdAt: DateTime!
+  id: ID!
+  metadata: JSON
+  targetUser: User
+  targetUserId: ID!
+}
+
+input AdminAuditLogFilterInput {
+  action: AdminAction
+  limit: Int = 25
+  page: Int = 1
+}
+
+type AdminStats {
+  activeSubscriptions: Int!
+  adminUsers: Int!
+  freeUsers: Int!
+  newUsersLast30Days: Int!
+  proUsers: Int!
+  provisionedProUsers: Int!
+  totalUsers: Int!
+}
+
+input AdminUsersFilterInput {
+  limit: Int = 25
+  page: Int = 1
+  role: UserRole
+  search: String
+  tier: SubscriptionTier
+}
+
 enum AssetCategory {
   FUNDS
   ITEM
@@ -456,6 +497,13 @@ type OrganisationMember {
   userId: String!
 }
 
+type PaginatedAuditLogsResponse {
+  items: [AdminAuditLog!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
+
 type PaginatedContactsResponse {
   items: [Contact!]!
   limit: Int!
@@ -486,6 +534,13 @@ type PaginatedProjectsResponse {
 
 type PaginatedSharedHistoryResponse {
   items: [Transaction!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
+
+type PaginatedUsersResponse {
+  items: [User!]!
   limit: Int!
   page: Int!
   total: Int!
@@ -616,6 +671,10 @@ input ProvisionProInput {
 }
 
 type Query {
+  adminAuditLogs(filter: AdminAuditLogFilterInput = {}): PaginatedAuditLogsResponse!
+  adminStats: AdminStats!
+  adminUser(id: ID!): User!
+  adminUsers(filter: AdminUsersFilterInput = {}): PaginatedUsersResponse!
   checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
   contacts(filter: FilterContactInput): PaginatedContactsResponse!

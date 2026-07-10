@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
+  NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,8 +11,19 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { NotificationTemplates } from '../in-app-notifications/notification-templates';
-import { SubscriptionTier, UserRole } from '../../generated/prisma/client';
-import { normalizeEmail } from '../../common/utils/string.utils';
+import {
+  AdminAction,
+  Prisma,
+  SubscriptionTier,
+  UserRole,
+} from '../../generated/prisma/client';
+import {
+  escapeLikeWildcards,
+  normalizeEmail,
+} from '../../common/utils/string.utils';
+import { getPrismaSkip } from '../../common/dto/pagination.input';
+import { AdminUsersFilterInput } from './dto/admin-users-filter.input';
+import { AdminAuditLogFilterInput } from './dto/admin-audit-log-filter.input';
 import type { User } from '../../generated/prisma/client';
 
 @Injectable()
@@ -110,14 +122,27 @@ export class AdminService implements OnModuleInit {
     this.logger.log(`Super admin bootstrapped: ${normalizedEmail}`);
   }
 
+  /** Builds the audit-log-create Prisma operation for inclusion in a $transaction array. */
+  private auditEntry(
+    actorId: string,
+    action: AdminAction,
+    targetUserId: string,
+    metadata?: Prisma.InputJsonValue,
+  ) {
+    return this.prisma.adminAuditLog.create({
+      data: { actorId, action, targetUserId, metadata },
+    });
+  }
+
   async provisionPro(
     adminId: string,
     userId: string,
     expiresAt: Date,
   ): Promise<User> {
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
     await this.prisma.$transaction([
       this.prisma.subscription.upsert({
@@ -146,6 +171,9 @@ export class AdminService implements OnModuleInit {
         where: { id: userId },
         data: { tier: SubscriptionTier.PRO },
       }),
+      this.auditEntry(adminId, AdminAction.PROVISION_PRO, userId, {
+        expiresAt: expiresAt.toISOString(),
+      }),
     ]);
 
     await this.notificationService.sendProvisioningNotification({
@@ -164,13 +192,15 @@ export class AdminService implements OnModuleInit {
   }
 
   async deprovisionPro(adminId: string, userId: string): Promise<User> {
-    // adminId retained for future audit logging
-    void adminId;
-
-    const subscription = await this.prisma.subscription.findFirstOrThrow({
+    const subscription = await this.prisma.subscription.findFirst({
       where: { userId, isProvisioned: true },
       include: { user: true },
     });
+    if (!subscription) {
+      throw new NotFoundException(
+        `No provisioned Pro subscription found for user ${userId}`,
+      );
+    }
 
     await this.prisma.$transaction([
       this.prisma.subscription.update({
@@ -186,6 +216,7 @@ export class AdminService implements OnModuleInit {
         where: { id: userId },
         data: { tier: SubscriptionTier.FREE },
       }),
+      this.auditEntry(adminId, AdminAction.DEPROVISION_PRO, userId),
     ]);
 
     await this.notificationService.sendProvisioningNotification({
@@ -207,23 +238,33 @@ export class AdminService implements OnModuleInit {
     userId: string,
     role: UserRole,
   ): Promise<User> {
-    // adminId retained for future audit logging
-    void adminId;
-
     if (role === UserRole.SUPER_ADMIN) {
       throw new ForbiddenException(
         'SUPER_ADMIN role cannot be assigned via this mutation — it is reserved for the bootstrap account.',
       );
     }
 
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: { role },
-    });
+    if (user.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException(
+        'Cannot change the role of a SUPER_ADMIN account.',
+      );
+    }
+
+    const [updatedUser] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { role },
+      }),
+      this.auditEntry(adminId, AdminAction.SET_USER_ROLE, userId, {
+        role,
+        previousRole: user.role,
+      }),
+    ]);
 
     await this.notificationService.sendRoleChangeNotification({
       notificationType: role === UserRole.ADMIN ? 'promoted' : 'demoted',
@@ -240,5 +281,114 @@ export class AdminService implements OnModuleInit {
     );
 
     return updatedUser;
+  }
+
+  async getUsers(filter: AdminUsersFilterInput): Promise<{
+    items: User[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { search, role, tier, page = 1, limit = 25 } = filter;
+
+    const where: Prisma.UserWhereInput = {};
+    if (role) where.role = role;
+    if (tier) where.tier = tier;
+    if (search?.trim()) {
+      const term = escapeLikeWildcards(search.trim());
+      where.OR = [
+        { email: { contains: term, mode: 'insensitive' } },
+        { firstName: { contains: term, mode: 'insensitive' } },
+        { lastName: { contains: term, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: getPrismaSkip(page, limit),
+        take: limit,
+      }),
+      this.prisma.user.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
+  async getUserById(id: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
+  }
+
+  async getStats(): Promise<{
+    totalUsers: number;
+    freeUsers: number;
+    proUsers: number;
+    provisionedProUsers: number;
+    adminUsers: number;
+    newUsersLast30Days: number;
+    activeSubscriptions: number;
+  }> {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [
+      freeUsers,
+      proUsers,
+      provisionedProUsers,
+      adminUsers,
+      newUsersLast30Days,
+      activeSubscriptions,
+    ] = await Promise.all([
+      this.prisma.user.count({ where: { tier: SubscriptionTier.FREE } }),
+      this.prisma.user.count({ where: { tier: SubscriptionTier.PRO } }),
+      this.prisma.subscription.count({ where: { isProvisioned: true } }),
+      this.prisma.user.count({
+        where: { role: { in: [UserRole.ADMIN, UserRole.SUPER_ADMIN] } },
+      }),
+      this.prisma.user.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+      this.prisma.subscription.count({ where: { status: 'active' } }),
+    ]);
+
+    return {
+      totalUsers: freeUsers + proUsers,
+      freeUsers,
+      proUsers,
+      provisionedProUsers,
+      adminUsers,
+      newUsersLast30Days,
+      activeSubscriptions,
+    };
+  }
+
+  async getAuditLogs(filter: AdminAuditLogFilterInput): Promise<{
+    items: Prisma.AdminAuditLogGetPayload<{
+      include: { actor: true; targetUser: true };
+    }>[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { action, page = 1, limit = 25 } = filter;
+
+    const where: Prisma.AdminAuditLogWhereInput = {};
+    if (action) where.action = action;
+
+    const [items, total] = await Promise.all([
+      this.prisma.adminAuditLog.findMany({
+        where,
+        include: { actor: true, targetUser: true },
+        orderBy: { createdAt: 'desc' },
+        skip: getPrismaSkip(page, limit),
+        take: limit,
+      }),
+      this.prisma.adminAuditLog.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
   }
 }

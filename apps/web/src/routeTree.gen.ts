@@ -22,6 +22,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as ChangePasswordRouteImport } from './routes/change-password'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as WitnessesIndexRouteImport } from './routes/witnesses/index'
 import { Route as TransactionsIndexRouteImport } from './routes/transactions/index'
@@ -30,6 +31,7 @@ import { Route as PromisesIndexRouteImport } from './routes/promises/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
 import { Route as ItemsIndexRouteImport } from './routes/items/index'
 import { Route as ContactsIndexRouteImport } from './routes/contacts/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as WitnessesNextActionRouteImport } from './routes/witnesses/next-action'
 import { Route as TransactionsNewRouteImport } from './routes/transactions/new'
 import { Route as TransactionsMyContactTransactionsRouteImport } from './routes/transactions/my-contact-transactions'
@@ -42,12 +44,16 @@ import { Route as OrgCreateRouteImport } from './routes/org/create'
 import { Route as ItemsNewRouteImport } from './routes/items/new'
 import { Route as ContactsNewRouteImport } from './routes/contacts/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
+import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscriptions'
+import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
 import { Route as WitnessesInviteTokenRouteImport } from './routes/witnesses/invite.$token'
 import { Route as SharedAccessViewGrantIdRouteImport } from './routes/shared-access/view.$grantId'
 import { Route as OrgSlugSettingsRouteImport } from './routes/org/$slug/settings'
 import { Route as OrgSlugMembersRouteImport } from './routes/org/$slug/members'
 import { Route as OrgSlugEventsRouteImport } from './routes/org/$slug/events'
+import { Route as AdminUsersUserIdRouteImport } from './routes/admin/users/$userId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -114,6 +120,11 @@ const ChangePasswordRoute = ChangePasswordRouteImport.update({
   path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -153,6 +164,11 @@ const ContactsIndexRoute = ContactsIndexRouteImport.update({
   id: '/contacts/',
   path: '/contacts/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const WitnessesNextActionRoute = WitnessesNextActionRouteImport.update({
   id: '/witnesses/next-action',
@@ -215,10 +231,25 @@ const ContactsContactIdRoute = ContactsContactIdRouteImport.update({
   path: '/contacts/$contactId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
+  id: '/subscriptions',
+  path: '/subscriptions',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const OrgSlugIndexRoute = OrgSlugIndexRouteImport.update({
   id: '/org/$slug/',
   path: '/org/$slug/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const WitnessesInviteTokenRoute = WitnessesInviteTokenRouteImport.update({
   id: '/witnesses/invite/$token',
@@ -245,9 +276,15 @@ const OrgSlugEventsRoute = OrgSlugEventsRouteImport.update({
   path: '/org/$slug/events',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersUserIdRoute = AdminUsersUserIdRouteImport.update({
+  id: '/users/$userId',
+  path: '/users/$userId',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/change-password': typeof ChangePasswordRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -261,6 +298,8 @@ export interface FileRoutesByFullPath {
   '/signup-success': typeof SignupSuccessRoute
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/contacts/new': typeof ContactsNewRoute
   '/items/new': typeof ItemsNewRoute
@@ -273,6 +312,7 @@ export interface FileRoutesByFullPath {
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
   '/witnesses/next-action': typeof WitnessesNextActionRoute
+  '/admin/': typeof AdminIndexRoute
   '/contacts/': typeof ContactsIndexRoute
   '/items/': typeof ItemsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -280,11 +320,13 @@ export interface FileRoutesByFullPath {
   '/shared-access/': typeof SharedAccessIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
   '/witnesses/': typeof WitnessesIndexRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
   '/org/$slug/members': typeof OrgSlugMembersRoute
   '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
   '/org/$slug/': typeof OrgSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -302,6 +344,8 @@ export interface FileRoutesByTo {
   '/signup-success': typeof SignupSuccessRoute
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/contacts/new': typeof ContactsNewRoute
   '/items/new': typeof ItemsNewRoute
@@ -314,6 +358,7 @@ export interface FileRoutesByTo {
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
   '/witnesses/next-action': typeof WitnessesNextActionRoute
+  '/admin': typeof AdminIndexRoute
   '/contacts': typeof ContactsIndexRoute
   '/items': typeof ItemsIndexRoute
   '/projects': typeof ProjectsIndexRoute
@@ -321,16 +366,19 @@ export interface FileRoutesByTo {
   '/shared-access': typeof SharedAccessIndexRoute
   '/transactions': typeof TransactionsIndexRoute
   '/witnesses': typeof WitnessesIndexRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
   '/org/$slug/members': typeof OrgSlugMembersRoute
   '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/admin/users': typeof AdminUsersIndexRoute
   '/org/$slug': typeof OrgSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/change-password': typeof ChangePasswordRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -344,6 +392,8 @@ export interface FileRoutesById {
   '/signup-success': typeof SignupSuccessRoute
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/contacts/new': typeof ContactsNewRoute
   '/items/new': typeof ItemsNewRoute
@@ -356,6 +406,7 @@ export interface FileRoutesById {
   '/transactions/my-contact-transactions': typeof TransactionsMyContactTransactionsRoute
   '/transactions/new': typeof TransactionsNewRoute
   '/witnesses/next-action': typeof WitnessesNextActionRoute
+  '/admin/': typeof AdminIndexRoute
   '/contacts/': typeof ContactsIndexRoute
   '/items/': typeof ItemsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -363,17 +414,20 @@ export interface FileRoutesById {
   '/shared-access/': typeof SharedAccessIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
   '/witnesses/': typeof WitnessesIndexRoute
+  '/admin/users/$userId': typeof AdminUsersUserIdRoute
   '/org/$slug/events': typeof OrgSlugEventsRoute
   '/org/$slug/members': typeof OrgSlugMembersRoute
   '/org/$slug/settings': typeof OrgSlugSettingsRoute
   '/shared-access/view/$grantId': typeof SharedAccessViewGrantIdRoute
   '/witnesses/invite/$token': typeof WitnessesInviteTokenRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
   '/org/$slug/': typeof OrgSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/change-password'
     | '/features'
     | '/forgot-password'
@@ -387,6 +441,8 @@ export interface FileRouteTypes {
     | '/signup-success'
     | '/support'
     | '/verify-email'
+    | '/admin/audit'
+    | '/admin/subscriptions'
     | '/contacts/$contactId'
     | '/contacts/new'
     | '/items/new'
@@ -399,6 +455,7 @@ export interface FileRouteTypes {
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
     | '/witnesses/next-action'
+    | '/admin/'
     | '/contacts/'
     | '/items/'
     | '/projects/'
@@ -406,11 +463,13 @@ export interface FileRouteTypes {
     | '/shared-access/'
     | '/transactions/'
     | '/witnesses/'
+    | '/admin/users/$userId'
     | '/org/$slug/events'
     | '/org/$slug/members'
     | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/admin/users/'
     | '/org/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -428,6 +487,8 @@ export interface FileRouteTypes {
     | '/signup-success'
     | '/support'
     | '/verify-email'
+    | '/admin/audit'
+    | '/admin/subscriptions'
     | '/contacts/$contactId'
     | '/contacts/new'
     | '/items/new'
@@ -440,6 +501,7 @@ export interface FileRouteTypes {
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
     | '/witnesses/next-action'
+    | '/admin'
     | '/contacts'
     | '/items'
     | '/projects'
@@ -447,15 +509,18 @@ export interface FileRouteTypes {
     | '/shared-access'
     | '/transactions'
     | '/witnesses'
+    | '/admin/users/$userId'
     | '/org/$slug/events'
     | '/org/$slug/members'
     | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/admin/users'
     | '/org/$slug'
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/change-password'
     | '/features'
     | '/forgot-password'
@@ -469,6 +534,8 @@ export interface FileRouteTypes {
     | '/signup-success'
     | '/support'
     | '/verify-email'
+    | '/admin/audit'
+    | '/admin/subscriptions'
     | '/contacts/$contactId'
     | '/contacts/new'
     | '/items/new'
@@ -481,6 +548,7 @@ export interface FileRouteTypes {
     | '/transactions/my-contact-transactions'
     | '/transactions/new'
     | '/witnesses/next-action'
+    | '/admin/'
     | '/contacts/'
     | '/items/'
     | '/projects/'
@@ -488,16 +556,19 @@ export interface FileRouteTypes {
     | '/shared-access/'
     | '/transactions/'
     | '/witnesses/'
+    | '/admin/users/$userId'
     | '/org/$slug/events'
     | '/org/$slug/members'
     | '/org/$slug/settings'
     | '/shared-access/view/$grantId'
     | '/witnesses/invite/$token'
+    | '/admin/users/'
     | '/org/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   ChangePasswordRoute: typeof ChangePasswordRoute
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -631,6 +702,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -686,6 +764,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/contacts/'
       preLoaderRoute: typeof ContactsIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/witnesses/next-action': {
       id: '/witnesses/next-action'
@@ -771,12 +856,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactsContactIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/subscriptions': {
+      id: '/admin/subscriptions'
+      path: '/subscriptions'
+      fullPath: '/admin/subscriptions'
+      preLoaderRoute: typeof AdminSubscriptionsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/org/$slug/': {
       id: '/org/$slug/'
       path: '/org/$slug'
       fullPath: '/org/$slug/'
       preLoaderRoute: typeof OrgSlugIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/witnesses/invite/$token': {
       id: '/witnesses/invite/$token'
@@ -813,11 +919,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrgSlugEventsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users/$userId': {
+      id: '/admin/users/$userId'
+      path: '/users/$userId'
+      fullPath: '/admin/users/$userId'
+      preLoaderRoute: typeof AdminUsersUserIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
   }
 }
 
+interface AdminRouteRouteChildren {
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAuditRoute: AdminAuditRoute,
+  AdminSubscriptionsRoute: AdminSubscriptionsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminUsersUserIdRoute: AdminUsersUserIdRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   ChangePasswordRoute: ChangePasswordRoute,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
