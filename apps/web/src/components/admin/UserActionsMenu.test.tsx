@@ -3,7 +3,12 @@ import type * as React from "react";
 import { beforeEach, describe, expect, it, type Mock, vi } from "vitest";
 import { useAuth } from "@/hooks/use-auth";
 import { SubscriptionTier, UserRole } from "@/types/__generated__/graphql";
-import { type AdminUserLike, UserActionsMenu } from "./UserActionsMenu";
+import {
+  type AdminUserLike,
+  endOfDayIso,
+  localDateString,
+  UserActionsMenu,
+} from "./UserActionsMenu";
 
 vi.mock("@/hooks/use-auth", () => ({ useAuth: vi.fn() }));
 
@@ -67,5 +72,33 @@ describe("UserActionsMenu — role-gated actions", () => {
     });
     expect(screen.getByText("Revoke Pro")).toBeInTheDocument();
     expect(screen.getByText("Extend Pro")).toBeInTheDocument();
+  });
+});
+
+describe("localDateString", () => {
+  it("formats a Date's local calendar components, not its UTC-converted date", () => {
+    // Constructed from local (year, month, day) components — this must
+    // round-trip regardless of the runtime's timezone offset, unlike
+    // `toISOString().slice(0, 10)` which reads the UTC-shifted date.
+    expect(localDateString(new Date(2027, 0, 5))).toBe("2027-01-05");
+    expect(localDateString(new Date(2027, 11, 31))).toBe("2027-12-31");
+  });
+
+  it("zero-pads single-digit months and days", () => {
+    expect(localDateString(new Date(2027, 2, 7))).toBe("2027-03-07");
+  });
+});
+
+describe("endOfDayIso", () => {
+  it("anchors the persisted expiry to the exact calendar date picked, in UTC", () => {
+    // Previously built via `new Date(`${expiresAt}T23:59:59`)` (no offset),
+    // which parses as the viewer's *local* time — for any timezone behind
+    // UTC, 23:59:59 local rolls into the next UTC day, silently persisting
+    // an expiry one day later than the admin selected.
+    expect(endOfDayIso("2027-07-10")).toBe("2027-07-10T23:59:59.000Z");
+  });
+
+  it("does not drift across a month/year boundary", () => {
+    expect(endOfDayIso("2027-12-31")).toBe("2027-12-31T23:59:59.000Z");
   });
 });

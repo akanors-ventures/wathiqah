@@ -1,7 +1,15 @@
 import { Crown, ShieldCheck, UserRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { formatDate, formatDateTime } from "@/lib/utils/formatters";
 import { AdminAction, UserRole } from "@/types/__generated__/graphql";
+
+export { formatDate, formatDateTime };
+
+/** Formats a stat count, defaulting to 0 when the value hasn't loaded yet. */
+export function num(n?: number | null): string {
+  return (n ?? 0).toLocaleString();
+}
 
 /** Human label for a global platform role. */
 export const ROLE_LABEL: Record<UserRole, string> = {
@@ -55,19 +63,6 @@ export function ActionBadge({ action }: { action: AdminAction }) {
       {meta.label}
     </Badge>
   );
-}
-
-export function formatDateTime(value: string | Date): string {
-  const date = typeof value === "string" ? new Date(value) : value;
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-}
-
-export function formatDate(value: string | Date): string {
-  const date = typeof value === "string" ? new Date(value) : value;
-  return new Intl.DateTimeFormat(undefined, { dateStyle: "medium" }).format(date);
 }
 
 /** Display name for an audit-log actor/target (may be null if the user was removed). */

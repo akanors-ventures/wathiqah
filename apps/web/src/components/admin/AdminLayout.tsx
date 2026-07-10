@@ -61,7 +61,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           {/* Sub-nav */}
           <nav className="flex items-center gap-1 overflow-x-auto pb-px">
             {NAV.map(({ label, href, icon: Icon, exact }) => {
-              const isActive = exact ? pathname === href : pathname.startsWith(href);
+              const isActive = exact
+                ? pathname === href
+                : pathname === href || pathname.startsWith(`${href}/`);
               return (
                 <Link
                   key={href}

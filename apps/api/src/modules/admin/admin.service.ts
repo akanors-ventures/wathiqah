@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   Logger,
+  NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,7 +17,10 @@ import {
   SubscriptionTier,
   UserRole,
 } from '../../generated/prisma/client';
-import { normalizeEmail } from '../../common/utils/string.utils';
+import {
+  escapeLikeWildcards,
+  normalizeEmail,
+} from '../../common/utils/string.utils';
 import { getPrismaSkip } from '../../common/dto/pagination.input';
 import { AdminUsersFilterInput } from './dto/admin-users-filter.input';
 import { AdminAuditLogFilterInput } from './dto/admin-audit-log-filter.input';
@@ -118,14 +122,27 @@ export class AdminService implements OnModuleInit {
     this.logger.log(`Super admin bootstrapped: ${normalizedEmail}`);
   }
 
+  /** Builds the audit-log-create Prisma operation for inclusion in a $transaction array. */
+  private auditEntry(
+    actorId: string,
+    action: AdminAction,
+    targetUserId: string,
+    metadata?: Prisma.InputJsonValue,
+  ) {
+    return this.prisma.adminAuditLog.create({
+      data: { actorId, action, targetUserId, metadata },
+    });
+  }
+
   async provisionPro(
     adminId: string,
     userId: string,
     expiresAt: Date,
   ): Promise<User> {
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
 
     await this.prisma.$transaction([
       this.prisma.subscription.upsert({
@@ -154,13 +171,8 @@ export class AdminService implements OnModuleInit {
         where: { id: userId },
         data: { tier: SubscriptionTier.PRO },
       }),
-      this.prisma.adminAuditLog.create({
-        data: {
-          actorId: adminId,
-          action: AdminAction.PROVISION_PRO,
-          targetUserId: userId,
-          metadata: { expiresAt: expiresAt.toISOString() },
-        },
+      this.auditEntry(adminId, AdminAction.PROVISION_PRO, userId, {
+        expiresAt: expiresAt.toISOString(),
       }),
     ]);
 
@@ -180,10 +192,15 @@ export class AdminService implements OnModuleInit {
   }
 
   async deprovisionPro(adminId: string, userId: string): Promise<User> {
-    const subscription = await this.prisma.subscription.findFirstOrThrow({
+    const subscription = await this.prisma.subscription.findFirst({
       where: { userId, isProvisioned: true },
       include: { user: true },
     });
+    if (!subscription) {
+      throw new NotFoundException(
+        `No provisioned Pro subscription found for user ${userId}`,
+      );
+    }
 
     await this.prisma.$transaction([
       this.prisma.subscription.update({
@@ -199,13 +216,7 @@ export class AdminService implements OnModuleInit {
         where: { id: userId },
         data: { tier: SubscriptionTier.FREE },
       }),
-      this.prisma.adminAuditLog.create({
-        data: {
-          actorId: adminId,
-          action: AdminAction.DEPROVISION_PRO,
-          targetUserId: userId,
-        },
-      }),
+      this.auditEntry(adminId, AdminAction.DEPROVISION_PRO, userId),
     ]);
 
     await this.notificationService.sendProvisioningNotification({
@@ -233,22 +244,25 @@ export class AdminService implements OnModuleInit {
       );
     }
 
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-    });
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (user.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException(
+        'Cannot change the role of a SUPER_ADMIN account.',
+      );
+    }
 
     const [updatedUser] = await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: userId },
         data: { role },
       }),
-      this.prisma.adminAuditLog.create({
-        data: {
-          actorId: adminId,
-          action: AdminAction.SET_USER_ROLE,
-          targetUserId: userId,
-          metadata: { role, previousRole: user.role },
-        },
+      this.auditEntry(adminId, AdminAction.SET_USER_ROLE, userId, {
+        role,
+        previousRole: user.role,
       }),
     ]);
 
@@ -281,7 +295,7 @@ export class AdminService implements OnModuleInit {
     if (role) where.role = role;
     if (tier) where.tier = tier;
     if (search?.trim()) {
-      const term = search.trim();
+      const term = escapeLikeWildcards(search.trim());
       where.OR = [
         { email: { contains: term, mode: 'insensitive' } },
         { firstName: { contains: term, mode: 'insensitive' } },
@@ -289,7 +303,7 @@ export class AdminService implements OnModuleInit {
       ];
     }
 
-    const [items, total] = await this.prisma.$transaction([
+    const [items, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
         orderBy: { createdAt: 'desc' },
@@ -303,7 +317,11 @@ export class AdminService implements OnModuleInit {
   }
 
   async getUserById(id: string): Promise<User> {
-    return this.prisma.user.findUniqueOrThrow({ where: { id } });
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    return user;
   }
 
   async getStats(): Promise<{
@@ -319,15 +337,13 @@ export class AdminService implements OnModuleInit {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const [
-      totalUsers,
       freeUsers,
       proUsers,
       provisionedProUsers,
       adminUsers,
       newUsersLast30Days,
       activeSubscriptions,
-    ] = await this.prisma.$transaction([
-      this.prisma.user.count(),
+    ] = await Promise.all([
       this.prisma.user.count({ where: { tier: SubscriptionTier.FREE } }),
       this.prisma.user.count({ where: { tier: SubscriptionTier.PRO } }),
       this.prisma.subscription.count({ where: { isProvisioned: true } }),
@@ -339,7 +355,7 @@ export class AdminService implements OnModuleInit {
     ]);
 
     return {
-      totalUsers,
+      totalUsers: freeUsers + proUsers,
       freeUsers,
       proUsers,
       provisionedProUsers,
@@ -362,7 +378,7 @@ export class AdminService implements OnModuleInit {
     const where: Prisma.AdminAuditLogWhereInput = {};
     if (action) where.action = action;
 
-    const [items, total] = await this.prisma.$transaction([
+    const [items, total] = await Promise.all([
       this.prisma.adminAuditLog.findMany({
         where,
         include: { actor: true, targetUser: true },

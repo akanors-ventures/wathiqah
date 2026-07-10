@@ -51,3 +51,14 @@ export const formatDate = (date: string | Date | null | undefined) => {
     day: "numeric",
   }).format(new Date(date));
 };
+
+export const formatDateTime = (date: string | Date | null | undefined) => {
+  if (!date) return "-";
+  return new Intl.DateTimeFormat("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(date));
+};

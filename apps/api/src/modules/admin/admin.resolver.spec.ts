@@ -40,13 +40,29 @@ describe('AdminResolver RBAC', () => {
     proto.deprovisionPro,
   ];
 
-  it('opens read queries + provisioning to ADMIN and SUPER_ADMIN', () => {
+  it('opens read queries + provisioning to ADMIN and SUPER_ADMIN (via method decorator or class default)', () => {
     for (const method of roleGatedForBoth) {
-      expect(reflector.get<UserRole[]>(ROLES_KEY, method)).toEqual([
-        UserRole.ADMIN,
-        UserRole.SUPER_ADMIN,
-      ]);
+      expect(
+        reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
+          method,
+          AdminResolver,
+        ]),
+      ).toEqual([UserRole.ADMIN, UserRole.SUPER_ADMIN]);
     }
+  });
+
+  it('falls back to the class-level default for handlers with no method-level @Roles', () => {
+    // adminUsers/adminUser/adminStats/adminAuditLogs rely on this fallback —
+    // this is the safety net that keeps a future undecorated method from
+    // opening up to any authenticated user (RolesGuard treats missing
+    // metadata as "no restriction").
+    expect(
+      reflector.get<UserRole[]>(ROLES_KEY, proto.adminUsers),
+    ).toBeUndefined();
+    expect(reflector.get<UserRole[]>(ROLES_KEY, AdminResolver)).toEqual([
+      UserRole.ADMIN,
+      UserRole.SUPER_ADMIN,
+    ]);
   });
 
   it('restricts setUserRole to SUPER_ADMIN only', () => {
