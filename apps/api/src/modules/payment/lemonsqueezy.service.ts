@@ -50,16 +50,16 @@ export class LemonSqueezyService {
       'payment.lemonsqueezy.proAnnualVariantId',
     );
 
-    let variantId = proVariantId;
-    if (interval === BillingInterval.ANNUAL) {
-      if (proAnnualVariantId) {
-        variantId = proAnnualVariantId;
-      } else {
-        this.logger.warn(
-          'Lemon Squeezy annual variant ID not configured, falling back to monthly variant',
-        );
-      }
+    // Annual requires its own recurring variant — silently falling back to the
+    // monthly variant would enrol the user in the wrong billing cadence.
+    if (interval === BillingInterval.ANNUAL && !proAnnualVariantId) {
+      throw new Error(
+        'Annual subscription plan is not configured. Contact support.',
+      );
     }
+
+    const variantId =
+      interval === BillingInterval.ANNUAL ? proAnnualVariantId : proVariantId;
 
     if (!storeId || !variantId) {
       throw new Error('Lemon Squeezy Store ID or Variant ID not configured');
@@ -71,6 +71,7 @@ export class LemonSqueezyService {
         custom: {
           userId: user.id,
           tier,
+          interval: interval || BillingInterval.MONTHLY,
         },
       },
       productOptions: {
@@ -206,7 +207,20 @@ export class LemonSqueezyService {
           'lemonsqueezy',
           custom.tier as SubscriptionTier,
           tx,
+          custom.interval as BillingInterval,
         );
+
+        // Lemon Squeezy tells us the real renewal date — prefer it over our estimate
+        if (attributes.renews_at) {
+          await this.subscriptionService.updateSubscriptionStatus(
+            {
+              externalId: payload.data.id,
+              status: attributes.status,
+              currentPeriodEnd: new Date(attributes.renews_at),
+            },
+            tx,
+          );
+        }
       } else {
         // subscription_updated
         await this.subscriptionService.updateSubscriptionStatus(

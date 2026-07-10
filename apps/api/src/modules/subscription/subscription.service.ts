@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SUBSCRIPTION_LIMITS, TierLimits } from './subscription.constants';
 import { SubscriptionTier } from '../../generated/prisma/enums';
 import { Prisma } from '../../generated/prisma/client';
+import { BillingInterval } from '../payment/dto/billing-interval.enum';
 
 interface FeatureUsage {
   [key: string]: number;
@@ -24,10 +25,15 @@ export class SubscriptionService {
     provider: 'stripe' | 'flutterwave' | 'lemonsqueezy',
     tier: SubscriptionTier,
     tx?: Prisma.TransactionClient,
+    interval?: BillingInterval,
   ) {
     const now = new Date();
     const periodEnd = new Date(now);
-    periodEnd.setMonth(periodEnd.getMonth() + 1); // Default to 1 month if not provided
+    if (interval === BillingInterval.ANNUAL) {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    } else {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    }
 
     return this.activateSubscription(
       {

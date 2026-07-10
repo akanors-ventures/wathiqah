@@ -13,6 +13,16 @@ import { SubscriptionService } from '../subscription/subscription.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { PRO_PRICING } from '../subscription/subscription.constants';
 
+// Currencies with a dedicated Flutterwave plan. Anything else settles in USD
+// under the DEFAULT bucket — Flutterwave plans are pinned to one currency,
+// so we can't dynamically create one per arbitrary currency.
+type FlutterwavePlanCurrency = 'NGN' | 'USD' | 'GBP';
+const FLUTTERWAVE_PLAN_CURRENCIES: FlutterwavePlanCurrency[] = [
+  'NGN',
+  'USD',
+  'GBP',
+];
+
 @Injectable()
 export class FlutterwaveService {
   private readonly logger = new Logger(FlutterwaveService.name);
@@ -27,39 +37,58 @@ export class FlutterwaveService {
     user: User,
     tier: SubscriptionTier,
     interval?: BillingInterval,
+    currency?: string,
   ) {
-    const proPlanId = this.configService.get<string>(
+    const requestedCurrency = currency?.toUpperCase();
+    const isKnownCurrency = FLUTTERWAVE_PLAN_CURRENCIES.includes(
+      requestedCurrency as FlutterwavePlanCurrency,
+    );
+    // Any currency without its own plan bucket settles in USD under DEFAULT.
+    const planBucket = isKnownCurrency ? requestedCurrency! : 'DEFAULT';
+    const chargeCurrency = isKnownCurrency ? requestedCurrency! : 'USD';
+    const pricingCurrency: 'NGN' | 'USD' | 'GBP' = isKnownCurrency
+      ? (requestedCurrency as FlutterwavePlanCurrency)
+      : 'USD';
+
+    const proPlanIds = this.configService.get<Record<string, string>>(
       'payment.flutterwave.proPlanId',
     );
-    const proAnnualPlanId = this.configService.get<string>(
+    const proAnnualPlanIds = this.configService.get<Record<string, string>>(
       'payment.flutterwave.proAnnualPlanId',
     );
+    const proPlanId = proPlanIds?.[planBucket];
+    const proAnnualPlanId = proAnnualPlanIds?.[planBucket];
+
     const successUrl = this.configService.get<string>('payment.successUrl');
     const separator = successUrl.includes('?') ? '&' : '?';
 
-    let effectivePlanId = proPlanId;
-    if (interval === BillingInterval.ANNUAL) {
-      if (proAnnualPlanId) {
-        effectivePlanId = proAnnualPlanId;
-      } else {
-        this.logger.warn(
-          'Flutterwave annual plan ID not configured, falling back to monthly plan',
-        );
-      }
-    }
-
-    // If annual interval but no plan ID at all is configured, throw — don't silently charge a large one-time amount
-    if (interval === BillingInterval.ANNUAL && !proPlanId) {
+    // Every interval requires its own recurring plan for the resolved currency
+    // bucket — silently omitting `payment_plan` would make Flutterwave accept
+    // this as a one-time charge while our webhook still grants a full period
+    // of PRO, so the user pays once and is never actually billed again.
+    if (interval === BillingInterval.ANNUAL && !proAnnualPlanId) {
       throw new Error(
         'Annual subscription plan is not configured. Contact support.',
       );
     }
-    const fallbackAmount = String(PRO_PRICING.NGN.monthly);
+    if (interval !== BillingInterval.ANNUAL && !proPlanId) {
+      throw new Error(
+        'Monthly subscription plan is not configured. Contact support.',
+      );
+    }
+
+    const effectivePlanId =
+      interval === BillingInterval.ANNUAL ? proAnnualPlanId : proPlanId;
+    const fallbackAmount = String(
+      interval === BillingInterval.ANNUAL
+        ? PRO_PRICING[pricingCurrency].annual
+        : PRO_PRICING[pricingCurrency].monthly,
+    );
 
     const payload: Record<string, unknown> = {
       tx_ref: `sub_${user.id}_${Date.now()}`,
       amount: tier === SubscriptionTier.PRO ? fallbackAmount : '0', // Fallback amount if no plan
-      currency: 'NGN',
+      currency: chargeCurrency,
       redirect_url: `${successUrl}${separator}type=subscription`,
       payment_options: 'card,banktransfer,ussd',
       customer: {
@@ -70,6 +99,7 @@ export class FlutterwaveService {
       meta: {
         userId: user.id,
         tier,
+        interval: interval || BillingInterval.MONTHLY,
       },
       customizations: {
         title: 'Wathiqah Pro Subscription',
@@ -267,6 +297,7 @@ export class FlutterwaveService {
         'flutterwave',
         data.meta?.tier as SubscriptionTier,
         tx,
+        data.meta?.interval as BillingInterval,
       );
     });
   }
@@ -329,6 +360,8 @@ export class FlutterwaveService {
           },
         },
       );
+
+      this.logger.log(`Cancelled Flutterwave subscription ${subscriptionId}`);
 
       // Update local subscription to reflect auto-renewal cancellation
       await this.subscriptionService.updateSubscriptionStatus({

@@ -487,7 +487,7 @@ function PricingPage() {
                   <Link to="/support">Support Now</Link>
                 </Button>
                 <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium max-w-[200px] text-center">
-                  Secure payment via {isNigeria ? "Flutterwave" : "Lemon Squeezy"}
+                  Secure payment via Flutterwave
                 </p>
               </div>
             </CardContent>

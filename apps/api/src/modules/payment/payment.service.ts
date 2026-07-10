@@ -1,5 +1,4 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { StripeService } from './stripe.service';
 import { FlutterwaveService } from './flutterwave.service';
@@ -13,7 +12,6 @@ export class PaymentService {
   private readonly logger = new Logger(PaymentService.name);
 
   constructor(
-    private configService: ConfigService,
     private prisma: PrismaService,
     private stripeService: StripeService,
     private flutterwaveService: FlutterwaveService,
@@ -47,26 +45,15 @@ export class PaymentService {
       `Creating subscription session for user ${userId} with currency ${effectiveCurrency} (detected via ${currency ? 'args' : geoip ? 'GeoIP' : 'profile'})`,
     );
 
-    // Determine which provider to use based on currency
-    if (effectiveCurrency === 'NGN') {
-      return this.flutterwaveService.createSubscriptionSession(
-        user,
-        tier,
-        interval,
-      );
-    } else {
-      const globalProvider = this.configService.get<string>(
-        'payment.globalProvider',
-      );
-      if (globalProvider === 'lemonsqueezy') {
-        return this.lemonsqueezyService.createSubscriptionSession(
-          user,
-          tier,
-          interval,
-        );
-      }
-      return this.stripeService.createSubscriptionSession(user, tier, interval);
-    }
+    // Flutterwave is the sole provider for new subscriptions, across every
+    // currency — Stripe/LemonSqueezy remain only to service existing
+    // subscribers (webhooks, cancel, reactivate).
+    return this.flutterwaveService.createSubscriptionSession(
+      user,
+      tier,
+      interval,
+      effectiveCurrency,
+    );
   }
 
   async createSupportSession(
@@ -94,21 +81,14 @@ export class PaymentService {
       `Creating support session for user ${userId} with amount ${amount} ${effectiveCurrency}`,
     );
 
-    if (effectiveCurrency === 'NGN') {
-      return this.flutterwaveService.createSupportSession(user, amount);
-    } else {
-      const globalProvider = this.configService.get<string>(
-        'payment.globalProvider',
-      );
-      if (globalProvider === 'lemonsqueezy') {
-        return this.lemonsqueezyService.createSupportSession(user);
-      }
-      return this.stripeService.createSupportSession(
-        user,
-        amount,
-        effectiveCurrency,
-      );
-    }
+    // One-time support payments need no recurring plan, so Flutterwave can
+    // take any currency directly — same "Flutterwave for everything" move as
+    // subscriptions above.
+    return this.flutterwaveService.createSupportSession(
+      user,
+      amount,
+      effectiveCurrency,
+    );
   }
 
   async handleWebhook(
