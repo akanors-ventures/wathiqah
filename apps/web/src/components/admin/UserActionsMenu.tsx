@@ -50,10 +50,24 @@ export interface AdminUserLike {
   role: UserRole;
 }
 
+/** YYYY-MM-DD for a date input, using the browser's local calendar date (not UTC). */
+export function localDateString(d: Date): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function defaultExpiry(): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().slice(0, 10);
+  return localDateString(d);
+}
+
+/** Builds an ISO end-of-day instant for the exact calendar date picked, independent of the viewer's timezone. */
+export function endOfDayIso(dateString: string): string {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 23, 59, 59)).toISOString();
 }
 
 /** Row/detail actions for a user: provision Pro, revoke Pro, change role. */
@@ -83,7 +97,7 @@ export function UserActionsMenu({
     try {
       await provisionPro({
         userId: user.id,
-        expiresAt: new Date(`${expiresAt}T23:59:59`).toISOString(),
+        expiresAt: endOfDayIso(expiresAt),
       });
       toast.success(`Pro provisioned for ${user.name}`);
       setDialog(null);
@@ -170,7 +184,7 @@ export function UserActionsMenu({
               id={expiryId}
               type="date"
               value={expiresAt}
-              min={new Date().toISOString().slice(0, 10)}
+              min={localDateString(new Date())}
               onChange={(e) => setExpiresAt(e.target.value)}
             />
           </div>

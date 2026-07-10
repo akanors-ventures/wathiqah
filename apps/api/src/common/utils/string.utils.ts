@@ -11,3 +11,8 @@ export function splitName(fullName: string): {
 export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
+
+/** Escapes SQL LIKE/ILIKE wildcards (%, _, \) so a search term is matched literally. */
+export function escapeLikeWildcards(term: string): string {
+  return term.replace(/[\\%_]/g, (char) => `\\${char}`);
+}

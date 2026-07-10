@@ -12,11 +12,7 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminAuditLogs, useAdminStats } from "@/hooks/useAdmin";
-import { ActionBadge, actorName, formatDateTime } from "./admin-format";
-
-function num(n?: number): string {
-  return (n ?? 0).toLocaleString();
-}
+import { ActionBadge, actorName, formatDateTime, num } from "./admin-format";
 
 export function AdminOverview() {
   const { stats, loading } = useAdminStats();

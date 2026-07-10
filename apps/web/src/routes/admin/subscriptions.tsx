@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BadgeCheck, CreditCard, Sparkles } from "lucide-react";
 import { AdminUsersTable } from "@/components/admin/AdminUsersTable";
+import { num } from "@/components/admin/admin-format";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminStats } from "@/hooks/useAdmin";
@@ -12,7 +13,6 @@ export const Route = createFileRoute("/admin/subscriptions")({
 
 function SubscriptionsPage() {
   const { stats, loading } = useAdminStats();
-  const num = (n?: number) => (n ?? 0).toLocaleString();
 
   return (
     <div className="space-y-6">
