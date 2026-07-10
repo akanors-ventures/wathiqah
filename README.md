@@ -439,9 +439,12 @@ The system allows users to support the platform's development (Wathīqah Pro). T
 - [x] Build contacts management UI (Frontend)
 - [x] Build transaction management UI (Frontend)
 - [x] Integrate Apollo Client with backend
-- [ ] Add unit and E2E tests
+- [x] Add unit and E2E tests
 - [x] Setup CI/CD pipeline (GitHub Actions)
 - [x] Deployment (Netlify Web + Cloud Run API)
+- [x] **Admin Console**
+  - [x] Role-gated dashboard, users, subscriptions, and audit log views
+  - [x] Backend RBAC (`ADMIN`/`SUPER_ADMIN`) with audit-logged mutations
 
 ---
 
