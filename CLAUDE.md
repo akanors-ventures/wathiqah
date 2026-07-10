@@ -262,6 +262,23 @@ Two check patterns exist in `SubscriptionService.checkFeatureLimit` (`apps/api/s
 - **DB-count** (`maxContacts`, `maxNotes`): counts actual Prisma rows. `incrementFeatureUsage` skips these (no counter). Add a special-case block in `checkFeatureLimit` to implement a new one.
 - **Monthly counter** (`maxWitnessesPerMonth`, `contactNotificationSms`): tracked in `featureUsage` JSON with key `${feature}_${year}_${month}`. `incrementFeatureUsage` bumps these automatically. New monthly-counter features work without any special-casing.
 
+### Admin Console
+
+Role-gated platform administration surface. Backend module: `apps/api/src/modules/admin/`. Frontend route: `apps/web/src/routes/admin/` (Overview, Users, Subscriptions, Audit Log), gated by `isPlatformAdmin(user.role)` (`apps/web/src/utils/auth.ts`).
+
+**Roles** (`UserRole` enum: `USER`, `ADMIN`, `SUPER_ADMIN`):
+- Read queries (`adminUsers`, `adminUser`, `adminStats`, `adminAuditLogs`) and PRO provisioning (`provisionPro`/`deprovisionPro`) — open to `ADMIN` and `SUPER_ADMIN`.
+- `setUserRole` — `SUPER_ADMIN`-only. `SUPER_ADMIN` cannot be assigned via this mutation (reserved for the bootstrap account), and a target who is already `SUPER_ADMIN` cannot be demoted through it either — closes a self-lockout path the frontend-only guard didn't cover.
+- `AdminResolver` carries a class-level `@Roles(ADMIN, SUPER_ADMIN)` as a safety net: `RolesGuard` lets any authenticated user through a handler with no `@Roles` metadata, so a future undecorated method would otherwise be open platform-wide.
+
+**Audit log**: every mutation (`provisionPro`, `deprovisionPro`, `setUserRole`) writes an `AdminAuditLog` row (`actorId`, `AdminAction` enum, `targetUserId`, optional `metadata` JSON) in the same `$transaction`/`Promise.all` as the mutation itself — never as a fire-and-forget follow-up call.
+
+**Pagination**: shared `PaginationInput` (`apps/api/src/common/dto/pagination.input.ts`) validates `page >= 1` and `1 <= limit <= 100` via `class-validator`; `getPrismaSkip(page, limit)` computes Prisma `skip`. GraphQL `defaultValue` only covers an omitted arg — `adminUsers`/`adminAuditLogs` explicitly guard against `filter: null` too.
+
+**Search**: `AdminUsersFilterInput.search` matches against email/first/last name via case-insensitive `contains`; `%`/`_` are escaped so they match literally instead of acting as SQL wildcards.
+
+**Header nav placement**: the "Admin" link lives inside the account dropdown (`apps/web/src/components/auth/header-user.tsx`), not the top-level nav — a standalone `Admin` NavLink overflowed org mode's wider header (extra "Organisation" dropdown) and visually collided with the account switcher. Mobile already treated Admin as a secondary action (in the "More" sheet); desktop now mirrors that.
+
 ### TanStack Router — Route Registration
 
 `apps/web/src/routeTree.gen.ts` is **auto-generated** by the TanStack Router dev server. When adding a new route file without running the server, TypeScript will error: `Argument of type '"/new-route"' is not assignable to parameter of type 'keyof FileRoutesByPath'` in many places. Fix: run `pnpm --filter web dev` briefly — it regenerates the file within seconds of startup. Never edit `routeTree.gen.ts` manually.
