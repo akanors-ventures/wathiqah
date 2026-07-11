@@ -208,6 +208,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.debug("[AuthContext] Unauthenticated state detected, triggering logout cleanup");
         setUser(null);
         logout();
+      } else if (userRef.current === undefined) {
+        // ME_QUERY settled without yielding a user and without matching a
+        // recognized auth-failure shape (e.g. a transient network error
+        // rather than a classified UNAUTHENTICATED response). Resolve to
+        // null anyway so effectiveLoading — which gates purely on
+        // `user !== undefined` — doesn't hang forever waiting for a signal
+        // that will never come on this request.
+        setUser(null);
       }
     }
   }, [data, loading, error, logout]);

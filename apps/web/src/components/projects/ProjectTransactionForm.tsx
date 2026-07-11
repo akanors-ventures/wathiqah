@@ -127,8 +127,8 @@ export function ProjectTransactionForm({
   const selectedProjectId = form.watch("projectId") || initialProjectId;
 
   const selectedProject = useMemo(
-    () => projects.find((p) => p.id === form.watch("projectId")),
-    [projects, form.watch],
+    () => projects.find((p) => p.id === selectedProjectId),
+    [projects, selectedProjectId],
   );
   const currencyCode = selectedProject?.currency || "NGN";
 

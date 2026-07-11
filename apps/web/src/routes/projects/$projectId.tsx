@@ -117,8 +117,7 @@ function ProjectDetailsPage() {
 
   const totalIncome = project.totalIncome ?? 0;
   const totalExpenses = project.totalExpenses ?? 0;
-  const budgetUtilizationRaw = project.budget ? (totalExpenses / project.budget) * 100 : 0;
-  const budgetUtilization = Math.min(budgetUtilizationRaw, 100);
+  const budgetUtilization = project.budget ? (totalExpenses / project.budget) * 100 : 0;
   const budgetRemaining = project.budget ? project.budget - totalExpenses : null;
   const isOverBudget = budgetRemaining != null && budgetRemaining < 0;
 
@@ -226,10 +225,10 @@ function ProjectDetailsPage() {
               </span>
             }
             icon={<Target className="h-4 w-4" />}
-            description={`${Math.round(budgetUtilizationRaw)}% of ${formatCurrency(project.budget, project.currency)} used`}
+            description={`${Math.round(budgetUtilization)}% of ${formatCurrency(project.budget, project.currency)} used`}
             descriptionSlot={
               <Progress
-                value={budgetUtilization}
+                value={Math.min(budgetUtilization, 100)}
                 className="h-1.5 mt-2"
                 indicatorClassName={isOverBudget ? "bg-rose-600" : undefined}
               />
