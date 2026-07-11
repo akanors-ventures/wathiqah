@@ -325,9 +325,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasToken = isAuthenticated();
   // We consider it loading if we have a token (isLoggedIn cookie) but user state hasn't been resolved yet (undefined).
-  // We don't use 'loading' from useQuery here to avoid redundant loading screens during store resets/refetches
-  // if we already have a user object in state.
-  const effectiveLoading = hasToken && user === undefined && loading;
+  // `user === undefined` alone captures this — it's only ever true before the sync effect below has run once.
+  // Deliberately NOT also requiring ME_QUERY's own `loading`: that flag flips to false as soon as the response
+  // lands, one render before the effect actually calls setUser(data.me) — during that single frame `loading`
+  // would already read false while `user` is still undefined, letting callers (e.g. Pro-gated redirects) act on
+  // an incomplete answer. `user === undefined` alone has no such gap and doesn't reintroduce loading screens on
+  // refetches, since those only happen once `user` already holds a real value.
+  const effectiveLoading = hasToken && user === undefined;
 
   const value = {
     user,
