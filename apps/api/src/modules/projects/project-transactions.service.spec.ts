@@ -1,5 +1,4 @@
 import { Test } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { ProjectTransactionsService } from './project-transactions.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
@@ -7,13 +6,11 @@ import { NotificationService } from '../notifications/notification.service';
 describe('ProjectTransactionsService — usedCategories', () => {
   let service: ProjectTransactionsService;
   let prisma: {
-    project: { findUnique: jest.Mock };
     projectTransaction: { findMany: jest.Mock };
   };
 
   beforeEach(async () => {
     prisma = {
-      project: { findUnique: jest.fn() },
       projectTransaction: { findMany: jest.fn() },
     };
     const module = await Test.createTestingModule({
@@ -26,11 +23,7 @@ describe('ProjectTransactionsService — usedCategories', () => {
     service = module.get(ProjectTransactionsService);
   });
 
-  it('returns distinct categories used within the project', async () => {
-    prisma.project.findUnique.mockResolvedValue({
-      id: 'proj1',
-      userId: 'user1',
-    });
+  it('returns distinct categories used within the project, scoped to the caller as owner in a single query', async () => {
     prisma.projectTransaction.findMany.mockResolvedValue([
       { category: 'Labor' },
       { category: 'Materials' },
@@ -40,31 +33,38 @@ describe('ProjectTransactionsService — usedCategories', () => {
 
     expect(prisma.projectTransaction.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { projectId: 'proj1', category: { not: null } },
+        where: {
+          projectId: 'proj1',
+          category: { not: null },
+          project: { userId: 'user1' },
+        },
         distinct: ['category'],
       }),
     );
     expect(result).toEqual(['Labor', 'Materials']);
   });
 
-  it('throws NotFoundException when the project does not exist', async () => {
-    prisma.project.findUnique.mockResolvedValue(null);
+  it('returns an empty array when the project does not exist', async () => {
+    prisma.projectTransaction.findMany.mockResolvedValue([]);
 
-    await expect(
-      service.usedCategories('user1', 'missing-proj'),
-    ).rejects.toThrow(NotFoundException);
-    expect(prisma.projectTransaction.findMany).not.toHaveBeenCalled();
+    const result = await service.usedCategories('user1', 'missing-proj');
+
+    expect(result).toEqual([]);
   });
 
-  it('throws NotFoundException when the caller does not own the project', async () => {
-    prisma.project.findUnique.mockResolvedValue({
-      id: 'proj1',
-      userId: 'other-user',
-    });
+  it('returns an empty array when the caller does not own the project', async () => {
+    // The `project: { userId }` relation filter excludes rows belonging to a
+    // project owned by someone else, so Prisma itself returns no rows —
+    // there's nothing for the caller to distinguish from "no categories yet".
+    prisma.projectTransaction.findMany.mockResolvedValue([]);
 
-    await expect(service.usedCategories('user1', 'proj1')).rejects.toThrow(
-      NotFoundException,
+    const result = await service.usedCategories('user1', 'someone-elses-proj');
+
+    expect(result).toEqual([]);
+    expect(prisma.projectTransaction.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ project: { userId: 'user1' } }),
+      }),
     );
-    expect(prisma.projectTransaction.findMany).not.toHaveBeenCalled();
   });
 });

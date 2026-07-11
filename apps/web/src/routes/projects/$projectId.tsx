@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Filter, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import type { ProjectTransactionCardTransaction } from "@/components/projects/ProjectTransactionCard";
@@ -9,8 +9,8 @@ import { ProjectTransactionCard } from "@/components/projects/ProjectTransaction
 import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CategoryAutocompleteInput } from "@/components/ui/category-autocomplete-input";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { Pagination } from "@/components/ui/pagination";
 import { Progress } from "@/components/ui/progress";
@@ -25,7 +25,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useProject } from "@/hooks/useProjects";
 import { PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS } from "@/lib/apollo/queries/projects";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/formatters";
+import { formatCurrency, getBalanceColorClass } from "@/lib/utils/formatters";
 import type {
   ProjectTransactionCategorySuggestionsQuery,
   ProjectTransactionType,
@@ -68,7 +68,6 @@ function ProjectDetailsPage() {
 
   const [categoryInput, setCategoryInput] = useState("");
   const debouncedCategory = useDebounce(categoryInput);
-  const categoryFilterId = useId();
 
   useEffect(() => {
     setTxFilter((f) => ({ ...f, category: debouncedCategory || undefined, page: 1 }));
@@ -183,15 +182,7 @@ function ProjectDetailsPage() {
           variant="primary"
           title="Current Balance"
           value={
-            <span
-              className={
-                project.balance < 0
-                  ? "text-rose-600"
-                  : project.balance > 0
-                    ? "text-emerald-600"
-                    : ""
-              }
-            >
+            <span className={getBalanceColorClass(project.balance)}>
               {formatCurrency(project.balance, project.currency)}
             </span>
           }
@@ -277,21 +268,13 @@ function ProjectDetailsPage() {
                 <SelectItem value="EXPENSE">Expense</SelectItem>
               </SelectContent>
             </Select>
-            <Input
-              list={`${categoryFilterId}-list`}
-              autoComplete="off"
+            <CategoryAutocompleteInput
+              suggestions={categorySuggestions}
               placeholder="Category…"
               value={categoryInput}
               onChange={(e) => setCategoryInput(e.target.value)}
               className="w-[130px] h-8 text-xs"
             />
-            {categorySuggestions.length > 0 && (
-              <datalist id={`${categoryFilterId}-list`}>
-                {categorySuggestions.map((cat) => (
-                  <option key={cat} value={cat} />
-                ))}
-              </datalist>
-            )}
             <DateRangePicker
               value={{
                 from: txFilter.startDate ? txFilter.startDate.split("T")[0] : null,

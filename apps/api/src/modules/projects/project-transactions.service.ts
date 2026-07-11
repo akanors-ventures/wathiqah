@@ -406,16 +406,13 @@ export class ProjectTransactionsService {
   }
 
   async usedCategories(userId: string, projectId: string): Promise<string[]> {
-    const project = await this.prisma.project.findUnique({
-      where: { id: projectId },
-    });
-
-    if (!project || project.userId !== userId) {
-      throw new NotFoundException(`Project with ID ${projectId} not found`);
-    }
-
+    // Folds the ownership check into the same query instead of a separate
+    // project.findUnique round trip: a missing or not-owned project just
+    // yields no rows, which is indistinguishable from "no categories yet"
+    // for this suggestions-only endpoint (no sensitive data is exposed
+    // either way).
     const rows = await this.prisma.projectTransaction.findMany({
-      where: { projectId, category: { not: null } },
+      where: { projectId, category: { not: null }, project: { userId } },
       select: { category: true },
       distinct: ['category'],
       orderBy: { category: 'asc' },

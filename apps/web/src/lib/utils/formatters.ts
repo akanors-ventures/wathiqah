@@ -43,6 +43,13 @@ export const formatCurrency = (
   }).format(num);
 };
 
+/** Debt/credit color for a signed monetary amount — rose when owed, emerald when in credit. */
+export const getBalanceColorClass = (amount: number): string => {
+  if (amount < 0) return "text-rose-600";
+  if (amount > 0) return "text-emerald-600";
+  return "";
+};
+
 export const formatDate = (date: string | Date | null | undefined) => {
   if (!date) return "-";
   return new Intl.DateTimeFormat("en-NG", {
