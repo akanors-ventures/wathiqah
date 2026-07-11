@@ -3,10 +3,20 @@ import { MY_SUBSCRIPTION_QUERY } from "../lib/apollo/queries/subscription";
 import { useAuth } from "./use-auth";
 
 export function useSubscription() {
-  const { user } = useAuth();
-  const { data, loading, error, refetch } = useQuery(MY_SUBSCRIPTION_QUERY, {
+  const { user, loading: authLoading } = useAuth();
+  const {
+    data,
+    loading: subscriptionLoading,
+    error,
+    refetch,
+  } = useQuery(MY_SUBSCRIPTION_QUERY, {
     skip: !user,
   });
+  // While auth is still resolving, `user` is undefined, `skip` is true, and
+  // Apollo's own `loading` is false — reporting that as "not loading" would
+  // make `tier` look resolved (undefined -> isPro: false) before we actually
+  // know who the user is, tripping premature Pro-gate redirects.
+  const loading = authLoading || subscriptionLoading;
 
   const subscription = data?.mySubscription;
   const limits = subscription?.limits;
