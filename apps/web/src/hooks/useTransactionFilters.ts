@@ -10,6 +10,10 @@ interface DateRange {
 export function useTransactionFilters() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
+  // An emptied search box should clear the filter immediately rather than
+  // waiting out the debounce delay — matters for reset() below, which sets
+  // `search` to "" synchronously but can't force-flush the debounced value.
+  const effectiveSearch = search === "" ? "" : debouncedSearch;
   const [types, setTypes] = useState<TransactionType[]>([]);
   const [status, setStatus] = useState<TransactionStatus | "ALL">("ALL");
   const [currency, setCurrency] = useState("ALL");
@@ -23,7 +27,7 @@ export function useTransactionFilters() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, types, status, currency, dateRange]);
+  }, [effectiveSearch, types, status, currency, dateRange]);
 
   const reset = () => {
     setSearch("");
@@ -36,7 +40,7 @@ export function useTransactionFilters() {
 
   const variables = {
     filter: {
-      ...(debouncedSearch && { search: debouncedSearch }),
+      ...(effectiveSearch && { search: effectiveSearch }),
       ...(types.length > 0 && { types }),
       ...(status !== "ALL" && { status: status as TransactionStatus }),
       ...(currency !== "ALL" && { currency }),
