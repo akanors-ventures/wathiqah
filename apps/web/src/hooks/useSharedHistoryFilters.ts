@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { TransactionStatus, TransactionType } from "@/types/__generated__/graphql";
+import { useDebounce } from "./useDebounce";
 
 interface DateRange {
   from: string | null;
@@ -8,6 +9,7 @@ interface DateRange {
 
 export function useSharedHistoryFilters() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [types, setTypes] = useState<TransactionType[]>([]);
   const [status, setStatus] = useState<TransactionStatus | "ALL">("ALL");
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -20,11 +22,11 @@ export function useSharedHistoryFilters() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter change
   useEffect(() => {
     setPage(1);
-  }, [search, types, status, dateRange]);
+  }, [debouncedSearch, types, status, dateRange]);
 
   const variables = {
     filter: {
-      ...(search && { search }),
+      ...(debouncedSearch && { search: debouncedSearch }),
       ...(types.length > 0 && { types }),
       ...(status !== "ALL" && { status: status as TransactionStatus }),
       ...(dateRange.from && { startDate: new Date(dateRange.from).toISOString() }),

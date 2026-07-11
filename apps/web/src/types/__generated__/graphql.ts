@@ -1042,6 +1042,7 @@ export type Query = {
   personalEntrySummary: PersonalEntrySummary;
   proPricing: ProPricing;
   project: Project;
+  projectTransactionCategorySuggestions: Array<Scalars['String']['output']>;
   promise: Promise;
   receivedAccessGrants: Array<AccessGrant>;
   searchWitness: Maybe<WitnessCandidate>;
@@ -1148,6 +1149,11 @@ export type QueryPersonalEntrySummaryArgs = {
 
 export type QueryProjectArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryProjectTransactionCategorySuggestionsArgs = {
+  projectId: Scalars['ID']['input'];
 };
 
 
@@ -2061,6 +2067,13 @@ export type UpdateProjectTransactionMutationVariables = Exact<{
 
 
 export type UpdateProjectTransactionMutation = { updateProjectTransaction: { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null, history: Array<{ __typename: 'ProjectTransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string }> | null } };
+
+export type ProjectTransactionCategorySuggestionsQueryVariables = Exact<{
+  projectId: Scalars['ID']['input'];
+}>;
+
+
+export type ProjectTransactionCategorySuggestionsQuery = { projectTransactionCategorySuggestions: Array<string> };
 
 export type MyPromisesQueryVariables = Exact<{ [key: string]: never; }>;
 

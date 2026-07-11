@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useDebounce } from "./useDebounce";
 
 interface DateRange {
   from: string | null;
@@ -7,6 +8,7 @@ interface DateRange {
 
 export function useWitnessFilters() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [dateRange, setDateRange] = useState<DateRange>({
     from: null,
     to: null,
@@ -17,11 +19,11 @@ export function useWitnessFilters() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter change
   useEffect(() => {
     setPage(1);
-  }, [search, dateRange]);
+  }, [debouncedSearch, dateRange]);
 
   const variables = {
     filter: {
-      ...(search && { search }),
+      ...(debouncedSearch && { search: debouncedSearch }),
       ...(dateRange.from && { startDate: new Date(dateRange.from).toISOString() }),
       ...(dateRange.to && { endDate: new Date(dateRange.to).toISOString() }),
       page,

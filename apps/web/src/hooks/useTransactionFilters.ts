@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { TransactionStatus, TransactionType } from "@/types/__generated__/graphql";
+import { useDebounce } from "./useDebounce";
 
 interface DateRange {
   from: string | null;
@@ -8,6 +9,7 @@ interface DateRange {
 
 export function useTransactionFilters() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [types, setTypes] = useState<TransactionType[]>([]);
   const [status, setStatus] = useState<TransactionStatus | "ALL">("ALL");
   const [currency, setCurrency] = useState("ALL");
@@ -21,7 +23,7 @@ export function useTransactionFilters() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter change
   useEffect(() => {
     setPage(1);
-  }, [search, types, status, currency, dateRange]);
+  }, [debouncedSearch, types, status, currency, dateRange]);
 
   const reset = () => {
     setSearch("");
@@ -34,7 +36,7 @@ export function useTransactionFilters() {
 
   const variables = {
     filter: {
-      ...(search && { search }),
+      ...(debouncedSearch && { search: debouncedSearch }),
       ...(types.length > 0 && { types }),
       ...(status !== "ALL" && { status: status as TransactionStatus }),
       ...(currency !== "ALL" && { currency }),
