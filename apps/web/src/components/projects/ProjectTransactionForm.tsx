@@ -7,6 +7,7 @@ import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { CategoryAutocompleteInput } from "@/components/ui/category-autocomplete-input";
 import {
   Dialog,
   DialogContent,
@@ -101,15 +102,9 @@ export function ProjectTransactionForm({
   const projectDescriptionId = useId();
   const projectBudgetId = useId();
   const projectCurrencyId = useId();
-  const categoryId = useId();
 
-  const [logTransaction, { loading: logging }] = useMutation(LOG_PROJECT_TRANSACTION, {
-    refetchQueries: ["GetMyProjects", "GetProject", "ProjectTransactionCategorySuggestions"],
-  });
-
-  const [updateTransaction, { loading: updating }] = useMutation(UPDATE_PROJECT_TRANSACTION, {
-    refetchQueries: ["GetMyProjects", "GetProject", "ProjectTransactionCategorySuggestions"],
-  });
+  const [logTransaction, { loading: logging }] = useMutation(LOG_PROJECT_TRANSACTION);
+  const [updateTransaction, { loading: updating }] = useMutation(UPDATE_PROJECT_TRANSACTION);
 
   const form = useForm<ProjectTransactionFormValues>({
     resolver: zodResolver(formSchema) as Resolver<ProjectTransactionFormValues>,
@@ -153,6 +148,20 @@ export function ProjectTransactionForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    // Only refetch the category-suggestions list when this submission could
+    // actually change it — i.e. the category is both different from what it
+    // was (on edit) and not already a known suggestion. Every other save
+    // (amount/description/witnesses-only edits, or reusing an existing
+    // category) skips that extra round trip.
+    const finalCategory = values.category || undefined;
+    const previousCategory = editTransaction?.category ?? undefined;
+    const categoryUnchanged = isEditMode && finalCategory === previousCategory;
+    const isKnownCategory = !finalCategory || categorySuggestions.includes(finalCategory);
+    const refetchQueries =
+      categoryUnchanged || isKnownCategory
+        ? ["GetMyProjects", "GetProject"]
+        : ["GetMyProjects", "GetProject", "ProjectTransactionCategorySuggestions"];
+
     try {
       if (isEditMode && editTransaction) {
         await updateTransaction({
@@ -166,6 +175,7 @@ export function ProjectTransactionForm({
               date: values.date.toISOString(),
             },
           },
+          refetchQueries,
         });
         toast.success("Transaction updated successfully");
       } else {
@@ -192,6 +202,7 @@ export function ProjectTransactionForm({
               witnessInvites: witnessInvites.length > 0 ? witnessInvites : undefined,
             },
           },
+          refetchQueries,
         });
         toast.success("Transaction logged successfully");
       }
@@ -374,24 +385,13 @@ export function ProjectTransactionForm({
             <FormItem>
               <FormLabel>Category (Optional)</FormLabel>
               <FormControl>
-                <Input
-                  list={`${categoryId}-list`}
-                  autoComplete="off"
-                  placeholder={
-                    categorySuggestions.length > 0
-                      ? "Select or type a category"
-                      : "e.g., Materials, Labor, Contribution"
-                  }
+                <CategoryAutocompleteInput
+                  suggestions={categorySuggestions}
+                  placeholder="Select or type a category"
+                  emptyPlaceholder="e.g., Materials, Labor, Contribution"
                   {...field}
                 />
               </FormControl>
-              {categorySuggestions.length > 0 && (
-                <datalist id={`${categoryId}-list`}>
-                  {categorySuggestions.map((cat) => (
-                    <option key={cat} value={cat} />
-                  ))}
-                </datalist>
-              )}
               <FormMessage />
             </FormItem>
           )}

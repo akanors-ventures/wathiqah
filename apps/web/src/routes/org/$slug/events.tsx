@@ -11,6 +11,7 @@ import { EventCard } from "@/components/org/event-card";
 import { NoteEntry } from "@/components/org/note-entry";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CategoryAutocompleteInput } from "@/components/ui/category-autocomplete-input";
 import {
   Dialog,
   DialogContent,
@@ -583,24 +584,13 @@ function EventForm({
 
       <div className="space-y-1.5">
         <Label htmlFor={categoryId}>Category</Label>
-        <Input
+        <CategoryAutocompleteInput
           id={categoryId}
-          list={`${categoryId}-list`}
-          placeholder={
-            suggestions.length > 0
-              ? "Select or type a category"
-              : "e.g. Vaccination, Islamic Calendar, Breeding"
-          }
-          autoComplete="off"
+          suggestions={suggestions}
+          placeholder="Select or type a category"
+          emptyPlaceholder="e.g. Vaccination, Islamic Calendar, Breeding"
           {...register("category", { required: "Category is required" })}
         />
-        {suggestions.length > 0 && (
-          <datalist id={`${categoryId}-list`}>
-            {suggestions.map((cat) => (
-              <option key={cat} value={cat} />
-            ))}
-          </datalist>
-        )}
         {errors.category && <p className="text-xs text-destructive">{errors.category.message}</p>}
       </div>
 
