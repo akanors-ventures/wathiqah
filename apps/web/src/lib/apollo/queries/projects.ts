@@ -116,3 +116,9 @@ export const UPDATE_PROJECT_TRANSACTION = gql`
     }
   }
 `;
+
+export const PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS = gql`
+  query ProjectTransactionCategorySuggestions($projectId: ID!) {
+    projectTransactionCategorySuggestions(projectId: $projectId)
+  }
+`;

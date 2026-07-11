@@ -107,4 +107,12 @@ export class ProjectsResolver {
   ): Promise<PaginatedProjectTransactionsResponse> {
     return this.projectTransactionsService.findByProject(project.id, filter);
   }
+
+  @Query(() => [String], { name: 'projectTransactionCategorySuggestions' })
+  async projectTransactionCategorySuggestions(
+    @CurrentUser() user: User,
+    @Args('projectId', { type: () => ID }) projectId: string,
+  ) {
+    return this.projectTransactionsService.usedCategories(user.id, projectId);
+  }
 }
