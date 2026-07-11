@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { TierBadge } from "@/components/ui/tier-badge";
 import { useAdminUsers } from "@/hooks/useAdmin";
+import { useDebounce } from "@/hooks/useDebounce";
 import { cn } from "@/lib/utils";
 import { SubscriptionTier, UserRole } from "@/types/__generated__/graphql";
 import { formatDate, initials, RoleBadge } from "./admin-format";
@@ -41,19 +42,15 @@ function Avatar({ name, email }: { name: string; email: string }) {
 export function AdminUsersTable({ lockedTier }: { lockedTier?: SubscriptionTier }) {
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
+  const search = useDebounce(searchInput, 300);
   const [role, setRole] = useState<string>(ALL);
   const [tier, setTier] = useState<string>(lockedTier ?? ALL);
   const [page, setPage] = useState(1);
 
-  // Debounce the search box so we don't refetch on every keystroke.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter change
   useEffect(() => {
-    const t = setTimeout(() => {
-      setSearch(searchInput);
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(t);
-  }, [searchInput]);
+    setPage(1);
+  }, [search]);
 
   const filter = useMemo(
     () => ({

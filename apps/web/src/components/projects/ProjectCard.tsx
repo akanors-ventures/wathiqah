@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/utils/formatters";
+import { formatCurrency, getBalanceColorClass } from "@/lib/utils/formatters";
 import type { ProjectFieldsFragment } from "@/types/__generated__/graphql";
 
 function getStatusBadgeClass(status: string): string {
@@ -72,11 +72,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             <p
               className={cn(
                 "text-sm font-black tracking-tight truncate",
-                balance < 0
-                  ? "text-rose-600"
-                  : balance > 0
-                    ? "text-emerald-600"
-                    : "text-foreground",
+                getBalanceColorClass(balance),
               )}
             >
               {formatCurrency(balance, project.currency)}
