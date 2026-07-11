@@ -1,6 +1,7 @@
+import { useQuery } from "@apollo/client/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Filter, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import type { ProjectTransactionCardTransaction } from "@/components/projects/ProjectTransactionCard";
@@ -20,10 +21,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useProject } from "@/hooks/useProjects";
+import { PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS } from "@/lib/apollo/queries/projects";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import type { ProjectTransactionType } from "@/types/__generated__/graphql";
+import type {
+  ProjectTransactionCategorySuggestionsQuery,
+  ProjectTransactionType,
+} from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
 
 export const Route = createFileRoute("/projects/$projectId")({
@@ -59,6 +65,23 @@ function ProjectDetailsPage() {
 
   const [editingTx, setEditingTx] = useState<ProjectTransactionCardTransaction | null>(null);
   const [editTxOpen, setEditTxOpen] = useState(false);
+
+  const [categoryInput, setCategoryInput] = useState("");
+  const debouncedCategory = useDebounce(categoryInput);
+  const categoryFilterId = useId();
+
+  useEffect(() => {
+    setTxFilter((f) => ({ ...f, category: debouncedCategory || undefined, page: 1 }));
+  }, [debouncedCategory]);
+
+  const { data: categorySuggestionsData } = useQuery<ProjectTransactionCategorySuggestionsQuery>(
+    PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS,
+    {
+      variables: { projectId },
+      skip: !projectId,
+    },
+  );
+  const categorySuggestions = categorySuggestionsData?.projectTransactionCategorySuggestions ?? [];
 
   const {
     project,
@@ -240,17 +263,20 @@ function ProjectDetailsPage() {
               </SelectContent>
             </Select>
             <Input
+              list={`${categoryFilterId}-list`}
+              autoComplete="off"
               placeholder="Category…"
-              value={txFilter.category ?? ""}
-              onChange={(e) =>
-                setTxFilter((f) => ({
-                  ...f,
-                  category: e.target.value || undefined,
-                  page: 1,
-                }))
-              }
+              value={categoryInput}
+              onChange={(e) => setCategoryInput(e.target.value)}
               className="w-[130px] h-8 text-xs"
             />
+            {categorySuggestions.length > 0 && (
+              <datalist id={`${categoryFilterId}-list`}>
+                {categorySuggestions.map((cat) => (
+                  <option key={cat} value={cat} />
+                ))}
+              </datalist>
+            )}
             <DateRangePicker
               value={{
                 from: txFilter.startDate ? txFilter.startDate.split("T")[0] : null,

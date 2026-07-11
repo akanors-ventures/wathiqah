@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
-import type { ProjectStatus, ProjectBalanceStanding } from "@/types/__generated__/graphql";
+import { useEffect, useState } from "react";
+import type { ProjectBalanceStanding, ProjectStatus } from "@/types/__generated__/graphql";
+import { useDebounce } from "./useDebounce";
 
 export function useProjectFilters() {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
   const [status, setStatus] = useState<ProjectStatus | "ALL">("ALL");
   const [balanceStanding, setBalanceStanding] = useState<ProjectBalanceStanding | "ALL">("ALL");
   const [page, setPage] = useState(1);
@@ -11,11 +13,11 @@ export function useProjectFilters() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentional page reset on filter change
   useEffect(() => {
     setPage(1);
-  }, [search, status, balanceStanding]);
+  }, [debouncedSearch, status, balanceStanding]);
 
   const variables = {
     filter: {
-      ...(search && { search }),
+      ...(debouncedSearch && { search: debouncedSearch }),
       ...(status !== "ALL" && { status: status as ProjectStatus }),
       ...(balanceStanding !== "ALL" && {
         balanceStanding: balanceStanding as ProjectBalanceStanding,

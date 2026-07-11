@@ -701,6 +701,7 @@ type Query {
   personalEntrySummary(filter: FilterPersonalEntryInput): PersonalEntrySummary!
   proPricing: ProPricing!
   project(id: ID!): Project!
+  projectTransactionCategorySuggestions(projectId: ID!): [String!]!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
   searchWitness(input: SearchWitnessInput!): WitnessCandidate

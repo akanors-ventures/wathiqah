@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client/react";
+import { useMutation, useQuery } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { Loader2, Plus } from "lucide-react";
@@ -37,10 +37,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useAmountInput } from "@/hooks/useAmountInput";
 import { useProjects } from "@/hooks/useProjects";
-import { LOG_PROJECT_TRANSACTION, UPDATE_PROJECT_TRANSACTION } from "@/lib/apollo/queries/projects";
+import {
+  LOG_PROJECT_TRANSACTION,
+  PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS,
+  UPDATE_PROJECT_TRANSACTION,
+} from "@/lib/apollo/queries/projects";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { ProjectTransactionType } from "@/types/__generated__/graphql";
+import {
+  type ProjectTransactionCategorySuggestionsQuery,
+  ProjectTransactionType,
+} from "@/types/__generated__/graphql";
 
 const formSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
@@ -94,13 +101,14 @@ export function ProjectTransactionForm({
   const projectDescriptionId = useId();
   const projectBudgetId = useId();
   const projectCurrencyId = useId();
+  const categoryId = useId();
 
   const [logTransaction, { loading: logging }] = useMutation(LOG_PROJECT_TRANSACTION, {
-    refetchQueries: ["GetMyProjects", "GetProject"],
+    refetchQueries: ["GetMyProjects", "GetProject", "ProjectTransactionCategorySuggestions"],
   });
 
   const [updateTransaction, { loading: updating }] = useMutation(UPDATE_PROJECT_TRANSACTION, {
-    refetchQueries: ["GetMyProjects", "GetProject"],
+    refetchQueries: ["GetMyProjects", "GetProject", "ProjectTransactionCategorySuggestions"],
   });
 
   const form = useForm<ProjectTransactionFormValues>({
@@ -116,11 +124,22 @@ export function ProjectTransactionForm({
     },
   });
 
+  const selectedProjectId = form.watch("projectId") || initialProjectId;
+
   const selectedProject = useMemo(
     () => projects.find((p) => p.id === form.watch("projectId")),
     [projects, form.watch],
   );
   const currencyCode = selectedProject?.currency || "NGN";
+
+  const { data: categorySuggestionsData } = useQuery<ProjectTransactionCategorySuggestionsQuery>(
+    PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS,
+    {
+      variables: { projectId: selectedProjectId },
+      skip: !selectedProjectId,
+    },
+  );
+  const categorySuggestions = categorySuggestionsData?.projectTransactionCategorySuggestions ?? [];
 
   const {
     amountDisplay,
@@ -355,8 +374,24 @@ export function ProjectTransactionForm({
             <FormItem>
               <FormLabel>Category (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Materials, Labor, Contribution" {...field} />
+                <Input
+                  list={`${categoryId}-list`}
+                  autoComplete="off"
+                  placeholder={
+                    categorySuggestions.length > 0
+                      ? "Select or type a category"
+                      : "e.g., Materials, Labor, Contribution"
+                  }
+                  {...field}
+                />
               </FormControl>
+              {categorySuggestions.length > 0 && (
+                <datalist id={`${categoryId}-list`}>
+                  {categorySuggestions.map((cat) => (
+                    <option key={cat} value={cat} />
+                  ))}
+                </datalist>
+              )}
               <FormMessage />
             </FormItem>
           )}

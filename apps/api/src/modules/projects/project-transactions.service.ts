@@ -405,6 +405,25 @@ export class ProjectTransactionsService {
     });
   }
 
+  async usedCategories(userId: string, projectId: string): Promise<string[]> {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project || project.userId !== userId) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    const rows = await this.prisma.projectTransaction.findMany({
+      where: { projectId, category: { not: null } },
+      select: { category: true },
+      distinct: ['category'],
+      orderBy: { category: 'asc' },
+    });
+
+    return rows.map((row) => row.category as string);
+  }
+
   async findAllByProject(userId: string, projectId: string) {
     const project = await this.prisma.project.findUnique({
       where: { id: projectId },
