@@ -117,10 +117,10 @@ function ProjectDetailsPage() {
 
   const totalIncome = project.totalIncome ?? 0;
   const totalExpenses = project.totalExpenses ?? 0;
-  const budgetUtilization = project.budget
-    ? Math.min((totalExpenses / project.budget) * 100, 100)
-    : 0;
+  const budgetUtilizationRaw = project.budget ? (totalExpenses / project.budget) * 100 : 0;
+  const budgetUtilization = Math.min(budgetUtilizationRaw, 100);
   const budgetRemaining = project.budget ? project.budget - totalExpenses : null;
+  const isOverBudget = budgetRemaining != null && budgetRemaining < 0;
 
   const handleEditTx = (tx: ProjectTransactionCardTransaction) => {
     setEditingTx(tx);
@@ -183,7 +183,19 @@ function ProjectDetailsPage() {
         <StatsCard
           variant="primary"
           title="Current Balance"
-          value={formatCurrency(project.balance, project.currency)}
+          value={
+            <span
+              className={
+                project.balance < 0
+                  ? "text-rose-600"
+                  : project.balance > 0
+                    ? "text-emerald-600"
+                    : ""
+              }
+            >
+              {formatCurrency(project.balance, project.currency)}
+            </span>
+          }
           icon={<Wallet className="h-4 w-4" />}
           description="Net funds available"
         />
@@ -209,15 +221,19 @@ function ProjectDetailsPage() {
           <StatsCard
             title="Budget Remaining"
             value={
-              <span
-                className={budgetRemaining != null && budgetRemaining < 0 ? "text-rose-600" : ""}
-              >
+              <span className={isOverBudget ? "text-rose-600" : ""}>
                 {formatCurrency(budgetRemaining ?? 0, project.currency)}
               </span>
             }
             icon={<Target className="h-4 w-4" />}
-            description={`${Math.round(budgetUtilization)}% of ${formatCurrency(project.budget, project.currency)} used`}
-            descriptionSlot={<Progress value={budgetUtilization} className="h-1.5 mt-2" />}
+            description={`${Math.round(budgetUtilizationRaw)}% of ${formatCurrency(project.budget, project.currency)} used`}
+            descriptionSlot={
+              <Progress
+                value={budgetUtilization}
+                className="h-1.5 mt-2"
+                indicatorClassName={isOverBudget ? "bg-rose-600" : undefined}
+              />
+            }
           />
         ) : (
           <StatsCard
