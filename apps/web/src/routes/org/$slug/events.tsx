@@ -98,7 +98,9 @@ function EventsPage() {
     refetch: refetchEvents,
   } = useQuery(ORG_UPCOMING_EVENTS_QUERY);
   const { data: notesData, refetch: refetchNotes } = useQuery(ORG_NOTES_QUERY);
-  const { data: suggestionsData } = useQuery(ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY);
+  const { data: suggestionsData, refetch: refetchCategorySuggestions } = useQuery(
+    ORG_EVENT_CATEGORY_SUGGESTIONS_QUERY,
+  );
 
   // ── Live updates ──
   // Another org member's create/update/delete arrives here and is merged
@@ -233,7 +235,7 @@ function EventsPage() {
         await createOrgEvent({ variables: { input: createInput } });
         toast.success("Event added");
       }
-      await refetchEvents();
+      await Promise.all([refetchEvents(), refetchCategorySuggestions()]);
       setEventDialogOpen(false);
       setEditingEvent(null);
     } catch (err) {
@@ -245,7 +247,7 @@ function EventsPage() {
   async function handleDeleteEvent(id: string) {
     try {
       await removeOrgEvent({ variables: { id } });
-      await refetchEvents();
+      await Promise.all([refetchEvents(), refetchCategorySuggestions()]);
       setEventDialogOpen(false);
       setEditingEvent(null);
       toast.success("Event deleted");
