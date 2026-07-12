@@ -8,9 +8,9 @@ import {
   PaymentStatus,
   PaymentType,
   SubscriptionTier,
+  PlanStatus,
 } from '../../generated/prisma/enums';
 import { Prisma } from '../../generated/prisma/client';
-import { PRO_PRICING } from '../subscription/subscription.constants';
 import { BillingInterval } from './dto/billing-interval.enum';
 import * as axios from 'axios';
 
@@ -35,6 +35,9 @@ describe('FlutterwaveService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    plan: {
+      findFirst: jest.fn(),
+    },
   };
 
   const mockSubscriptionService = {
@@ -46,6 +49,9 @@ describe('FlutterwaveService', () => {
   const mockConfigService = {
     get: jest.fn((key) => {
       if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
+      if (key === 'payment.flutterwave.secretKey') return 'secret_key';
+      if (key === 'payment.successUrl')
+        return 'http://localhost:3000/payment/success';
       return null;
     }),
   };
@@ -67,6 +73,7 @@ describe('FlutterwaveService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('handleWebhook', () => {
@@ -105,7 +112,8 @@ describe('FlutterwaveService', () => {
           currency: 'NGN',
           status: PaymentStatus.SUCCESSFUL,
           provider: 'flutterwave',
-          externalId: 'sub_user_123_timestamp',
+          externalId: '12345',
+          txRef: 'sub_user_123_timestamp',
           type: PaymentType.SUBSCRIPTION,
           metadata: payload.data,
         },
@@ -114,15 +122,16 @@ describe('FlutterwaveService', () => {
         subscriptionService.handleSubscriptionSuccess,
       ).toHaveBeenCalledWith(
         'user_123',
-        '12345', // Converted to string in logic? logic uses data.id.toString() or data.tx_ref
+        '12345', // data.id, not tx_ref — the charge/transaction id
         'flutterwave',
         'PRO',
         prismaService,
         undefined, // no interval in meta
+        undefined, // no planId in meta
       );
     });
 
-    it('passes the interval from meta through to handleSubscriptionSuccess', async () => {
+    it('passes the interval and planId from meta through to handleSubscriptionSuccess', async () => {
       const payload = {
         event: 'charge.completed',
         data: {
@@ -135,6 +144,7 @@ describe('FlutterwaveService', () => {
             userId: 'user_123',
             tier: 'PRO',
             interval: BillingInterval.ANNUAL,
+            planId: 'plan_internal_uuid',
           },
           customer: {
             email: 'test@example.com',
@@ -153,7 +163,64 @@ describe('FlutterwaveService', () => {
         'PRO',
         prismaService,
         BillingInterval.ANNUAL,
+        'plan_internal_uuid',
       );
+    });
+
+    it('falls back to tx_ref as the externalId (and reuses it for the subscription) when id is missing', async () => {
+      const payload = {
+        event: 'charge.completed',
+        data: {
+          tx_ref: 'sub_user_123_timestamp',
+          amount: 5000,
+          currency: 'NGN',
+          status: 'successful',
+          meta: { userId: 'user_123', tier: 'PRO' },
+          customer: { email: 'test@example.com' },
+        },
+      };
+
+      await service.handleWebhook(payload, 'secret_hash');
+
+      expect(prismaService.payment.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            externalId: 'sub_user_123_timestamp',
+            txRef: 'sub_user_123_timestamp',
+          }),
+        }),
+      );
+      expect(
+        subscriptionService.handleSubscriptionSuccess,
+      ).toHaveBeenCalledWith(
+        'user_123',
+        'sub_user_123_timestamp',
+        'flutterwave',
+        'PRO',
+        prismaService,
+        undefined,
+        undefined,
+      );
+    });
+
+    it('skips the payment record instead of throwing when both id and tx_ref are missing', async () => {
+      const payload = {
+        event: 'charge.completed',
+        data: {
+          amount: 5000,
+          currency: 'NGN',
+          status: 'successful',
+          meta: { userId: 'user_123', tier: 'PRO' },
+          customer: { email: 'test@example.com' },
+        },
+      };
+
+      await expect(
+        service.handleWebhook(payload, 'secret_hash'),
+      ).resolves.not.toThrow();
+
+      expect(prismaService.$transaction).not.toHaveBeenCalled();
+      expect(prismaService.payment.create).not.toHaveBeenCalled();
     });
 
     it('should create payment and support records on charge.completed for support', async () => {
@@ -186,7 +253,8 @@ describe('FlutterwaveService', () => {
           currency: 'NGN',
           status: PaymentStatus.SUCCESSFUL,
           provider: 'flutterwave',
-          externalId: 'support_user_123_timestamp',
+          externalId: '67890',
+          txRef: 'support_user_123_timestamp',
           type: PaymentType.SUPPORT,
           metadata: payload.data,
         },
@@ -240,30 +308,20 @@ describe('FlutterwaveService', () => {
       phoneNumber: '+2341234567890',
     } as Parameters<FlutterwaveService['createSubscriptionSession']>[0];
 
-    beforeEach(() => {
-      // A monthly NGN plan is configured by default; annual/other buckets stay
-      // null so the "not configured" guard tests can exercise the throw path.
-      (mockConfigService.get as jest.Mock).mockImplementation(
-        (key: string): unknown => {
-          if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
-          if (key === 'payment.successUrl')
-            return 'http://localhost:3000/payment/success';
-          if (key === 'payment.flutterwave.proPlanId')
-            return { NGN: 'plan_monthly_ngn' };
-          return null;
-        },
-      );
-    });
+    const mockPlan = {
+      id: 'plan_uuid_1',
+      tier: SubscriptionTier.PRO,
+      interval: 'monthly',
+      currency: 'NGN',
+      amount: new Prisma.Decimal(2500),
+      name: 'Monthly Wathiqah Pro',
+      provider: 'flutterwave',
+      providerPlanId: '163686',
+      status: PlanStatus.ACTIVE,
+    };
 
-    it('throws when monthly is requested but no monthly plan ID is configured for the currency', async () => {
-      (mockConfigService.get as jest.Mock).mockImplementation(
-        (key: string): unknown => {
-          if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
-          if (key === 'payment.successUrl')
-            return 'http://localhost:3000/payment/success';
-          return null;
-        },
-      );
+    it('throws when no active plan exists for the requested tier/interval/currency bucket', async () => {
+      mockPrismaService.plan.findFirst.mockResolvedValue(null);
 
       await expect(
         service.createSubscriptionSession(
@@ -272,10 +330,21 @@ describe('FlutterwaveService', () => {
           undefined,
           'NGN',
         ),
-      ).rejects.toThrow('Monthly subscription plan is not configured');
+      ).rejects.toThrow('Monthly subscription plan is not configured for NGN');
+
+      expect(mockPrismaService.plan.findFirst).toHaveBeenCalledWith({
+        where: {
+          tier: SubscriptionTier.PRO,
+          interval: 'monthly',
+          currency: 'NGN',
+          status: PlanStatus.ACTIVE,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
     });
 
-    it('uses PRO_PRICING.NGN.monthly (2500) as the NGN amount', async () => {
+    it('uses the resolved plan amount, provider plan id, and stamps planId into meta', async () => {
+      mockPrismaService.plan.findFirst.mockResolvedValue(mockPlan);
       const axiosMock = axios as unknown as Record<string, jest.Mock>;
       axiosMock.post = jest.fn().mockResolvedValue({
         data: {
@@ -293,42 +362,22 @@ describe('FlutterwaveService', () => {
 
       const callArgs = axiosMock.post.mock.calls[0];
       const payload = callArgs[1] as Record<string, unknown>;
-      expect(payload.amount).toBe(String(PRO_PRICING.NGN.monthly));
       expect(payload.amount).toBe('2500');
-    });
-
-    it('throws when annual is requested but no annual plan ID is configured', async () => {
-      // beforeEach only configures a monthly NGN plan — annual stays unset
-      await expect(
-        service.createSubscriptionSession(
-          mockUser,
-          SubscriptionTier.PRO,
-          BillingInterval.ANNUAL,
-          'NGN',
-        ),
-      ).rejects.toThrow('Annual subscription plan is not configured');
-    });
-
-    it('charges PRO_PRICING.NGN.annual (25000) and uses the annual plan ID when configured', async () => {
-      (mockConfigService.get as jest.Mock).mockImplementation(
-        (key: string): unknown => {
-          if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
-          if (key === 'payment.successUrl')
-            return 'http://localhost:3000/payment/success';
-          if (key === 'payment.flutterwave.proPlanId')
-            return { NGN: 'plan_monthly_ngn' };
-          if (key === 'payment.flutterwave.proAnnualPlanId')
-            return { NGN: 'plan_annual_ngn' };
-          return null;
-        },
+      expect(payload.currency).toBe('NGN');
+      expect(payload.payment_plan).toBe('163686');
+      expect((payload.meta as Record<string, unknown>).planId).toBe(
+        'plan_uuid_1',
       );
+    });
 
+    it('maps BillingInterval.ANNUAL to Flutterwave\'s "yearly" interval when looking up the plan', async () => {
+      mockPrismaService.plan.findFirst.mockResolvedValue({
+        ...mockPlan,
+        interval: 'yearly',
+      });
       const axiosMock = axios as unknown as Record<string, jest.Mock>;
       axiosMock.post = jest.fn().mockResolvedValue({
-        data: {
-          status: 'success',
-          data: { link: 'https://checkout.flutterwave.com/v3/hosted/pay/abc' },
-        },
+        data: { data: { link: 'https://checkout.flutterwave.com/x' } },
       });
 
       await service.createSubscriptionSession(
@@ -338,71 +387,22 @@ describe('FlutterwaveService', () => {
         'NGN',
       );
 
-      const callArgs = axiosMock.post.mock.calls[0];
-      const payload = callArgs[1] as Record<string, unknown>;
-      expect(payload.amount).toBe(String(PRO_PRICING.NGN.annual));
-      expect(payload.amount).toBe('25000');
-      expect(payload.currency).toBe('NGN');
-      expect(payload.payment_plan).toBe('plan_annual_ngn');
-      expect((payload.meta as Record<string, unknown>).interval).toBe(
-        BillingInterval.ANNUAL,
+      expect(mockPrismaService.plan.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ interval: 'yearly' }),
+        }),
       );
     });
 
-    it('charges PRO_PRICING.USD when currency is USD', async () => {
-      (mockConfigService.get as jest.Mock).mockImplementation(
-        (key: string): unknown => {
-          if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
-          if (key === 'payment.successUrl')
-            return 'http://localhost:3000/payment/success';
-          if (key === 'payment.flutterwave.proPlanId')
-            return { USD: 'plan_monthly_usd' };
-          if (key === 'payment.flutterwave.proAnnualPlanId') return {};
-          return null;
-        },
-      );
-
-      const axiosMock = axios as unknown as Record<string, jest.Mock>;
-      axiosMock.post = jest.fn().mockResolvedValue({
-        data: {
-          status: 'success',
-          data: { link: 'https://checkout.flutterwave.com/v3/hosted/pay/abc' },
-        },
+    it('settles an unmapped currency in the DEFAULT USD bucket', async () => {
+      mockPrismaService.plan.findFirst.mockResolvedValue({
+        ...mockPlan,
+        currency: 'DEFAULT',
+        providerPlanId: 'plan_default',
       });
-
-      await service.createSubscriptionSession(
-        mockUser,
-        SubscriptionTier.PRO,
-        undefined,
-        'USD',
-      );
-
-      const callArgs = axiosMock.post.mock.calls[0];
-      const payload = callArgs[1] as Record<string, unknown>;
-      expect(payload.amount).toBe(String(PRO_PRICING.USD.monthly));
-      expect(payload.currency).toBe('USD');
-      expect(payload.payment_plan).toBe('plan_monthly_usd');
-    });
-
-    it('falls back to the DEFAULT plan bucket, charged in USD, for an unmapped currency', async () => {
-      (mockConfigService.get as jest.Mock).mockImplementation(
-        (key: string): unknown => {
-          if (key === 'payment.flutterwave.webhookHash') return 'secret_hash';
-          if (key === 'payment.successUrl')
-            return 'http://localhost:3000/payment/success';
-          if (key === 'payment.flutterwave.proPlanId')
-            return { DEFAULT: 'plan_monthly_default' };
-          if (key === 'payment.flutterwave.proAnnualPlanId') return {};
-          return null;
-        },
-      );
-
       const axiosMock = axios as unknown as Record<string, jest.Mock>;
       axiosMock.post = jest.fn().mockResolvedValue({
-        data: {
-          status: 'success',
-          data: { link: 'https://checkout.flutterwave.com/v3/hosted/pay/abc' },
-        },
+        data: { data: { link: 'https://checkout.flutterwave.com/x' } },
       });
 
       await service.createSubscriptionSession(
@@ -412,11 +412,296 @@ describe('FlutterwaveService', () => {
         'EUR',
       );
 
+      expect(mockPrismaService.plan.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ currency: 'DEFAULT' }),
+        }),
+      );
       const callArgs = axiosMock.post.mock.calls[0];
       const payload = callArgs[1] as Record<string, unknown>;
-      expect(payload.amount).toBe(String(PRO_PRICING.USD.monthly));
       expect(payload.currency).toBe('USD');
-      expect(payload.payment_plan).toBe('plan_monthly_default');
+    });
+
+    it('does not look up a plan for a non-PRO tier and charges 0', async () => {
+      const axiosMock = axios as unknown as Record<string, jest.Mock>;
+      axiosMock.post = jest.fn().mockResolvedValue({
+        data: { data: { link: 'https://checkout.flutterwave.com/x' } },
+      });
+
+      await service.createSubscriptionSession(
+        mockUser,
+        SubscriptionTier.FREE,
+        undefined,
+        'NGN',
+      );
+
+      expect(mockPrismaService.plan.findFirst).not.toHaveBeenCalled();
+      const callArgs = axiosMock.post.mock.calls[0];
+      const payload = callArgs[1] as Record<string, unknown>;
+      expect(payload.amount).toBe('0');
+      expect(payload.payment_plan).toBeUndefined();
+    });
+  });
+
+  describe('cancelSubscription', () => {
+    const axiosMock = axios as unknown as {
+      get: jest.Mock;
+      put: jest.Mock;
+    };
+
+    beforeEach(() => {
+      axiosMock.get = jest.fn();
+      axiosMock.put = jest.fn().mockResolvedValue({ data: {} });
+    });
+
+    it('uses the stored providerSubscriptionId directly, skipping the live lookup', async () => {
+      await service.cancelSubscription('test@example.com', 'txn_123', '999');
+
+      expect(axiosMock.get).not.toHaveBeenCalled();
+      expect(axiosMock.put).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions/999/cancel',
+        {},
+        expect.anything(),
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        {
+          externalId: 'txn_123',
+          status: 'active',
+          cancelAtPeriodEnd: true,
+          providerSubscriptionId: '999',
+        },
+      );
+    });
+
+    it('looks up the active Flutterwave subscription by email when no stored id exists, and persists the resolved id', async () => {
+      axiosMock.get.mockResolvedValue({
+        data: { data: [{ id: 999, status: 'active' }] },
+      });
+
+      await service.cancelSubscription('test@example.com', 'txn_123');
+
+      expect(axiosMock.get).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions',
+        expect.objectContaining({
+          params: { email: 'test@example.com', status: 'active' },
+        }),
+      );
+      expect(axiosMock.put).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions/999/cancel',
+        {},
+        expect.anything(),
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        {
+          externalId: 'txn_123',
+          status: 'active',
+          cancelAtPeriodEnd: true,
+          providerSubscriptionId: '999',
+        },
+      );
+    });
+
+    it('falls back to a live lookup and retries once when the stored id is rejected (stale id)', async () => {
+      axiosMock.put
+        .mockRejectedValueOnce(new Error('400 Bad Request'))
+        .mockResolvedValueOnce({ data: {} });
+      axiosMock.get.mockResolvedValue({
+        data: { data: [{ id: 777, status: 'active' }] },
+      });
+
+      await service.cancelSubscription(
+        'test@example.com',
+        'txn_123',
+        'stale_id',
+      );
+
+      expect(axiosMock.put).toHaveBeenNthCalledWith(
+        1,
+        'https://api.flutterwave.com/v3/subscriptions/stale_id/cancel',
+        {},
+        expect.anything(),
+      );
+      expect(axiosMock.get).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions',
+        expect.objectContaining({
+          params: { email: 'test@example.com', status: 'active' },
+        }),
+      );
+      expect(axiosMock.put).toHaveBeenNthCalledWith(
+        2,
+        'https://api.flutterwave.com/v3/subscriptions/777/cancel',
+        {},
+        expect.anything(),
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        expect.objectContaining({ providerSubscriptionId: '777' }),
+      );
+    });
+
+    it('picks the most recently created subscription when more than one is returned', async () => {
+      axiosMock.get.mockResolvedValue({
+        data: {
+          data: [
+            { id: 111, created_at: '2026-01-01T00:00:00.000Z' },
+            { id: 222, created_at: '2026-06-01T00:00:00.000Z' },
+            { id: 333, created_at: '2026-03-01T00:00:00.000Z' },
+          ],
+        },
+      });
+
+      await service.cancelSubscription('test@example.com', 'txn_123');
+
+      expect(axiosMock.put).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions/222/cancel',
+        {},
+        expect.anything(),
+      );
+    });
+
+    it('throws when no active Flutterwave subscription is found for the email', async () => {
+      axiosMock.get.mockResolvedValue({ data: { data: [] } });
+
+      await expect(
+        service.cancelSubscription('test@example.com', 'txn_123'),
+      ).rejects.toThrow(
+        'No active Flutterwave subscription found for this user',
+      );
+
+      expect(axiosMock.put).not.toHaveBeenCalled();
+      expect(
+        subscriptionService.updateSubscriptionStatus,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('throws the generic error (not the "no subscription" message) when the lookup itself fails', async () => {
+      axiosMock.get.mockRejectedValue(new Error('Network timeout'));
+
+      await expect(
+        service.cancelSubscription('test@example.com', 'txn_123'),
+      ).rejects.toThrow('Could not cancel subscription with Flutterwave');
+
+      expect(axiosMock.put).not.toHaveBeenCalled();
+      expect(
+        subscriptionService.updateSubscriptionStatus,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reactivateSubscription', () => {
+    const axiosMock = axios as unknown as {
+      get: jest.Mock;
+      put: jest.Mock;
+    };
+
+    beforeEach(() => {
+      axiosMock.get = jest.fn();
+      axiosMock.put = jest.fn().mockResolvedValue({ data: {} });
+    });
+
+    it('uses the stored providerSubscriptionId directly and asks for a period-end refresh', async () => {
+      await service.reactivateSubscription(
+        'test@example.com',
+        'txn_123',
+        '999',
+      );
+
+      expect(axiosMock.get).not.toHaveBeenCalled();
+      expect(axiosMock.put).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions/999/activate',
+        {},
+        expect.anything(),
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        {
+          externalId: 'txn_123',
+          status: 'active',
+          cancelAtPeriodEnd: false,
+          providerSubscriptionId: '999',
+          refreshPeriodEnd: true,
+        },
+      );
+    });
+
+    it('looks up the cancelled Flutterwave subscription by email when no stored id exists', async () => {
+      axiosMock.get.mockResolvedValue({
+        data: { data: [{ id: 999, status: 'cancelled' }] },
+      });
+
+      await service.reactivateSubscription('test@example.com', 'txn_123');
+
+      expect(axiosMock.get).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions',
+        expect.objectContaining({
+          params: { email: 'test@example.com', status: 'cancelled' },
+        }),
+      );
+      expect(axiosMock.put).toHaveBeenCalledWith(
+        'https://api.flutterwave.com/v3/subscriptions/999/activate',
+        {},
+        expect.anything(),
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        {
+          externalId: 'txn_123',
+          status: 'active',
+          cancelAtPeriodEnd: false,
+          providerSubscriptionId: '999',
+          refreshPeriodEnd: true,
+        },
+      );
+    });
+
+    it('falls back to a live lookup and retries once when the stored id is stale', async () => {
+      axiosMock.put
+        .mockRejectedValueOnce(new Error('400 Bad Request'))
+        .mockResolvedValueOnce({ data: {} });
+      axiosMock.get.mockResolvedValue({
+        data: { data: [{ id: 555, status: 'cancelled' }] },
+      });
+
+      await service.reactivateSubscription(
+        'test@example.com',
+        'txn_123',
+        'stale_id',
+      );
+
+      expect(axiosMock.put).toHaveBeenNthCalledWith(
+        2,
+        'https://api.flutterwave.com/v3/subscriptions/555/activate',
+        {},
+        expect.anything(),
+      );
+      expect(subscriptionService.updateSubscriptionStatus).toHaveBeenCalledWith(
+        expect.objectContaining({ providerSubscriptionId: '555' }),
+      );
+    });
+
+    it('throws when no cancelled Flutterwave subscription is found for the email', async () => {
+      axiosMock.get.mockResolvedValue({ data: { data: [] } });
+
+      await expect(
+        service.reactivateSubscription('test@example.com', 'txn_123'),
+      ).rejects.toThrow(
+        'No cancelled Flutterwave subscription found for this user',
+      );
+
+      expect(axiosMock.put).not.toHaveBeenCalled();
+      expect(
+        subscriptionService.updateSubscriptionStatus,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('throws the generic error (not the "no subscription" message) when the lookup itself fails', async () => {
+      axiosMock.get.mockRejectedValue(new Error('Network timeout'));
+
+      await expect(
+        service.reactivateSubscription('test@example.com', 'txn_123'),
+      ).rejects.toThrow('Could not reactivate subscription with Flutterwave');
+
+      expect(axiosMock.put).not.toHaveBeenCalled();
+      expect(
+        subscriptionService.updateSubscriptionStatus,
+      ).not.toHaveBeenCalled();
     });
   });
 });

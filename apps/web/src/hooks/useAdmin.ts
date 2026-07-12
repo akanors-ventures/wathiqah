@@ -1,7 +1,12 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import {
   ADMIN_AUDIT_LOGS_QUERY,
+  ADMIN_CANCEL_PLAN_MUTATION,
+  ADMIN_CREATE_PLAN_MUTATION,
+  ADMIN_PLANS_QUERY,
   ADMIN_STATS_QUERY,
+  ADMIN_SYNC_PLANS_MUTATION,
+  ADMIN_UPDATE_PLAN_MUTATION,
   ADMIN_USER_QUERY,
   ADMIN_USERS_QUERY,
   DEPROVISION_PRO_MUTATION,
@@ -11,11 +16,14 @@ import {
 import type {
   AdminAuditLogFilterInput,
   AdminUsersFilterInput,
+  CreatePlanInput,
   ProvisionProInput,
   SetUserRoleInput,
+  UpdatePlanInput,
 } from "@/types/__generated__/graphql";
 
 const ADMIN_REFETCH = ["AdminUsers", "AdminUser", "AdminStats", "AdminAuditLogs"];
+const ADMIN_PLANS_REFETCH = ["AdminPlans", "AdminAuditLogs"];
 
 export function useAdminStats() {
   const { data, loading, error, refetch } = useQuery(ADMIN_STATS_QUERY, {
@@ -89,5 +97,44 @@ export function useAdminMutations() {
     provisioning,
     deprovisioning,
     settingRole,
+  };
+}
+
+export function useAdminPlans() {
+  const { data, loading, error, refetch } = useQuery(ADMIN_PLANS_QUERY, {
+    fetchPolicy: "cache-and-network",
+  });
+  return { plans: data?.adminPlans ?? [], loading, error, refetch };
+}
+
+/**
+ * Plan create/update/cancel/sync — the admin-managed mirror of Flutterwave's
+ * payment plans. Every mutation refetches the plans list and audit log so
+ * both stay consistent after an action.
+ */
+export function useAdminPlanMutations() {
+  const [syncPlansMutation, { loading: syncing }] = useMutation(ADMIN_SYNC_PLANS_MUTATION, {
+    refetchQueries: ADMIN_PLANS_REFETCH,
+  });
+  const [createPlanMutation, { loading: creating }] = useMutation(ADMIN_CREATE_PLAN_MUTATION, {
+    refetchQueries: ADMIN_PLANS_REFETCH,
+  });
+  const [updatePlanMutation, { loading: updating }] = useMutation(ADMIN_UPDATE_PLAN_MUTATION, {
+    refetchQueries: ADMIN_PLANS_REFETCH,
+  });
+  const [cancelPlanMutation, { loading: cancelling }] = useMutation(ADMIN_CANCEL_PLAN_MUTATION, {
+    refetchQueries: ADMIN_PLANS_REFETCH,
+  });
+
+  return {
+    syncPlans: () => syncPlansMutation(),
+    createPlan: (input: CreatePlanInput) => createPlanMutation({ variables: { input } }),
+    updatePlan: (id: string, input: UpdatePlanInput) =>
+      updatePlanMutation({ variables: { id, input } }),
+    cancelPlan: (id: string) => cancelPlanMutation({ variables: { id } }),
+    syncing,
+    creating,
+    updating,
+    cancelling,
   };
 }

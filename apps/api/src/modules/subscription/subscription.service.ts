@@ -19,6 +19,27 @@ export class SubscriptionService {
     });
   }
 
+  // Shared by handleSubscriptionSuccess (new period on signup/renewal) and
+  // updateSubscriptionStatus (recomputed period on reactivate) so both stay
+  // in sync on how an interval maps to a period length. Accepts both our
+  // BillingInterval enum ('annual') and a linked Plan's raw Flutterwave
+  // interval string ('yearly') — the latter is what a reactivated
+  // subscription's plan relation actually stores.
+  private computePeriodEnd(
+    interval: BillingInterval | string | null | undefined,
+    from: Date,
+  ): Date {
+    const periodEnd = new Date(from);
+    const isAnnual =
+      interval === BillingInterval.ANNUAL || interval === 'yearly';
+    if (isAnnual) {
+      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+    } else {
+      periodEnd.setMonth(periodEnd.getMonth() + 1);
+    }
+    return periodEnd;
+  }
+
   async handleSubscriptionSuccess(
     userId: string,
     subscriptionId: string,
@@ -26,14 +47,10 @@ export class SubscriptionService {
     tier: SubscriptionTier,
     tx?: Prisma.TransactionClient,
     interval?: BillingInterval,
+    planId?: string,
   ) {
     const now = new Date();
-    const periodEnd = new Date(now);
-    if (interval === BillingInterval.ANNUAL) {
-      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-    } else {
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
-    }
+    const periodEnd = this.computePeriodEnd(interval, now);
 
     return this.activateSubscription(
       {
@@ -44,6 +61,7 @@ export class SubscriptionService {
         tier: tier || SubscriptionTier.PRO,
         currentPeriodStart: now,
         currentPeriodEnd: periodEnd,
+        planId: planId ?? null,
       },
       tx,
     );
@@ -58,6 +76,7 @@ export class SubscriptionService {
       tier: SubscriptionTier;
       currentPeriodStart: Date;
       currentPeriodEnd: Date;
+      planId: string | null;
     },
     tx?: Prisma.TransactionClient,
   ) {
@@ -70,6 +89,7 @@ export class SubscriptionService {
       tier,
       currentPeriodStart,
       currentPeriodEnd,
+      planId,
     } = data;
 
     await prisma.subscription.upsert({
@@ -81,6 +101,7 @@ export class SubscriptionService {
         tier,
         currentPeriodStart,
         currentPeriodEnd,
+        planId,
       },
       create: {
         userId,
@@ -90,6 +111,7 @@ export class SubscriptionService {
         tier,
         currentPeriodStart,
         currentPeriodEnd,
+        planId,
       },
     });
 
@@ -110,6 +132,14 @@ export class SubscriptionService {
       currentPeriodStart?: Date;
       currentPeriodEnd?: Date;
       cancelAtPeriodEnd?: boolean;
+      providerSubscriptionId?: string;
+      // On reactivate, Flutterwave's /activate response carries no new
+      // billing period. If the subscription's existing currentPeriodEnd is
+      // still in the future (cancelled but not yet lapsed — cancelAtPeriodEnd
+      // just meant "don't auto-renew"), it's left untouched so the user keeps
+      // the time they already paid for. Only a lapsed/missing period gets
+      // recomputed from the linked Plan interval, starting now.
+      refreshPeriodEnd?: boolean;
     },
     tx?: Prisma.TransactionClient,
   ) {
@@ -120,21 +150,38 @@ export class SubscriptionService {
       currentPeriodStart,
       currentPeriodEnd,
       cancelAtPeriodEnd,
+      providerSubscriptionId,
+      refreshPeriodEnd,
     } = data;
 
     const subscription = await prisma.subscription.findFirst({
       where: { externalId },
+      include: { plan: true },
     });
 
     if (!subscription) return;
+
+    const now = new Date();
+    const periodHasLapsed =
+      !subscription.currentPeriodEnd || subscription.currentPeriodEnd <= now;
+    const shouldRecomputePeriod = refreshPeriodEnd && periodHasLapsed;
+
+    const resolvedPeriodEnd =
+      currentPeriodEnd ??
+      (shouldRecomputePeriod
+        ? this.computePeriodEnd(subscription.plan?.interval, now)
+        : undefined);
 
     await prisma.subscription.update({
       where: { id: subscription.id },
       data: {
         status,
         ...(currentPeriodStart && { currentPeriodStart }),
-        ...(currentPeriodEnd && { currentPeriodEnd }),
+        ...(resolvedPeriodEnd && { currentPeriodEnd: resolvedPeriodEnd }),
+        ...(shouldRecomputePeriod &&
+          !currentPeriodStart && { currentPeriodStart: now }),
         ...(cancelAtPeriodEnd !== undefined && { cancelAtPeriodEnd }),
+        ...(providerSubscriptionId && { providerSubscriptionId }),
       },
     });
 

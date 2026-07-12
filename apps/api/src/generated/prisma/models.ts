@@ -10,6 +10,7 @@
  */
 export type * from './models/User'
 export type * from './models/Subscription'
+export type * from './models/Plan'
 export type * from './models/Payment'
 export type * from './models/WebhookLog'
 export type * from './models/Contact'

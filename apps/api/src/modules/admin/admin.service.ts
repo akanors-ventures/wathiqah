@@ -12,6 +12,11 @@ import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { NotificationTemplates } from '../in-app-notifications/notification-templates';
 import {
+  FlutterwavePlanService,
+  CreatePlanInput as ServiceCreatePlanInput,
+} from '../payment/flutterwave-plan.service';
+import { BillingInterval } from '../payment/dto/billing-interval.enum';
+import {
   AdminAction,
   Prisma,
   SubscriptionTier,
@@ -24,7 +29,9 @@ import {
 import { getPrismaSkip } from '../../common/dto/pagination.input';
 import { AdminUsersFilterInput } from './dto/admin-users-filter.input';
 import { AdminAuditLogFilterInput } from './dto/admin-audit-log-filter.input';
-import type { User } from '../../generated/prisma/client';
+import { CreatePlanInput } from './dto/create-plan.input';
+import { UpdatePlanInput } from './dto/update-plan.input';
+import type { User, Plan } from '../../generated/prisma/client';
 
 @Injectable()
 export class AdminService implements OnModuleInit {
@@ -35,6 +42,7 @@ export class AdminService implements OnModuleInit {
     private readonly notificationService: NotificationService,
     private readonly configService: ConfigService,
     private readonly inAppNotificationsService: InAppNotificationsService,
+    private readonly flutterwavePlanService: FlutterwavePlanService,
   ) {}
 
   async onModuleInit(): Promise<void> {
@@ -126,7 +134,7 @@ export class AdminService implements OnModuleInit {
   private auditEntry(
     actorId: string,
     action: AdminAction,
-    targetUserId: string,
+    targetUserId?: string,
     metadata?: Prisma.InputJsonValue,
   ) {
     return this.prisma.adminAuditLog.create({
@@ -390,5 +398,93 @@ export class AdminService implements OnModuleInit {
     ]);
 
     return { items, total, page, limit };
+  }
+
+  private toFlutterwaveInterval(interval: BillingInterval): string {
+    return interval === BillingInterval.ANNUAL ? 'yearly' : 'monthly';
+  }
+
+  async getPlans(): Promise<Plan[]> {
+    return this.flutterwavePlanService.getLocalPlans();
+  }
+
+  async syncPlans(adminId: string): Promise<Plan[]> {
+    const plans = await this.flutterwavePlanService.syncFromFlutterwave();
+
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorId: adminId,
+        action: AdminAction.PLAN_SYNCED,
+        metadata: { count: plans.length },
+      },
+    });
+
+    return plans;
+  }
+
+  async createPlan(adminId: string, input: CreatePlanInput): Promise<Plan> {
+    const serviceInput: ServiceCreatePlanInput = {
+      tier: input.tier,
+      interval: this.toFlutterwaveInterval(input.interval),
+      currency: input.currency.toUpperCase(),
+      amount: input.amount,
+      name: input.name,
+      duration: input.duration,
+    };
+
+    const plan = await this.flutterwavePlanService.createPlan(
+      serviceInput,
+      adminId,
+    );
+
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorId: adminId,
+        action: AdminAction.PLAN_CREATED,
+        metadata: {
+          planId: plan.id,
+          providerPlanId: plan.providerPlanId,
+          name: plan.name,
+        },
+      },
+    });
+
+    return plan;
+  }
+
+  async updatePlan(
+    adminId: string,
+    planId: string,
+    input: UpdatePlanInput,
+  ): Promise<Plan> {
+    const plan = await this.flutterwavePlanService.updatePlan(planId, input);
+
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorId: adminId,
+        action: AdminAction.PLAN_UPDATED,
+        metadata: { planId: plan.id, name: plan.name, ...input },
+      },
+    });
+
+    return plan;
+  }
+
+  async cancelPlan(adminId: string, planId: string): Promise<Plan> {
+    const plan = await this.flutterwavePlanService.cancelPlan(planId);
+
+    await this.prisma.adminAuditLog.create({
+      data: {
+        actorId: adminId,
+        action: AdminAction.PLAN_CANCELLED,
+        metadata: {
+          planId: plan.id,
+          providerPlanId: plan.providerPlanId,
+          name: plan.name,
+        },
+      },
+    });
+
+    return plan;
   }
 }

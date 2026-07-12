@@ -24,6 +24,7 @@ function org(id: string) {
 const ORG_STORAGE_KEY = "wathiqah_active_org_id";
 
 function setSignalCookie(orgId: string | null) {
+  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API — direct assignment simulates browser cookie state in tests
   document.cookie = orgId ? `activeOrgId=${orgId}` : "activeOrgId=; max-age=0";
 }
 
@@ -34,6 +35,7 @@ function wrapper({ children }: { children: ReactNode }) {
 describe("OrgContext restoration effect", () => {
   beforeEach(() => {
     localStorage.clear();
+    // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API — direct assignment resets cookie state between tests
     document.cookie = "activeOrgId=; max-age=0";
     mockUseMutation.mockReturnValue([vi.fn()]);
     mockUseApolloClient.mockReturnValue({ refetchQueries: vi.fn() });

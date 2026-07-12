@@ -48,6 +48,7 @@ model User {
   notifications              Notification[]       @relation("UserNotifications")
   adminActionsPerformed      AdminAuditLog[]      @relation("AdminAuditActor")
   adminActionsReceived       AdminAuditLog[]      @relation("AdminAuditTarget")
+  plansCreated               Plan[]               @relation("PlanCreatedBy")
 
   @@index([phoneNumber])
   @@map("users")
@@ -59,8 +60,10 @@ model Subscription {
   tier               SubscriptionTier @default(FREE)
   status             String // active, trialing, past_due, canceled, unpaid
   provider           String // stripe, flutterwave, lemonsqueezy
-  externalId         String?          @unique // Stripe Subscription ID or Flutterwave ID
-  planId             String? // The ID of the plan/price
+  externalId         String?          @unique // Stripe Subscription ID or Flutterwave transaction/charge ID
+  providerSubscriptionId String?      @unique // Resolved Flutterwave subscription resource ID (from GET /v3/subscriptions) — distinct from externalId, which renewal webhooks overwrite with a transaction ID
+  planId             String? // FK to Plan — source of truth for this subscription's billing interval/amount/currency
+  plan               Plan?            @relation(fields: [planId], references: [id])
   currentPeriodStart DateTime?
   currentPeriodEnd   DateTime?
   cancelAtPeriodEnd  Boolean          @default(false)
@@ -77,6 +80,39 @@ model Subscription {
   @@map("subscriptions")
 }
 
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+
+  @@map("plan_status")
+}
+
+// Local mirror of a Flutterwave payment plan (recurring billing template) —
+// single source of truth for plan IDs/intervals/amounts instead of the
+// FLUTTERWAVE_PRO_PLAN_ID_* env vars. Managed via the admin console, which
+// calls Flutterwave's Payment Plan API and upserts here by providerPlanId.
+model Plan {
+  id             String            @id @default(uuid())
+  tier           SubscriptionTier? // which tier this plan grants; null for plans not tied to a subscription tier (e.g. legacy one-off "Support" plans)
+  interval       String // Flutterwave's raw interval value: yearly | quarterly | monthly | weekly | daily
+  currency       String
+  amount         Decimal           @db.Decimal(10, 2)
+  name           String
+  provider       String            @default("flutterwave")
+  providerPlanId String            @unique
+  status         PlanStatus        @default(ACTIVE)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  createdById    String?
+  createdBy      User?             @relation("PlanCreatedBy", fields: [createdById], references: [id])
+
+  subscriptions Subscription[]
+
+  @@index([tier, interval, currency, status])
+  @@map("plans")
+}
+
 model Payment {
   id         String        @id @default(uuid())
   userId     String
@@ -84,7 +120,8 @@ model Payment {
   currency   String
   status     PaymentStatus @default(PENDING)
   provider   String // stripe, flutterwave
-  externalId String?       @unique // Stripe PaymentIntent ID or Flutterwave Ref
+  externalId String?       @unique // Stripe PaymentIntent ID or Flutterwave transaction ID
+  txRef      String? // Flutterwave/merchant tx_ref, stored alongside externalId
   type       PaymentType // SUBSCRIPTION, CONTRIBUTION
   metadata   Json?
   createdAt  DateTime      @default(now())
@@ -462,12 +499,12 @@ model AdminAuditLog {
   id           String      @id @default(uuid())
   actorId      String
   action       AdminAction
-  targetUserId String
+  targetUserId String? // null for actions with no target user (e.g. plan management)
   metadata     Json?
   createdAt    DateTime    @default(now())
 
-  actor      User @relation("AdminAuditActor", fields: [actorId], references: [id])
-  targetUser User @relation("AdminAuditTarget", fields: [targetUserId], references: [id])
+  actor      User  @relation("AdminAuditActor", fields: [actorId], references: [id])
+  targetUser User? @relation("AdminAuditTarget", fields: [targetUserId], references: [id])
 
   @@index([actorId])
   @@index([targetUserId])
@@ -480,6 +517,10 @@ enum AdminAction {
   PROVISION_PRO
   DEPROVISION_PRO
   SET_USER_ROLE
+  PLAN_CREATED
+  PLAN_UPDATED
+  PLAN_CANCELLED
+  PLAN_SYNCED
 
   @@map("admin_action")
 }

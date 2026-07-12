@@ -54,6 +54,10 @@ export type AddWitnessInput = {
 
 export enum AdminAction {
   DeprovisionPro = 'DEPROVISION_PRO',
+  PlanCancelled = 'PLAN_CANCELLED',
+  PlanCreated = 'PLAN_CREATED',
+  PlanSynced = 'PLAN_SYNCED',
+  PlanUpdated = 'PLAN_UPDATED',
   ProvisionPro = 'PROVISION_PRO',
   SetUserRole = 'SET_USER_ROLE'
 }
@@ -67,7 +71,7 @@ export type AdminAuditLog = {
   id: Scalars['ID']['output'];
   metadata: Maybe<Scalars['JSON']['output']>;
   targetUser: Maybe<User>;
-  targetUserId: Scalars['ID']['output'];
+  targetUserId: Maybe<Scalars['ID']['output']>;
 };
 
 export type AdminAuditLogFilterInput = {
@@ -202,6 +206,15 @@ export type CreatePersonalEntryInput = {
   date: Scalars['DateTime']['input'];
   description?: InputMaybe<Scalars['String']['input']>;
   type: PersonalEntryType;
+};
+
+export type CreatePlanInput = {
+  amount: Scalars['Float']['input'];
+  currency: Scalars['String']['input'];
+  duration?: InputMaybe<Scalars['Int']['input']>;
+  interval: BillingInterval;
+  name: Scalars['String']['input'];
+  tier: SubscriptionTier;
 };
 
 export type CreateProjectInput = {
@@ -372,6 +385,10 @@ export type Mutation = {
   acceptInvitation: AuthPayload;
   acknowledgeWitness: Witness;
   addWitness: Transaction;
+  adminCancelPlan: PlanEntity;
+  adminCreatePlan: PlanEntity;
+  adminSyncPlans: Array<PlanEntity>;
+  adminUpdatePlan: PlanEntity;
   cancelSubscription: Scalars['Boolean']['output'];
   changePassword: Scalars['Boolean']['output'];
   createCheckoutSession: CheckoutSession;
@@ -451,6 +468,22 @@ export type MutationAcknowledgeWitnessArgs = {
 
 export type MutationAddWitnessArgs = {
   input: AddWitnessInput;
+};
+
+
+export type MutationAdminCancelPlanArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationAdminCreatePlanArgs = {
+  input: CreatePlanInput;
+};
+
+
+export type MutationAdminUpdatePlanArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdatePlanInput;
 };
 
 
@@ -907,6 +940,28 @@ export enum PersonalEntryType {
   Income = 'INCOME'
 }
 
+export type PlanEntity = {
+  __typename: 'PlanEntity';
+  amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  currency: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  interval: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  provider: Scalars['String']['output'];
+  providerPlanId: Scalars['String']['output'];
+  status: PlanStatus;
+  tier: Maybe<SubscriptionTier>;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
+/** Local status of a Flutterwave payment plan */
+export enum PlanStatus {
+  Active = 'ACTIVE',
+  Cancelled = 'CANCELLED',
+  Inactive = 'INACTIVE'
+}
+
 export enum Priority {
   High = 'HIGH',
   Low = 'LOW',
@@ -1013,6 +1068,7 @@ export type ProvisionProInput = {
 export type Query = {
   __typename: 'Query';
   adminAuditLogs: PaginatedAuditLogsResponse;
+  adminPlans: Array<PlanEntity>;
   adminStats: AdminStats;
   adminUser: User;
   adminUsers: PaginatedUsersResponse;
@@ -1449,6 +1505,12 @@ export type UpdatePersonalEntryInput = {
   type?: InputMaybe<PersonalEntryType>;
 };
 
+export type UpdatePlanInput = {
+  name?: InputMaybe<Scalars['String']['input']>;
+  status?: InputMaybe<PlanStatus>;
+  tier?: InputMaybe<SubscriptionTier>;
+};
+
 export type UpdateProjectInput = {
   budget?: InputMaybe<Scalars['Float']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -1615,6 +1677,40 @@ export type SetUserRoleMutationVariables = Exact<{
 
 
 export type SetUserRoleMutation = { setUserRole: { __typename: 'User', id: string, email: string, name: string, firstName: string, lastName: string, phoneNumber: string | null, preferredCurrency: string, tier: SubscriptionTier, role: UserRole, isSupporter: boolean, isEmailVerified: boolean, subscriptionStatus: string | null, createdAt: string } };
+
+export type AdminPlanFieldsFragment = { __typename: 'PlanEntity', id: string, tier: SubscriptionTier | null, interval: string, currency: string, amount: number, name: string, provider: string, providerPlanId: string, status: PlanStatus, createdAt: string, updatedAt: string };
+
+export type AdminPlansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AdminPlansQuery = { adminPlans: Array<{ __typename: 'PlanEntity', id: string, tier: SubscriptionTier | null, interval: string, currency: string, amount: number, name: string, provider: string, providerPlanId: string, status: PlanStatus, createdAt: string, updatedAt: string }> };
+
+export type AdminSyncPlansMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AdminSyncPlansMutation = { adminSyncPlans: Array<{ __typename: 'PlanEntity', id: string, tier: SubscriptionTier | null, interval: string, currency: string, amount: number, name: string, provider: string, providerPlanId: string, status: PlanStatus, createdAt: string, updatedAt: string }> };
+
+export type AdminCreatePlanMutationVariables = Exact<{
+  input: CreatePlanInput;
+}>;
+
+
+export type AdminCreatePlanMutation = { adminCreatePlan: { __typename: 'PlanEntity', id: string, tier: SubscriptionTier | null, interval: string, currency: string, amount: number, name: string, provider: string, providerPlanId: string, status: PlanStatus, createdAt: string, updatedAt: string } };
+
+export type AdminUpdatePlanMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdatePlanInput;
+}>;
+
+
+export type AdminUpdatePlanMutation = { adminUpdatePlan: { __typename: 'PlanEntity', id: string, tier: SubscriptionTier | null, interval: string, currency: string, amount: number, name: string, provider: string, providerPlanId: string, status: PlanStatus, createdAt: string, updatedAt: string } };
+
+export type AdminCancelPlanMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type AdminCancelPlanMutation = { adminCancelPlan: { __typename: 'PlanEntity', id: string, tier: SubscriptionTier | null, interval: string, currency: string, amount: number, name: string, provider: string, providerPlanId: string, status: PlanStatus, createdAt: string, updatedAt: string } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 

@@ -194,6 +194,8 @@ describe('PaymentService', () => {
         userId: 'user_123',
         provider: 'stripe',
         externalId: 'sub_stripe_123',
+        providerSubscriptionId: null,
+        user: { email: 'test@example.com' },
       });
 
       await service.cancelSubscription('user_123');
@@ -202,6 +204,52 @@ describe('PaymentService', () => {
         'sub_stripe_123',
       );
       expect(flutterwaveService.cancelSubscription).not.toHaveBeenCalled();
+    });
+
+    it('cancels a Flutterwave subscription using the user email, externalId, and stored providerSubscriptionId', async () => {
+      mockPrismaService.subscription.findUnique.mockResolvedValue({
+        userId: 'user_123',
+        provider: 'flutterwave',
+        externalId: 'txn_123',
+        providerSubscriptionId: '999',
+        user: { email: 'test@example.com' },
+      });
+
+      await service.cancelSubscription('user_123');
+
+      expect(mockPrismaService.subscription.findUnique).toHaveBeenCalledWith({
+        where: { userId: 'user_123' },
+        select: {
+          provider: true,
+          externalId: true,
+          providerSubscriptionId: true,
+          user: { select: { email: true } },
+        },
+      });
+      expect(flutterwaveService.cancelSubscription).toHaveBeenCalledWith(
+        'test@example.com',
+        'txn_123',
+        '999',
+      );
+    });
+
+    it('reactivates a Flutterwave subscription and does not separately update the local record', async () => {
+      mockPrismaService.subscription.findUnique.mockResolvedValue({
+        userId: 'user_123',
+        provider: 'flutterwave',
+        externalId: 'txn_123',
+        providerSubscriptionId: '999',
+        user: { email: 'test@example.com' },
+      });
+
+      await service.reactivateSubscription('user_123');
+
+      expect(flutterwaveService.reactivateSubscription).toHaveBeenCalledWith(
+        'test@example.com',
+        'txn_123',
+        '999',
+      );
+      expect(mockPrismaService.subscription.update).not.toHaveBeenCalled();
     });
   });
 });

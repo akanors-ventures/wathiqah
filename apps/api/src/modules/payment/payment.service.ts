@@ -125,6 +125,12 @@ export class PaymentService {
   async cancelSubscription(userId: string) {
     const subscription = await this.prisma.subscription.findUnique({
       where: { userId },
+      select: {
+        provider: true,
+        externalId: true,
+        providerSubscriptionId: true,
+        user: { select: { email: true } },
+      },
     });
 
     if (!subscription) {
@@ -135,7 +141,9 @@ export class PaymentService {
       return this.stripeService.cancelSubscription(subscription.externalId!);
     } else if (subscription.provider === 'flutterwave') {
       return this.flutterwaveService.cancelSubscription(
+        subscription.user.email,
         subscription.externalId!,
+        subscription.providerSubscriptionId,
       );
     } else if (subscription.provider === 'lemonsqueezy') {
       return this.lemonsqueezyService.cancelSubscription(
@@ -147,6 +155,12 @@ export class PaymentService {
   async reactivateSubscription(userId: string) {
     const subscription = await this.prisma.subscription.findUnique({
       where: { userId },
+      select: {
+        provider: true,
+        externalId: true,
+        providerSubscriptionId: true,
+        user: { select: { email: true } },
+      },
     });
 
     if (!subscription) {
@@ -161,9 +175,11 @@ export class PaymentService {
       });
     } else if (subscription.provider === 'flutterwave') {
       await this.flutterwaveService.reactivateSubscription(
+        subscription.user.email,
         subscription.externalId!,
+        subscription.providerSubscriptionId,
       );
-      // Flutterwave always throws above — no DB update needed here
+      // FlutterwaveService updates cancelAtPeriodEnd and currentPeriodEnd itself
     } else if (subscription.provider === 'lemonsqueezy') {
       await this.lemonsqueezyService.reactivateSubscription(
         subscription.externalId!,
