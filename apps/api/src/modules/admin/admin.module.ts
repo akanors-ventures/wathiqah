@@ -3,6 +3,7 @@ import { PrismaModule } from '../../prisma/prisma.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { UsersModule } from '../users/users.module';
 import { InAppNotificationsModule } from '../in-app-notifications/in-app-notifications.module';
+import { PaymentModule } from '../payment/payment.module';
 import { AdminService } from './admin.service';
 import { AdminResolver } from './admin.resolver';
 
@@ -12,6 +13,7 @@ import { AdminResolver } from './admin.resolver';
     NotificationsModule,
     UsersModule,
     InAppNotificationsModule,
+    PaymentModule,
   ],
   providers: [AdminService, AdminResolver],
   exports: [AdminService],

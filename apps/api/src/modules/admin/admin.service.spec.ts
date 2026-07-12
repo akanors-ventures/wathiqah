@@ -4,13 +4,16 @@ import { AdminService } from './admin.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
+import { FlutterwavePlanService } from '../payment/flutterwave-plan.service';
 import { ConfigService } from '@nestjs/config';
 import {
   AdminAction,
   SubscriptionTier,
+  PlanStatus,
   UserRole,
   NotificationType,
 } from '../../generated/prisma/client';
+import { BillingInterval } from '../payment/dto/billing-interval.enum';
 
 const mockPrisma = {
   user: {
@@ -55,6 +58,14 @@ const mockConfigService = {
   }),
 };
 
+const mockFlutterwavePlanService = {
+  getLocalPlans: jest.fn(),
+  syncFromFlutterwave: jest.fn(),
+  createPlan: jest.fn(),
+  updatePlan: jest.fn(),
+  cancelPlan: jest.fn(),
+};
+
 // bcrypt is mocked so we can control compare results in tests
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashed-secret'),
@@ -75,6 +86,10 @@ describe('AdminService', () => {
         {
           provide: InAppNotificationsService,
           useValue: mockInAppNotificationsService,
+        },
+        {
+          provide: FlutterwavePlanService,
+          useValue: mockFlutterwavePlanService,
         },
       ],
     }).compile();
@@ -596,6 +611,82 @@ describe('AdminService', () => {
           where: { action: AdminAction.PROVISION_PRO },
           include: { actor: true, targetUser: true },
           orderBy: { createdAt: 'desc' },
+        }),
+      );
+    });
+  });
+
+  describe('plan management', () => {
+    it('getPlans delegates to FlutterwavePlanService', async () => {
+      mockFlutterwavePlanService.getLocalPlans.mockResolvedValue([
+        { id: 'p1' },
+      ]);
+
+      const result = await service.getPlans();
+
+      expect(result).toEqual([{ id: 'p1' }]);
+      expect(mockFlutterwavePlanService.getLocalPlans).toHaveBeenCalled();
+    });
+
+    it('syncPlans writes a PLAN_SYNCED audit entry with no target user', async () => {
+      mockFlutterwavePlanService.syncFromFlutterwave.mockResolvedValue([
+        { id: 'p1' },
+        { id: 'p2' },
+      ]);
+
+      await service.syncPlans('admin_1');
+
+      expect(mockPrisma.adminAuditLog.create).toHaveBeenCalledWith({
+        data: {
+          actorId: 'admin_1',
+          action: AdminAction.PLAN_SYNCED,
+          metadata: { count: 2 },
+        },
+      });
+    });
+
+    it('createPlan maps BillingInterval.ANNUAL to "yearly" and writes a PLAN_CREATED audit entry', async () => {
+      mockFlutterwavePlanService.createPlan.mockResolvedValue({
+        id: 'p1',
+        providerPlanId: '163686',
+        name: 'Annual Wathiqah Pro',
+      });
+
+      await service.createPlan('admin_1', {
+        tier: SubscriptionTier.PRO,
+        interval: BillingInterval.ANNUAL,
+        currency: 'ngn',
+        amount: 25000,
+        name: 'Annual Wathiqah Pro',
+      });
+
+      expect(mockFlutterwavePlanService.createPlan).toHaveBeenCalledWith(
+        expect.objectContaining({ interval: 'yearly', currency: 'NGN' }),
+        'admin_1',
+      );
+      expect(mockPrisma.adminAuditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ action: AdminAction.PLAN_CREATED }),
+        }),
+      );
+    });
+
+    it('cancelPlan writes a PLAN_CANCELLED audit entry with the plan name in metadata', async () => {
+      mockFlutterwavePlanService.cancelPlan.mockResolvedValue({
+        id: 'p1',
+        providerPlanId: '163686',
+        name: 'Monthly Wathiqah Pro',
+        status: PlanStatus.CANCELLED,
+      });
+
+      await service.cancelPlan('admin_1', 'p1');
+
+      expect(mockPrisma.adminAuditLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            action: AdminAction.PLAN_CANCELLED,
+            metadata: expect.objectContaining({ name: 'Monthly Wathiqah Pro' }),
+          }),
         }),
       );
     });

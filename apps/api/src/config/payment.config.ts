@@ -12,26 +12,8 @@ export default registerAs('payment', () => ({
     secretKey: process.env.FLUTTERWAVE_SECRET_KEY,
     encryptionKey: process.env.FLUTTERWAVE_ENCRYPTION_KEY,
     webhookHash: process.env.FLUTTERWAVE_WEBHOOK_HASH,
-    // Flutterwave is now the sole subscription provider for every currency —
-    // each currency bucket needs its own recurring plan. FLUTTERWAVE_PRO_PLAN_ID /
-    // FLUTTERWAVE_PRO_ANNUAL_PLAN_ID (no suffix) are kept as the NGN fallback
-    // so existing deployments don't break.
-    proPlanId: {
-      NGN:
-        process.env.FLUTTERWAVE_PRO_PLAN_ID_NGN ||
-        process.env.FLUTTERWAVE_PRO_PLAN_ID,
-      USD: process.env.FLUTTERWAVE_PRO_PLAN_ID_USD,
-      GBP: process.env.FLUTTERWAVE_PRO_PLAN_ID_GBP,
-      DEFAULT: process.env.FLUTTERWAVE_PRO_PLAN_ID_DEFAULT,
-    },
-    proAnnualPlanId: {
-      NGN:
-        process.env.FLUTTERWAVE_PRO_ANNUAL_PLAN_ID_NGN ||
-        process.env.FLUTTERWAVE_PRO_ANNUAL_PLAN_ID,
-      USD: process.env.FLUTTERWAVE_PRO_ANNUAL_PLAN_ID_USD,
-      GBP: process.env.FLUTTERWAVE_PRO_ANNUAL_PLAN_ID_GBP,
-      DEFAULT: process.env.FLUTTERWAVE_PRO_ANNUAL_PLAN_ID_DEFAULT,
-    },
+    // Plan IDs live in the DB (Plan model, admin-managed via the Payment
+    // Plan API) rather than env vars — see flutterwave-plan.service.ts.
     supportLink: process.env.FLUTTERWAVE_SUPPORT_LINK,
   },
   lemonsqueezy: {

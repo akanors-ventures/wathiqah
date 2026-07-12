@@ -153,7 +153,7 @@ export type AdminAuditLogGroupByOutputType = {
   id: string
   actorId: string
   action: $Enums.AdminAction
-  targetUserId: string
+  targetUserId: string | null
   metadata: runtime.JsonValue | null
   createdAt: Date
   _count: AdminAuditLogCountAggregateOutputType | null
@@ -183,18 +183,18 @@ export type AdminAuditLogWhereInput = {
   id?: Prisma.StringFilter<"AdminAuditLog"> | string
   actorId?: Prisma.StringFilter<"AdminAuditLog"> | string
   action?: Prisma.EnumAdminActionFilter<"AdminAuditLog"> | $Enums.AdminAction
-  targetUserId?: Prisma.StringFilter<"AdminAuditLog"> | string
+  targetUserId?: Prisma.StringNullableFilter<"AdminAuditLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"AdminAuditLog">
   createdAt?: Prisma.DateTimeFilter<"AdminAuditLog"> | Date | string
   actor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  targetUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  targetUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }
 
 export type AdminAuditLogOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   action?: Prisma.SortOrder
-  targetUserId?: Prisma.SortOrder
+  targetUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   actor?: Prisma.UserOrderByWithRelationInput
@@ -208,18 +208,18 @@ export type AdminAuditLogWhereUniqueInput = Prisma.AtLeast<{
   NOT?: Prisma.AdminAuditLogWhereInput | Prisma.AdminAuditLogWhereInput[]
   actorId?: Prisma.StringFilter<"AdminAuditLog"> | string
   action?: Prisma.EnumAdminActionFilter<"AdminAuditLog"> | $Enums.AdminAction
-  targetUserId?: Prisma.StringFilter<"AdminAuditLog"> | string
+  targetUserId?: Prisma.StringNullableFilter<"AdminAuditLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"AdminAuditLog">
   createdAt?: Prisma.DateTimeFilter<"AdminAuditLog"> | Date | string
   actor?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  targetUser?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  targetUser?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
 }, "id">
 
 export type AdminAuditLogOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   actorId?: Prisma.SortOrder
   action?: Prisma.SortOrder
-  targetUserId?: Prisma.SortOrder
+  targetUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   metadata?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.AdminAuditLogCountOrderByAggregateInput
@@ -234,7 +234,7 @@ export type AdminAuditLogScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"AdminAuditLog"> | string
   actorId?: Prisma.StringWithAggregatesFilter<"AdminAuditLog"> | string
   action?: Prisma.EnumAdminActionWithAggregatesFilter<"AdminAuditLog"> | $Enums.AdminAction
-  targetUserId?: Prisma.StringWithAggregatesFilter<"AdminAuditLog"> | string
+  targetUserId?: Prisma.StringNullableWithAggregatesFilter<"AdminAuditLog"> | string | null
   metadata?: Prisma.JsonNullableWithAggregatesFilter<"AdminAuditLog">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AdminAuditLog"> | Date | string
 }
@@ -245,14 +245,14 @@ export type AdminAuditLogCreateInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   actor: Prisma.UserCreateNestedOneWithoutAdminActionsPerformedInput
-  targetUser: Prisma.UserCreateNestedOneWithoutAdminActionsReceivedInput
+  targetUser?: Prisma.UserCreateNestedOneWithoutAdminActionsReceivedInput
 }
 
 export type AdminAuditLogUncheckedCreateInput = {
   id?: string
   actorId: string
   action: $Enums.AdminAction
-  targetUserId: string
+  targetUserId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -263,14 +263,14 @@ export type AdminAuditLogUpdateInput = {
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   actor?: Prisma.UserUpdateOneRequiredWithoutAdminActionsPerformedNestedInput
-  targetUser?: Prisma.UserUpdateOneRequiredWithoutAdminActionsReceivedNestedInput
+  targetUser?: Prisma.UserUpdateOneWithoutAdminActionsReceivedNestedInput
 }
 
 export type AdminAuditLogUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.StringFieldUpdateOperationsInput | string
   action?: Prisma.EnumAdminActionFieldUpdateOperationsInput | $Enums.AdminAction
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -279,7 +279,7 @@ export type AdminAuditLogCreateManyInput = {
   id?: string
   actorId: string
   action: $Enums.AdminAction
-  targetUserId: string
+  targetUserId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -295,7 +295,7 @@ export type AdminAuditLogUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   actorId?: Prisma.StringFieldUpdateOperationsInput | string
   action?: Prisma.EnumAdminActionFieldUpdateOperationsInput | $Enums.AdminAction
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -428,13 +428,13 @@ export type AdminAuditLogCreateWithoutActorInput = {
   action: $Enums.AdminAction
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
-  targetUser: Prisma.UserCreateNestedOneWithoutAdminActionsReceivedInput
+  targetUser?: Prisma.UserCreateNestedOneWithoutAdminActionsReceivedInput
 }
 
 export type AdminAuditLogUncheckedCreateWithoutActorInput = {
   id?: string
   action: $Enums.AdminAction
-  targetUserId: string
+  targetUserId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -498,7 +498,7 @@ export type AdminAuditLogScalarWhereInput = {
   id?: Prisma.StringFilter<"AdminAuditLog"> | string
   actorId?: Prisma.StringFilter<"AdminAuditLog"> | string
   action?: Prisma.EnumAdminActionFilter<"AdminAuditLog"> | $Enums.AdminAction
-  targetUserId?: Prisma.StringFilter<"AdminAuditLog"> | string
+  targetUserId?: Prisma.StringNullableFilter<"AdminAuditLog"> | string | null
   metadata?: Prisma.JsonNullableFilter<"AdminAuditLog">
   createdAt?: Prisma.DateTimeFilter<"AdminAuditLog"> | Date | string
 }
@@ -522,7 +522,7 @@ export type AdminAuditLogUpdateManyWithWhereWithoutTargetUserInput = {
 export type AdminAuditLogCreateManyActorInput = {
   id?: string
   action: $Enums.AdminAction
-  targetUserId: string
+  targetUserId?: string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
 }
@@ -540,13 +540,13 @@ export type AdminAuditLogUpdateWithoutActorInput = {
   action?: Prisma.EnumAdminActionFieldUpdateOperationsInput | $Enums.AdminAction
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  targetUser?: Prisma.UserUpdateOneRequiredWithoutAdminActionsReceivedNestedInput
+  targetUser?: Prisma.UserUpdateOneWithoutAdminActionsReceivedNestedInput
 }
 
 export type AdminAuditLogUncheckedUpdateWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   action?: Prisma.EnumAdminActionFieldUpdateOperationsInput | $Enums.AdminAction
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -554,7 +554,7 @@ export type AdminAuditLogUncheckedUpdateWithoutActorInput = {
 export type AdminAuditLogUncheckedUpdateManyWithoutActorInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   action?: Prisma.EnumAdminActionFieldUpdateOperationsInput | $Enums.AdminAction
-  targetUserId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -593,7 +593,7 @@ export type AdminAuditLogSelect<ExtArgs extends runtime.Types.Extensions.Interna
   metadata?: boolean
   createdAt?: boolean
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.AdminAuditLog$targetUserArgs<ExtArgs>
 }, ExtArgs["result"]["adminAuditLog"]>
 
 export type AdminAuditLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -604,7 +604,7 @@ export type AdminAuditLogSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   metadata?: boolean
   createdAt?: boolean
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.AdminAuditLog$targetUserArgs<ExtArgs>
 }, ExtArgs["result"]["adminAuditLog"]>
 
 export type AdminAuditLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -615,7 +615,7 @@ export type AdminAuditLogSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   metadata?: boolean
   createdAt?: boolean
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.AdminAuditLog$targetUserArgs<ExtArgs>
 }, ExtArgs["result"]["adminAuditLog"]>
 
 export type AdminAuditLogSelectScalar = {
@@ -630,28 +630,28 @@ export type AdminAuditLogSelectScalar = {
 export type AdminAuditLogOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "actorId" | "action" | "targetUserId" | "metadata" | "createdAt", ExtArgs["result"]["adminAuditLog"]>
 export type AdminAuditLogInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.AdminAuditLog$targetUserArgs<ExtArgs>
 }
 export type AdminAuditLogIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.AdminAuditLog$targetUserArgs<ExtArgs>
 }
 export type AdminAuditLogIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   actor?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  targetUser?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  targetUser?: boolean | Prisma.AdminAuditLog$targetUserArgs<ExtArgs>
 }
 
 export type $AdminAuditLogPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AdminAuditLog"
   objects: {
     actor: Prisma.$UserPayload<ExtArgs>
-    targetUser: Prisma.$UserPayload<ExtArgs>
+    targetUser: Prisma.$UserPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     actorId: string
     action: $Enums.AdminAction
-    targetUserId: string
+    targetUserId: string | null
     metadata: runtime.JsonValue | null
     createdAt: Date
   }, ExtArgs["result"]["adminAuditLog"]>
@@ -1049,7 +1049,7 @@ readonly fields: AdminAuditLogFieldRefs;
 export interface Prisma__AdminAuditLogClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   actor<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  targetUser<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  targetUser<T extends Prisma.AdminAuditLog$targetUserArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AdminAuditLog$targetUserArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1478,6 +1478,25 @@ export type AdminAuditLogDeleteManyArgs<ExtArgs extends runtime.Types.Extensions
    * Limit how many AdminAuditLogs to delete.
    */
   limit?: number
+}
+
+/**
+ * AdminAuditLog.targetUser
+ */
+export type AdminAuditLog$targetUserArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
 }
 
 /**

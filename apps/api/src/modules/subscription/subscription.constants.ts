@@ -38,8 +38,8 @@ export const SUBSCRIPTION_LIMITS: Record<SubscriptionTier, TierLimits> = {
 
 // IMPORTANT: Changing these values does NOT automatically change what payment providers charge.
 // Flutterwave is the sole provider for new subscriptions (every currency). When updating prices,
-// you must also update the Flutterwave plan amount and re-point the matching per-currency env var:
-//   FLUTTERWAVE_PRO_PLAN_ID_{NGN,USD,GBP,DEFAULT} / FLUTTERWAVE_PRO_ANNUAL_PLAN_ID_{NGN,USD,GBP,DEFAULT}
+// you must also update the matching Plan row's amount via Admin > Plans (backed by Flutterwave's
+// Payment Plan API — see flutterwave-plan.service.ts), not an env var.
 // Stripe/LemonSqueezy price objects (STRIPE_PRO_PLAN_ID / LEMON_SQUEEZY_PRO_VARIANT_ID etc.) are no
 // longer used for new checkouts, but keep them in sync too as long as they still service existing
 // subscribers via webhook/cancel/reactivate.

@@ -2,8 +2,18 @@ import { gql, type TypedDocumentNode } from "@apollo/client";
 import type {
   AdminAuditLogsQuery,
   AdminAuditLogsQueryVariables,
+  AdminCancelPlanMutation,
+  AdminCancelPlanMutationVariables,
+  AdminCreatePlanMutation,
+  AdminCreatePlanMutationVariables,
+  AdminPlansQuery,
+  AdminPlansQueryVariables,
   AdminStatsQuery,
   AdminStatsQueryVariables,
+  AdminSyncPlansMutation,
+  AdminSyncPlansMutationVariables,
+  AdminUpdatePlanMutation,
+  AdminUpdatePlanMutationVariables,
   AdminUserQuery,
   AdminUserQueryVariables,
   AdminUsersQuery,
@@ -134,4 +144,77 @@ export const SET_USER_ROLE_MUTATION: TypedDocumentNode<
     }
   }
   ${ADMIN_USER_FIELDS}
+`;
+
+export const ADMIN_PLAN_FIELDS = gql`
+  fragment AdminPlanFields on PlanEntity {
+    id
+    tier
+    interval
+    currency
+    amount
+    name
+    provider
+    providerPlanId
+    status
+    createdAt
+    updatedAt
+  }
+`;
+
+export const ADMIN_PLANS_QUERY: TypedDocumentNode<AdminPlansQuery, AdminPlansQueryVariables> = gql`
+  query AdminPlans {
+    adminPlans {
+      ...AdminPlanFields
+    }
+  }
+  ${ADMIN_PLAN_FIELDS}
+`;
+
+export const ADMIN_SYNC_PLANS_MUTATION: TypedDocumentNode<
+  AdminSyncPlansMutation,
+  AdminSyncPlansMutationVariables
+> = gql`
+  mutation AdminSyncPlans {
+    adminSyncPlans {
+      ...AdminPlanFields
+    }
+  }
+  ${ADMIN_PLAN_FIELDS}
+`;
+
+export const ADMIN_CREATE_PLAN_MUTATION: TypedDocumentNode<
+  AdminCreatePlanMutation,
+  AdminCreatePlanMutationVariables
+> = gql`
+  mutation AdminCreatePlan($input: CreatePlanInput!) {
+    adminCreatePlan(input: $input) {
+      ...AdminPlanFields
+    }
+  }
+  ${ADMIN_PLAN_FIELDS}
+`;
+
+export const ADMIN_UPDATE_PLAN_MUTATION: TypedDocumentNode<
+  AdminUpdatePlanMutation,
+  AdminUpdatePlanMutationVariables
+> = gql`
+  mutation AdminUpdatePlan($id: ID!, $input: UpdatePlanInput!) {
+    adminUpdatePlan(id: $id, input: $input) {
+      ...AdminPlanFields
+    }
+  }
+  ${ADMIN_PLAN_FIELDS}
+`;
+
+export const ADMIN_CANCEL_PLAN_MUTATION: TypedDocumentNode<
+  AdminCancelPlanMutation,
+  AdminCancelPlanMutationVariables
+> = gql`
+  mutation AdminCancelPlan($id: ID!) {
+    adminCancelPlan(id: $id) {
+      ...AdminPlanFields
+    }
+  }
+  ${ADMIN_PLAN_FIELDS}
 `;
