@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { FlutterwaveService } from './flutterwave.service';
+import { FlutterwavePlanService } from './flutterwave-plan.service';
 import { LemonSqueezyService } from './lemonsqueezy.service';
 import { PaymentResolver } from './payment.resolver';
 import { PaymentService } from './payment.service';
@@ -15,10 +16,11 @@ import { GeoIPModule } from '../geoip/geoip.module';
     PaymentService,
     StripeService,
     FlutterwaveService,
+    FlutterwavePlanService,
     LemonSqueezyService,
     PaymentResolver,
   ],
   controllers: [PaymentController],
-  exports: [PaymentService],
+  exports: [PaymentService, FlutterwavePlanService],
 })
 export class PaymentModule {}

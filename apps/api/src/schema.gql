@@ -37,6 +37,10 @@ input AddWitnessInput {
 
 enum AdminAction {
   DEPROVISION_PRO
+  PLAN_CANCELLED
+  PLAN_CREATED
+  PLAN_SYNCED
+  PLAN_UPDATED
   PROVISION_PRO
   SET_USER_ROLE
 }
@@ -49,7 +53,7 @@ type AdminAuditLog {
   id: ID!
   metadata: JSON
   targetUser: User
-  targetUserId: ID!
+  targetUserId: ID
 }
 
 input AdminAuditLogFilterInput {
@@ -178,6 +182,15 @@ input CreatePersonalEntryInput {
   date: DateTime!
   description: String
   type: PersonalEntryType!
+}
+
+input CreatePlanInput {
+  amount: Float!
+  currency: String!
+  duration: Int
+  interval: BillingInterval!
+  name: String!
+  tier: SubscriptionTier!
 }
 
 input CreateProjectInput {
@@ -354,6 +367,10 @@ type Mutation {
   acceptInvitation(acceptInvitationInput: AcceptInvitationInput!): AuthPayload!
   acknowledgeWitness(input: AcknowledgeWitnessInput!): Witness!
   addWitness(input: AddWitnessInput!): Transaction!
+  adminCancelPlan(id: ID!): PlanEntity!
+  adminCreatePlan(input: CreatePlanInput!): PlanEntity!
+  adminSyncPlans: [PlanEntity!]!
+  adminUpdatePlan(id: ID!, input: UpdatePlanInput!): PlanEntity!
   cancelSubscription: Boolean!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createCheckoutSession(currency: String, interval: BillingInterval = MONTHLY, tier: SubscriptionTier!): CheckoutSession!
@@ -577,6 +594,27 @@ enum PersonalEntryType {
   INCOME
 }
 
+type PlanEntity {
+  amount: Float!
+  createdAt: DateTime!
+  currency: String!
+  id: ID!
+  interval: String!
+  name: String!
+  provider: String!
+  providerPlanId: String!
+  status: PlanStatus!
+  tier: SubscriptionTier
+  updatedAt: DateTime!
+}
+
+"""Local status of a Flutterwave payment plan"""
+enum PlanStatus {
+  ACTIVE
+  CANCELLED
+  INACTIVE
+}
+
 enum Priority {
   HIGH
   LOW
@@ -672,6 +710,7 @@ input ProvisionProInput {
 
 type Query {
   adminAuditLogs(filter: AdminAuditLogFilterInput = {}): PaginatedAuditLogsResponse!
+  adminPlans: [PlanEntity!]!
   adminStats: AdminStats!
   adminUser(id: ID!): User!
   adminUsers(filter: AdminUsersFilterInput = {}): PaginatedUsersResponse!
@@ -942,6 +981,12 @@ input UpdatePersonalEntryInput {
   description: String
   id: ID!
   type: PersonalEntryType
+}
+
+input UpdatePlanInput {
+  name: String
+  status: PlanStatus
+  tier: SubscriptionTier
 }
 
 input UpdateProjectInput {

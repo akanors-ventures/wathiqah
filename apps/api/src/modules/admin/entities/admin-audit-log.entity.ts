@@ -16,8 +16,8 @@ export class AdminAuditLog {
   @Field(() => AdminAction)
   action: AdminAction;
 
-  @Field(() => ID)
-  targetUserId: string;
+  @Field(() => ID, { nullable: true })
+  targetUserId?: string | null;
 
   @Field(() => GraphQLJSON, { nullable: true })
   metadata?: Record<string, unknown> | null;

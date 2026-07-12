@@ -34,6 +34,17 @@ function describeMeta(action: AdminAction, metadata?: Record<string, unknown> | 
   if (action === AdminAction.ProvisionPro && metadata.expiresAt) {
     return `Expires ${new Date(String(metadata.expiresAt)).toLocaleDateString()}`;
   }
+  if (
+    (action === AdminAction.PlanCreated ||
+      action === AdminAction.PlanUpdated ||
+      action === AdminAction.PlanCancelled) &&
+    "name" in metadata
+  ) {
+    return String(metadata.name);
+  }
+  if (action === AdminAction.PlanSynced && "count" in metadata) {
+    return `${String(metadata.count)} plan(s)`;
+  }
   return "";
 }
 

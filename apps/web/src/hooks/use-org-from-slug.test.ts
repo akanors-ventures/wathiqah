@@ -13,11 +13,13 @@ function org(id: string, slug: string) {
 }
 
 function setActiveOrgIdCookie(orgId: string | null) {
+  // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API — direct assignment simulates browser cookie state in tests
   document.cookie = orgId ? `activeOrgId=${orgId}` : "activeOrgId=; max-age=0";
 }
 
 describe("useOrgFromSlug", () => {
   beforeEach(() => {
+    // biome-ignore lint/suspicious/noDocumentCookie: jsdom has no Cookie Store API — direct assignment resets cookie state between tests
     document.cookie = "activeOrgId=; max-age=0";
   });
 

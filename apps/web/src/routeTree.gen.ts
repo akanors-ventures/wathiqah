@@ -45,6 +45,7 @@ import { Route as ItemsNewRouteImport } from './routes/items/new'
 import { Route as ContactsNewRouteImport } from './routes/contacts/new'
 import { Route as ContactsContactIdRouteImport } from './routes/contacts/$contactId'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin/subscriptions'
+import { Route as AdminPlansRouteImport } from './routes/admin/plans'
 import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as OrgSlugIndexRouteImport } from './routes/org/$slug/index'
 import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
@@ -236,6 +237,11 @@ const AdminSubscriptionsRoute = AdminSubscriptionsRouteImport.update({
   path: '/subscriptions',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminPlansRoute = AdminPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -299,6 +305,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/contacts/new': typeof ContactsNewRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/contacts/new': typeof ContactsNewRoute
@@ -393,6 +401,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/subscriptions': typeof AdminSubscriptionsRoute
   '/contacts/$contactId': typeof ContactsContactIdRoute
   '/contacts/new': typeof ContactsNewRoute
@@ -442,6 +451,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/verify-email'
     | '/admin/audit'
+    | '/admin/plans'
     | '/admin/subscriptions'
     | '/contacts/$contactId'
     | '/contacts/new'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/verify-email'
     | '/admin/audit'
+    | '/admin/plans'
     | '/admin/subscriptions'
     | '/contacts/$contactId'
     | '/contacts/new'
@@ -535,6 +546,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/verify-email'
     | '/admin/audit'
+    | '/admin/plans'
     | '/admin/subscriptions'
     | '/contacts/$contactId'
     | '/contacts/new'
@@ -863,6 +875,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubscriptionsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/plans': {
+      id: '/admin/plans'
+      path: '/plans'
+      fullPath: '/admin/plans'
+      preLoaderRoute: typeof AdminPlansRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/audit'
@@ -931,6 +950,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteRouteChildren {
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminPlansRoute: typeof AdminPlansRoute
   AdminSubscriptionsRoute: typeof AdminSubscriptionsRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminUsersUserIdRoute: typeof AdminUsersUserIdRoute
@@ -939,6 +959,7 @@ interface AdminRouteRouteChildren {
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAuditRoute: AdminAuditRoute,
+  AdminPlansRoute: AdminPlansRoute,
   AdminSubscriptionsRoute: AdminSubscriptionsRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminUsersUserIdRoute: AdminUsersUserIdRoute,

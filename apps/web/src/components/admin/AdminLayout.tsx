@@ -1,5 +1,13 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Lock, ScrollText, ShieldCheck, Sparkles, Users } from "lucide-react";
+import {
+  CreditCard,
+  LayoutDashboard,
+  Lock,
+  ScrollText,
+  ShieldCheck,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { BrandLoader } from "@/components/ui/page-loader";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -9,6 +17,7 @@ const NAV = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard, exact: true },
   { label: "Users", href: "/admin/users", icon: Users, exact: false },
   { label: "Subscriptions", href: "/admin/subscriptions", icon: Sparkles, exact: false },
+  { label: "Plans", href: "/admin/plans", icon: CreditCard, exact: false },
   { label: "Audit Log", href: "/admin/audit", icon: ScrollText, exact: false },
 ] as const;
 

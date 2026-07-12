@@ -9,6 +9,15 @@
 * 🟢 You can import this file directly.
 */
 
+export const PlanStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+  CANCELLED: 'CANCELLED'
+} as const
+
+export type PlanStatus = (typeof PlanStatus)[keyof typeof PlanStatus]
+
+
 export const PaymentStatus = {
   PENDING: 'PENDING',
   SUCCESSFUL: 'SUCCESSFUL',
@@ -170,7 +179,11 @@ export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 export const AdminAction = {
   PROVISION_PRO: 'PROVISION_PRO',
   DEPROVISION_PRO: 'DEPROVISION_PRO',
-  SET_USER_ROLE: 'SET_USER_ROLE'
+  SET_USER_ROLE: 'SET_USER_ROLE',
+  PLAN_CREATED: 'PLAN_CREATED',
+  PLAN_UPDATED: 'PLAN_UPDATED',
+  PLAN_CANCELLED: 'PLAN_CANCELLED',
+  PLAN_SYNCED: 'PLAN_SYNCED'
 } as const
 
 export type AdminAction = (typeof AdminAction)[keyof typeof AdminAction]

@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type Subscription = Prisma.SubscriptionModel
 /**
+ * Model Plan
+ * 
+ */
+export type Plan = Prisma.PlanModel
+/**
  * Model Payment
  * 
  */

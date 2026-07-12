@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Subscription: 'Subscription',
+  Plan: 'Plan',
   Payment: 'Payment',
   WebhookLog: 'WebhookLog',
   Contact: 'Contact',
@@ -125,6 +126,7 @@ export const SubscriptionScalarFieldEnum = {
   status: 'status',
   provider: 'provider',
   externalId: 'externalId',
+  providerSubscriptionId: 'providerSubscriptionId',
   planId: 'planId',
   currentPeriodStart: 'currentPeriodStart',
   currentPeriodEnd: 'currentPeriodEnd',
@@ -140,6 +142,24 @@ export const SubscriptionScalarFieldEnum = {
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
 
 
+export const PlanScalarFieldEnum = {
+  id: 'id',
+  tier: 'tier',
+  interval: 'interval',
+  currency: 'currency',
+  amount: 'amount',
+  name: 'name',
+  provider: 'provider',
+  providerPlanId: 'providerPlanId',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  createdById: 'createdById'
+} as const
+
+export type PlanScalarFieldEnum = (typeof PlanScalarFieldEnum)[keyof typeof PlanScalarFieldEnum]
+
+
 export const PaymentScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -148,6 +168,7 @@ export const PaymentScalarFieldEnum = {
   status: 'status',
   provider: 'provider',
   externalId: 'externalId',
+  txRef: 'txRef',
   type: 'type',
   metadata: 'metadata',
   createdAt: 'createdAt',

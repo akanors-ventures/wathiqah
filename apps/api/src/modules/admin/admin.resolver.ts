@@ -12,9 +12,12 @@ import { ProvisionProInput } from './dto/provision-pro.input';
 import { SetUserRoleInput } from './dto/set-user-role.input';
 import { AdminUsersFilterInput } from './dto/admin-users-filter.input';
 import { AdminAuditLogFilterInput } from './dto/admin-audit-log-filter.input';
+import { CreatePlanInput } from './dto/create-plan.input';
+import { UpdatePlanInput } from './dto/update-plan.input';
 import { PaginatedUsersResponse } from './entities/paginated-users-response.entity';
 import { AdminStats } from './entities/admin-stats.entity';
 import { PaginatedAuditLogsResponse } from './entities/paginated-audit-logs-response.entity';
+import { PlanEntity } from './entities/plan.entity';
 
 /**
  * Platform administration surface.
@@ -84,7 +87,9 @@ export class AdminResolver {
             ? (log.metadata as Record<string, unknown>)
             : null,
         actor: this.usersService.toEntity(log.actor),
-        targetUser: this.usersService.toEntity(log.targetUser),
+        targetUser: log.targetUser
+          ? this.usersService.toEntity(log.targetUser)
+          : null,
       })),
       total,
       page,
@@ -128,5 +133,49 @@ export class AdminResolver {
       input.role,
     );
     return this.usersService.toEntity(user);
+  }
+
+  @Query(() => [PlanEntity])
+  async adminPlans(): Promise<PlanEntity[]> {
+    const plans = await this.adminService.getPlans();
+    return plans.map((plan) => ({ ...plan, amount: plan.amount.toNumber() }));
+  }
+
+  @Mutation(() => [PlanEntity])
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async adminSyncPlans(@CurrentUser() admin: User): Promise<PlanEntity[]> {
+    const plans = await this.adminService.syncPlans(admin.id);
+    return plans.map((plan) => ({ ...plan, amount: plan.amount.toNumber() }));
+  }
+
+  @Mutation(() => PlanEntity)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async adminCreatePlan(
+    @CurrentUser() admin: User,
+    @Args('input') input: CreatePlanInput,
+  ): Promise<PlanEntity> {
+    const plan = await this.adminService.createPlan(admin.id, input);
+    return { ...plan, amount: plan.amount.toNumber() };
+  }
+
+  @Mutation(() => PlanEntity)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async adminUpdatePlan(
+    @CurrentUser() admin: User,
+    @Args('id', { type: () => ID }) id: string,
+    @Args('input') input: UpdatePlanInput,
+  ): Promise<PlanEntity> {
+    const plan = await this.adminService.updatePlan(admin.id, id, input);
+    return { ...plan, amount: plan.amount.toNumber() };
+  }
+
+  @Mutation(() => PlanEntity)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  async adminCancelPlan(
+    @CurrentUser() admin: User,
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<PlanEntity> {
+    const plan = await this.adminService.cancelPlan(admin.id, id);
+    return { ...plan, amount: plan.amount.toNumber() };
   }
 }
