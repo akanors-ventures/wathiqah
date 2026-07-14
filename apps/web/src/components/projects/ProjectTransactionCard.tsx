@@ -64,6 +64,8 @@ export function ProjectTransactionCard({
     return tx.description || tx.category || "No description";
   })();
 
+  const hasWitnesses = !!tx.witnesses && tx.witnesses.length > 0;
+
   return (
     <TooltipProvider>
       <div
@@ -206,15 +208,36 @@ export function ProjectTransactionCard({
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 active:bg-rose-100"
-              onClick={() => onDelete(tx)}
-              aria-label="Delete transaction"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            {hasWitnesses ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 text-rose-600/40 cursor-not-allowed"
+                      disabled
+                      aria-label="Delete transaction (disabled — has witnesses)"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Witnessed transactions cannot be deleted</p>
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 active:bg-rose-100"
+                onClick={() => onDelete(tx)}
+                aria-label="Delete transaction"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            )}
           </div>
         </div>
 

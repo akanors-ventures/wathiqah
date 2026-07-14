@@ -79,7 +79,6 @@ function ProjectDetailsPage() {
   const [editTxOpen, setEditTxOpen] = useState(false);
 
   const [viewingTx, setViewingTx] = useState<ProjectTransactionCardTransaction | null>(null);
-  const [viewTxOpen, setViewTxOpen] = useState(false);
 
   const [deletingTx, setDeletingTx] = useState<ProjectTransactionCardTransaction | null>(null);
 
@@ -146,7 +145,6 @@ function ProjectDetailsPage() {
 
   const handleViewTx = (tx: ProjectTransactionCardTransaction) => {
     setViewingTx(tx);
-    setViewTxOpen(true);
   };
 
   const handleDeleteTx = (tx: ProjectTransactionCardTransaction) => {
@@ -393,9 +391,8 @@ function ProjectDetailsPage() {
       <ViewProjectTransactionDialog
         transaction={viewingTx}
         currency={project.currency}
-        open={viewTxOpen}
+        open={!!viewingTx}
         onOpenChange={(v) => {
-          setViewTxOpen(v);
           if (!v) setViewingTx(null);
         }}
       />

@@ -408,7 +408,7 @@ export class ProjectTransactionsService {
   async remove(userId: string, id: string) {
     const transaction = await this.prisma.projectTransaction.findUnique({
       where: { id },
-      include: { project: true },
+      include: { project: true, witnesses: true },
     });
 
     if (!transaction) {
@@ -420,6 +420,17 @@ export class ProjectTransactionsService {
     if (transaction.project.userId !== userId) {
       throw new ForbiddenException(
         'Only the project owner can delete this transaction',
+      );
+    }
+
+    // Mirrors the personal-transaction "No Deletion" witness policy
+    // (see WITNESS_SYSTEM.md): a witnessed record must never be
+    // hard-deleted. ProjectTransaction has no CANCELLED status to fall
+    // back to, so deletion is blocked outright rather than silently
+    // cascading away the witness/audit trail.
+    if (transaction.witnesses.length > 0) {
+      throw new ForbiddenException(
+        'This transaction has witnesses and cannot be deleted.',
       );
     }
 

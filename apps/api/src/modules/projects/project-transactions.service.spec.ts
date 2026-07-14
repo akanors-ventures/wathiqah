@@ -46,11 +46,29 @@ describe('ProjectTransactionsService — remove', () => {
       type: ProjectTransactionType.INCOME,
       projectId: 'proj1',
       project: { userId: 'someone-else' },
+      witnesses: [],
     });
 
     await expect(service.remove('user1', 'tx1')).rejects.toThrow(
       ForbiddenException,
     );
+  });
+
+  it('throws ForbiddenException and does not delete when the transaction has witnesses', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'tx1',
+      amount: 100,
+      type: ProjectTransactionType.INCOME,
+      projectId: 'proj1',
+      project: { userId: 'user1' },
+      witnesses: [{ id: 'witness1' }],
+    });
+
+    await expect(service.remove('user1', 'tx1')).rejects.toThrow(
+      ForbiddenException,
+    );
+    expect(prisma.projectTransaction.delete).not.toHaveBeenCalled();
+    expect(prisma.project.update).not.toHaveBeenCalled();
   });
 
   it('deletes the transaction and decrements project balance for an INCOME transaction', async () => {
@@ -60,6 +78,7 @@ describe('ProjectTransactionsService — remove', () => {
       type: ProjectTransactionType.INCOME,
       projectId: 'proj1',
       project: { userId: 'user1' },
+      witnesses: [],
     });
     prisma.projectTransaction.delete.mockResolvedValue({ id: 'tx1' });
 
@@ -82,6 +101,7 @@ describe('ProjectTransactionsService — remove', () => {
       type: ProjectTransactionType.EXPENSE,
       projectId: 'proj1',
       project: { userId: 'user1' },
+      witnesses: [],
     });
     prisma.projectTransaction.delete.mockResolvedValue({ id: 'tx2' });
 

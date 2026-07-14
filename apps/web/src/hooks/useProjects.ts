@@ -93,12 +93,7 @@ export function useProject(id: string, transactionFilter?: FilterProjectTransact
 
   const [removeTransactionMutation, { loading: removing }] =
     useMutation<RemoveProjectTransactionMutation>(REMOVE_PROJECT_TRANSACTION, {
-      onCompleted: () => refetch(),
       refetchQueries: ["GetMyProjects", "GetProject"],
-      update: (cache) => {
-        cache.evict({ fieldName: "myProjects" });
-        cache.gc();
-      },
     });
 
   const removeTransaction = async (transactionId: string) => {
