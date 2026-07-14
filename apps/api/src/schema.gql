@@ -406,6 +406,7 @@ type Mutation {
   removeNote(id: ID!): Boolean!
   removeOrgEvent(id: ID!): Boolean!
   removeOrgNote(id: ID!): Boolean!
+  removeProjectTransaction(id: ID!): ProjectTransaction!
   removePromise(id: String!): Promise!
   removeTransaction(id: ID!): Transaction!
   removeWitness(witnessId: ID!): Witness!

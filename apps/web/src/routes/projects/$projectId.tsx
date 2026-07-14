@@ -2,11 +2,23 @@ import { useQuery } from "@apollo/client/react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Filter, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import type { ProjectTransactionCardTransaction } from "@/components/projects/ProjectTransactionCard";
 import { ProjectTransactionCard } from "@/components/projects/ProjectTransactionCard";
 import { ProjectTransactionDialog } from "@/components/projects/ProjectTransactionDialog";
+import { ViewProjectTransactionDialog } from "@/components/projects/ViewProjectTransactionDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CategoryAutocompleteInput } from "@/components/ui/category-autocomplete-input";
@@ -66,6 +78,10 @@ function ProjectDetailsPage() {
   const [editingTx, setEditingTx] = useState<ProjectTransactionCardTransaction | null>(null);
   const [editTxOpen, setEditTxOpen] = useState(false);
 
+  const [viewingTx, setViewingTx] = useState<ProjectTransactionCardTransaction | null>(null);
+
+  const [deletingTx, setDeletingTx] = useState<ProjectTransactionCardTransaction | null>(null);
+
   const [categoryInput, setCategoryInput] = useState("");
   const debouncedCategory = useDebounce(categoryInput);
 
@@ -91,6 +107,8 @@ function ProjectDetailsPage() {
     loading,
     updateProject,
     updating,
+    removeTransaction,
+    removing,
   } = useProject(projectId, txFilter);
 
   if (loading) {
@@ -123,6 +141,26 @@ function ProjectDetailsPage() {
   const handleEditTx = (tx: ProjectTransactionCardTransaction) => {
     setEditingTx(tx);
     setEditTxOpen(true);
+  };
+
+  const handleViewTx = (tx: ProjectTransactionCardTransaction) => {
+    setViewingTx(tx);
+  };
+
+  const handleDeleteTx = (tx: ProjectTransactionCardTransaction) => {
+    setDeletingTx(tx);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingTx) return;
+    try {
+      await removeTransaction(deletingTx.id);
+      toast.success("Transaction removed successfully");
+      setDeletingTx(null);
+    } catch (err) {
+      toast.error("Failed to remove transaction");
+      console.error(err);
+    }
   };
 
   return (
@@ -312,7 +350,9 @@ function ProjectDetailsPage() {
                     history: tx.history,
                   }}
                   currency={project.currency}
+                  onView={handleViewTx}
                   onEdit={handleEditTx}
+                  onDelete={handleDeleteTx}
                 />
               ))}
             </div>
@@ -346,6 +386,44 @@ function ProjectDetailsPage() {
           }}
         />
       )}
+
+      {/* Read-only view dialog driven by card eye button */}
+      <ViewProjectTransactionDialog
+        transaction={viewingTx}
+        currency={project.currency}
+        open={!!viewingTx}
+        onOpenChange={(v) => {
+          if (!v) setViewingTx(null);
+        }}
+      />
+
+      {/* Delete confirmation driven by card trash button */}
+      <AlertDialog
+        open={!!deletingTx}
+        onOpenChange={(open) => {
+          if (!open) setDeletingTx(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this transaction?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The transaction will be permanently removed from this
+              project and its balance will be adjusted accordingly.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={removing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {removing ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

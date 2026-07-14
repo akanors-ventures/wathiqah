@@ -117,6 +117,14 @@ export const UPDATE_PROJECT_TRANSACTION = gql`
   }
 `;
 
+export const REMOVE_PROJECT_TRANSACTION = gql`
+  mutation RemoveProjectTransaction($id: ID!) {
+    removeProjectTransaction(id: $id) {
+      id
+    }
+  }
+`;
+
 export const PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS = gql`
   query ProjectTransactionCategorySuggestions($projectId: ID!) {
     projectTransactionCategorySuggestions(projectId: $projectId)

@@ -424,6 +424,7 @@ export type Mutation = {
   removeNote: Scalars['Boolean']['output'];
   removeOrgEvent: Scalars['Boolean']['output'];
   removeOrgNote: Scalars['Boolean']['output'];
+  removeProjectTransaction: ProjectTransaction;
   removePromise: Promise;
   removeTransaction: Transaction;
   removeWitness: Witness;
@@ -636,6 +637,11 @@ export type MutationRemoveOrgEventArgs = {
 
 
 export type MutationRemoveOrgNoteArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationRemoveProjectTransactionArgs = {
   id: Scalars['ID']['input'];
 };
 
@@ -2163,6 +2169,13 @@ export type UpdateProjectTransactionMutationVariables = Exact<{
 
 
 export type UpdateProjectTransactionMutation = { updateProjectTransaction: { __typename: 'ProjectTransaction', id: string, amount: number, type: ProjectTransactionType, category: string | null, description: string | null, date: string, projectId: string, createdAt: string, updatedAt: string, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, userId: string, user: { __typename: 'User', id: string, email: string, firstName: string, lastName: string } | null }> | null, history: Array<{ __typename: 'ProjectTransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string }> | null } };
+
+export type RemoveProjectTransactionMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type RemoveProjectTransactionMutation = { removeProjectTransaction: { __typename: 'ProjectTransaction', id: string } };
 
 export type ProjectTransactionCategorySuggestionsQueryVariables = Exact<{
   projectId: Scalars['ID']['input'];

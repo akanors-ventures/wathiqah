@@ -100,6 +100,14 @@ export class ProjectsResolver {
     return this.projectTransactionsService.update(user.id, input);
   }
 
+  @Mutation(() => ProjectTransaction)
+  async removeProjectTransaction(
+    @CurrentUser() user: User,
+    @Args('id', { type: () => ID }) id: string,
+  ) {
+    return this.projectTransactionsService.remove(user.id, id);
+  }
+
   @ResolveField(() => PaginatedProjectTransactionsResponse)
   async transactions(
     @Parent() project: Project,
