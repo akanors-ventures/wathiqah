@@ -4,6 +4,7 @@ import {
   GET_MY_PROJECTS,
   GET_PROJECT,
   LOG_PROJECT_TRANSACTION,
+  REMOVE_PROJECT_TRANSACTION,
   UPDATE_PROJECT,
 } from "@/lib/apollo/queries/projects";
 import type {
@@ -15,6 +16,7 @@ import type {
   GetProjectQuery,
   LogProjectTransactionInput,
   LogProjectTransactionMutation,
+  RemoveProjectTransactionMutation,
   UpdateProjectInput,
   UpdateProjectMutation,
 } from "@/types/__generated__/graphql";
@@ -89,6 +91,20 @@ export function useProject(id: string, transactionFilter?: FilterProjectTransact
     return logTransactionMutation({ variables: { input } });
   };
 
+  const [removeTransactionMutation, { loading: removing }] =
+    useMutation<RemoveProjectTransactionMutation>(REMOVE_PROJECT_TRANSACTION, {
+      onCompleted: () => refetch(),
+      refetchQueries: ["GetMyProjects", "GetProject"],
+      update: (cache) => {
+        cache.evict({ fieldName: "myProjects" });
+        cache.gc();
+      },
+    });
+
+  const removeTransaction = async (transactionId: string) => {
+    return removeTransactionMutation({ variables: { id: transactionId } });
+  };
+
   return {
     project: data?.project,
     transactions: data?.project?.transactions?.items || [],
@@ -101,6 +117,8 @@ export function useProject(id: string, transactionFilter?: FilterProjectTransact
     updating,
     logTransaction,
     logging,
+    removeTransaction,
+    removing,
     refetch,
   };
 }

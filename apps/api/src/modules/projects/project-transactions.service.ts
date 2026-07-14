@@ -405,6 +405,41 @@ export class ProjectTransactionsService {
     });
   }
 
+  async remove(userId: string, id: string) {
+    const transaction = await this.prisma.projectTransaction.findUnique({
+      where: { id },
+      include: { project: true },
+    });
+
+    if (!transaction) {
+      throw new NotFoundException(
+        `Project transaction with ID ${id} not found`,
+      );
+    }
+
+    if (transaction.project.userId !== userId) {
+      throw new ForbiddenException(
+        'Only the project owner can delete this transaction',
+      );
+    }
+
+    const balanceEffect =
+      transaction.type === ProjectTransactionType.EXPENSE
+        ? -Number(transaction.amount)
+        : Number(transaction.amount);
+
+    return this.prisma.$transaction(async (tx) => {
+      const deleted = await tx.projectTransaction.delete({ where: { id } });
+
+      await tx.project.update({
+        where: { id: transaction.projectId },
+        data: { balance: { decrement: balanceEffect } },
+      });
+
+      return deleted;
+    });
+  }
+
   async usedCategories(userId: string, projectId: string): Promise<string[]> {
     // Folds the ownership check into the same query instead of a separate
     // project.findUnique round trip: a missing or not-owned project just

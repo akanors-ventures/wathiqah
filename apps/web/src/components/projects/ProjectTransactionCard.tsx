@@ -1,5 +1,13 @@
 import { format } from "date-fns";
-import { ArrowDownLeft, ArrowUpRight, CalendarDays, Clock, Pencil } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  CalendarDays,
+  Clock,
+  Eye,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -33,14 +41,18 @@ export interface ProjectTransactionCardTransaction {
 interface ProjectTransactionCardProps {
   transaction: ProjectTransactionCardTransaction;
   currency: string;
+  onView: (tx: ProjectTransactionCardTransaction) => void;
   onEdit: (tx: ProjectTransactionCardTransaction) => void;
+  onDelete: (tx: ProjectTransactionCardTransaction) => void;
   className?: string;
 }
 
 export function ProjectTransactionCard({
   transaction: tx,
   currency,
+  onView,
   onEdit,
+  onDelete,
   className,
 }: ProjectTransactionCardProps) {
   const theme = getTransactionTheme(tx.type);
@@ -175,15 +187,35 @@ export function ProjectTransactionCard({
             )}
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 active:bg-muted"
-            onClick={() => onEdit(tx)}
-            aria-label="Edit transaction"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 active:bg-muted"
+              onClick={() => onView(tx)}
+              aria-label="View transaction"
+            >
+              <Eye className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 active:bg-muted"
+              onClick={() => onEdit(tx)}
+              aria-label="Edit transaction"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-8 sm:w-8 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300 text-rose-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 active:bg-rose-100"
+              onClick={() => onDelete(tx)}
+              aria-label="Delete transaction"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </div>
         </div>
 
         {/* Background glow on hover — matches TransactionCard */}
