@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { CategoryAutocompleteInput } from "@/components/ui/category-autocomplete-input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -56,7 +57,7 @@ const formSchema = z.object({
   amount: z.coerce.number().min(0.01, "Amount must be positive"),
   category: z.string().optional(),
   description: z.string().optional(),
-  date: z.date(),
+  date: z.string().min(1, "Date is required"),
   witnesses: z.custom<SelectedWitness[]>(),
 });
 
@@ -114,7 +115,9 @@ export function ProjectTransactionForm({
       amount: editTransaction?.amount ?? 0,
       category: editTransaction?.category ?? "",
       description: editTransaction?.description ?? "",
-      date: editTransaction?.date ? new Date(editTransaction.date) : new Date(),
+      date: editTransaction?.date
+        ? format(new Date(editTransaction.date), "yyyy-MM-dd")
+        : format(new Date(), "yyyy-MM-dd"),
       witnesses: [],
     },
   });
@@ -173,7 +176,7 @@ export function ProjectTransactionForm({
               type: values.type,
               category: values.category || undefined,
               description: values.description || undefined,
-              date: values.date.toISOString(),
+              date: new Date(values.date).toISOString(),
             },
           },
           refetchQueries,
@@ -198,7 +201,7 @@ export function ProjectTransactionForm({
               type: values.type,
               category: values.category || undefined,
               description: values.description || undefined,
-              date: values.date.toISOString(),
+              date: new Date(values.date).toISOString(),
               witnessUserIds: witnessUserIds.length > 0 ? witnessUserIds : undefined,
               witnessInvites: witnessInvites.length > 0 ? witnessInvites : undefined,
             },
@@ -337,17 +340,12 @@ export function ProjectTransactionForm({
           <FormField
             control={form.control}
             name="date"
-            render={() => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Date</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    value={form.watch("date") ? format(form.watch("date"), "yyyy-MM-dd") : ""}
-                    onChange={(e) => {
-                      const date = e.target.value ? new Date(e.target.value) : new Date();
-                      form.setValue("date", date, { shouldValidate: true, shouldDirty: true });
-                    }}
+                  <DatePicker
+                    {...field}
                     max={format(new Date(), "yyyy-MM-dd")}
                     className="h-10 text-sm"
                   />

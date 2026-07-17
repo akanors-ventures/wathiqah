@@ -28,6 +28,7 @@ import {
 import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -284,22 +285,22 @@ export function TransactionCharts() {
               <label htmlFor={startDateId} className="text-sm font-medium">
                 Start Date
               </label>
-              <Input
+              <DatePicker
                 id={startDateId}
-                type="date"
                 className="w-full"
-                onChange={(e) => setFilter({ ...filter, startDate: e.target.value || undefined })}
+                value={filter.startDate ?? ""}
+                onChange={(value) => setFilter({ ...filter, startDate: value || undefined })}
               />
             </div>
             <div className="space-y-2">
               <label htmlFor={endDateId} className="text-sm font-medium">
                 End Date
               </label>
-              <Input
+              <DatePicker
                 id={endDateId}
-                type="date"
                 className="w-full"
-                onChange={(e) => setFilter({ ...filter, endDate: e.target.value || undefined })}
+                value={filter.endDate ?? ""}
+                onChange={(value) => setFilter({ ...filter, endDate: value || undefined })}
               />
             </div>
             <div className="space-y-2">
