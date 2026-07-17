@@ -31,11 +31,20 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       className={cn("p-3", className)}
       classNames={{
         root: cn(defaultClassNames.root, "w-fit"),
-        months: cn(defaultClassNames.months, "flex flex-col sm:flex-row gap-4"),
+        // `relative` anchors nav's `absolute inset-x-0 top-0` to this box —
+        // nav is rendered as months' child (a sibling of month, not nested
+        // inside it), so without this nav positions relative to a further-up
+        // ancestor and lands above month_caption instead of overlaying it.
+        months: cn(defaultClassNames.months, "relative flex flex-col sm:flex-row gap-4"),
         month: cn(defaultClassNames.month, "flex flex-col gap-4"),
+        // h-9 matches month_caption's own height so both boxes occupy the
+        // exact same row; without it nav collapses to 0 height (its only
+        // children are position:absolute) and `items-center` has nothing to
+        // center the buttons within, so they land above the caption text
+        // instead of vertically aligned with it.
         nav: cn(
           defaultClassNames.nav,
-          "flex items-center justify-between absolute inset-x-0 top-0",
+          "absolute inset-x-0 top-0 flex h-9 items-center justify-between",
         ),
         button_previous: cn(
           buttonVariants({ variant: "ghost", size: "icon-sm" }),
