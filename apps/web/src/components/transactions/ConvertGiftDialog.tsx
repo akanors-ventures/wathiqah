@@ -64,7 +64,12 @@ export function ConvertGiftDialog({
     },
   });
 
-  const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
+  const {
+    amountDisplay,
+    handleAmountChange,
+    handleBlur,
+    reset: resetAmount,
+  } = useAmountInput({
     initialValue: transaction.amount || 0,
     currencyCode: transaction.currency || "NGN",
     onChange: (value) =>
@@ -94,13 +99,25 @@ export function ConvertGiftDialog({
       toast.success("Transaction converted to gift successfully");
       onSuccess?.();
       onClose();
+      resetAmount();
     } catch (error) {
       console.error(error);
     }
   }
 
+  // Any dismissal path (Cancel, backdrop click, Escape, the X button) funnels
+  // through Radix's onOpenChange — reset here once so the amount field
+  // doesn't stay stuck on a previously-cleared value next time this dialog
+  // (which stays mounted across open/close, only toggling `isOpen`) reopens.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      onClose();
+      resetAmount();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -151,7 +168,7 @@ export function ConvertGiftDialog({
             />
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
               <Button type="submit" isLoading={creating}>

@@ -70,13 +70,18 @@ export function ProjectTransactionCard({
     <TooltipProvider>
       <div
         className={cn(
-          "group relative flex items-center justify-between p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500",
+          "group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500",
           "hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 hover:border-primary/30",
           className,
         )}
       >
-        {/* Left: icon + info */}
-        <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 relative z-10">
+        {/* Left: icon + info — clickable to view details */}
+        <button
+          type="button"
+          onClick={() => onView(tx)}
+          aria-label={`View transaction: ${descriptionLine}`}
+          className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 relative z-10 text-left cursor-pointer"
+        >
           {/* Gradient icon with direction dot */}
           <div className="relative shrink-0">
             <div
@@ -125,7 +130,7 @@ export function ProjectTransactionCard({
               </div>
 
               {/* Description / category */}
-              <p className="text-[9px] sm:text-[11px] text-muted-foreground opacity-60 truncate max-w-[180px] sm:max-w-[260px]">
+              <p className="text-[9px] sm:text-[11px] text-muted-foreground opacity-60 truncate">
                 {descriptionLine}
               </p>
 
@@ -156,10 +161,12 @@ export function ProjectTransactionCard({
               )}
             </div>
           </div>
-        </div>
+        </button>
 
-        {/* Right: amount + history + edit */}
-        <div className="shrink-0 flex items-center gap-2 sm:gap-3 relative z-10 ml-2">
+        {/* Right: amount + history + edit. pl-[52px] on mobile aligns this row
+            under the icon+text button above it: icon width (h-10 = 40px) +
+            gap (gap-3 = 12px) = 52px. Keep in sync if either class changes. */}
+        <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 relative z-10 sm:ml-2 sm:shrink-0 pl-[52px] sm:pl-0">
           <div className="flex flex-col items-end gap-0.5">
             <span
               className={cn("text-base sm:text-xl font-black tracking-tighter", theme.textClass)}
