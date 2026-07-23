@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +28,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -180,12 +180,11 @@ export function UserActionsMenu({
           </DialogHeader>
           <div className="space-y-1.5">
             <Label htmlFor={expiryId}>Expires on</Label>
-            <Input
+            <DatePicker
               id={expiryId}
-              type="date"
               value={expiresAt}
               min={localDateString(new Date())}
-              onChange={(e) => setExpiresAt(e.target.value)}
+              onChange={setExpiresAt}
             />
           </div>
           <DialogFooter>

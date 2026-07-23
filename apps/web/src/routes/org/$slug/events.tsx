@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { isThisMonth, isThisWeek } from "date-fns";
 import { CalendarDays, PenLine, Plus } from "lucide-react";
 import { useId, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import type { NoteFormValues } from "@/components/notes/NoteForm";
 import { NoteForm } from "@/components/notes/NoteForm";
@@ -12,6 +12,7 @@ import { NoteEntry } from "@/components/org/note-entry";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryAutocompleteInput } from "@/components/ui/category-autocomplete-input";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -528,6 +529,7 @@ function EventForm({
 }) {
   const {
     register,
+    control,
     handleSubmit,
     watch,
     setValue,
@@ -573,11 +575,11 @@ function EventForm({
 
       <div className="space-y-1.5">
         <Label htmlFor={dateId}>Date</Label>
-        <input
-          id={dateId}
-          type="date"
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          {...register("date", { required: "Date is required" })}
+        <Controller
+          name="date"
+          control={control}
+          rules={{ required: "Date is required" }}
+          render={({ field }) => <DatePicker id={dateId} {...field} />}
         />
         {errors.date && <p className="text-xs text-destructive">{errors.date.message}</p>}
       </div>
