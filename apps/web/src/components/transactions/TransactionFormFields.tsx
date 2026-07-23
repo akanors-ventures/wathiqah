@@ -6,6 +6,7 @@ import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import { IntentPicker } from "@/components/transactions/IntentPicker";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Form,
   FormControl,
@@ -411,7 +412,7 @@ export function TransactionFormFields({
           <FormItem>
             <FormLabel>Date</FormLabel>
             <FormControl>
-              <Input type="date" {...field} className="h-10 text-sm" />
+              <DatePicker {...field} className="h-10 text-sm" />
             </FormControl>
             <FormMessage />
           </FormItem>
