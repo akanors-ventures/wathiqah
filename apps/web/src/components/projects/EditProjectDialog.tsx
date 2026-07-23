@@ -44,16 +44,6 @@ export function EditProjectDialog({ project, onUpdate, updating }: EditProjectDi
   const [currency, setCurrency] = useState(project.currency);
   const [status, setStatus] = useState(project.status);
 
-  // Re-sync local state when project prop changes (e.g. after a save + refetch)
-  useEffect(() => {
-    if (open) return;
-    setName(project.name);
-    setDescription(project.description ?? "");
-    setBudget(project.budget?.toString() ?? "");
-    setCurrency(project.currency);
-    setStatus(project.status);
-  }, [project, open]);
-
   const {
     amountDisplay: budgetDisplay,
     handleAmountChange: handleBudgetChange,
@@ -64,6 +54,20 @@ export function EditProjectDialog({ project, onUpdate, updating }: EditProjectDi
     initialValue: project.budget ?? 0,
     onChange: (val) => setBudget(val > 0 ? val.toString() : ""),
   });
+
+  // Re-sync local state when project prop changes (e.g. after a save + refetch).
+  // Also resets the budget input's "user has edited" flag on close, so a
+  // cleared-then-cancelled edit doesn't leave the field blank next time the
+  // dialog opens for the same (or a different) project.
+  useEffect(() => {
+    if (open) return;
+    setName(project.name);
+    setDescription(project.description ?? "");
+    setBudget(project.budget?.toString() ?? "");
+    setCurrency(project.currency);
+    setStatus(project.status);
+    resetBudget();
+  }, [project, open, resetBudget]);
 
   const nameId = useId();
   const descriptionId = useId();

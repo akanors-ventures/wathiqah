@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { formatCurrency } from "@/lib/utils/formatters";
 
 interface UseAmountInputOptions {
@@ -13,16 +13,26 @@ export function useAmountInput({
   onChange,
 }: UseAmountInputOptions = {}) {
   const [amountDisplay, setAmountDisplay] = useState<string>("");
+  // Tracks whether the user has typed into the field, so the initial-value
+  // sync below never overwrites something they're actively editing (e.g.
+  // clearing the field to type a fresh amount) while still reformatting the
+  // display if currencyCode resolves asynchronously after mount (a project's
+  // currency is only known once its query loads) and initialValue is set.
+  const hasUserEditedRef = useRef(false);
 
-  // Initialize display value if initialValue is provided
+  const formatInitial = useCallback(
+    () => (initialValue > 0 ? formatCurrency(initialValue, currencyCode, 0) : ""),
+    [initialValue, currencyCode],
+  );
+
   useEffect(() => {
-    if (initialValue > 0 && !amountDisplay) {
-      setAmountDisplay(formatCurrency(initialValue, currencyCode, 0));
-    }
-  }, [initialValue, currencyCode, amountDisplay]);
+    if (hasUserEditedRef.current) return;
+    setAmountDisplay(formatInitial());
+  }, [formatInitial]);
 
   const handleAmountChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
+      hasUserEditedRef.current = true;
       const raw = e.target.value;
 
       if (raw.trim() === "") {
@@ -63,9 +73,14 @@ export function useAmountInput({
     [currencyCode],
   );
 
+  // Restores the display to whatever initialValue/currencyCode currently say
+  // (blank for create-mode forms, the formatted prefill for edit/quick-action
+  // dialogs whose useAmountInput call outlives a dialog close/reopen cycle),
+  // and re-arms the initial-value sync so it can apply again on next open.
   const reset = useCallback(() => {
-    setAmountDisplay("");
-  }, []);
+    hasUserEditedRef.current = false;
+    setAmountDisplay(formatInitial());
+  }, [formatInitial]);
 
   return {
     amountDisplay,

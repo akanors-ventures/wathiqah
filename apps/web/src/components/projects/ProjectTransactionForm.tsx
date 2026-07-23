@@ -142,6 +142,7 @@ export function ProjectTransactionForm({
     handleBlur,
     reset: resetAmount,
   } = useAmountInput({
+    initialValue: editTransaction?.amount,
     currencyCode,
     onChange: (value) =>
       form.setValue("amount", value, { shouldValidate: false, shouldDirty: true }),
