@@ -448,6 +448,107 @@ export class TransactionsService {
   }
 
   /**
+   * Writes a real, separate Transaction row (orgId: null) onto the caller's
+   * own personal ledger reflecting an org transaction just created, linked
+   * back via `orgSourceTransactionId`. Two cases:
+   *
+   *  - Top-level (no parentId): only when `recordOnPersonalLedger` is true
+   *    AND the org contact is a `sourceContactId`-linked copy of one of the
+   *    caller's own personal contacts. Sharing a contact into an org lets
+   *    every member transact against it, but only the member who owns the
+   *    underlying personal contact can reflect onto it — reflecting onto
+   *    someone else's personal contact would silently mutate a ledger they
+   *    don't control.
+   *  - Child (repayment / remittance / gift conversion, parentId set): if
+   *    the parent org transaction already has a personal mirror, the child
+   *    mirrors automatically, ignoring the toggle — a loan recorded
+   *    personally must settle personally too, or the mirrored loan never
+   *    reaches COMPLETED.
+   *
+   * No witnesses, no notifications — the mirror is a bookkeeping echo, not
+   * an independently-witnessed event.
+   */
+  private async maybeCreatePersonalMirror(
+    prisma: Prisma.TransactionClient,
+    orgTransaction: {
+      id: string;
+      type: TransactionType;
+      category: AssetCategory;
+      amount: Prisma.Decimal | null;
+      itemName: string | null;
+      quantity: number | null;
+      currency: string;
+      date: Date;
+      description: string | null;
+      status: TransactionStatus;
+      orgId: string | null;
+      contactId: string | null;
+    },
+    parentId: string | undefined,
+    recordOnPersonalLedger: boolean | undefined,
+    userId: string,
+  ): Promise<void> {
+    if (!orgTransaction.orgId) return;
+
+    let personalContactId: string | undefined;
+    let mirrorParentId: string | undefined;
+
+    if (parentId) {
+      // Child of a lifecycle parent — mirror only if the parent itself
+      // was mirrored, and always inherit that mirror's contact/parent.
+      const parentMirror = await prisma.transaction.findUnique({
+        where: { orgSourceTransactionId: parentId },
+        select: { id: true, contactId: true },
+      });
+      if (!parentMirror) return;
+      personalContactId = parentMirror.contactId ?? undefined;
+      mirrorParentId = parentMirror.id;
+    } else {
+      if (!recordOnPersonalLedger || !orgTransaction.contactId) return;
+      const contact = await prisma.contact.findUnique({
+        where: { id: orgTransaction.contactId },
+        select: { sourceContactId: true },
+      });
+      if (!contact?.sourceContactId) return;
+
+      // Only the member who owns the underlying personal contact can
+      // reflect onto it — never mutate a ledger another member controls.
+      const sourceContact = await prisma.contact.findUnique({
+        where: { id: contact.sourceContactId },
+        select: { userId: true },
+      });
+      if (sourceContact?.userId !== userId) return;
+
+      personalContactId = contact.sourceContactId;
+    }
+
+    if (!personalContactId) return;
+
+    await prisma.transaction.create({
+      data: {
+        category: orgTransaction.category,
+        amount: orgTransaction.amount ?? undefined,
+        itemName: orgTransaction.itemName,
+        quantity: orgTransaction.quantity,
+        type: orgTransaction.type,
+        currency: orgTransaction.currency,
+        date: orgTransaction.date,
+        description: orgTransaction.description,
+        status: orgTransaction.status,
+        createdById: userId,
+        orgId: null,
+        contactId: personalContactId,
+        parentId: mirrorParentId,
+        orgSourceTransactionId: orgTransaction.id,
+      },
+    });
+
+    if (mirrorParentId) {
+      await this.recomputeParentLoanStatus(prisma, mirrorParentId, userId);
+    }
+  }
+
+  /**
    * Leaf create logic accepting an externally-supplied transaction client so
    * `ProjectContactLinkService` can create a mirrored Transaction row inside
    * its own `$transaction` block (atomic with the ProjectTransaction write).
@@ -473,6 +574,7 @@ export class TransactionsService {
       witnessInvites,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       projectId, // Not a Transaction column — consumed by ProjectContactLinkService, never persisted here
+      recordOnPersonalLedger,
       ...rest
     } = createTransactionInput;
 
@@ -511,7 +613,23 @@ export class TransactionsService {
         );
       }
 
-      if (parentTransaction.createdById !== userId) {
+      // A personal-ledger mirror's children (repayments/remittances/gift
+      // conversions) are only ever created automatically, alongside the
+      // matching child on the org side (see maybeCreatePersonalMirror).
+      // Recording one directly against the mirror here would desync it from
+      // the org ledger it's supposed to echo.
+      if (parentTransaction.orgSourceTransactionId) {
+        throw new BadRequestException(
+          'This is a personal-ledger reflection of an organisation transaction. Record repayments, remittances, or gift conversions from the organisation instead.',
+        );
+      }
+
+      // Org-scoped parents are shared by every member of that org; personal
+      // parents remain creator-only. Mirrors the contact-ownership rule below.
+      const parentAllowed = parentTransaction.orgId
+        ? parentTransaction.orgId === orgId
+        : parentTransaction.createdById === userId;
+      if (!parentAllowed) {
         throw new ForbiddenException(
           'Cannot link to a transaction you do not own',
         );
@@ -668,7 +786,13 @@ export class TransactionsService {
         throw new NotFoundException(`Contact ${rest.contactId} not found`);
       }
 
-      if (contact.userId !== userId) {
+      // Org-scoped contacts are shared by every member of that org; personal
+      // contacts remain creator-only. Prevents attaching an org contact to a
+      // personal transaction and vice versa.
+      const contactAllowed = orgId
+        ? contact.orgId === orgId
+        : contact.userId === userId && contact.orgId === null;
+      if (!contactAllowed) {
         throw new ForbiddenException(
           'Cannot create a transaction for a contact you do not own',
         );
@@ -704,6 +828,14 @@ export class TransactionsService {
           : {}),
       },
     });
+
+    await this.maybeCreatePersonalMirror(
+      prisma,
+      transaction,
+      rest.parentId,
+      recordOnPersonalLedger,
+      userId,
+    );
 
     // Log parent-history entry for conversions, repayments, and remittances
     if (rest.parentId && parentTransaction) {
@@ -889,6 +1021,12 @@ export class TransactionsService {
     if (transaction.isMirroredFromProject) {
       throw new BadRequestException(
         'This transaction originated from a project. Add witnesses from the project page instead.',
+      );
+    }
+
+    if (transaction.orgSourceTransactionId) {
+      throw new BadRequestException(
+        'This is a personal-ledger reflection of an organisation transaction and cannot be witnessed directly.',
       );
     }
 
@@ -1437,6 +1575,9 @@ export class TransactionsService {
             createdAt: 'desc',
           },
         },
+        personalMirror: {
+          select: { id: true, parentId: true },
+        },
       },
     });
 
@@ -1477,6 +1618,12 @@ export class TransactionsService {
       );
     }
 
+    if (transaction.orgSourceTransactionId) {
+      throw new BadRequestException(
+        'This is a personal-ledger reflection of an organisation transaction. Edit it from the organisation instead.',
+      );
+    }
+
     // Create audit log entry
     const previousState = {
       category: transaction.category,
@@ -1502,6 +1649,8 @@ export class TransactionsService {
       witnessInvites, // Destructure to exclude from rest
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       projectId, // Not a Transaction column — consumed by ProjectContactLinkService, never persisted here
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      recordOnPersonalLedger, // Create-time only — a mirror can't be retroactively attached via update()
       ...rest
     } = updateTransactionInput;
 
@@ -1739,6 +1888,48 @@ export class TransactionsService {
           }
         }
 
+        // Propagate edits onto this transaction's personal-ledger mirror
+        // (see maybeCreatePersonalMirror) so the two ledgers never drift.
+        if (transaction.personalMirror) {
+          const mirrorChanges: Prisma.TransactionUncheckedUpdateInput = {};
+          if (changes.amount !== undefined)
+            mirrorChanges.amount = changes.amount;
+          if (changes.date !== undefined) mirrorChanges.date = changes.date;
+          if (changes.description !== undefined)
+            mirrorChanges.description = changes.description;
+          if (changes.type !== undefined) mirrorChanges.type = changes.type;
+
+          if (Object.keys(mirrorChanges).length > 0) {
+            await (prisma as Prisma.TransactionClient).transaction.update({
+              where: { id: transaction.personalMirror.id },
+              data: mirrorChanges,
+            });
+          }
+
+          if (amountChanged) {
+            // Mirror child (e.g. repayment) settling a mirrored loan.
+            if (transaction.personalMirror.parentId) {
+              await this.recomputeParentLoanStatus(
+                prisma as Prisma.TransactionClient,
+                transaction.personalMirror.parentId,
+                userId,
+              );
+            }
+            // Mirror is itself a lifecycle parent whose face amount moved.
+            if (
+              transaction.type === 'LOAN_GIVEN' ||
+              transaction.type === 'LOAN_RECEIVED' ||
+              transaction.type === 'ESCROWED'
+            ) {
+              await this.recomputeParentLoanStatus(
+                prisma as Prisma.TransactionClient,
+                transaction.personalMirror.id,
+                userId,
+              );
+            }
+          }
+        }
+
         return updated;
       },
     );
@@ -1836,9 +2027,25 @@ export class TransactionsService {
       );
     }
 
+    if (transaction.orgSourceTransactionId) {
+      throw new BadRequestException(
+        'This is a personal-ledger reflection of an organisation transaction. Delete it from the organisation instead.',
+      );
+    }
+
     // If there are no witnesses, we can safely hard-delete
     if (transaction.witnesses.length === 0) {
       const deleted = await this.prisma.$transaction(async (prisma) => {
+        // Tear down the personal-ledger mirror first — its FK back to this
+        // row is ON DELETE SET NULL, which would otherwise leave an
+        // orphaned "on behalf of" entry with no org transaction to point to.
+        if (transaction.personalMirror) {
+          await this.deleteMirroredTransaction(
+            prisma as Prisma.TransactionClient,
+            transaction.personalMirror.id,
+            userId,
+          );
+        }
         const removed = await prisma.transaction.delete({ where: { id } });
         if (transaction.parentId) {
           await this.recomputeParentLoanStatus(
@@ -1907,6 +2114,24 @@ export class TransactionsService {
             await this.reverseMirroredProjectTransactionBalance(
               prisma as Prisma.TransactionClient,
               mirrored,
+            );
+          }
+        }
+        // Cascade the cancellation onto the personal-ledger mirror too —
+        // unlike the project mirror above, this is always safe: a mirror
+        // can never carry its own witnesses (it's a bookkeeping echo, not
+        // an independently-witnessed event), so no FK/witness conflict
+        // blocks updating it directly.
+        if (transaction.personalMirror) {
+          await (prisma as Prisma.TransactionClient).transaction.update({
+            where: { id: transaction.personalMirror.id },
+            data: { status: TransactionStatus.CANCELLED },
+          });
+          if (transaction.personalMirror.parentId) {
+            await this.recomputeParentLoanStatus(
+              prisma as Prisma.TransactionClient,
+              transaction.personalMirror.parentId,
+              userId,
             );
           }
         }

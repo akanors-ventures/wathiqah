@@ -12,6 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
 import { ProjectTransaction } from '../projects/entities/project-transaction.entity';
+import { Organisation } from '../organisations/entities/organisation.entity';
 import { AddWitnessInput } from './dto/add-witness.input';
 import {
   TransactionsResponse,
@@ -87,6 +88,35 @@ export class TransactionsResolver {
     return this.prisma.projectTransaction.findUnique({
       where: { id: transaction.projectTransactionId },
       include: { project: true },
+    });
+  }
+
+  /**
+   * Org attribution for personal-mirror rows and org rows alike — resolved
+   * on demand rather than requiring every query path to `include` it.
+   * Visibility is already enforced upstream: a viewer can only ever reach a
+   * transaction with orgId set via `findAll`/`findOne`'s own org-membership
+   * scoping, so no extra permission check is needed here.
+   */
+  @ResolveField(() => Organisation, { nullable: true })
+  async organisation(@Parent() transaction: Transaction) {
+    if (!transaction.orgId) return null;
+    return this.prisma.organisation.findUnique({
+      where: { id: transaction.orgId },
+    });
+  }
+
+  /**
+   * Populated only on a personal-ledger mirror row (orgSourceTransactionId
+   * set) — points back at the org transaction it reflects, so the frontend
+   * can render "On behalf of <org> · <project>" from
+   * orgSourceTransaction.organisation / orgSourceTransaction.projectTransaction.
+   */
+  @ResolveField(() => Transaction, { nullable: true })
+  async orgSourceTransaction(@Parent() transaction: Transaction) {
+    if (!transaction.orgSourceTransactionId) return null;
+    return this.prisma.transaction.findUnique({
+      where: { id: transaction.orgSourceTransactionId },
     });
   }
 

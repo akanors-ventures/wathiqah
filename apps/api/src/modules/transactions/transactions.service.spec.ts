@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
@@ -317,6 +318,194 @@ describe('TransactionsService - Pagination', () => {
           where: expect.objectContaining({ createdById: 'user1', orgId: null }),
         }),
       );
+    });
+  });
+
+  describe('TransactionsService — org-aware contact/parent validation on create', () => {
+    let validationService: TransactionsService;
+    let validationPrisma: {
+      transaction: {
+        findUnique: jest.Mock;
+        findMany: jest.Mock;
+        create: jest.Mock;
+      };
+      contact: { findUnique: jest.Mock };
+      transactionHistory: { create: jest.Mock };
+      $transaction: jest.Mock;
+    };
+
+    beforeEach(async () => {
+      validationPrisma = {
+        transaction: {
+          findUnique: jest.fn().mockResolvedValue(null),
+          findMany: jest.fn().mockResolvedValue([]),
+          create: jest.fn(),
+        },
+        contact: { findUnique: jest.fn() },
+        transactionHistory: { create: jest.fn() },
+        $transaction: jest.fn((fn) => fn(validationPrisma)),
+      };
+      const module = await Test.createTestingModule({
+        providers: [
+          TransactionsService,
+          { provide: PrismaService, useValue: validationPrisma },
+          { provide: ConfigService, useValue: mockConfigService },
+          { provide: CACHE_MANAGER, useValue: mockCacheManager },
+          { provide: NotificationService, useValue: mockNotificationService },
+          { provide: ExchangeRateService, useValue: mockExchangeRateService },
+          {
+            provide: InAppNotificationsService,
+            useValue: mockInAppNotificationsService,
+          },
+        ],
+      }).compile();
+      validationService = module.get(TransactionsService);
+      validationPrisma.transaction.create.mockResolvedValue({
+        id: 'tx-new',
+        type: TransactionType.LOAN_GIVEN,
+        amount: 1000,
+      });
+    });
+
+    const baseInput = {
+      type: TransactionType.LOAN_GIVEN,
+      category: AssetCategory.FUNDS,
+      amount: 1000,
+      currency: 'NGN',
+      contactId: 'contact-1',
+      date: new Date('2026-01-01'),
+    };
+
+    it('allows attaching an org contact when the caller is recording in that same org', async () => {
+      validationPrisma.contact.findUnique.mockResolvedValue({
+        id: 'contact-1',
+        userId: 'other-member',
+        orgId: 'org1',
+      });
+
+      await expect(
+        validationService.create(baseInput, 'creator-1', 'org1'),
+      ).resolves.toBeDefined();
+    });
+
+    it('rejects attaching an org contact from a different org than the one being recorded in', async () => {
+      validationPrisma.contact.findUnique.mockResolvedValue({
+        id: 'contact-1',
+        userId: 'other-member',
+        orgId: 'org2',
+      });
+
+      await expect(
+        validationService.create(baseInput, 'creator-1', 'org1'),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects attaching an org contact to a personal-mode transaction', async () => {
+      validationPrisma.contact.findUnique.mockResolvedValue({
+        id: 'contact-1',
+        userId: 'creator-1',
+        orgId: 'org1',
+      });
+
+      await expect(
+        validationService.create(baseInput, 'creator-1', null),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("rejects attaching another user's personal contact to a personal-mode transaction", async () => {
+      validationPrisma.contact.findUnique.mockResolvedValue({
+        id: 'contact-1',
+        userId: 'someone-else',
+        orgId: null,
+      });
+
+      await expect(
+        validationService.create(baseInput, 'creator-1', null),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('allows attaching an org-scoped parent transaction created by a different member of the same org', async () => {
+      validationPrisma.transaction.findUnique.mockResolvedValueOnce({
+        id: 'parent-1',
+        orgId: 'org1',
+        createdById: 'other-member',
+        type: TransactionType.LOAN_GIVEN,
+        category: AssetCategory.FUNDS,
+        amount: 1000,
+        currency: 'NGN',
+        contactId: 'contact-1',
+      });
+
+      await expect(
+        validationService.create(
+          {
+            type: TransactionType.GIFT_GIVEN,
+            category: AssetCategory.FUNDS,
+            amount: 500,
+            currency: 'NGN',
+            parentId: 'parent-1',
+            date: new Date('2026-01-01'),
+          },
+          'creator-1',
+          'org1',
+        ),
+      ).resolves.toBeDefined();
+    });
+
+    it("rejects linking to a parent transaction outside the caller's active org", async () => {
+      validationPrisma.transaction.findUnique.mockResolvedValueOnce({
+        id: 'parent-1',
+        orgId: 'org2',
+        createdById: 'other-member',
+        type: TransactionType.LOAN_GIVEN,
+        category: AssetCategory.FUNDS,
+        amount: 1000,
+        currency: 'NGN',
+        contactId: 'contact-1',
+      });
+
+      await expect(
+        validationService.create(
+          {
+            type: TransactionType.GIFT_GIVEN,
+            category: AssetCategory.FUNDS,
+            amount: 500,
+            currency: 'NGN',
+            parentId: 'parent-1',
+            date: new Date('2026-01-01'),
+          },
+          'creator-1',
+          'org1',
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it("rejects linking to a personal parent transaction the caller didn't create", async () => {
+      validationPrisma.transaction.findUnique.mockResolvedValueOnce({
+        id: 'parent-1',
+        orgId: null,
+        createdById: 'someone-else',
+        type: TransactionType.LOAN_GIVEN,
+        category: AssetCategory.FUNDS,
+        amount: 1000,
+        currency: 'NGN',
+        contactId: 'contact-1',
+      });
+
+      await expect(
+        validationService.create(
+          {
+            type: TransactionType.GIFT_GIVEN,
+            category: AssetCategory.FUNDS,
+            amount: 500,
+            currency: 'NGN',
+            parentId: 'parent-1',
+            date: new Date('2026-01-01'),
+          },
+          'creator-1',
+          null,
+        ),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
