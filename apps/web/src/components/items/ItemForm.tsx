@@ -5,6 +5,7 @@ import { type Resolver, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Form,
   FormControl,
@@ -182,7 +183,7 @@ export function ItemForm({ onSubmit, defaultValues, isLoading }: ItemFormProps) 
             <FormItem>
               <FormLabel>Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <DatePicker {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

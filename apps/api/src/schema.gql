@@ -229,6 +229,7 @@ input CreateTransactionInput {
   description: String
   itemName: String
   parentId: ID
+  projectId: ID
   quantity: Int = 1
   type: TransactionType!
   witnessInvites: [WitnessInviteInput!]
@@ -349,8 +350,11 @@ scalar JSON
 input LogProjectTransactionInput {
   amount: Float!
   category: String
+  contactId: ID
+  contactTransactionType: TransactionType
   date: DateTime
   description: String
+  parentTransactionId: ID
   projectId: String!
   type: ProjectTransactionType!
   witnessInvites: [WitnessInviteInput!]
@@ -659,12 +663,19 @@ enum ProjectStatus {
 type ProjectTransaction {
   amount: Float!
   category: String
+  contact: Contact
+  contactId: ID
+  contactTransactionType: TransactionType
   createdAt: DateTime!
   date: DateTime!
   description: String
   history: [ProjectTransactionHistory!]
   id: ID!
+  isMirroredFromContact: Boolean!
+  project: Project
   projectId: String!
+  transaction: Transaction
+  transactionId: ID
   type: ProjectTransactionType!
   updatedAt: DateTime!
   witnesses: [Witness!]
@@ -741,6 +752,7 @@ type Query {
   personalEntrySummary(filter: FilterPersonalEntryInput): PersonalEntrySummary!
   proPricing: ProPricing!
   project(id: ID!): Project!
+  projectContactOutstandingLoans(contactId: ID!, contactTransactionType: TransactionType, projectId: ID!): [Transaction!]!
   projectTransactionCategorySuggestions(projectId: ID!): [String!]!
   promise(id: String!): Promise!
   receivedAccessGrants: [AccessGrant!]!
@@ -876,9 +888,12 @@ type Transaction {
   description: String
   history: [TransactionHistory!]
   id: ID!
+  isMirroredFromProject: Boolean!
   itemName: String
   parent: Transaction
   parentId: String
+  projectTransaction: ProjectTransaction
+  projectTransactionId: String
   quantity: Int
   remainingAmount: Float
   status: TransactionStatus!
@@ -1002,9 +1017,12 @@ input UpdateProjectInput {
 input UpdateProjectTransactionInput {
   amount: Float
   category: String
+  contactId: ID
+  contactTransactionType: TransactionType
   date: DateTime
   description: String
   id: ID!
+  parentTransactionId: ID
   type: ProjectTransactionType
 }
 
@@ -1029,6 +1047,7 @@ input UpdateTransactionInput {
   id: ID!
   itemName: String
   parentId: ID
+  projectId: ID
   quantity: Int = 1
   type: TransactionType
   witnessInvites: [WitnessInviteInput!]

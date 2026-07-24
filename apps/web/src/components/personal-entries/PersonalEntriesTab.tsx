@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { Input } from "@/components/ui/input";
 import { BrandLoader } from "@/components/ui/page-loader";
@@ -369,19 +370,19 @@ export function PersonalEntriesTab() {
                 </SelectContent>
               </Select>
 
-              <Input
-                type="date"
+              <DatePicker
                 className="flex-1 sm:w-[140px]"
                 value={startDate}
+                placeholder="From date"
                 title="From date"
-                onChange={(e) => handleFilterChange(setStartDate)(e.target.value)}
+                onChange={handleFilterChange(setStartDate)}
               />
-              <Input
-                type="date"
+              <DatePicker
                 className="flex-1 sm:w-[140px]"
                 value={endDate}
+                placeholder="To date"
                 title="To date"
-                onChange={(e) => handleFilterChange(setEndDate)(e.target.value)}
+                onChange={handleFilterChange(setEndDate)}
               />
             </div>
           </div>

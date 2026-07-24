@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "pnpm codegen && vite build",
+    "build": "pnpm --filter @wathiqah/shared-constants build && pnpm codegen && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "format": "biome format",
@@ -16,6 +16,7 @@
     "codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@wathiqah/shared-constants": "workspace:*",
     "@apollo/client": "^4.0.0",
     "@apollo/client-integration-tanstack-start": "^0.14.2-rc.0",
     "@hookform/resolvers": "^5.2.2",
@@ -48,6 +49,7 @@
     "papaparse": "^5.5.3",
     "radix-ui": "^1.4.3",
     "react": "^19.2.0",
+    "react-day-picker": "^10.0.1",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.1",
     "recharts": "^3.7.0",

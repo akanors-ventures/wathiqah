@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
   ArrowDownLeft,
@@ -36,12 +36,18 @@ interface TransactionCardProps {
       name: string;
       isSupporter?: boolean;
     } | null;
+    projectTransaction?: {
+      id: string;
+      projectId: string;
+      project?: { id: string; name: string } | null;
+    } | null;
   };
   className?: string;
 }
 
 export function TransactionCard({ transaction: tx, className }: TransactionCardProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isCreator = user?.id === tx.createdBy?.id;
 
   const theme = getTransactionTheme(tx.type);
@@ -51,6 +57,10 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
   // they live in the ProjectTransaction table, not Transaction, so navigating
   // to /transactions/:id would return a 404.
   const isProjectTransaction = (tx.type === "INCOME" || tx.type === "EXPENSE") && !!tx.contact;
+
+  // Real link (either origin direction) — this row IS a real, independently
+  // viewable Transaction, unlike the legacy case above.
+  const isFromProject = !!tx.projectTransaction;
 
   const cardClassName = cn(
     "group relative flex items-center justify-between p-3.5 sm:p-5 lg:p-6 rounded-[20px] sm:rounded-[24px] border border-border/50 bg-card transition-all duration-500",
@@ -113,6 +123,25 @@ export function TransactionCard({ transaction: tx, className }: TransactionCardP
                   <UserCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                   SHARED
                 </span>
+              )}
+              {isFromProject && tx.projectTransaction?.projectId && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const projectId = tx.projectTransaction?.projectId;
+                    if (!projectId) return;
+                    navigate({
+                      to: "/projects/$projectId",
+                      params: { projectId },
+                    });
+                  }}
+                  className="flex items-center gap-1 text-[8px] sm:text-[9px] lg:text-[10px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-900/20 px-1.5 py-0.5 rounded border border-violet-100 dark:border-violet-900/30 shrink-0 shadow-sm cursor-pointer hover:bg-violet-100 dark:hover:bg-violet-900/30"
+                >
+                  <FolderOpen className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  {tx.projectTransaction?.project?.name ?? "PROJECT"}
+                </button>
               )}
               <span
                 className={cn(

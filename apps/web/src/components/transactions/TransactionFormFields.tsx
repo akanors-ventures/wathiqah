@@ -6,6 +6,7 @@ import { ContactFormDialog } from "@/components/contacts/ContactFormDialog";
 import { IntentPicker } from "@/components/transactions/IntentPicker";
 import { TransactionTypeHelp } from "@/components/transactions/TransactionTypeHelp";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Form,
   FormControl,
@@ -27,6 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useAmountInput } from "@/hooks/useAmountInput";
 import { useContacts } from "@/hooks/useContacts";
+import { useProjects } from "@/hooks/useProjects";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory, TransactionType } from "@/types/__generated__/graphql";
 
@@ -43,6 +45,7 @@ import { AssetCategory, TransactionType } from "@/types/__generated__/graphql";
 export const transactionFormSchema = z
   .object({
     contactId: z.string().optional(),
+    projectId: z.string().optional(),
     type: z.enum([
       TransactionType.LoanGiven,
       TransactionType.LoanReceived,
@@ -133,7 +136,7 @@ const TYPE_OPTIONS: TypeOption[] = [
 /* -------------------------------------------------------------------------- */
 
 export type FormMode = "create" | "edit";
-export type LockableField = "type" | "contactId" | "category";
+export type LockableField = "type" | "contactId" | "category" | "projectId";
 
 interface TransactionFormFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -160,6 +163,7 @@ export function TransactionFormFields({
   initialAmount,
 }: TransactionFormFieldsProps) {
   const { contacts, loading: loadingContacts } = useContacts();
+  const { projects, loading: loadingProjects } = useProjects();
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [newlyCreatedContact, setNewlyCreatedContact] = useState<{
     id: string;
@@ -271,6 +275,46 @@ export function TransactionFormFields({
           )}
         />
       </div>
+
+      {category === AssetCategory.Funds && (
+        <FormField
+          control={form.control}
+          name="projectId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Link to Project (Optional)</FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === "none" ? undefined : value)}
+                value={field.value ?? "none"}
+                disabled={isLocked("projectId")}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-10 text-sm">
+                    <SelectValue placeholder="No project" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="none">No Project</SelectItem>
+                  {loadingProjects ? (
+                    <SelectItem value="loading" disabled>
+                      <div className="flex items-center justify-center gap-2">
+                        <BrandLoader size="sm" />
+                      </div>
+                    </SelectItem>
+                  ) : (
+                    projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
       <FormField
         control={form.control}
@@ -411,7 +455,7 @@ export function TransactionFormFields({
           <FormItem>
             <FormLabel>Date</FormLabel>
             <FormControl>
-              <Input type="date" {...field} className="h-10 text-sm" />
+              <DatePicker {...field} className="h-10 text-sm" />
             </FormControl>
             <FormMessage />
           </FormItem>

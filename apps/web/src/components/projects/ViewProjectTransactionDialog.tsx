@@ -1,5 +1,6 @@
+import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { CalendarDays, Clock } from "lucide-react";
+import { CalendarDays, Clock, UserCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -10,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { getTransactionTheme } from "@/lib/utils/transactionDisplay";
+import { formatTransactionTypeLabel, getTransactionTheme } from "@/lib/utils/transactionDisplay";
 import type { ProjectTransactionCardTransaction } from "./ProjectTransactionCard";
 
 interface ViewProjectTransactionDialogProps {
@@ -74,6 +75,37 @@ export function ViewProjectTransactionDialog({
             <span className="text-muted-foreground">Description: </span>
             <span className="font-medium">{tx.description || "No description"}</span>
           </div>
+
+          {tx.contact && (
+            <div className="text-sm space-y-1">
+              <div className="flex items-center gap-1.5">
+                <UserCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span className="text-muted-foreground">Linked Contact: </span>
+                <Link
+                  to="/contacts/$contactId"
+                  params={{ contactId: tx.contact.id }}
+                  className="font-medium text-amber-600 hover:underline"
+                >
+                  {tx.contact.name}
+                </Link>
+                {tx.contactTransactionType && (
+                  <span className="text-xs text-muted-foreground">
+                    ({formatTransactionTypeLabel(tx.contactTransactionType)})
+                  </span>
+                )}
+              </div>
+              {tx.transaction?.remainingAmount != null && (
+                <p className="text-xs text-muted-foreground pl-5">
+                  {tx.transaction.remainingAmount === 0
+                    ? "Fully settled"
+                    : `${formatCurrency(
+                        amount - tx.transaction.remainingAmount,
+                        currency,
+                      )} repaid of ${formatCurrency(amount, currency)}`}
+                </p>
+              )}
+            </div>
+          )}
 
           {tx.witnesses && tx.witnesses.length > 0 && (
             <div className="space-y-2">

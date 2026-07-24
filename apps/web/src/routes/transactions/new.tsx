@@ -64,6 +64,7 @@ function NewTransactionPage() {
 
       await createTransaction({
         contactId: values.contactId,
+        projectId: values.category === AssetCategory.Funds ? values.projectId : undefined,
         type: values.type,
         category: values.category,
         currency: values.currency,

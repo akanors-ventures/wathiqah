@@ -8,6 +8,7 @@ import {
   CornerDownRight,
   Download,
   Filter,
+  FolderOpen,
   Package,
   Plus,
   ShieldCheck,
@@ -352,6 +353,17 @@ function ContactDetailsPage() {
                                   SHARED
                                 </span>
                               )}
+                              {tx.projectTransaction && (
+                                <Link
+                                  to="/projects/$projectId"
+                                  params={{ projectId: tx.projectTransaction.projectId }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1 text-[9px] sm:text-[10px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-900/20 px-1.5 py-0.5 rounded border border-violet-100 dark:border-violet-900/30 w-fit"
+                                >
+                                  <FolderOpen className="w-2.5 h-2.5" />
+                                  {tx.projectTransaction.project?.name ?? "Project"}
+                                </Link>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="max-w-[200px] truncate text-xs text-muted-foreground/90">
@@ -429,6 +441,17 @@ function ContactDetailsPage() {
                                   <UserCircle className="w-2 h-2" />
                                   SHARED
                                 </span>
+                              )}
+                              {tx.projectTransaction && (
+                                <Link
+                                  to="/projects/$projectId"
+                                  params={{ projectId: tx.projectTransaction.projectId }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex items-center gap-1 text-[9px] font-bold text-violet-600 bg-violet-50 dark:bg-violet-900/20 px-1.5 py-0.5 rounded border border-violet-100 dark:border-violet-900/30 w-fit"
+                                >
+                                  <FolderOpen className="w-2 h-2" />
+                                  {tx.projectTransaction.project?.name ?? "Project"}
+                                </Link>
                               )}
                             </div>
                           </div>

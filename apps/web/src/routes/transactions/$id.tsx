@@ -280,24 +280,32 @@ function TransactionDetailPage() {
                 Convert to Gift
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1"
-              onClick={() => setIsEditOpen(true)}
-            >
-              <Edit2 size={14} />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-              onClick={() => setIsRemoveDialogOpen(true)}
-            >
-              <Trash2 size={14} />
-              Remove
-            </Button>
+            {transaction.isMirroredFromProject ? (
+              <span className="text-xs text-muted-foreground italic px-1 self-center">
+                Synced from project — edit or delete it from the project page instead
+              </span>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1"
+                  onClick={() => setIsEditOpen(true)}
+                >
+                  <Edit2 size={14} />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  onClick={() => setIsRemoveDialogOpen(true)}
+                >
+                  <Trash2 size={14} />
+                  Remove
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

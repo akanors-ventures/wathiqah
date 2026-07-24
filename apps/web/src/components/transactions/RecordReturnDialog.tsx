@@ -5,6 +5,7 @@ import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -90,8 +91,12 @@ export function RecordReturnDialog({
     },
   });
 
-  const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
-    // key prop on the parent ensures this resets when dialog reopens
+  const {
+    amountDisplay,
+    handleAmountChange,
+    handleBlur,
+    reset: resetAmount,
+  } = useAmountInput({
     initialValue: remaining,
     currencyCode,
     onChange: (value) =>
@@ -121,6 +126,7 @@ export function RecordReturnDialog({
         date: format(new Date(), "yyyy-MM-dd"),
         description: "",
       });
+      resetAmount();
       setAmountKey((k) => k + 1);
     } catch (err) {
       console.error(err);
@@ -128,8 +134,17 @@ export function RecordReturnDialog({
     }
   }
 
+  // Any dismissal path (Cancel, backdrop click, Escape, the X button) funnels
+  // through Radix's onOpenChange — reset here once so the amount field
+  // doesn't stay stuck on a previously-cleared value next time this dialog
+  // (which stays mounted across open/close, only toggling `open`) reopens.
+  const handleOpenChange = (next: boolean) => {
+    onOpenChange(next);
+    if (!next) resetAmount();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle>Record Repayment</DialogTitle>
@@ -180,7 +195,7 @@ export function RecordReturnDialog({
                 <FormItem>
                   <FormLabel>Date</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <DatePicker {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -209,7 +224,7 @@ export function RecordReturnDialog({
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => onOpenChange(false)}
+                onClick={() => handleOpenChange(false)}
                 disabled={creating}
               >
                 Cancel

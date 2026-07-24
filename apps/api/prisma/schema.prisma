@@ -162,48 +162,52 @@ enum PaymentType {
 }
 
 model Contact {
-  id           String              @id @default(uuid())
-  email        String?
-  phoneNumber  String?
-  createdAt    DateTime            @default(now())
-  userId       String
-  firstName    String
-  lastName     String
-  linkedUserId String?
-  invitations  ContactInvitation[]
-  orgId        String?
-  linkedUser   User?               @relation("ContactLinkedUser", fields: [linkedUserId], references: [id])
-  user         User                @relation(fields: [userId], references: [id])
-  transactions Transaction[]
-  organisation Organisation?       @relation("OrgContacts", fields: [orgId], references: [id])
+  id                  String               @id @default(uuid())
+  email               String?
+  phoneNumber         String?
+  createdAt           DateTime             @default(now())
+  userId              String
+  firstName           String
+  lastName            String
+  linkedUserId        String?
+  invitations         ContactInvitation[]
+  orgId               String?
+  linkedUser          User?                @relation("ContactLinkedUser", fields: [linkedUserId], references: [id])
+  user                User                 @relation(fields: [userId], references: [id])
+  transactions        Transaction[]
+  projectTransactions ProjectTransaction[]
+  organisation        Organisation?        @relation("OrgContacts", fields: [orgId], references: [id])
 
   @@map("contacts")
 }
 
 model Transaction {
-  id              String               @id @default(uuid())
-  category        AssetCategory        @default(FUNDS)
-  amount          Decimal?             @db.Decimal(10, 2)
-  itemName        String?
-  quantity        Int?                 @default(1)
-  type            TransactionType
-  date            DateTime
-  description     String?
-  createdAt       DateTime             @default(now())
-  contactId       String?
-  createdById     String
-  status          TransactionStatus    @default(COMPLETED)
+  id                    String               @id @default(uuid())
+  category              AssetCategory        @default(FUNDS)
+  amount                Decimal?             @db.Decimal(10, 2)
+  itemName              String?
+  quantity              Int?                 @default(1)
+  type                  TransactionType
+  date                  DateTime
+  description           String?
+  createdAt             DateTime             @default(now())
+  contactId             String?
+  createdById           String
+  status                TransactionStatus    @default(COMPLETED)
 
-  parentId        String?
-  currency        String               @default("NGN")
-  orgId           String?
-  history         TransactionHistory[]
-  contact         Contact?             @relation(fields: [contactId], references: [id])
-  createdBy       User                 @relation("TransactionCreator", fields: [createdById], references: [id])
-  parent          Transaction?         @relation("TransactionConversion", fields: [parentId], references: [id])
-  conversions     Transaction[]        @relation("TransactionConversion")
-  witnesses       Witness[]
-  organisation    Organisation?        @relation("OrgTransactions", fields: [orgId], references: [id])
+  parentId              String?
+  currency              String               @default("NGN")
+  orgId                 String?
+  projectTransactionId  String?              @unique
+  isMirroredFromProject Boolean              @default(false)
+  history               TransactionHistory[]
+  contact               Contact?             @relation(fields: [contactId], references: [id])
+  createdBy             User                 @relation("TransactionCreator", fields: [createdById], references: [id])
+  parent                Transaction?         @relation("TransactionConversion", fields: [parentId], references: [id])
+  conversions           Transaction[]        @relation("TransactionConversion")
+  witnesses             Witness[]
+  organisation          Organisation?        @relation("OrgTransactions", fields: [orgId], references: [id])
+  projectTransaction    ProjectTransaction?  @relation(fields: [projectTransactionId], references: [id], onDelete: Restrict)
 
   @@map("transactions")
 }
@@ -275,18 +279,23 @@ model Project {
 }
 
 model ProjectTransaction {
-  id          String                        @id @default(uuid())
-  amount      Decimal                       @db.Decimal(10, 2)
-  type        ProjectTransactionType
-  category    String?
-  description String?
-  date        DateTime                      @default(now())
-  projectId   String
-  createdAt   DateTime                      @default(now())
-  updatedAt   DateTime                      @updatedAt
-  project     Project                       @relation(fields: [projectId], references: [id])
-  witnesses   Witness[]
-  history     ProjectTransactionHistory[]
+  id                     String                      @id @default(uuid())
+  amount                 Decimal                     @db.Decimal(10, 2)
+  type                   ProjectTransactionType
+  category               String?
+  description            String?
+  date                   DateTime                    @default(now())
+  projectId              String
+  contactId              String?
+  contactTransactionType TransactionType?
+  isMirroredFromContact  Boolean                     @default(false)
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
+  project                Project                     @relation(fields: [projectId], references: [id])
+  contact                Contact?                    @relation(fields: [contactId], references: [id])
+  transaction            Transaction?
+  witnesses              Witness[]
+  history                ProjectTransactionHistory[]
 
   @@map("project_transactions")
 }
