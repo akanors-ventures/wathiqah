@@ -11,9 +11,8 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
+import { ProjectTransaction } from '../projects/entities/project-transaction.entity';
 import { AddWitnessInput } from './dto/add-witness.input';
-import { CreateTransactionInput } from './dto/create-transaction.input';
-import { UpdateTransactionInput } from './dto/update-transaction.input';
 import {
   TransactionsResponse,
   TransactionsSummary,
@@ -70,6 +69,27 @@ export class TransactionsResolver {
     return Math.max(0, Number(transaction.amount) - settled);
   }
 
+  /**
+   * Populated only when this transaction is linked to a project (either
+   * origin direction) AND the viewer is its creator. A linked contact
+   * viewing this same row from the flipped shared-ledger perspective never
+   * gets project details back — the project may belong entirely to the
+   * other party and isn't something the shared-ledger relationship grants
+   * access to.
+   */
+  @ResolveField(() => ProjectTransaction, { nullable: true })
+  async projectTransaction(
+    @Parent() transaction: Transaction,
+    @CurrentUser() user: User,
+  ) {
+    if (!transaction.projectTransactionId) return null;
+    if (transaction.createdById !== user.id) return null;
+    return this.prisma.projectTransaction.findUnique({
+      where: { id: transaction.projectTransactionId },
+      include: { project: true },
+    });
+  }
+
   @Query(() => TransactionsSummary, { name: 'totalBalance' })
   async getTotalBalance(
     @CurrentUser() user: User,
@@ -82,21 +102,6 @@ export class TransactionsResolver {
       summaryCurrency: currency,
     });
     return summary.summary;
-  }
-
-  @Mutation(() => Transaction)
-  @CheckFeature('maxWitnessesPerMonth')
-  @UseInterceptors(FeatureLimitInterceptor)
-  async createTransaction(
-    @Args('input') createTransactionInput: CreateTransactionInput,
-    @CurrentUser() user: User,
-    @ActiveOrg() orgId: string | null,
-  ) {
-    return this.transactionsService.create(
-      createTransactionInput,
-      user.id,
-      orgId,
-    );
   }
 
   @Mutation(() => Transaction)
@@ -146,20 +151,6 @@ export class TransactionsResolver {
     @CurrentUser() user: User,
   ) {
     return this.transactionsService.findOne(id, user.id, true);
-  }
-
-  @Mutation(() => Transaction)
-  @CheckFeature('maxWitnessesPerMonth')
-  @UseInterceptors(FeatureLimitInterceptor)
-  async updateTransaction(
-    @Args('input') updateTransactionInput: UpdateTransactionInput,
-    @CurrentUser() user: User,
-  ) {
-    return this.transactionsService.update(
-      updateTransactionInput.id,
-      updateTransactionInput,
-      user.id,
-    );
   }
 
   @Mutation(() => Transaction)

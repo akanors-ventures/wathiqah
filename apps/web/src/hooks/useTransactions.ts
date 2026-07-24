@@ -14,7 +14,13 @@ export function useTransactions(filter?: FilterTransactionInput) {
 
   const [createTransactionMutation, { loading: creating }] = useMutation(CREATE_TRANSACTION, {
     onCompleted: () => refetch(),
-    refetchQueries: ["TotalBalance", "Transactions", "Transaction", "MyContactTransactions"],
+    refetchQueries: [
+      "TotalBalance",
+      "Transactions",
+      "Transaction",
+      "MyContactTransactions",
+      "GetProject",
+    ],
     update: (cache) => {
       cache.evict({ fieldName: "transactions" });
       cache.evict({ fieldName: "totalBalance" });

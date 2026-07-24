@@ -1,4 +1,8 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { ProjectTransactionsService } from './project-transactions.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -52,6 +56,23 @@ describe('ProjectTransactionsService — remove', () => {
     await expect(service.remove('user1', 'tx1')).rejects.toThrow(
       ForbiddenException,
     );
+  });
+
+  it('throws BadRequestException when the transaction is a passive mirror synced from a contact-originated link', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'tx1',
+      amount: 100,
+      type: ProjectTransactionType.INCOME,
+      projectId: 'proj1',
+      project: { userId: 'user1' },
+      witnesses: [],
+      isMirroredFromContact: true,
+    });
+
+    await expect(service.remove('user1', 'tx1')).rejects.toThrow(
+      BadRequestException,
+    );
+    expect(prisma.projectTransaction.delete).not.toHaveBeenCalled();
   });
 
   it('throws ForbiddenException and does not delete when the transaction has witnesses', async () => {
@@ -110,6 +131,180 @@ describe('ProjectTransactionsService — remove', () => {
     expect(prisma.project.update).toHaveBeenCalledWith({
       where: { id: 'proj1' },
       data: { balance: { decrement: -50 } },
+    });
+  });
+});
+
+describe('ProjectTransactionsService — updateWithClient', () => {
+  let service: ProjectTransactionsService;
+  let prisma: {
+    projectTransaction: { findUnique: jest.Mock; update: jest.Mock };
+    project: { update: jest.Mock };
+    projectTransactionHistory: { create: jest.Mock };
+  };
+
+  beforeEach(async () => {
+    prisma = {
+      projectTransaction: { findUnique: jest.fn(), update: jest.fn() },
+      project: { update: jest.fn() },
+      projectTransactionHistory: { create: jest.fn() },
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        ProjectTransactionsService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: NotificationService, useValue: {} },
+      ],
+    }).compile();
+    service = module.get(ProjectTransactionsService);
+  });
+
+  it('rejects editing a passive mirror synced from a contact-originated link', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      amount: 100,
+      type: ProjectTransactionType.INCOME,
+      projectId: 'proj1',
+      project: { userId: 'user1' },
+      isMirroredFromContact: true,
+    });
+
+    await expect(
+      service.updateWithClient(prisma as never, 'user1', {
+        id: 'pt1',
+        amount: 200,
+      } as never),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.projectTransaction.update).not.toHaveBeenCalled();
+  });
+
+  it('allows editing a ProjectTransaction that is itself the origin of a contact link', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      amount: 100,
+      type: ProjectTransactionType.INCOME,
+      projectId: 'proj1',
+      project: { userId: 'user1' },
+      isMirroredFromContact: false,
+      contactId: 'contact-1',
+    });
+    prisma.projectTransaction.update.mockResolvedValue({ id: 'pt1' });
+
+    await expect(
+      service.updateWithClient(prisma as never, 'user1', {
+        id: 'pt1',
+        amount: 200,
+      } as never),
+    ).resolves.toBeDefined();
+  });
+});
+
+describe('ProjectTransactionsService — syncMirroredAmount', () => {
+  let service: ProjectTransactionsService;
+  let prisma: {
+    projectTransaction: { findUnique: jest.Mock; update: jest.Mock };
+    project: { update: jest.Mock };
+    projectTransactionHistory: { create: jest.Mock };
+  };
+
+  beforeEach(async () => {
+    prisma = {
+      projectTransaction: { findUnique: jest.fn(), update: jest.fn() },
+      project: { update: jest.fn() },
+      projectTransactionHistory: { create: jest.fn() },
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        ProjectTransactionsService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: NotificationService, useValue: {} },
+      ],
+    }).compile();
+    service = module.get(ProjectTransactionsService);
+  });
+
+  it('rejects operating on a ProjectTransaction that is not itself a contact-originated mirror (defense in depth)', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      type: ProjectTransactionType.INCOME,
+      amount: 100,
+      projectId: 'proj1',
+      isMirroredFromContact: false,
+    });
+
+    await expect(
+      service.syncMirroredAmount(prisma as never, 'pt1', 200, 'user1'),
+    ).rejects.toThrow(ForbiddenException);
+    expect(prisma.projectTransaction.update).not.toHaveBeenCalled();
+  });
+
+  it('rejects a zero/negative amount', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      type: ProjectTransactionType.INCOME,
+      amount: 100,
+      projectId: 'proj1',
+      isMirroredFromContact: true,
+    });
+
+    await expect(
+      service.syncMirroredAmount(prisma as never, 'pt1', 0, 'user1'),
+    ).rejects.toThrow(BadRequestException);
+    expect(prisma.projectTransaction.update).not.toHaveBeenCalled();
+  });
+
+  it('no-ops when the new amount equals the current amount', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      type: ProjectTransactionType.INCOME,
+      amount: 100,
+      projectId: 'proj1',
+      isMirroredFromContact: true,
+    });
+
+    await service.syncMirroredAmount(prisma as never, 'pt1', 100, 'user1');
+
+    expect(prisma.projectTransaction.update).not.toHaveBeenCalled();
+    expect(prisma.project.update).not.toHaveBeenCalled();
+  });
+
+  it('updates the amount and adjusts project.balance by the correct signed delta for an INCOME mirror', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      type: ProjectTransactionType.INCOME,
+      amount: 100,
+      projectId: 'proj1',
+      isMirroredFromContact: true,
+    });
+
+    await service.syncMirroredAmount(prisma as never, 'pt1', 250, 'user1');
+
+    expect(prisma.projectTransaction.update).toHaveBeenCalledWith({
+      where: { id: 'pt1' },
+      data: { amount: 250 },
+    });
+    expect(prisma.project.update).toHaveBeenCalledWith({
+      where: { id: 'proj1' },
+      data: { balance: { increment: 150 } },
+    });
+  });
+
+  it('updates the amount and adjusts project.balance by the correct signed delta for an EXPENSE mirror', async () => {
+    prisma.projectTransaction.findUnique.mockResolvedValue({
+      id: 'pt1',
+      type: ProjectTransactionType.EXPENSE,
+      amount: 100,
+      projectId: 'proj1',
+      isMirroredFromContact: true,
+    });
+
+    await service.syncMirroredAmount(prisma as never, 'pt1', 250, 'user1');
+
+    expect(prisma.project.update).toHaveBeenCalledWith({
+      where: { id: 'proj1' },
+      data: { balance: { increment: -150 } },
     });
   });
 });

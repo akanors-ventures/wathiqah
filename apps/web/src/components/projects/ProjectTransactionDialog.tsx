@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { ProjectTransactionType } from "@/types/__generated__/graphql";
+import type { ProjectTransactionType, TransactionType } from "@/types/__generated__/graphql";
 import { ProjectTransactionForm } from "./ProjectTransactionForm";
 
 interface EditableTransaction {
@@ -19,6 +19,16 @@ interface EditableTransaction {
   category?: string | null;
   description?: string | null;
   date: string | Date;
+  contactId?: string | null;
+  contact?: { id: string; name: string } | null;
+  contactTransactionType?: TransactionType | null;
+  isMirroredFromContact?: boolean;
+  transaction?: {
+    id: string;
+    type: string;
+    status: string;
+    remainingAmount?: number | null;
+  } | null;
 }
 
 interface ProjectTransactionDialogProps {
@@ -59,7 +69,7 @@ export function ProjectTransactionDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {!isControlled && <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>}
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditMode ? "Edit Transaction" : "Log Transaction"}</DialogTitle>
           <DialogDescription>

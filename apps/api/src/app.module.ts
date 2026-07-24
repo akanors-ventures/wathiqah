@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { TransactionsModule } from './modules/transactions/transactions.module';
+import { ProjectContactLinksModule } from './modules/project-contact-links/project-contact-links.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -229,6 +230,7 @@ import { buildGraphQLContext, parseCookies } from './common/utils/ws-context';
     MaintenanceModule,
     AdminModule,
     ProjectsModule,
+    ProjectContactLinksModule,
     PersonalEntriesModule,
     QueueModule,
     GeoIPModule,

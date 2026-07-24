@@ -10,6 +10,8 @@ import { UpdateProjectTransactionInput } from './dto/update-project-transaction.
 import { FilterProjectTransactionInput } from './dto/filter-project-transaction.input';
 import {
   ProjectTransactionType,
+  TransactionType,
+  TransactionStatus,
   WitnessStatus,
   Witness,
   Prisma,
@@ -36,6 +38,21 @@ export interface WitnessNotification {
     type: string;
     description?: string;
   };
+}
+
+/**
+ * Single source of truth for how a ProjectTransaction's amount/type nets
+ * against `project.balance`: EXPENSE reduces it, INCOME increases it.
+ * Shared across every call site that creates, edits, or reverses a project
+ * balance effect — including `TransactionsService.deleteMirroredProjectTransaction`,
+ * which imports this directly (a plain function import, not a Nest DI edge,
+ * so it adds no module dependency between `TransactionsModule`/`ProjectsModule`).
+ */
+export function computeProjectTransactionBalanceEffect(
+  type: ProjectTransactionType,
+  amount: number,
+): number {
+  return type === ProjectTransactionType.EXPENSE ? -amount : amount;
 }
 
 @Injectable()
@@ -203,8 +220,7 @@ export class ProjectTransactionsService {
   }
 
   async create(userId: string, input: LogProjectTransactionInput) {
-    const { projectId, amount, type, witnessUserIds, witnessInvites, ...rest } =
-      input;
+    const { projectId } = input;
 
     // Verify project ownership
     const project = await this.prisma.project.findUnique({
@@ -215,80 +231,161 @@ export class ProjectTransactionsService {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
+    let notifications: WitnessNotification[] = [];
+    const transaction = await this.prisma.$transaction(async (tx) => {
+      const result = await this.createWithClient(
+        tx as Prisma.TransactionClient,
+        input,
+      );
+      notifications = result.notifications;
+      return result.transaction;
+    });
+
+    await this.notifyWitnesses(notifications);
+
+    return transaction;
+  }
+
+  async notifyWitnesses(notifications: WitnessNotification[]) {
+    if (notifications.length === 0) return;
+    for (const notification of notifications) {
+      this.notificationService
+        .sendProjectTransactionWitnessInvite(
+          notification.email,
+          notification.firstName,
+          notification.rawToken,
+          {
+            ...notification.transactionDetails,
+            currency: notification.transactionDetails.currency,
+          },
+          notification.senderId,
+          notification.phoneNumber,
+        )
+        .catch((err) =>
+          console.error('Failed to send witness notification', err),
+        );
+    }
+  }
+
+  /**
+   * Leaf create logic accepting an externally-supplied transaction client so
+   * `ProjectContactLinkService` can create the ProjectTransaction row inside
+   * its own `$transaction` block (atomic with a mirrored Transaction write).
+   * `extra` is set only by that internal caller — never client-settable via
+   * the `logProjectTransaction` mutation's `LogProjectTransactionInput`.
+   *
+   * Note: the physical FK for this link lives on `Transaction.projectTransactionId`,
+   * not here — `ProjectTransaction.transaction` is an inferred back-relation with
+   * no column. When originating from the contact side, the caller must separately
+   * update the Transaction row's `projectTransactionId` after this returns (this
+   * row doesn't exist yet at the time the Transaction row itself is created).
+   */
+  async createWithClient(
+    prisma: Prisma.TransactionClient,
+    input: LogProjectTransactionInput,
+    extra?: { isMirroredFromContact?: boolean },
+  ): Promise<{
+    transaction: Awaited<ReturnType<typeof prisma.projectTransaction.create>>;
+    notifications: WitnessNotification[];
+  }> {
+    const {
+      projectId,
+      amount,
+      type,
+      witnessUserIds,
+      witnessInvites,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      parentTransactionId, // Not a ProjectTransaction column — consumed by ProjectContactLinkService for mirror-linking, never persisted here
+      ...rest
+    } = input;
+
     if (amount <= 0) {
       throw new BadRequestException(
         'Transaction amount must be greater than zero',
       );
     }
 
-    // Use a transaction to ensure atomic updates
-    let notifications: WitnessNotification[] = [];
-    const transaction = await this.prisma.$transaction(async (tx) => {
-      // Create the transaction
-      const transaction = await tx.projectTransaction.create({
-        data: {
-          projectId,
-          amount,
-          type,
-          ...rest,
-        },
-      });
-
-      // Update project balance
-      let balanceChange = amount;
-      if (type === ProjectTransactionType.EXPENSE) {
-        balanceChange = -amount;
-      }
-
-      await tx.project.update({
-        where: { id: projectId },
-        data: {
-          balance: {
-            increment: balanceChange,
-          },
-        },
-      });
-
-      // Process witnesses
-      notifications = await this.processWitnesses(
-        transaction.id,
-        witnessUserIds,
-        witnessInvites,
-        tx as Prisma.TransactionClient,
-      );
-
-      return transaction;
+    // Create the transaction
+    const transaction = await prisma.projectTransaction.create({
+      data: {
+        projectId,
+        amount,
+        type,
+        ...rest,
+        ...(extra?.isMirroredFromContact
+          ? { isMirroredFromContact: true }
+          : {}),
+      },
     });
 
-    // Send notifications after transaction commits
-    if (notifications.length > 0) {
-      for (const notification of notifications) {
-        this.notificationService
-          .sendProjectTransactionWitnessInvite(
-            notification.email,
-            notification.firstName,
-            notification.rawToken,
-            {
-              ...notification.transactionDetails,
-              currency: notification.transactionDetails.currency,
-            },
-            notification.senderId,
-            notification.phoneNumber,
-          )
-          .catch((err) =>
-            console.error('Failed to send witness notification', err),
-          );
-      }
-    }
+    // Update project balance
+    const balanceChange = computeProjectTransactionBalanceEffect(type, amount);
 
-    return transaction;
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        balance: {
+          increment: balanceChange,
+        },
+      },
+    });
+
+    // Process witnesses
+    const notifications = await this.processWitnesses(
+      transaction.id,
+      witnessUserIds,
+      witnessInvites,
+      prisma,
+    );
+
+    return { transaction, notifications };
   }
 
   async update(userId: string, input: UpdateProjectTransactionInput) {
-    const { id, amount, type, ...rest } = input;
+    return this.prisma.$transaction(async (tx) => {
+      const result = await this.updateWithClient(
+        tx as Prisma.TransactionClient,
+        userId,
+        input,
+      );
+      return result.transaction;
+    });
+  }
+
+  /**
+   * Leaf update logic accepting an externally-supplied transaction client so
+   * `ProjectContactLinkService` can compose a retroactive contact-link (or an
+   * amount edit needing a mirrored-Transaction sync) atomically with its own
+   * write. `amountChanged`/`newAmount` let the orchestrator decide whether to
+   * call `transactionsService.syncMirroredAmount` afterward.
+   */
+  async updateWithClient(
+    prisma: Prisma.TransactionClient,
+    userId: string,
+    input: UpdateProjectTransactionInput,
+    extraData?: Prisma.ProjectTransactionUncheckedUpdateInput,
+  ): Promise<{
+    transaction: Awaited<
+      ReturnType<typeof prisma.projectTransaction.findUnique>
+    >;
+    amountChanged: boolean;
+    newAmount: number;
+  }> {
+    const {
+      id,
+      amount,
+      type,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      contactId,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      contactTransactionType,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      parentTransactionId,
+      ...rest
+    } = input;
 
     // Fetch the existing transaction with its project
-    const transaction = await this.prisma.projectTransaction.findUnique({
+    const transaction = await prisma.projectTransaction.findUnique({
       where: { id },
       include: { project: true },
     });
@@ -306,6 +403,12 @@ export class ProjectTransactionsService {
       );
     }
 
+    if (transaction.isMirroredFromContact) {
+      throw new BadRequestException(
+        'This transaction originated from a contact. Edit it from the contact page instead.',
+      );
+    }
+
     if (amount !== undefined && amount <= 0) {
       throw new BadRequestException(
         'Transaction amount must be greater than zero',
@@ -319,11 +422,23 @@ export class ProjectTransactionsService {
       category: transaction.category,
       description: transaction.description,
       date: transaction.date,
+      contactId: transaction.contactId,
+      contactTransactionType: transaction.contactTransactionType,
     };
 
     // Determine what changed
-    const changes: Prisma.ProjectTransactionUncheckedUpdateInput = {};
+    const changes: Prisma.ProjectTransactionUncheckedUpdateInput = {
+      ...extraData,
+    };
     const changeDescriptions: string[] = [];
+
+    // extraData seeds `changes` above with contactId/contactTransactionType
+    // for a retroactive project↔contact link (see ProjectContactLinkService).
+    // Record it explicitly so the audit entry reads as "linked to a contact"
+    // rather than falling through to the generic 'UPDATED' fallback below.
+    if (extraData?.contactId && !transaction.contactId) {
+      changeDescriptions.push('Linked to a contact');
+    }
 
     if (amount !== undefined && Number(amount) !== Number(transaction.amount)) {
       changes.amount = amount;
@@ -355,58 +470,157 @@ export class ProjectTransactionsService {
     }
 
     const hasChanges = Object.keys(changes).length > 0;
+    const amountChanged = changes.amount !== undefined;
+    const newAmount =
+      amount !== undefined ? amount : Number(transaction.amount);
 
     if (!hasChanges) {
-      return this.prisma.projectTransaction.findUnique({
-        where: { id },
-        include: { witnesses: { include: { user: true } }, history: true },
-      });
+      return {
+        transaction: await prisma.projectTransaction.findUnique({
+          where: { id },
+          include: { witnesses: { include: { user: true } }, history: true },
+        }),
+        amountChanged: false,
+        newAmount,
+      };
     }
 
     // Balance adjustment when amount or type changes
     const oldAmount = Number(transaction.amount);
-    const newAmount = amount !== undefined ? amount : oldAmount;
     const oldType = transaction.type;
     const newType = type ?? oldType;
 
-    const oldBalanceEffect =
-      oldType === ProjectTransactionType.EXPENSE ? -oldAmount : oldAmount;
-    const newBalanceEffect =
-      newType === ProjectTransactionType.EXPENSE ? -newAmount : newAmount;
+    const oldBalanceEffect = computeProjectTransactionBalanceEffect(
+      oldType,
+      oldAmount,
+    );
+    const newBalanceEffect = computeProjectTransactionBalanceEffect(
+      newType,
+      newAmount,
+    );
     const balanceDelta = newBalanceEffect - oldBalanceEffect;
 
-    return this.prisma.$transaction(async (tx) => {
-      const updated = await tx.projectTransaction.update({
-        where: { id },
-        data: changes,
-        include: { witnesses: { include: { user: true } }, history: true },
+    const updated = await prisma.projectTransaction.update({
+      where: { id },
+      data: changes,
+      include: { witnesses: { include: { user: true } }, history: true },
+    });
+
+    // Update project balance if needed
+    if (balanceDelta !== 0) {
+      await prisma.project.update({
+        where: { id: transaction.projectId },
+        data: { balance: { increment: balanceDelta } },
       });
+    }
 
-      // Update project balance if needed
-      if (balanceDelta !== 0) {
-        await tx.project.update({
-          where: { id: transaction.projectId },
-          data: { balance: { increment: balanceDelta } },
-        });
-      }
+    // Write audit history
+    await prisma.projectTransactionHistory.create({
+      data: {
+        projectTransactionId: id,
+        userId,
+        previousState: previousState as Prisma.InputJsonValue,
+        newState: changes as Prisma.InputJsonValue,
+        changeType: changeDescriptions.join('; ') || 'UPDATED',
+      },
+    });
 
-      // Write audit history
-      await tx.projectTransactionHistory.create({
-        data: {
-          projectTransactionId: id,
-          userId,
-          previousState: previousState as Prisma.InputJsonValue,
-          newState: changes as Prisma.InputJsonValue,
-          changeType: changeDescriptions.join('; ') || 'UPDATED',
-        },
+    return { transaction: updated, amountChanged, newAmount };
+  }
+
+  /**
+   * Reverse direction of `TransactionsService.syncMirroredAmount`: keeps a
+   * passive contact-originated ProjectTransaction mirror's amount and
+   * `project.balance` in sync when the real Transaction it mirrors has its
+   * amount edited. Bypasses `updateWithClient`'s `isMirroredFromContact`
+   * guard by design — this IS the sanctioned path for mutating a mirror.
+   */
+  async syncMirroredAmount(
+    prisma: Prisma.TransactionClient,
+    projectTransactionId: string,
+    newAmount: number,
+    userId: string,
+  ): Promise<void> {
+    const mirrored = await prisma.projectTransaction.findUnique({
+      where: { id: projectTransactionId },
+      select: {
+        type: true,
+        amount: true,
+        projectId: true,
+        isMirroredFromContact: true,
+      },
+    });
+    if (!mirrored) return;
+
+    // Defense in depth: this method exists to mutate a passive contact→project
+    // mirror, never a project-originated row directly (that goes through
+    // updateWithClient's own guard). Guards against a future call site
+    // passing the wrong id.
+    if (!mirrored.isMirroredFromContact) {
+      throw new ForbiddenException(
+        'This project transaction was not created from a contact link and cannot be synced this way.',
+      );
+    }
+
+    if (newAmount <= 0) {
+      throw new BadRequestException(
+        'Transaction amount must be greater than zero',
+      );
+    }
+
+    const oldAmount = Number(mirrored.amount);
+    if (newAmount === oldAmount) return;
+
+    const oldBalanceEffect = computeProjectTransactionBalanceEffect(
+      mirrored.type,
+      oldAmount,
+    );
+    const newBalanceEffect = computeProjectTransactionBalanceEffect(
+      mirrored.type,
+      newAmount,
+    );
+    const balanceDelta = newBalanceEffect - oldBalanceEffect;
+
+    await prisma.projectTransaction.update({
+      where: { id: projectTransactionId },
+      data: { amount: newAmount },
+    });
+
+    if (balanceDelta !== 0) {
+      await prisma.project.update({
+        where: { id: mirrored.projectId },
+        data: { balance: { increment: balanceDelta } },
       });
+    }
 
-      return updated;
+    await prisma.projectTransactionHistory.create({
+      data: {
+        projectTransactionId,
+        userId,
+        previousState: { amount: oldAmount } as Prisma.InputJsonValue,
+        newState: { amount: newAmount } as Prisma.InputJsonValue,
+        changeType: `Amount changed to ${newAmount}`,
+      },
     });
   }
 
   async remove(userId: string, id: string) {
-    const transaction = await this.prisma.projectTransaction.findUnique({
+    return this.prisma.$transaction((tx) =>
+      this.removeWithClient(tx as Prisma.TransactionClient, userId, id),
+    );
+  }
+
+  /**
+   * Leaf remove logic accepting an externally-supplied transaction client so
+   * `ProjectContactLinkService` can delete a linked ProjectTransaction and
+   * its mirrored Transaction atomically in one `$transaction`.
+   */
+  async removeWithClient(
+    prisma: Prisma.TransactionClient,
+    userId: string,
+    id: string,
+  ) {
+    const transaction = await prisma.projectTransaction.findUnique({
       where: { id },
       include: { project: true, witnesses: true },
     });
@@ -423,6 +637,12 @@ export class ProjectTransactionsService {
       );
     }
 
+    if (transaction.isMirroredFromContact) {
+      throw new BadRequestException(
+        'This transaction originated from a contact. Delete it from the contact page instead.',
+      );
+    }
+
     // Mirrors the personal-transaction "No Deletion" witness policy
     // (see WITNESS_SYSTEM.md): a witnessed record must never be
     // hard-deleted. ProjectTransaction has no CANCELLED status to fall
@@ -434,20 +654,77 @@ export class ProjectTransactionsService {
       );
     }
 
-    const balanceEffect =
-      transaction.type === ProjectTransactionType.EXPENSE
-        ? -Number(transaction.amount)
-        : Number(transaction.amount);
+    const balanceEffect = computeProjectTransactionBalanceEffect(
+      transaction.type,
+      Number(transaction.amount),
+    );
 
-    return this.prisma.$transaction(async (tx) => {
-      const deleted = await tx.projectTransaction.delete({ where: { id } });
+    const deleted = await prisma.projectTransaction.delete({ where: { id } });
 
-      await tx.project.update({
-        where: { id: transaction.projectId },
-        data: { balance: { decrement: balanceEffect } },
-      });
+    await prisma.project.update({
+      where: { id: transaction.projectId },
+      data: { balance: { decrement: balanceEffect } },
+    });
 
-      return deleted;
+    return deleted;
+  }
+
+  /**
+   * Outstanding loans/escrows with a given contact that originated from this
+   * same project — powers the "which loan are you repaying" picker shown
+   * when logging a repayment-type contact link from the project side.
+   * Deliberately scoped to this project only; repaying a loan that
+   * originated elsewhere (a different project, or the standalone contact
+   * ledger) stays on the existing standalone `/transactions/new` flow.
+   */
+  async findOutstandingContactLoans(
+    userId: string,
+    projectId: string,
+    contactId: string,
+    contactTransactionType?: TransactionType,
+  ) {
+    const project = await this.prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project || project.userId !== userId) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+
+    // Mirrors the parent-type pairing TransactionsService.createWithClient
+    // actually enforces, so the picker never surfaces a loan that would fail
+    // validation on submit: REPAYMENT_RECEIVED only closes a LOAN_GIVEN,
+    // REPAYMENT_MADE only a LOAN_RECEIVED, REMITTED only an ESCROWED; gift
+    // conversions accept either loan direction.
+    const validParentTypes: Record<string, TransactionType[]> = {
+      [TransactionType.REPAYMENT_RECEIVED]: [TransactionType.LOAN_GIVEN],
+      [TransactionType.REPAYMENT_MADE]: [TransactionType.LOAN_RECEIVED],
+      [TransactionType.REMITTED]: [TransactionType.ESCROWED],
+      [TransactionType.GIFT_GIVEN]: [
+        TransactionType.LOAN_GIVEN,
+        TransactionType.LOAN_RECEIVED,
+      ],
+      [TransactionType.GIFT_RECEIVED]: [
+        TransactionType.LOAN_GIVEN,
+        TransactionType.LOAN_RECEIVED,
+      ],
+    };
+    const allowedTypes = contactTransactionType
+      ? (validParentTypes[contactTransactionType] ?? [])
+      : [
+          TransactionType.LOAN_GIVEN,
+          TransactionType.LOAN_RECEIVED,
+          TransactionType.ESCROWED,
+        ];
+
+    return this.prisma.transaction.findMany({
+      where: {
+        contactId,
+        status: TransactionStatus.PENDING,
+        type: { in: allowedTypes },
+        projectTransaction: { projectId },
+      },
+      orderBy: { date: 'desc' },
     });
   }
 

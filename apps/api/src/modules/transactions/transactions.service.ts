@@ -14,6 +14,7 @@ import {
   WitnessStatus,
   TransactionStatus,
   TransactionType,
+  ProjectTransactionType,
   Prisma,
   Witness,
 } from '../../generated/prisma/client';
@@ -31,6 +32,7 @@ import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
+import { computeProjectTransactionBalanceEffect } from '../projects/project-transactions.service';
 
 /** Perspective-flip pairs for shared-ledger view. */
 const PERSPECTIVE_FLIP_MAP: Partial<Record<string, string>> = {
@@ -131,6 +133,10 @@ export class TransactionsService {
     prisma: Prisma.TransactionClient,
     parentId: string,
     userId: string,
+    // Caller may already have summed the non-cancelled children (e.g.
+    // syncMirroredAmount computes this to validate the new amount) — skip
+    // the redundant findMany when it's passed.
+    preloadedSettledAmount?: number,
   ): Promise<void> {
     const parent = await prisma.transaction.findUnique({
       where: { id: parentId },
@@ -148,18 +154,20 @@ export class TransactionsService {
       return;
     }
 
-    const children = await prisma.transaction.findMany({
-      where: {
-        parentId,
-        status: { not: TransactionStatus.CANCELLED },
-      },
-      select: { amount: true },
-    });
-
-    const settled = children.reduce(
-      (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-      0,
-    );
+    let settled = preloadedSettledAmount;
+    if (settled === undefined) {
+      const children = await prisma.transaction.findMany({
+        where: {
+          parentId,
+          status: { not: TransactionStatus.CANCELLED },
+        },
+        select: { amount: true },
+      });
+      settled = children.reduce(
+        (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+        0,
+      );
+    }
     const parentAmount = Number(parent.amount);
     const isFullySettled = settled >= parentAmount;
     const nextStatus = isFullySettled
@@ -364,7 +372,7 @@ export class TransactionsService {
     return notifications;
   }
 
-  private async notifyWitnesses(notifications: WitnessNotification[]) {
+  async notifyWitnesses(notifications: WitnessNotification[]) {
     for (const notification of notifications) {
       const {
         witnessId,
@@ -417,6 +425,45 @@ export class TransactionsService {
     userId: string,
     orgId: string | null,
   ) {
+    let notifications: WitnessNotification[] = [];
+    const transaction = await this.prisma.$transaction(async (prisma) => {
+      const result = await this.createWithClient(
+        prisma,
+        createTransactionInput,
+        userId,
+        orgId,
+      );
+      notifications = result.notifications;
+      return result.transaction;
+    });
+
+    // Send notifications after transaction commits
+    if (notifications.length > 0) {
+      await this.notifyWitnesses(notifications).catch((err) => {
+        console.error('Failed to send witness notifications:', err);
+      });
+    }
+
+    return transaction;
+  }
+
+  /**
+   * Leaf create logic accepting an externally-supplied transaction client so
+   * `ProjectContactLinkService` can create a mirrored Transaction row inside
+   * its own `$transaction` block (atomic with the ProjectTransaction write).
+   * `extra` is set only by that internal caller — never client-settable via
+   * the `createTransaction` mutation's `CreateTransactionInput`.
+   */
+  async createWithClient(
+    prisma: Prisma.TransactionClient,
+    createTransactionInput: CreateTransactionInput,
+    userId: string,
+    orgId: string | null,
+    extra?: { projectTransactionId?: string; isMirroredFromProject?: boolean },
+  ): Promise<{
+    transaction: Awaited<ReturnType<typeof prisma.transaction.create>>;
+    notifications: WitnessNotification[];
+  }> {
     const {
       category,
       amount,
@@ -424,6 +471,8 @@ export class TransactionsService {
       quantity,
       witnessUserIds,
       witnessInvites,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      projectId, // Not a Transaction column — consumed by ProjectContactLinkService, never persisted here
       ...rest
     } = createTransactionInput;
 
@@ -446,285 +495,402 @@ export class TransactionsService {
       rest.type === 'GIFT_GIVEN' || rest.type === 'GIFT_RECEIVED';
     const isRemittance = rest.type === 'REMITTED';
 
-    // Start a transaction to ensure all witness records are created or nothing is
-    let notifications: WitnessNotification[] = [];
-    const transaction = await this.prisma.$transaction(async (prisma) => {
-      let parentTransaction: Awaited<
-        ReturnType<typeof prisma.transaction.findUnique>
-      > = null;
-      let derivedContactId: string | undefined;
+    let parentTransaction: Awaited<
+      ReturnType<typeof prisma.transaction.findUnique>
+    > = null;
+    let derivedContactId: string | undefined;
 
-      if (rest.parentId) {
-        parentTransaction = await prisma.transaction.findUnique({
-          where: { id: rest.parentId },
-        });
+    if (rest.parentId) {
+      parentTransaction = await prisma.transaction.findUnique({
+        where: { id: rest.parentId },
+      });
 
-        if (!parentTransaction) {
-          throw new NotFoundException(
-            `Parent transaction ${rest.parentId} not found`,
-          );
-        }
+      if (!parentTransaction) {
+        throw new NotFoundException(
+          `Parent transaction ${rest.parentId} not found`,
+        );
+      }
 
-        if (parentTransaction.createdById !== userId) {
-          throw new ForbiddenException(
-            'Cannot link to a transaction you do not own',
-          );
-        }
+      if (parentTransaction.createdById !== userId) {
+        throw new ForbiddenException(
+          'Cannot link to a transaction you do not own',
+        );
+      }
 
-        if (isGiftConversion) {
-          // Gift conversion must attach to an open loan
-          if (
-            parentTransaction.type !== 'LOAN_GIVEN' &&
-            parentTransaction.type !== 'LOAN_RECEIVED'
-          ) {
-            throw new BadRequestException(
-              'Only LOAN_GIVEN or LOAN_RECEIVED transactions can be converted to a gift',
-            );
-          }
-          if (
-            amount &&
-            parentTransaction.amount &&
-            Number(amount) > Number(parentTransaction.amount)
-          ) {
-            throw new BadRequestException(
-              'Gift conversion amount cannot exceed parent transaction amount',
-            );
-          }
-        } else if (isRepayment) {
-          // Repayment must be linked to a matching loan
-          const expectedParentType =
-            rest.type === 'REPAYMENT_RECEIVED' ? 'LOAN_GIVEN' : 'LOAN_RECEIVED';
-          if (parentTransaction.type !== expectedParentType) {
-            throw new BadRequestException(
-              `${rest.type} must be linked to a ${expectedParentType} transaction`,
-            );
-          }
-          if (parentTransaction.category !== AssetCategory.FUNDS) {
-            throw new BadRequestException(
-              'Repayments can only be recorded against FUNDS loans',
-            );
-          }
-          if (!parentTransaction.contactId) {
-            throw new BadRequestException(
-              'Parent loan must have a contact to record a repayment',
-            );
-          }
-
-          // Derive contactId/currency from parent (ignore any client-supplied values)
-          derivedContactId = parentTransaction.contactId;
-          rest.contactId = parentTransaction.contactId;
-          rest.currency =
-            parentTransaction.currency ?? rest.currency ?? undefined;
-
-          // Outstanding = parent amount - (sum of existing repayment children + sum of gift conversions)
-          const children = await prisma.transaction.findMany({
-            where: {
-              parentId: rest.parentId,
-              status: { not: 'CANCELLED' },
-            },
-            select: { amount: true, type: true },
-          });
-          const alreadySettled = children.reduce(
-            (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-            0,
-          );
-          const parentAmount = parentTransaction.amount
-            ? Number(parentTransaction.amount)
-            : 0;
-          const outstanding = Math.max(0, parentAmount - alreadySettled);
-          const repayAmount = Number(amount ?? 0);
-
-          if (repayAmount <= 0) {
-            throw new BadRequestException(
-              'Repayment amount must be greater than zero',
-            );
-          }
-          if (repayAmount > outstanding) {
-            throw new BadRequestException(
-              `Repayment amount (${repayAmount}) exceeds outstanding balance (${outstanding}) on the parent loan`,
-            );
-          }
-        } else if (isRemittance) {
-          // Remittance must be linked to an open escrow
-          if (parentTransaction.type !== 'ESCROWED') {
-            throw new BadRequestException(
-              'REMITTED must be linked to an ESCROWED transaction',
-            );
-          }
-          if (parentTransaction.category !== AssetCategory.FUNDS) {
-            throw new BadRequestException(
-              'Remittances can only be recorded against FUNDS escrows',
-            );
-          }
-          if (!parentTransaction.contactId) {
-            throw new BadRequestException(
-              'Parent escrow must have a contact to record a remittance',
-            );
-          }
-
-          // Derive contactId/currency from parent (ignore any client-supplied values)
-          derivedContactId = parentTransaction.contactId;
-          rest.contactId = parentTransaction.contactId;
-          rest.currency =
-            parentTransaction.currency ?? rest.currency ?? undefined;
-
-          // Outstanding = parent amount - sum of existing remittance children
-          const children = await prisma.transaction.findMany({
-            where: {
-              parentId: rest.parentId,
-              status: { not: 'CANCELLED' },
-            },
-            select: { amount: true },
-          });
-          const alreadyRemitted = children.reduce(
-            (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-            0,
-          );
-          const parentAmount = parentTransaction.amount
-            ? Number(parentTransaction.amount)
-            : 0;
-          const outstanding = Math.max(0, parentAmount - alreadyRemitted);
-          const remitAmount = Number(amount ?? 0);
-
-          if (remitAmount <= 0) {
-            throw new BadRequestException(
-              'Remittance amount must be greater than zero',
-            );
-          }
-          if (remitAmount > outstanding) {
-            throw new BadRequestException(
-              `Remittance amount (${remitAmount}) exceeds outstanding balance (${outstanding}) on the parent escrow`,
-            );
-          }
-        } else {
-          // Parent linkage is only supported for gifts, repayments, and remittances
+      if (isGiftConversion) {
+        // Gift conversion must attach to an open loan
+        if (
+          parentTransaction.type !== 'LOAN_GIVEN' &&
+          parentTransaction.type !== 'LOAN_RECEIVED'
+        ) {
           throw new BadRequestException(
-            'parentId is only valid for gift conversions, repayments, or remittances',
+            'Only LOAN_GIVEN or LOAN_RECEIVED transactions can be converted to a gift',
+          );
+        }
+        if (
+          amount &&
+          parentTransaction.amount &&
+          Number(amount) > Number(parentTransaction.amount)
+        ) {
+          throw new BadRequestException(
+            'Gift conversion amount cannot exceed parent transaction amount',
           );
         }
       } else if (isRepayment) {
-        throw new BadRequestException(
-          'Repayments must be linked to a parent loan via parentId',
-        );
-      } else if (isRemittance) {
-        throw new BadRequestException(
-          'Remittances must be linked to a parent escrow via parentId',
-        );
-      }
-
-      // Validate contactId if provided (skipped when derived from parent above)
-      if (rest.contactId && !derivedContactId) {
-        const contact = await prisma.contact.findUnique({
-          where: { id: rest.contactId },
-        });
-
-        if (!contact) {
-          throw new NotFoundException(`Contact ${rest.contactId} not found`);
-        }
-
-        if (contact.userId !== userId) {
-          throw new ForbiddenException(
-            'Cannot create a transaction for a contact you do not own',
+        // Repayment must be linked to a matching loan
+        const expectedParentType =
+          rest.type === 'REPAYMENT_RECEIVED' ? 'LOAN_GIVEN' : 'LOAN_RECEIVED';
+        if (parentTransaction.type !== expectedParentType) {
+          throw new BadRequestException(
+            `${rest.type} must be linked to a ${expectedParentType} transaction`,
           );
         }
-      }
+        if (parentTransaction.category !== AssetCategory.FUNDS) {
+          throw new BadRequestException(
+            'Repayments can only be recorded against FUNDS loans',
+          );
+        }
+        if (!parentTransaction.contactId) {
+          throw new BadRequestException(
+            'Parent loan must have a contact to record a repayment',
+          );
+        }
 
-      // Lifecycle parent types start as PENDING (outstanding obligation).
-      // The schema default is COMPLETED, which is correct for one-shot
-      // transactions but wrong for parents that expect children to settle
-      // them. Children themselves (repayments / remittances) keep the
-      // default COMPLETED — they're standalone settled events.
-      const isLifecycleParent =
-        !rest.parentId &&
-        (rest.type === 'LOAN_GIVEN' ||
-          rest.type === 'LOAN_RECEIVED' ||
-          rest.type === 'ESCROWED');
+        // Derive contactId/currency from parent (ignore any client-supplied values)
+        derivedContactId = parentTransaction.contactId;
+        rest.contactId = parentTransaction.contactId;
+        rest.currency =
+          parentTransaction.currency ?? rest.currency ?? undefined;
 
-      const transaction = await prisma.transaction.create({
-        data: {
-          category,
-          amount: category === AssetCategory.FUNDS ? amount : null,
-          itemName: category === AssetCategory.ITEM ? itemName : null,
-          quantity: category === AssetCategory.ITEM ? quantity : null,
-          createdById: userId,
-          orgId: orgId ?? undefined,
-          ...rest,
-          ...(isLifecycleParent ? { status: TransactionStatus.PENDING } : {}),
-        },
-      });
-
-      // Log parent-history entry for conversions, repayments, and remittances
-      if (rest.parentId && parentTransaction) {
-        const parentAmountNum = parentTransaction.amount
+        // Outstanding = parent amount - (sum of existing repayment children + sum of gift conversions)
+        const children = await prisma.transaction.findMany({
+          where: {
+            parentId: rest.parentId,
+            status: { not: 'CANCELLED' },
+          },
+          select: { amount: true, type: true },
+        });
+        const alreadySettled = children.reduce(
+          (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+          0,
+        );
+        const parentAmount = parentTransaction.amount
           ? Number(parentTransaction.amount)
           : 0;
-        const thisAmountNum = Number(amount ?? 0);
-        let changeType: string;
-        let newState: Prisma.InputJsonValue;
-        if (isRepayment) {
-          changeType = 'REPAYMENT_RECORDED';
-          newState = {
-            repaymentId: transaction.id,
-            repaymentAmount: amount,
-            repaymentType: rest.type,
-          };
-        } else if (isRemittance) {
-          changeType = 'REMITTANCE_RECORDED';
-          newState = {
-            remittanceId: transaction.id,
-            remittanceAmount: amount,
-          };
-        } else {
-          changeType = 'PARTIAL_CONVERSION_TO_GIFT';
-          newState = {
-            conversionId: transaction.id,
-            giftAmount: amount,
-            remainingAmount: parentAmountNum - thisAmountNum,
-          };
+        const outstanding = Math.max(0, parentAmount - alreadySettled);
+        const repayAmount = Number(amount ?? 0);
+
+        if (repayAmount <= 0) {
+          throw new BadRequestException(
+            'Repayment amount must be greater than zero',
+          );
         }
-        await prisma.transactionHistory.create({
-          data: {
-            transactionId: rest.parentId,
-            userId,
-            changeType,
-            previousState: {
-              amount: parentTransaction.amount,
-              type: parentTransaction.type,
-            },
-            newState,
+        if (repayAmount > outstanding) {
+          throw new BadRequestException(
+            `Repayment amount (${repayAmount}) exceeds outstanding balance (${outstanding}) on the parent loan`,
+          );
+        }
+      } else if (isRemittance) {
+        // Remittance must be linked to an open escrow
+        if (parentTransaction.type !== 'ESCROWED') {
+          throw new BadRequestException(
+            'REMITTED must be linked to an ESCROWED transaction',
+          );
+        }
+        if (parentTransaction.category !== AssetCategory.FUNDS) {
+          throw new BadRequestException(
+            'Remittances can only be recorded against FUNDS escrows',
+          );
+        }
+        if (!parentTransaction.contactId) {
+          throw new BadRequestException(
+            'Parent escrow must have a contact to record a remittance',
+          );
+        }
+
+        // Derive contactId/currency from parent (ignore any client-supplied values)
+        derivedContactId = parentTransaction.contactId;
+        rest.contactId = parentTransaction.contactId;
+        rest.currency =
+          parentTransaction.currency ?? rest.currency ?? undefined;
+
+        // Outstanding = parent amount - sum of existing remittance children
+        const children = await prisma.transaction.findMany({
+          where: {
+            parentId: rest.parentId,
+            status: { not: 'CANCELLED' },
           },
+          select: { amount: true },
         });
-      }
+        const alreadyRemitted = children.reduce(
+          (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+          0,
+        );
+        const parentAmount = parentTransaction.amount
+          ? Number(parentTransaction.amount)
+          : 0;
+        const outstanding = Math.max(0, parentAmount - alreadyRemitted);
+        const remitAmount = Number(amount ?? 0);
 
-      // Auto-flip parent status when a repayment or remittance settles it
-      if (rest.parentId && (isRepayment || isRemittance)) {
-        await this.recomputeParentLoanStatus(prisma, rest.parentId, userId);
+        if (remitAmount <= 0) {
+          throw new BadRequestException(
+            'Remittance amount must be greater than zero',
+          );
+        }
+        if (remitAmount > outstanding) {
+          throw new BadRequestException(
+            `Remittance amount (${remitAmount}) exceeds outstanding balance (${outstanding}) on the parent escrow`,
+          );
+        }
+      } else {
+        // Parent linkage is only supported for gifts, repayments, and remittances
+        throw new BadRequestException(
+          'parentId is only valid for gift conversions, repayments, or remittances',
+        );
       }
-
-      notifications = await this.processWitnesses(
-        transaction.id,
-        witnessUserIds,
-        witnessInvites,
-        prisma,
+    } else if (isRepayment) {
+      throw new BadRequestException(
+        'Repayments must be linked to a parent loan via parentId',
       );
+    } else if (isRemittance) {
+      throw new BadRequestException(
+        'Remittances must be linked to a parent escrow via parentId',
+      );
+    }
 
-      return transaction;
+    // Validate contactId if provided (skipped when derived from parent above)
+    if (rest.contactId && !derivedContactId) {
+      const contact = await prisma.contact.findUnique({
+        where: { id: rest.contactId },
+      });
+
+      if (!contact) {
+        throw new NotFoundException(`Contact ${rest.contactId} not found`);
+      }
+
+      if (contact.userId !== userId) {
+        throw new ForbiddenException(
+          'Cannot create a transaction for a contact you do not own',
+        );
+      }
+    }
+
+    // Lifecycle parent types start as PENDING (outstanding obligation).
+    // The schema default is COMPLETED, which is correct for one-shot
+    // transactions but wrong for parents that expect children to settle
+    // them. Children themselves (repayments / remittances) keep the
+    // default COMPLETED — they're standalone settled events.
+    const isLifecycleParent =
+      !rest.parentId &&
+      (rest.type === 'LOAN_GIVEN' ||
+        rest.type === 'LOAN_RECEIVED' ||
+        rest.type === 'ESCROWED');
+
+    const transaction = await prisma.transaction.create({
+      data: {
+        category,
+        amount: category === AssetCategory.FUNDS ? amount : null,
+        itemName: category === AssetCategory.ITEM ? itemName : null,
+        quantity: category === AssetCategory.ITEM ? quantity : null,
+        createdById: userId,
+        orgId: orgId ?? undefined,
+        ...rest,
+        ...(isLifecycleParent ? { status: TransactionStatus.PENDING } : {}),
+        ...(extra?.projectTransactionId
+          ? { projectTransactionId: extra.projectTransactionId }
+          : {}),
+        ...(extra?.isMirroredFromProject
+          ? { isMirroredFromProject: true }
+          : {}),
+      },
     });
 
-    // Send notifications after transaction commits
-    if (notifications.length > 0) {
-      await this.notifyWitnesses(notifications).catch((err) => {
-        console.error('Failed to send witness notifications:', err);
+    // Log parent-history entry for conversions, repayments, and remittances
+    if (rest.parentId && parentTransaction) {
+      const parentAmountNum = parentTransaction.amount
+        ? Number(parentTransaction.amount)
+        : 0;
+      const thisAmountNum = Number(amount ?? 0);
+      let changeType: string;
+      let newState: Prisma.InputJsonValue;
+      if (isRepayment) {
+        changeType = 'REPAYMENT_RECORDED';
+        newState = {
+          repaymentId: transaction.id,
+          repaymentAmount: amount,
+          repaymentType: rest.type,
+        };
+      } else if (isRemittance) {
+        changeType = 'REMITTANCE_RECORDED';
+        newState = {
+          remittanceId: transaction.id,
+          remittanceAmount: amount,
+        };
+      } else {
+        changeType = 'PARTIAL_CONVERSION_TO_GIFT';
+        newState = {
+          conversionId: transaction.id,
+          giftAmount: amount,
+          remainingAmount: parentAmountNum - thisAmountNum,
+        };
+      }
+      await prisma.transactionHistory.create({
+        data: {
+          transactionId: rest.parentId,
+          userId,
+          changeType,
+          previousState: {
+            amount: parentTransaction.amount,
+            type: parentTransaction.type,
+          },
+          newState,
+        },
       });
     }
 
-    return transaction;
+    // Auto-flip parent status when a repayment or remittance settles it
+    if (rest.parentId && (isRepayment || isRemittance)) {
+      await this.recomputeParentLoanStatus(prisma, rest.parentId, userId);
+    }
+
+    const notifications = await this.processWitnesses(
+      transaction.id,
+      witnessUserIds,
+      witnessInvites,
+      prisma,
+    );
+
+    return { transaction, notifications };
+  }
+
+  /**
+   * Keeps a mirrored Transaction's amount in sync when the originating
+   * ProjectTransaction's amount is edited. Re-runs the same settlement
+   * recompute `update()` performs for amount changes, without touching
+   * ProjectTransaction's own witness/audit bookkeeping.
+   */
+  async syncMirroredAmount(
+    prisma: Prisma.TransactionClient,
+    transactionId: string,
+    newAmount: number,
+    userId: string,
+  ): Promise<void> {
+    const mirrored = await prisma.transaction.findUnique({
+      where: { id: transactionId },
+      select: {
+        type: true,
+        amount: true,
+        parentId: true,
+        isMirroredFromProject: true,
+      },
+    });
+    if (!mirrored) return;
+
+    // Defense in depth: this method exists to mutate a passive project→contact
+    // mirror, never the origin side directly (that goes through update()'s own
+    // guards). Guards against a future call site passing the wrong id.
+    if (!mirrored.isMirroredFromProject) {
+      throw new ForbiddenException(
+        'This transaction was not created from a project link and cannot be synced this way.',
+      );
+    }
+
+    if (newAmount <= 0) {
+      throw new BadRequestException(
+        'Transaction amount must be greater than zero',
+      );
+    }
+
+    const previousAmount = mirrored.amount ? Number(mirrored.amount) : 0;
+    if (newAmount === previousAmount) return;
+
+    // If this is itself a lifecycle parent (loan/escrow), shrinking it below
+    // what's already been settled by its children would leave a negative
+    // outstanding balance — the same bound createWithClient enforces when a
+    // repayment/remittance is first created.
+    const isLifecycleParent =
+      mirrored.type === 'LOAN_GIVEN' ||
+      mirrored.type === 'LOAN_RECEIVED' ||
+      mirrored.type === 'ESCROWED';
+    let alreadySettled = 0;
+    if (isLifecycleParent) {
+      const children = await prisma.transaction.findMany({
+        where: { parentId: transactionId, status: { not: 'CANCELLED' } },
+        select: { amount: true },
+      });
+      alreadySettled = children.reduce(
+        (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
+        0,
+      );
+      if (newAmount < alreadySettled) {
+        throw new BadRequestException(
+          `Amount (${newAmount}) cannot be less than the amount already settled (${alreadySettled}) against this transaction`,
+        );
+      }
+    }
+
+    await prisma.transaction.update({
+      where: { id: transactionId },
+      data: { amount: newAmount },
+    });
+
+    await prisma.transactionHistory.create({
+      data: {
+        transactionId,
+        userId,
+        changeType: 'UPDATE',
+        previousState: { amount: previousAmount } as Prisma.InputJsonValue,
+        newState: { amount: newAmount } as Prisma.InputJsonValue,
+      },
+    });
+
+    if (mirrored.parentId) {
+      await this.recomputeParentLoanStatus(prisma, mirrored.parentId, userId);
+    }
+    if (isLifecycleParent) {
+      await this.recomputeParentLoanStatus(
+        prisma,
+        transactionId,
+        userId,
+        alreadySettled,
+      );
+    }
+  }
+
+  /**
+   * Hard-deletes a mirrored Transaction. Callers (ProjectTransactionsService
+   * via ProjectContactLinkService, or `remove()` below for the reverse
+   * direction) must have already verified no witnesses/conversions exist on
+   * it. Reopens the parent loan's settlement status if it was itself a
+   * repayment/remittance child.
+   */
+  async deleteMirroredTransaction(
+    prisma: Prisma.TransactionClient,
+    transactionId: string,
+    userId: string,
+  ): Promise<void> {
+    const mirrored = await prisma.transaction.findUnique({
+      where: { id: transactionId },
+    });
+    if (!mirrored) return;
+
+    await prisma.transaction.delete({ where: { id: transactionId } });
+
+    if (mirrored.parentId) {
+      await this.recomputeParentLoanStatus(prisma, mirrored.parentId, userId);
+    }
   }
 
   async addWitness(addWitnessInput: AddWitnessInput, userId: string) {
     const { transactionId, witnessUserIds, witnessInvites } = addWitnessInput;
 
     const transaction = await this.findOne(transactionId, userId);
+
+    if (transaction.isMirroredFromProject) {
+      throw new BadRequestException(
+        'This transaction originated from a project. Add witnesses from the project page instead.',
+      );
+    }
 
     let notifications: WitnessNotification[] = [];
     const updatedTransaction = await this.prisma.$transaction(
@@ -1305,6 +1471,12 @@ export class TransactionsService {
       );
     }
 
+    if (transaction.isMirroredFromProject) {
+      throw new BadRequestException(
+        'This transaction originated from a project. Edit it from the project page instead.',
+      );
+    }
+
     // Create audit log entry
     const previousState = {
       category: transaction.category,
@@ -1328,6 +1500,8 @@ export class TransactionsService {
       witnessUserIds, // Destructure to exclude from rest
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       witnessInvites, // Destructure to exclude from rest
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      projectId, // Not a Transaction column — consumed by ProjectContactLinkService, never persisted here
       ...rest
     } = updateTransactionInput;
 
@@ -1572,12 +1746,93 @@ export class TransactionsService {
     return updatedTransaction;
   }
 
+  /**
+   * Reverses a mirrored ProjectTransaction's contribution to `project.balance`
+   * without touching the row itself — shared by the soft-cancel branch of
+   * `remove()` (row survives) and `deleteMirroredProjectTransaction` (row is
+   * about to be deleted) so the same balance math isn't hand-copied twice.
+   * Takes the already-fetched row's fields directly so neither caller pays
+   * for a redundant re-fetch.
+   */
+  private async reverseMirroredProjectTransactionBalance(
+    prisma: Prisma.TransactionClient,
+    mirrored: {
+      projectId: string;
+      type: ProjectTransactionType;
+      amount: Prisma.Decimal | number;
+    },
+  ): Promise<void> {
+    const balanceEffect = computeProjectTransactionBalanceEffect(
+      mirrored.type,
+      Number(mirrored.amount),
+    );
+
+    await prisma.project.update({
+      where: { id: mirrored.projectId },
+      data: { balance: { decrement: balanceEffect } },
+    });
+  }
+
+  /**
+   * Reverse direction of `ProjectContactLinkService`'s mirror-deletion: this
+   * Transaction is the origin of a contact→project link, so its mirrored
+   * ProjectTransaction (never independently witnessed) is removed alongside
+   * it and the project balance reversed. Called only from the hard-delete
+   * branch of `remove()` below — the soft-cancel branch only reverses the
+   * mirror's balance contribution, since the mirror row itself must survive
+   * (Transaction.projectTransactionId's onDelete: Restrict still references it).
+   */
+  private async deleteMirroredProjectTransaction(
+    prisma: Prisma.TransactionClient,
+    projectTransactionId: string,
+  ): Promise<void> {
+    const mirrored = await prisma.projectTransaction.findUnique({
+      where: { id: projectTransactionId },
+      include: { witnesses: true },
+    });
+    if (!mirrored) return;
+
+    // Defense in depth: this helper only ever deletes a ProjectTransaction
+    // that is itself a passive mirror of THIS Transaction (created via
+    // ProjectContactLinkService.createContactOriginated with
+    // isMirroredFromContact: true) — never a project-originated row. Guards
+    // against a future call site reaching this method for the wrong row.
+    if (!mirrored.isMirroredFromContact) {
+      throw new ForbiddenException(
+        'This project transaction was not created from a contact link and cannot be deleted this way.',
+      );
+    }
+
+    // Defense in depth: ProjectTransaction mirrors are never witnessed by
+    // design (witnessing stays on whichever side originated the entry), so
+    // this should never trip today. Guards against a future change adding
+    // witness support to a contact-originated mirror silently losing its
+    // audit trail here.
+    if (mirrored.witnesses.length > 0) {
+      throw new ForbiddenException(
+        'The linked project transaction has witnesses and cannot be deleted.',
+      );
+    }
+
+    await this.reverseMirroredProjectTransactionBalance(prisma, mirrored);
+
+    await prisma.projectTransaction.delete({
+      where: { id: projectTransactionId },
+    });
+  }
+
   async remove(id: string, userId: string) {
     const transaction = await this.findOne(id, userId);
 
     if (transaction.createdById !== userId) {
       throw new ForbiddenException(
         'Only the creator can remove this transaction',
+      );
+    }
+
+    if (transaction.isMirroredFromProject) {
+      throw new BadRequestException(
+        'This transaction originated from a project. Delete it from the project page instead.',
       );
     }
 
@@ -1590,6 +1845,12 @@ export class TransactionsService {
             prisma as Prisma.TransactionClient,
             transaction.parentId,
             userId,
+          );
+        }
+        if (transaction.projectTransactionId) {
+          await this.deleteMirroredProjectTransaction(
+            prisma as Prisma.TransactionClient,
+            transaction.projectTransactionId,
           );
         }
         return removed;
@@ -1625,6 +1886,29 @@ export class TransactionsService {
             transaction.parentId,
             userId,
           );
+        }
+        // Deliberately does NOT delete a linked mirrored ProjectTransaction
+        // here: this row is only soft-cancelled, not removed, so
+        // Transaction.projectTransactionId (onDelete: Restrict) still
+        // references it — attempting the delete would violate that FK and
+        // roll back the whole cancellation. ProjectTransaction has no
+        // CANCELLED-equivalent status, so the project side keeps showing
+        // this entry as-is (for history); only a hard delete (no witnesses)
+        // removes the row. But project.balance itself must stop counting a
+        // cancelled entry — computeNetBalance already excludes CANCELLED
+        // transactions from the contact side, so the project side needs the
+        // same exclusion or its balance permanently overstates the voided
+        // amount.
+        if (transaction.projectTransactionId) {
+          const mirrored = await prisma.projectTransaction.findUnique({
+            where: { id: transaction.projectTransactionId },
+          });
+          if (mirrored) {
+            await this.reverseMirroredProjectTransactionBalance(
+              prisma as Prisma.TransactionClient,
+              mirrored,
+            );
+          }
         }
         return updated;
       },
