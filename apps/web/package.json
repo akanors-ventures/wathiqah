@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 3000",
-    "build": "pnpm codegen && vite build",
+    "build": "pnpm --filter @wathiqah/shared-constants build && pnpm codegen && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "format": "biome format",

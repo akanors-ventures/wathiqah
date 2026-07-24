@@ -10,7 +10,7 @@
     "prisma"
   ],
   "scripts": {
-    "build": "nest build",
+    "build": "pnpm --filter @wathiqah/shared-constants build && nest build",
     "format:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch",
