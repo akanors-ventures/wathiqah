@@ -28,6 +28,19 @@ export const PROJECT_TRANSACTION_FRAGMENT = gql`
     projectId
     createdAt
     updatedAt
+    contactId
+    contactTransactionType
+    isMirroredFromContact
+    contact {
+      id
+      name
+    }
+    transaction {
+      id
+      type
+      status
+      remainingAmount
+    }
     witnesses {
       id
       status
@@ -45,6 +58,27 @@ export const PROJECT_TRANSACTION_FRAGMENT = gql`
       previousState
       newState
       createdAt
+    }
+  }
+`;
+
+export const GET_PROJECT_CONTACT_OUTSTANDING_LOANS = gql`
+  query ProjectContactOutstandingLoans(
+    $projectId: ID!
+    $contactId: ID!
+    $contactTransactionType: TransactionType
+  ) {
+    projectContactOutstandingLoans(
+      projectId: $projectId
+      contactId: $contactId
+      contactTransactionType: $contactTransactionType
+    ) {
+      id
+      type
+      amount
+      currency
+      remainingAmount
+      date
     }
   }
 `;

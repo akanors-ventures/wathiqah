@@ -5,6 +5,11 @@ import {
   type ProjectTransactionCardTransaction,
 } from "./ProjectTransactionCard";
 
+const mockNavigate = vi.fn();
+vi.mock("@tanstack/react-router", () => ({
+  useNavigate: () => mockNavigate,
+}));
+
 const baseTx: ProjectTransactionCardTransaction = {
   id: "tx-1",
   type: "EXPENSE",
@@ -90,5 +95,78 @@ describe("ProjectTransactionCard", () => {
     expect(deleteButton).toBeDisabled();
     fireEvent.click(deleteButton);
     expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  it("shows the linked-contact badge and navigates to the contact page without triggering onView", () => {
+    mockNavigate.mockClear();
+    const onView = vi.fn();
+    render(
+      <ProjectTransactionCard
+        transaction={{
+          ...baseTx,
+          contactId: "contact-1",
+          contact: { id: "contact-1", name: "Aminu Musa" },
+          contactTransactionType: "LOAN_RECEIVED" as never,
+        }}
+        currency="NGN"
+        onView={onView}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByText("Aminu Musa"));
+
+    expect(mockNavigate).toHaveBeenCalledWith({
+      to: "/contacts/$contactId",
+      params: { contactId: "contact-1" },
+    });
+    expect(onView).not.toHaveBeenCalled();
+  });
+
+  it("shows the settlement line when the linked mirror transaction has an outstanding balance", () => {
+    render(
+      <ProjectTransactionCard
+        transaction={{
+          ...baseTx,
+          contactId: "contact-1",
+          contact: { id: "contact-1", name: "Aminu Musa" },
+          transaction: {
+            id: "tx-1",
+            type: "LOAN_GIVEN",
+            status: "PENDING",
+            remainingAmount: 20000,
+          },
+        }}
+        currency="NGN"
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText(/repaid of/i)).toBeInTheDocument();
+  });
+
+  it('shows "Fully settled" and hides edit/delete for a mirror synced from the contact ledger', () => {
+    render(
+      <ProjectTransactionCard
+        transaction={{
+          ...baseTx,
+          contactId: "contact-1",
+          contact: { id: "contact-1", name: "Aminu Musa" },
+          isMirroredFromContact: true,
+          transaction: { id: "tx-1", type: "LOAN_GIVEN", status: "COMPLETED", remainingAmount: 0 },
+        }}
+        currency="NGN"
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Fully settled")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Edit transaction" })).not.toBeInTheDocument();
+    expect(screen.getByText(/synced from contact/i)).toBeInTheDocument();
   });
 });

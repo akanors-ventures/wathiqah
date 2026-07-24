@@ -2593,7 +2593,9 @@ export const TransactionScalarFieldEnum = {
   status: 'status',
   parentId: 'parentId',
   currency: 'currency',
-  orgId: 'orgId'
+  orgId: 'orgId',
+  projectTransactionId: 'projectTransactionId',
+  isMirroredFromProject: 'isMirroredFromProject'
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
@@ -2664,6 +2666,9 @@ export const ProjectTransactionScalarFieldEnum = {
   description: 'description',
   date: 'date',
   projectId: 'projectId',
+  contactId: 'contactId',
+  contactTransactionType: 'contactTransactionType',
+  isMirroredFromContact: 'isMirroredFromContact',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

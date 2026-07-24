@@ -71,6 +71,13 @@ export class CreateTransactionInput {
   @IsUUID()
   contactId?: string;
 
+  /** Optionally link this transaction to a project — the project-side direction (income/expense) is derived automatically from `type`. */
+  @Field(() => ID, { nullable: true })
+  @IsOptional()
+  @Transform(({ value }) => (value === '' ? undefined : value))
+  @IsUUID()
+  projectId?: string;
+
   @Field(() => [ID], { nullable: true })
   @IsOptional()
   @IsArray()

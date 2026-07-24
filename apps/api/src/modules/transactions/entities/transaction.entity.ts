@@ -16,6 +16,7 @@ import { Contact } from '../../contacts/entities/contact.entity';
 import { User } from '../../users/entities/user.entity';
 import { Witness } from '../../witnesses/entities/witness.entity';
 import { TransactionHistory } from './transaction-history.entity';
+import { ProjectTransaction } from '../../projects/entities/project-transaction.entity';
 
 registerEnumType(TransactionStatus, {
   name: 'TransactionStatus',
@@ -102,4 +103,13 @@ export class Transaction {
 
   @Field(() => [TransactionHistory], { nullable: true })
   history?: TransactionHistory[];
+
+  @Field({ nullable: true })
+  projectTransactionId?: string;
+
+  @Field()
+  isMirroredFromProject: boolean;
+
+  @Field(() => ProjectTransaction, { nullable: true })
+  projectTransaction?: ProjectTransaction;
 }

@@ -1,8 +1,13 @@
 import { useMutation, useQuery } from "@apollo/client/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  MANDATORY_PARENT_CONTACT_TRANSACTION_TYPES,
+  PROJECT_EXPENSE_CONTACT_TRANSACTION_TYPES,
+  PROJECT_INCOME_CONTACT_TRANSACTION_TYPES,
+} from "@wathiqah/shared-constants";
 import { format } from "date-fns";
 import { Loader2, Plus } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { type Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -38,28 +43,62 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { type SelectedWitness, WitnessSelector } from "@/components/witnesses/WitnessSelector";
 import { useAmountInput } from "@/hooks/useAmountInput";
+import { useContacts } from "@/hooks/useContacts";
 import { useProjects } from "@/hooks/useProjects";
 import {
+  GET_PROJECT_CONTACT_OUTSTANDING_LOANS,
   LOG_PROJECT_TRANSACTION,
   PROJECT_TRANSACTION_CATEGORY_SUGGESTIONS,
   UPDATE_PROJECT_TRANSACTION,
 } from "@/lib/apollo/queries/projects";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { formatTransactionTypeLabel } from "@/lib/utils/transactionDisplay";
 import {
+  type ProjectContactOutstandingLoansQuery,
   type ProjectTransactionCategorySuggestionsQuery,
   ProjectTransactionType,
+  TransactionType,
 } from "@/types/__generated__/graphql";
 
-const formSchema = z.object({
-  projectId: z.string().min(1, "Project is required"),
-  type: z.enum([ProjectTransactionType.Income, ProjectTransactionType.Expense]),
-  amount: z.coerce.number().min(0.01, "Amount must be positive"),
-  category: z.string().optional(),
-  description: z.string().optional(),
-  date: z.string().min(1, "Date is required"),
-  witnesses: z.custom<SelectedWitness[]>(),
-});
+/** Cash flows INTO the project — single source of truth shared with the backend. */
+const INCOME_CONTACT_TYPES: readonly string[] = PROJECT_INCOME_CONTACT_TRANSACTION_TYPES;
+
+/** Cash flows OUT of the project — single source of truth shared with the backend. */
+const EXPENSE_CONTACT_TYPES: readonly string[] = PROJECT_EXPENSE_CONTACT_TRANSACTION_TYPES;
+
+/** Repayment/remittance types — require picking which loan this closes. Gifts may
+ * optionally reference a parent (a partial gift-conversion) but a standalone gift
+ * is also valid, so they're deliberately not in this list — single source of
+ * truth shared with the backend's MANDATORY_PARENT_TYPES. */
+const CHILD_CONTACT_TYPES: readonly string[] = MANDATORY_PARENT_CONTACT_TRANSACTION_TYPES;
+
+const NO_CONTACT = "none";
+
+const formSchema = z
+  .object({
+    projectId: z.string().min(1, "Project is required"),
+    type: z.enum([ProjectTransactionType.Income, ProjectTransactionType.Expense]),
+    amount: z.coerce.number().min(0.01, "Amount must be positive"),
+    category: z.string().optional(),
+    description: z.string().optional(),
+    date: z.string().min(1, "Date is required"),
+    witnesses: z.custom<SelectedWitness[]>(),
+    contactId: z.string().optional(),
+    contactTransactionType: z.nativeEnum(TransactionType).optional(),
+    parentTransactionId: z.string().optional(),
+  })
+  .refine((data) => !data.contactId || !!data.contactTransactionType, {
+    message: "Select what this transaction means for the contact",
+    path: ["contactTransactionType"],
+  })
+  .refine(
+    (data) =>
+      !data.contactTransactionType ||
+      !CHILD_CONTACT_TYPES.includes(data.contactTransactionType) ||
+      !!data.parentTransactionId,
+    { message: "Select which loan this closes", path: ["parentTransactionId"] },
+  );
 
 type ProjectTransactionFormValues = z.infer<typeof formSchema>;
 
@@ -70,6 +109,16 @@ interface EditableTransaction {
   category?: string | null;
   description?: string | null;
   date: string | Date;
+  contactId?: string | null;
+  contact?: { id: string; name: string } | null;
+  contactTransactionType?: TransactionType | null;
+  isMirroredFromContact?: boolean;
+  transaction?: {
+    id: string;
+    type: string;
+    status: string;
+    remainingAmount?: number | null;
+  } | null;
 }
 
 interface ProjectTransactionFormProps {
@@ -88,7 +137,10 @@ export function ProjectTransactionForm({
   className,
 }: ProjectTransactionFormProps) {
   const isEditMode = !!editTransaction;
+  const isAlreadyLinked = isEditMode && !!editTransaction?.contactId;
+  const isMirrored = !!editTransaction?.isMirroredFromContact;
   const { projects, loading: loadingProjects, createProject, creating } = useProjects();
+  const { contacts, loading: loadingContacts } = useContacts();
   const [isProjectDialogOpen, setIsProjectDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
@@ -119,10 +171,51 @@ export function ProjectTransactionForm({
         ? format(new Date(editTransaction.date), "yyyy-MM-dd")
         : format(new Date(), "yyyy-MM-dd"),
       witnesses: [],
+      contactId: editTransaction?.contactId ?? undefined,
+      contactTransactionType: editTransaction?.contactTransactionType ?? undefined,
     },
   });
 
   const selectedProjectId = form.watch("projectId") || initialProjectId;
+  const selectedContactId = form.watch("contactId");
+  const selectedContactTransactionType = form.watch("contactTransactionType");
+  const projectType = form.watch("type");
+
+  const contactTypeOptions =
+    projectType === ProjectTransactionType.Income ? INCOME_CONTACT_TYPES : EXPENSE_CONTACT_TYPES;
+
+  const requiresParentLoan =
+    !!selectedContactTransactionType &&
+    CHILD_CONTACT_TYPES.includes(selectedContactTransactionType);
+
+  const { data: outstandingLoansData } = useQuery<ProjectContactOutstandingLoansQuery>(
+    GET_PROJECT_CONTACT_OUTSTANDING_LOANS,
+    {
+      variables: {
+        projectId: selectedProjectId,
+        contactId: selectedContactId,
+        contactTransactionType: selectedContactTransactionType,
+      },
+      skip: !selectedProjectId || !selectedContactId || !requiresParentLoan || isAlreadyLinked,
+    },
+  );
+  const outstandingLoans = outstandingLoansData?.projectContactOutstandingLoans ?? [];
+
+  // If the type direction flips and the currently-selected contactTransactionType
+  // no longer matches, clear it (and the now-stale parent-loan selection) rather
+  // than let the user submit an invalid pairing. Skipped once already linked —
+  // that combination is immutable and rendered read-only instead.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only react to direction (projectType) flips — the other values are read at fire time, not watched for
+  useEffect(() => {
+    if (isAlreadyLinked) return;
+    if (
+      selectedContactTransactionType &&
+      !contactTypeOptions.includes(selectedContactTransactionType)
+    ) {
+      form.setValue("contactTransactionType", undefined, { shouldValidate: true });
+      form.setValue("parentTransactionId", undefined, { shouldValidate: true });
+    }
+  }, [projectType]);
 
   const selectedProject = useMemo(
     () => projects.find((p) => p.id === selectedProjectId),
@@ -166,6 +259,17 @@ export function ProjectTransactionForm({
         ? ["GetMyProjects", "GetProject"]
         : ["GetMyProjects", "GetProject", "ProjectTransactionCategorySuggestions"];
 
+    // Only send the link fields when they're actually settable in this
+    // context — never resend them once already linked (immutable server-side).
+    const linkFields =
+      !isAlreadyLinked && values.contactId
+        ? {
+            contactId: values.contactId,
+            contactTransactionType: values.contactTransactionType,
+            parentTransactionId: values.parentTransactionId,
+          }
+        : {};
+
     try {
       if (isEditMode && editTransaction) {
         await updateTransaction({
@@ -177,6 +281,7 @@ export function ProjectTransactionForm({
               category: values.category || undefined,
               description: values.description || undefined,
               date: new Date(values.date).toISOString(),
+              ...linkFields,
             },
           },
           refetchQueries,
@@ -202,6 +307,7 @@ export function ProjectTransactionForm({
               category: values.category || undefined,
               description: values.description || undefined,
               date: new Date(values.date).toISOString(),
+              ...linkFields,
               witnessUserIds: witnessUserIds.length > 0 ? witnessUserIds : undefined,
               witnessInvites: witnessInvites.length > 0 ? witnessInvites : undefined,
             },
@@ -413,6 +519,135 @@ export function ProjectTransactionForm({
             </FormItem>
           )}
         />
+
+        {isMirrored ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-900/30 p-3 text-sm text-amber-800 dark:text-amber-300">
+            This transaction was synced from the contact ledger and can only be edited from the
+            contact's page.
+          </div>
+        ) : isAlreadyLinked ? (
+          <div className="rounded-lg border border-border/50 bg-muted/30 p-3 space-y-1">
+            <FormLabel>Linked Contact</FormLabel>
+            <p className="text-sm text-muted-foreground">
+              Linked to{" "}
+              <span className="font-medium text-foreground">{editTransaction?.contact?.name}</span>{" "}
+              as{" "}
+              {editTransaction?.contactTransactionType &&
+                formatTransactionTypeLabel(editTransaction.contactTransactionType)}
+              {" — cannot be changed."}
+            </p>
+            {editTransaction?.transaction?.remainingAmount != null && (
+              <p className="text-xs text-muted-foreground">
+                {editTransaction.transaction.remainingAmount === 0
+                  ? "Fully settled"
+                  : `${formatCurrency(
+                      editTransaction.amount - editTransaction.transaction.remainingAmount,
+                      currencyCode,
+                    )} repaid of ${formatCurrency(editTransaction.amount, currencyCode)}`}
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-4 rounded-lg border border-border/50 p-4">
+            <FormField
+              control={form.control}
+              name="contactId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Link to Contact (Optional)</FormLabel>
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(value === NO_CONTACT ? undefined : value)
+                    }
+                    value={field.value ?? NO_CONTACT}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="No contact" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={NO_CONTACT}>No Contact</SelectItem>
+                      {loadingContacts ? (
+                        <div className="flex items-center justify-center p-2">
+                          <BrandLoader size="sm" />
+                        </div>
+                      ) : (
+                        contacts.map((contact) => (
+                          <SelectItem key={contact.id} value={contact.id}>
+                            {contact.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {selectedContactId && (
+              <FormField
+                control={form.control}
+                name="contactTransactionType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>What does this mean for the contact?</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {contactTypeOptions.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {formatTransactionTypeLabel(type)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {selectedContactId && requiresParentLoan && (
+              <FormField
+                control={form.control}
+                name="parentTransactionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Which loan is this closing?</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select the outstanding loan" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {outstandingLoans.length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            No outstanding loans with this contact on this project
+                          </div>
+                        ) : (
+                          outstandingLoans.map((loan) => (
+                            <SelectItem key={loan.id} value={loan.id}>
+                              {formatCurrency(loan.remainingAmount ?? loan.amount, loan.currency)}{" "}
+                              outstanding — {format(new Date(loan.date), "MMM d, yyyy")}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
+        )}
 
         {!isEditMode && (
           <div className="space-y-2">

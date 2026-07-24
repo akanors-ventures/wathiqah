@@ -348,6 +348,11 @@ function ProjectDetailsPage() {
                     date: tx.date,
                     witnesses: tx.witnesses,
                     history: tx.history,
+                    contactId: tx.contactId,
+                    contact: tx.contact,
+                    contactTransactionType: tx.contactTransactionType,
+                    isMirroredFromContact: tx.isMirroredFromContact,
+                    transaction: tx.transaction,
                   }}
                   currency={project.currency}
                   onView={handleViewTx}
@@ -378,6 +383,11 @@ function ProjectDetailsPage() {
             category: editingTx.category,
             description: editingTx.description,
             date: editingTx.date as string,
+            contactId: editingTx.contactId,
+            contact: editingTx.contact,
+            contactTransactionType: editingTx.contactTransactionType,
+            isMirroredFromContact: editingTx.isMirroredFromContact,
+            transaction: editingTx.transaction,
           }}
           open={editTxOpen}
           onOpenChange={(v) => {

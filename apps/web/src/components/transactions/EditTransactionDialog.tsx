@@ -50,14 +50,18 @@ export function EditTransactionDialog({
     if (isRepayment || isConverted) {
       locks.push("type", "contactId", "category");
     }
+    if (transaction.projectTransactionId) {
+      locks.push("projectId");
+    }
     return locks;
-  }, [transaction.type, transaction.parentId]);
+  }, [transaction.type, transaction.parentId, transaction.projectTransactionId]);
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema) as Resolver<TransactionFormValues>,
     defaultValues: {
       type: transaction.type as TransactionFormValues["type"],
       contactId: transaction.contact?.id ?? undefined,
+      projectId: transaction.projectTransaction?.projectId ?? undefined,
       amount: transaction.amount ?? 0,
       itemName: transaction.itemName ?? "",
       quantity: transaction.quantity ?? 1,
@@ -92,6 +96,8 @@ export function EditTransactionDialog({
         date: new Date(values.date).toISOString(),
         description: values.description,
         contactId: values.contactId || undefined,
+        projectId:
+          values.category === AssetCategory.Funds ? values.projectId || undefined : undefined,
         currency: values.currency,
         witnessUserIds,
         witnessInvites,

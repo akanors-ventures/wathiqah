@@ -42,6 +42,9 @@ export type ProjectTransactionMinAggregateOutputType = {
   description: string | null
   date: Date | null
   projectId: string | null
+  contactId: string | null
+  contactTransactionType: $Enums.TransactionType | null
+  isMirroredFromContact: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +57,9 @@ export type ProjectTransactionMaxAggregateOutputType = {
   description: string | null
   date: Date | null
   projectId: string | null
+  contactId: string | null
+  contactTransactionType: $Enums.TransactionType | null
+  isMirroredFromContact: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -66,6 +72,9 @@ export type ProjectTransactionCountAggregateOutputType = {
   description: number
   date: number
   projectId: number
+  contactId: number
+  contactTransactionType: number
+  isMirroredFromContact: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -88,6 +97,9 @@ export type ProjectTransactionMinAggregateInputType = {
   description?: true
   date?: true
   projectId?: true
+  contactId?: true
+  contactTransactionType?: true
+  isMirroredFromContact?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -100,6 +112,9 @@ export type ProjectTransactionMaxAggregateInputType = {
   description?: true
   date?: true
   projectId?: true
+  contactId?: true
+  contactTransactionType?: true
+  isMirroredFromContact?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -112,6 +127,9 @@ export type ProjectTransactionCountAggregateInputType = {
   description?: true
   date?: true
   projectId?: true
+  contactId?: true
+  contactTransactionType?: true
+  isMirroredFromContact?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -211,6 +229,9 @@ export type ProjectTransactionGroupByOutputType = {
   description: string | null
   date: Date
   projectId: string
+  contactId: string | null
+  contactTransactionType: $Enums.TransactionType | null
+  isMirroredFromContact: boolean
   createdAt: Date
   updatedAt: Date
   _count: ProjectTransactionCountAggregateOutputType | null
@@ -246,9 +267,14 @@ export type ProjectTransactionWhereInput = {
   description?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
   date?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   projectId?: Prisma.StringFilter<"ProjectTransaction"> | string
+  contactId?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
+  contactTransactionType?: Prisma.EnumTransactionTypeNullableFilter<"ProjectTransaction"> | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFilter<"ProjectTransaction"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
+  contact?: Prisma.XOR<Prisma.ContactNullableScalarRelationFilter, Prisma.ContactWhereInput> | null
+  transaction?: Prisma.XOR<Prisma.TransactionNullableScalarRelationFilter, Prisma.TransactionWhereInput> | null
   witnesses?: Prisma.WitnessListRelationFilter
   history?: Prisma.ProjectTransactionHistoryListRelationFilter
 }
@@ -261,9 +287,14 @@ export type ProjectTransactionOrderByWithRelationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  contactId?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactTransactionType?: Prisma.SortOrderInput | Prisma.SortOrder
+  isMirroredFromContact?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   project?: Prisma.ProjectOrderByWithRelationInput
+  contact?: Prisma.ContactOrderByWithRelationInput
+  transaction?: Prisma.TransactionOrderByWithRelationInput
   witnesses?: Prisma.WitnessOrderByRelationAggregateInput
   history?: Prisma.ProjectTransactionHistoryOrderByRelationAggregateInput
 }
@@ -279,9 +310,14 @@ export type ProjectTransactionWhereUniqueInput = Prisma.AtLeast<{
   description?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
   date?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   projectId?: Prisma.StringFilter<"ProjectTransaction"> | string
+  contactId?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
+  contactTransactionType?: Prisma.EnumTransactionTypeNullableFilter<"ProjectTransaction"> | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFilter<"ProjectTransaction"> | boolean
   createdAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
   project?: Prisma.XOR<Prisma.ProjectScalarRelationFilter, Prisma.ProjectWhereInput>
+  contact?: Prisma.XOR<Prisma.ContactNullableScalarRelationFilter, Prisma.ContactWhereInput> | null
+  transaction?: Prisma.XOR<Prisma.TransactionNullableScalarRelationFilter, Prisma.TransactionWhereInput> | null
   witnesses?: Prisma.WitnessListRelationFilter
   history?: Prisma.ProjectTransactionHistoryListRelationFilter
 }, "id">
@@ -294,6 +330,9 @@ export type ProjectTransactionOrderByWithAggregationInput = {
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   date?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  contactId?: Prisma.SortOrderInput | Prisma.SortOrder
+  contactTransactionType?: Prisma.SortOrderInput | Prisma.SortOrder
+  isMirroredFromContact?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProjectTransactionCountOrderByAggregateInput
@@ -314,6 +353,9 @@ export type ProjectTransactionScalarWhereWithAggregatesInput = {
   description?: Prisma.StringNullableWithAggregatesFilter<"ProjectTransaction"> | string | null
   date?: Prisma.DateTimeWithAggregatesFilter<"ProjectTransaction"> | Date | string
   projectId?: Prisma.StringWithAggregatesFilter<"ProjectTransaction"> | string
+  contactId?: Prisma.StringNullableWithAggregatesFilter<"ProjectTransaction"> | string | null
+  contactTransactionType?: Prisma.EnumTransactionTypeNullableWithAggregatesFilter<"ProjectTransaction"> | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolWithAggregatesFilter<"ProjectTransaction"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectTransaction"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectTransaction"> | Date | string
 }
@@ -325,9 +367,13 @@ export type ProjectTransactionCreateInput = {
   category?: string | null
   description?: string | null
   date?: Date | string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  contact?: Prisma.ContactCreateNestedOneWithoutProjectTransactionsInput
+  transaction?: Prisma.TransactionCreateNestedOneWithoutProjectTransactionInput
   witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
   history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
 }
@@ -340,8 +386,12 @@ export type ProjectTransactionUncheckedCreateInput = {
   description?: string | null
   date?: Date | string
   projectId: string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutProjectTransactionInput
   witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
   history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
@@ -353,9 +403,13 @@ export type ProjectTransactionUpdateInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  contact?: Prisma.ContactUpdateOneWithoutProjectTransactionsNestedInput
+  transaction?: Prisma.TransactionUpdateOneWithoutProjectTransactionNestedInput
   witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
   history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
 }
@@ -368,8 +422,12 @@ export type ProjectTransactionUncheckedUpdateInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transaction?: Prisma.TransactionUncheckedUpdateOneWithoutProjectTransactionNestedInput
   witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
   history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
 }
@@ -382,6 +440,9 @@ export type ProjectTransactionCreateManyInput = {
   description?: string | null
   date?: Date | string
   projectId: string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -393,6 +454,8 @@ export type ProjectTransactionUpdateManyMutationInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -405,13 +468,11 @@ export type ProjectTransactionUncheckedUpdateManyInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-}
-
-export type ProjectTransactionNullableScalarRelationFilter = {
-  is?: Prisma.ProjectTransactionWhereInput | null
-  isNot?: Prisma.ProjectTransactionWhereInput | null
 }
 
 export type ProjectTransactionListRelationFilter = {
@@ -424,6 +485,11 @@ export type ProjectTransactionOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type ProjectTransactionNullableScalarRelationFilter = {
+  is?: Prisma.ProjectTransactionWhereInput | null
+  isNot?: Prisma.ProjectTransactionWhereInput | null
+}
+
 export type ProjectTransactionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -432,6 +498,9 @@ export type ProjectTransactionCountOrderByAggregateInput = {
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  contactId?: Prisma.SortOrder
+  contactTransactionType?: Prisma.SortOrder
+  isMirroredFromContact?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -448,6 +517,9 @@ export type ProjectTransactionMaxOrderByAggregateInput = {
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  contactId?: Prisma.SortOrder
+  contactTransactionType?: Prisma.SortOrder
+  isMirroredFromContact?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -460,6 +532,9 @@ export type ProjectTransactionMinOrderByAggregateInput = {
   description?: Prisma.SortOrder
   date?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
+  contactId?: Prisma.SortOrder
+  contactTransactionType?: Prisma.SortOrder
+  isMirroredFromContact?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -471,6 +546,64 @@ export type ProjectTransactionSumOrderByAggregateInput = {
 export type ProjectTransactionScalarRelationFilter = {
   is?: Prisma.ProjectTransactionWhereInput
   isNot?: Prisma.ProjectTransactionWhereInput
+}
+
+export type ProjectTransactionCreateNestedManyWithoutContactInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutContactInput, Prisma.ProjectTransactionUncheckedCreateWithoutContactInput> | Prisma.ProjectTransactionCreateWithoutContactInput[] | Prisma.ProjectTransactionUncheckedCreateWithoutContactInput[]
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutContactInput | Prisma.ProjectTransactionCreateOrConnectWithoutContactInput[]
+  createMany?: Prisma.ProjectTransactionCreateManyContactInputEnvelope
+  connect?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+}
+
+export type ProjectTransactionUncheckedCreateNestedManyWithoutContactInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutContactInput, Prisma.ProjectTransactionUncheckedCreateWithoutContactInput> | Prisma.ProjectTransactionCreateWithoutContactInput[] | Prisma.ProjectTransactionUncheckedCreateWithoutContactInput[]
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutContactInput | Prisma.ProjectTransactionCreateOrConnectWithoutContactInput[]
+  createMany?: Prisma.ProjectTransactionCreateManyContactInputEnvelope
+  connect?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+}
+
+export type ProjectTransactionUpdateManyWithoutContactNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutContactInput, Prisma.ProjectTransactionUncheckedCreateWithoutContactInput> | Prisma.ProjectTransactionCreateWithoutContactInput[] | Prisma.ProjectTransactionUncheckedCreateWithoutContactInput[]
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutContactInput | Prisma.ProjectTransactionCreateOrConnectWithoutContactInput[]
+  upsert?: Prisma.ProjectTransactionUpsertWithWhereUniqueWithoutContactInput | Prisma.ProjectTransactionUpsertWithWhereUniqueWithoutContactInput[]
+  createMany?: Prisma.ProjectTransactionCreateManyContactInputEnvelope
+  set?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  disconnect?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  delete?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  connect?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  update?: Prisma.ProjectTransactionUpdateWithWhereUniqueWithoutContactInput | Prisma.ProjectTransactionUpdateWithWhereUniqueWithoutContactInput[]
+  updateMany?: Prisma.ProjectTransactionUpdateManyWithWhereWithoutContactInput | Prisma.ProjectTransactionUpdateManyWithWhereWithoutContactInput[]
+  deleteMany?: Prisma.ProjectTransactionScalarWhereInput | Prisma.ProjectTransactionScalarWhereInput[]
+}
+
+export type ProjectTransactionUncheckedUpdateManyWithoutContactNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutContactInput, Prisma.ProjectTransactionUncheckedCreateWithoutContactInput> | Prisma.ProjectTransactionCreateWithoutContactInput[] | Prisma.ProjectTransactionUncheckedCreateWithoutContactInput[]
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutContactInput | Prisma.ProjectTransactionCreateOrConnectWithoutContactInput[]
+  upsert?: Prisma.ProjectTransactionUpsertWithWhereUniqueWithoutContactInput | Prisma.ProjectTransactionUpsertWithWhereUniqueWithoutContactInput[]
+  createMany?: Prisma.ProjectTransactionCreateManyContactInputEnvelope
+  set?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  disconnect?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  delete?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  connect?: Prisma.ProjectTransactionWhereUniqueInput | Prisma.ProjectTransactionWhereUniqueInput[]
+  update?: Prisma.ProjectTransactionUpdateWithWhereUniqueWithoutContactInput | Prisma.ProjectTransactionUpdateWithWhereUniqueWithoutContactInput[]
+  updateMany?: Prisma.ProjectTransactionUpdateManyWithWhereWithoutContactInput | Prisma.ProjectTransactionUpdateManyWithWhereWithoutContactInput[]
+  deleteMany?: Prisma.ProjectTransactionScalarWhereInput | Prisma.ProjectTransactionScalarWhereInput[]
+}
+
+export type ProjectTransactionCreateNestedOneWithoutTransactionInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutTransactionInput, Prisma.ProjectTransactionUncheckedCreateWithoutTransactionInput>
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutTransactionInput
+  connect?: Prisma.ProjectTransactionWhereUniqueInput
+}
+
+export type ProjectTransactionUpdateOneWithoutTransactionNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutTransactionInput, Prisma.ProjectTransactionUncheckedCreateWithoutTransactionInput>
+  connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutTransactionInput
+  upsert?: Prisma.ProjectTransactionUpsertWithoutTransactionInput
+  disconnect?: Prisma.ProjectTransactionWhereInput | boolean
+  delete?: Prisma.ProjectTransactionWhereInput | boolean
+  connect?: Prisma.ProjectTransactionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectTransactionUpdateToOneWithWhereWithoutTransactionInput, Prisma.ProjectTransactionUpdateWithoutTransactionInput>, Prisma.ProjectTransactionUncheckedUpdateWithoutTransactionInput>
 }
 
 export type ProjectTransactionCreateNestedOneWithoutWitnessesInput = {
@@ -535,6 +668,10 @@ export type EnumProjectTransactionTypeFieldUpdateOperationsInput = {
   set?: $Enums.ProjectTransactionType
 }
 
+export type NullableEnumTransactionTypeFieldUpdateOperationsInput = {
+  set?: $Enums.TransactionType | null
+}
+
 export type ProjectTransactionCreateNestedOneWithoutHistoryInput = {
   create?: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutHistoryInput, Prisma.ProjectTransactionUncheckedCreateWithoutHistoryInput>
   connectOrCreate?: Prisma.ProjectTransactionCreateOrConnectWithoutHistoryInput
@@ -549,6 +686,168 @@ export type ProjectTransactionUpdateOneRequiredWithoutHistoryNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectTransactionUpdateToOneWithWhereWithoutHistoryInput, Prisma.ProjectTransactionUpdateWithoutHistoryInput>, Prisma.ProjectTransactionUncheckedUpdateWithoutHistoryInput>
 }
 
+export type ProjectTransactionCreateWithoutContactInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  transaction?: Prisma.TransactionCreateNestedOneWithoutProjectTransactionInput
+  witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
+}
+
+export type ProjectTransactionUncheckedCreateWithoutContactInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  projectId: string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutProjectTransactionInput
+  witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
+}
+
+export type ProjectTransactionCreateOrConnectWithoutContactInput = {
+  where: Prisma.ProjectTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutContactInput, Prisma.ProjectTransactionUncheckedCreateWithoutContactInput>
+}
+
+export type ProjectTransactionCreateManyContactInputEnvelope = {
+  data: Prisma.ProjectTransactionCreateManyContactInput | Prisma.ProjectTransactionCreateManyContactInput[]
+  skipDuplicates?: boolean
+}
+
+export type ProjectTransactionUpsertWithWhereUniqueWithoutContactInput = {
+  where: Prisma.ProjectTransactionWhereUniqueInput
+  update: Prisma.XOR<Prisma.ProjectTransactionUpdateWithoutContactInput, Prisma.ProjectTransactionUncheckedUpdateWithoutContactInput>
+  create: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutContactInput, Prisma.ProjectTransactionUncheckedCreateWithoutContactInput>
+}
+
+export type ProjectTransactionUpdateWithWhereUniqueWithoutContactInput = {
+  where: Prisma.ProjectTransactionWhereUniqueInput
+  data: Prisma.XOR<Prisma.ProjectTransactionUpdateWithoutContactInput, Prisma.ProjectTransactionUncheckedUpdateWithoutContactInput>
+}
+
+export type ProjectTransactionUpdateManyWithWhereWithoutContactInput = {
+  where: Prisma.ProjectTransactionScalarWhereInput
+  data: Prisma.XOR<Prisma.ProjectTransactionUpdateManyMutationInput, Prisma.ProjectTransactionUncheckedUpdateManyWithoutContactInput>
+}
+
+export type ProjectTransactionScalarWhereInput = {
+  AND?: Prisma.ProjectTransactionScalarWhereInput | Prisma.ProjectTransactionScalarWhereInput[]
+  OR?: Prisma.ProjectTransactionScalarWhereInput[]
+  NOT?: Prisma.ProjectTransactionScalarWhereInput | Prisma.ProjectTransactionScalarWhereInput[]
+  id?: Prisma.StringFilter<"ProjectTransaction"> | string
+  amount?: Prisma.DecimalFilter<"ProjectTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFilter<"ProjectTransaction"> | $Enums.ProjectTransactionType
+  category?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
+  description?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
+  date?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
+  projectId?: Prisma.StringFilter<"ProjectTransaction"> | string
+  contactId?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
+  contactTransactionType?: Prisma.EnumTransactionTypeNullableFilter<"ProjectTransaction"> | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFilter<"ProjectTransaction"> | boolean
+  createdAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
+}
+
+export type ProjectTransactionCreateWithoutTransactionInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  contact?: Prisma.ContactCreateNestedOneWithoutProjectTransactionsInput
+  witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
+}
+
+export type ProjectTransactionUncheckedCreateWithoutTransactionInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  projectId: string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
+}
+
+export type ProjectTransactionCreateOrConnectWithoutTransactionInput = {
+  where: Prisma.ProjectTransactionWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutTransactionInput, Prisma.ProjectTransactionUncheckedCreateWithoutTransactionInput>
+}
+
+export type ProjectTransactionUpsertWithoutTransactionInput = {
+  update: Prisma.XOR<Prisma.ProjectTransactionUpdateWithoutTransactionInput, Prisma.ProjectTransactionUncheckedUpdateWithoutTransactionInput>
+  create: Prisma.XOR<Prisma.ProjectTransactionCreateWithoutTransactionInput, Prisma.ProjectTransactionUncheckedCreateWithoutTransactionInput>
+  where?: Prisma.ProjectTransactionWhereInput
+}
+
+export type ProjectTransactionUpdateToOneWithWhereWithoutTransactionInput = {
+  where?: Prisma.ProjectTransactionWhereInput
+  data: Prisma.XOR<Prisma.ProjectTransactionUpdateWithoutTransactionInput, Prisma.ProjectTransactionUncheckedUpdateWithoutTransactionInput>
+}
+
+export type ProjectTransactionUpdateWithoutTransactionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  contact?: Prisma.ContactUpdateOneWithoutProjectTransactionsNestedInput
+  witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
+}
+
+export type ProjectTransactionUncheckedUpdateWithoutTransactionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
+}
+
 export type ProjectTransactionCreateWithoutWitnessesInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -556,9 +855,13 @@ export type ProjectTransactionCreateWithoutWitnessesInput = {
   category?: string | null
   description?: string | null
   date?: Date | string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  contact?: Prisma.ContactCreateNestedOneWithoutProjectTransactionsInput
+  transaction?: Prisma.TransactionCreateNestedOneWithoutProjectTransactionInput
   history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
 }
 
@@ -570,8 +873,12 @@ export type ProjectTransactionUncheckedCreateWithoutWitnessesInput = {
   description?: string | null
   date?: Date | string
   projectId: string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutProjectTransactionInput
   history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
 
@@ -598,9 +905,13 @@ export type ProjectTransactionUpdateWithoutWitnessesInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  contact?: Prisma.ContactUpdateOneWithoutProjectTransactionsNestedInput
+  transaction?: Prisma.TransactionUpdateOneWithoutProjectTransactionNestedInput
   history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
 }
 
@@ -612,8 +923,12 @@ export type ProjectTransactionUncheckedUpdateWithoutWitnessesInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transaction?: Prisma.TransactionUncheckedUpdateOneWithoutProjectTransactionNestedInput
   history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
 }
 
@@ -624,8 +939,12 @@ export type ProjectTransactionCreateWithoutProjectInput = {
   category?: string | null
   description?: string | null
   date?: Date | string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  contact?: Prisma.ContactCreateNestedOneWithoutProjectTransactionsInput
+  transaction?: Prisma.TransactionCreateNestedOneWithoutProjectTransactionInput
   witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
   history?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutProjectTransactionInput
 }
@@ -637,8 +956,12 @@ export type ProjectTransactionUncheckedCreateWithoutProjectInput = {
   category?: string | null
   description?: string | null
   date?: Date | string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutProjectTransactionInput
   witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
   history?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
@@ -669,21 +992,6 @@ export type ProjectTransactionUpdateManyWithWhereWithoutProjectInput = {
   data: Prisma.XOR<Prisma.ProjectTransactionUpdateManyMutationInput, Prisma.ProjectTransactionUncheckedUpdateManyWithoutProjectInput>
 }
 
-export type ProjectTransactionScalarWhereInput = {
-  AND?: Prisma.ProjectTransactionScalarWhereInput | Prisma.ProjectTransactionScalarWhereInput[]
-  OR?: Prisma.ProjectTransactionScalarWhereInput[]
-  NOT?: Prisma.ProjectTransactionScalarWhereInput | Prisma.ProjectTransactionScalarWhereInput[]
-  id?: Prisma.StringFilter<"ProjectTransaction"> | string
-  amount?: Prisma.DecimalFilter<"ProjectTransaction"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  type?: Prisma.EnumProjectTransactionTypeFilter<"ProjectTransaction"> | $Enums.ProjectTransactionType
-  category?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
-  description?: Prisma.StringNullableFilter<"ProjectTransaction"> | string | null
-  date?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
-  projectId?: Prisma.StringFilter<"ProjectTransaction"> | string
-  createdAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
-  updatedAt?: Prisma.DateTimeFilter<"ProjectTransaction"> | Date | string
-}
-
 export type ProjectTransactionCreateWithoutHistoryInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -691,9 +999,13 @@ export type ProjectTransactionCreateWithoutHistoryInput = {
   category?: string | null
   description?: string | null
   date?: Date | string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   project: Prisma.ProjectCreateNestedOneWithoutTransactionsInput
+  contact?: Prisma.ContactCreateNestedOneWithoutProjectTransactionsInput
+  transaction?: Prisma.TransactionCreateNestedOneWithoutProjectTransactionInput
   witnesses?: Prisma.WitnessCreateNestedManyWithoutProjectTransactionInput
 }
 
@@ -705,8 +1017,12 @@ export type ProjectTransactionUncheckedCreateWithoutHistoryInput = {
   description?: string | null
   date?: Date | string
   projectId: string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  transaction?: Prisma.TransactionUncheckedCreateNestedOneWithoutProjectTransactionInput
   witnesses?: Prisma.WitnessUncheckedCreateNestedManyWithoutProjectTransactionInput
 }
 
@@ -733,9 +1049,13 @@ export type ProjectTransactionUpdateWithoutHistoryInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  contact?: Prisma.ContactUpdateOneWithoutProjectTransactionsNestedInput
+  transaction?: Prisma.TransactionUpdateOneWithoutProjectTransactionNestedInput
   witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
 }
 
@@ -747,9 +1067,75 @@ export type ProjectTransactionUncheckedUpdateWithoutHistoryInput = {
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transaction?: Prisma.TransactionUncheckedUpdateOneWithoutProjectTransactionNestedInput
   witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
+}
+
+export type ProjectTransactionCreateManyContactInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  type: $Enums.ProjectTransactionType
+  category?: string | null
+  description?: string | null
+  date?: Date | string
+  projectId: string
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ProjectTransactionUpdateWithoutContactInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ProjectUpdateOneRequiredWithoutTransactionsNestedInput
+  transaction?: Prisma.TransactionUpdateOneWithoutProjectTransactionNestedInput
+  witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
+}
+
+export type ProjectTransactionUncheckedUpdateWithoutContactInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transaction?: Prisma.TransactionUncheckedUpdateOneWithoutProjectTransactionNestedInput
+  witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
+  history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
+}
+
+export type ProjectTransactionUncheckedUpdateManyWithoutContactInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  type?: Prisma.EnumProjectTransactionTypeFieldUpdateOperationsInput | $Enums.ProjectTransactionType
+  category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ProjectTransactionCreateManyProjectInput = {
@@ -759,6 +1145,9 @@ export type ProjectTransactionCreateManyProjectInput = {
   category?: string | null
   description?: string | null
   date?: Date | string
+  contactId?: string | null
+  contactTransactionType?: $Enums.TransactionType | null
+  isMirroredFromContact?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -770,8 +1159,12 @@ export type ProjectTransactionUpdateWithoutProjectInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contact?: Prisma.ContactUpdateOneWithoutProjectTransactionsNestedInput
+  transaction?: Prisma.TransactionUpdateOneWithoutProjectTransactionNestedInput
   witnesses?: Prisma.WitnessUpdateManyWithoutProjectTransactionNestedInput
   history?: Prisma.ProjectTransactionHistoryUpdateManyWithoutProjectTransactionNestedInput
 }
@@ -783,8 +1176,12 @@ export type ProjectTransactionUncheckedUpdateWithoutProjectInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  transaction?: Prisma.TransactionUncheckedUpdateOneWithoutProjectTransactionNestedInput
   witnesses?: Prisma.WitnessUncheckedUpdateManyWithoutProjectTransactionNestedInput
   history?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutProjectTransactionNestedInput
 }
@@ -796,6 +1193,9 @@ export type ProjectTransactionUncheckedUpdateManyWithoutProjectInput = {
   category?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  contactId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contactTransactionType?: Prisma.NullableEnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType | null
+  isMirroredFromContact?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -848,9 +1248,14 @@ export type ProjectTransactionSelect<ExtArgs extends runtime.Types.Extensions.In
   description?: boolean
   date?: boolean
   projectId?: boolean
+  contactId?: boolean
+  contactTransactionType?: boolean
+  isMirroredFromContact?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  contact?: boolean | Prisma.ProjectTransaction$contactArgs<ExtArgs>
+  transaction?: boolean | Prisma.ProjectTransaction$transactionArgs<ExtArgs>
   witnesses?: boolean | Prisma.ProjectTransaction$witnessesArgs<ExtArgs>
   history?: boolean | Prisma.ProjectTransaction$historyArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectTransactionCountOutputTypeDefaultArgs<ExtArgs>
@@ -864,9 +1269,13 @@ export type ProjectTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.
   description?: boolean
   date?: boolean
   projectId?: boolean
+  contactId?: boolean
+  contactTransactionType?: boolean
+  isMirroredFromContact?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  contact?: boolean | Prisma.ProjectTransaction$contactArgs<ExtArgs>
 }, ExtArgs["result"]["projectTransaction"]>
 
 export type ProjectTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -877,9 +1286,13 @@ export type ProjectTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.
   description?: boolean
   date?: boolean
   projectId?: boolean
+  contactId?: boolean
+  contactTransactionType?: boolean
+  isMirroredFromContact?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  contact?: boolean | Prisma.ProjectTransaction$contactArgs<ExtArgs>
 }, ExtArgs["result"]["projectTransaction"]>
 
 export type ProjectTransactionSelectScalar = {
@@ -890,28 +1303,37 @@ export type ProjectTransactionSelectScalar = {
   description?: boolean
   date?: boolean
   projectId?: boolean
+  contactId?: boolean
+  contactTransactionType?: boolean
+  isMirroredFromContact?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProjectTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amount" | "type" | "category" | "description" | "date" | "projectId" | "createdAt" | "updatedAt", ExtArgs["result"]["projectTransaction"]>
+export type ProjectTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "amount" | "type" | "category" | "description" | "date" | "projectId" | "contactId" | "contactTransactionType" | "isMirroredFromContact" | "createdAt" | "updatedAt", ExtArgs["result"]["projectTransaction"]>
 export type ProjectTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  contact?: boolean | Prisma.ProjectTransaction$contactArgs<ExtArgs>
+  transaction?: boolean | Prisma.ProjectTransaction$transactionArgs<ExtArgs>
   witnesses?: boolean | Prisma.ProjectTransaction$witnessesArgs<ExtArgs>
   history?: boolean | Prisma.ProjectTransaction$historyArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectTransactionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectTransactionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  contact?: boolean | Prisma.ProjectTransaction$contactArgs<ExtArgs>
 }
 export type ProjectTransactionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   project?: boolean | Prisma.ProjectDefaultArgs<ExtArgs>
+  contact?: boolean | Prisma.ProjectTransaction$contactArgs<ExtArgs>
 }
 
 export type $ProjectTransactionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ProjectTransaction"
   objects: {
     project: Prisma.$ProjectPayload<ExtArgs>
+    contact: Prisma.$ContactPayload<ExtArgs> | null
+    transaction: Prisma.$TransactionPayload<ExtArgs> | null
     witnesses: Prisma.$WitnessPayload<ExtArgs>[]
     history: Prisma.$ProjectTransactionHistoryPayload<ExtArgs>[]
   }
@@ -923,6 +1345,9 @@ export type $ProjectTransactionPayload<ExtArgs extends runtime.Types.Extensions.
     description: string | null
     date: Date
     projectId: string
+    contactId: string | null
+    contactTransactionType: $Enums.TransactionType | null
+    isMirroredFromContact: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["projectTransaction"]>
@@ -1320,6 +1745,8 @@ readonly fields: ProjectTransactionFieldRefs;
 export interface Prisma__ProjectTransactionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   project<T extends Prisma.ProjectDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectDefaultArgs<ExtArgs>>): Prisma.Prisma__ProjectClient<runtime.Types.Result.GetResult<Prisma.$ProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  contact<T extends Prisma.ProjectTransaction$contactArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectTransaction$contactArgs<ExtArgs>>): Prisma.Prisma__ContactClient<runtime.Types.Result.GetResult<Prisma.$ContactPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  transaction<T extends Prisma.ProjectTransaction$transactionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectTransaction$transactionArgs<ExtArgs>>): Prisma.Prisma__TransactionClient<runtime.Types.Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   witnesses<T extends Prisma.ProjectTransaction$witnessesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectTransaction$witnessesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WitnessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   history<T extends Prisma.ProjectTransaction$historyArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProjectTransaction$historyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectTransactionHistoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1358,6 +1785,9 @@ export interface ProjectTransactionFieldRefs {
   readonly description: Prisma.FieldRef<"ProjectTransaction", 'String'>
   readonly date: Prisma.FieldRef<"ProjectTransaction", 'DateTime'>
   readonly projectId: Prisma.FieldRef<"ProjectTransaction", 'String'>
+  readonly contactId: Prisma.FieldRef<"ProjectTransaction", 'String'>
+  readonly contactTransactionType: Prisma.FieldRef<"ProjectTransaction", 'TransactionType'>
+  readonly isMirroredFromContact: Prisma.FieldRef<"ProjectTransaction", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"ProjectTransaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ProjectTransaction", 'DateTime'>
 }
@@ -1753,6 +2183,44 @@ export type ProjectTransactionDeleteManyArgs<ExtArgs extends runtime.Types.Exten
    * Limit how many ProjectTransactions to delete.
    */
   limit?: number
+}
+
+/**
+ * ProjectTransaction.contact
+ */
+export type ProjectTransaction$contactArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Contact
+   */
+  select?: Prisma.ContactSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Contact
+   */
+  omit?: Prisma.ContactOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ContactInclude<ExtArgs> | null
+  where?: Prisma.ContactWhereInput
+}
+
+/**
+ * ProjectTransaction.transaction
+ */
+export type ProjectTransaction$transactionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Transaction
+   */
+  select?: Prisma.TransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Transaction
+   */
+  omit?: Prisma.TransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionInclude<ExtArgs> | null
+  where?: Prisma.TransactionWhereInput
 }
 
 /**

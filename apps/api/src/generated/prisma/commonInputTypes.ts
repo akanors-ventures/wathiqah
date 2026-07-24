@@ -542,6 +542,13 @@ export type EnumProjectTransactionTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel> | $Enums.ProjectTransactionType
 }
 
+export type EnumTransactionTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumTransactionTypeNullableFilter<$PrismaModel> | $Enums.TransactionType | null
+}
+
 export type EnumProjectTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ProjectTransactionType | Prisma.EnumProjectTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.ProjectTransactionType[] | Prisma.ListEnumProjectTransactionTypeFieldRefInput<$PrismaModel>
@@ -550,6 +557,16 @@ export type EnumProjectTransactionTypeWithAggregatesFilter<$PrismaModel = never>
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
+}
+
+export type EnumTransactionTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumTransactionTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.TransactionType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTransactionTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTransactionTypeNullableFilter<$PrismaModel>
 }
 
 export type EnumPersonalEntryTypeFilter<$PrismaModel = never> = {
@@ -1209,6 +1226,13 @@ export type NestedEnumProjectTransactionTypeFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel> | $Enums.ProjectTransactionType
 }
 
+export type NestedEnumTransactionTypeNullableFilter<$PrismaModel = never> = {
+  equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumTransactionTypeNullableFilter<$PrismaModel> | $Enums.TransactionType | null
+}
+
 export type NestedEnumProjectTransactionTypeWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.ProjectTransactionType | Prisma.EnumProjectTransactionTypeFieldRefInput<$PrismaModel>
   in?: $Enums.ProjectTransactionType[] | Prisma.ListEnumProjectTransactionTypeFieldRefInput<$PrismaModel>
@@ -1217,6 +1241,16 @@ export type NestedEnumProjectTransactionTypeWithAggregatesFilter<$PrismaModel = 
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
   _max?: Prisma.NestedEnumProjectTransactionTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumTransactionTypeNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.TransactionType | Prisma.EnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  in?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  notIn?: $Enums.TransactionType[] | Prisma.ListEnumTransactionTypeFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedEnumTransactionTypeNullableWithAggregatesFilter<$PrismaModel> | $Enums.TransactionType | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumTransactionTypeNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumTransactionTypeNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumPersonalEntryTypeFilter<$PrismaModel = never> = {

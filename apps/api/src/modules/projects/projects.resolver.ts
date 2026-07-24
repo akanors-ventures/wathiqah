@@ -18,13 +18,12 @@ import { ProjectTransactionsService } from './project-transactions.service';
 import { Project } from './entities/project.entity';
 import { CreateProjectInput } from './dto/create-project.input';
 import { UpdateProjectInput } from './dto/update-project.input';
-import { LogProjectTransactionInput } from './dto/log-project-transaction.input';
-import { UpdateProjectTransactionInput } from './dto/update-project-transaction.input';
 import { FilterProjectInput } from './dto/filter-project.input';
 import { FilterProjectTransactionInput } from './dto/filter-project-transaction.input';
 import { PaginatedProjectsResponse } from './entities/paginated-projects-response.entity';
 import { PaginatedProjectTransactionsResponse } from './entities/paginated-project-transactions-response.entity';
-import { ProjectTransaction } from './entities/project-transaction.entity';
+import { Transaction } from '../transactions/entities/transaction.entity';
+import { TransactionType } from '../../generated/prisma/client';
 
 @Resolver(() => Project)
 @UseGuards(GqlAuthGuard)
@@ -68,14 +67,6 @@ export class ProjectsResolver {
     return this.projectsService.update(user.id, input);
   }
 
-  @Mutation(() => ProjectTransaction)
-  async logProjectTransaction(
-    @CurrentUser() user: User,
-    @Args('input') input: LogProjectTransactionInput,
-  ) {
-    return this.projectTransactionsService.create(user.id, input);
-  }
-
   @ResolveField(() => Float, { defaultValue: 0 })
   async totalIncome(@Parent() project: Project): Promise<number> {
     const { totalIncome } = await this.projectsService.getTransactionTotals(
@@ -92,22 +83,6 @@ export class ProjectsResolver {
     return totalExpenses;
   }
 
-  @Mutation(() => ProjectTransaction)
-  async updateProjectTransaction(
-    @CurrentUser() user: User,
-    @Args('input') input: UpdateProjectTransactionInput,
-  ) {
-    return this.projectTransactionsService.update(user.id, input);
-  }
-
-  @Mutation(() => ProjectTransaction)
-  async removeProjectTransaction(
-    @CurrentUser() user: User,
-    @Args('id', { type: () => ID }) id: string,
-  ) {
-    return this.projectTransactionsService.remove(user.id, id);
-  }
-
   @ResolveField(() => PaginatedProjectTransactionsResponse)
   async transactions(
     @Parent() project: Project,
@@ -122,5 +97,24 @@ export class ProjectsResolver {
     @Args('projectId', { type: () => ID }) projectId: string,
   ) {
     return this.projectTransactionsService.usedCategories(user.id, projectId);
+  }
+
+  @Query(() => [Transaction], { name: 'projectContactOutstandingLoans' })
+  async projectContactOutstandingLoans(
+    @CurrentUser() user: User,
+    @Args('projectId', { type: () => ID }) projectId: string,
+    @Args('contactId', { type: () => ID }) contactId: string,
+    @Args('contactTransactionType', {
+      type: () => TransactionType,
+      nullable: true,
+    })
+    contactTransactionType?: TransactionType,
+  ) {
+    return this.projectTransactionsService.findOutstandingContactLoans(
+      user.id,
+      projectId,
+      contactId,
+      contactTransactionType,
+    );
   }
 }
