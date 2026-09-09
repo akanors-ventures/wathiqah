@@ -99,6 +99,23 @@ export type AdminUsersFilterInput = {
   tier?: InputMaybe<SubscriptionTier>;
 };
 
+export type AllocateTransactionsInput = {
+  allocations: Array<AllocationTargetInput>;
+  date?: InputMaybe<Scalars['DateTime']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  sourceTransactionId: Scalars['ID']['input'];
+};
+
+export enum AllocationStatus {
+  Active = 'ACTIVE',
+  Reversed = 'REVERSED'
+}
+
+export type AllocationTargetInput = {
+  amount: Scalars['Float']['input'];
+  targetTransactionId: Scalars['ID']['input'];
+};
+
 export enum AssetCategory {
   Funds = 'FUNDS',
   Item = 'ITEM'
@@ -396,6 +413,7 @@ export type Mutation = {
   adminCreatePlan: PlanEntity;
   adminSyncPlans: Array<PlanEntity>;
   adminUpdatePlan: PlanEntity;
+  allocateTransactions: Array<TransactionAllocation>;
   cancelSubscription: Scalars['Boolean']['output'];
   changePassword: Scalars['Boolean']['output'];
   createCheckoutSession: CheckoutSession;
@@ -440,6 +458,7 @@ export type Mutation = {
   resendVerificationEmail: Scalars['Boolean']['output'];
   resendWitnessInvitation: Witness;
   resetPassword: Scalars['Boolean']['output'];
+  reverseTransactionAllocation: TransactionAllocation;
   revokeAccess: AccessGrant;
   setUserRole: User;
   signup: AuthPayload;
@@ -493,6 +512,11 @@ export type MutationAdminCreatePlanArgs = {
 export type MutationAdminUpdatePlanArgs = {
   id: Scalars['ID']['input'];
   input: UpdatePlanInput;
+};
+
+
+export type MutationAllocateTransactionsArgs = {
+  input: AllocateTransactionsInput;
 };
 
 
@@ -691,6 +715,11 @@ export type MutationResendWitnessInvitationArgs = {
 
 export type MutationResetPasswordArgs = {
   resetPasswordInput: ResetPasswordInput;
+};
+
+
+export type MutationReverseTransactionAllocationArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1099,6 +1128,8 @@ export type Query = {
   adminStats: AdminStats;
   adminUser: User;
   adminUsers: PaginatedUsersResponse;
+  allocatableObligations: Array<Transaction>;
+  availableCredits: Array<Transaction>;
   checkContactOnPlatform: ContactPlatformStatus;
   contact: Contact;
   contacts: PaginatedContactsResponse;
@@ -1156,6 +1187,18 @@ export type QueryAdminUserArgs = {
 
 export type QueryAdminUsersArgs = {
   filter?: InputMaybe<AdminUsersFilterInput>;
+};
+
+
+export type QueryAllocatableObligationsArgs = {
+  contactId?: InputMaybe<Scalars['ID']['input']>;
+  sourceTransactionId: Scalars['ID']['input'];
+};
+
+
+export type QueryAvailableCreditsArgs = {
+  contactId?: InputMaybe<Scalars['ID']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1422,6 +1465,8 @@ export type TierLimitsEntity = {
 
 export type Transaction = {
   __typename: 'Transaction';
+  allocationsIn: Array<TransactionAllocation>;
+  allocationsOut: Array<TransactionAllocation>;
   amount: Maybe<Scalars['Float']['output']>;
   category: AssetCategory;
   contact: Maybe<Contact>;
@@ -1450,6 +1495,23 @@ export type Transaction = {
   status: TransactionStatus;
   type: TransactionType;
   witnesses: Maybe<Array<Witness>>;
+};
+
+export type TransactionAllocation = {
+  __typename: 'TransactionAllocation';
+  amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  createdBy: Maybe<User>;
+  currency: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  note: Maybe<Scalars['String']['output']>;
+  reversedAt: Maybe<Scalars['DateTime']['output']>;
+  sourceTransaction: Maybe<Transaction>;
+  sourceTransactionId: Scalars['ID']['output'];
+  status: AllocationStatus;
+  targetTransaction: Maybe<Transaction>;
+  targetTransactionId: Scalars['ID']['output'];
 };
 
 export type TransactionHistory = {

@@ -11,6 +11,8 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from './transactions.service';
 import { Transaction } from './entities/transaction.entity';
+import { TransactionAllocation } from './entities/transaction-allocation.entity';
+import { TransactionAllocationsService } from './transaction-allocations.service';
 import { ProjectTransaction } from '../projects/entities/project-transaction.entity';
 import { Organisation } from '../organisations/entities/organisation.entity';
 import { AddWitnessInput } from './dto/add-witness.input';
@@ -39,6 +41,7 @@ import {
 export class TransactionsResolver {
   constructor(
     private readonly transactionsService: TransactionsService,
+    private readonly allocationsService: TransactionAllocationsService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -69,6 +72,21 @@ export class TransactionsResolver {
       transaction.id,
     );
     return computeOutstanding(transaction.amount, settled);
+  }
+
+  /**
+   * Credit drawn OUT of this transaction: "this lump sum went to these
+   * obligations." Detail query only — never selected on a list page.
+   */
+  @ResolveField(() => [TransactionAllocation])
+  async allocationsOut(@Parent() transaction: Transaction) {
+    return this.allocationsService.listForTransaction(transaction.id, 'OUT');
+  }
+
+  /** Credit applied IN to this transaction: "settled from that lump sum." */
+  @ResolveField(() => [TransactionAllocation])
+  async allocationsIn(@Parent() transaction: Transaction) {
+    return this.allocationsService.listForTransaction(transaction.id, 'IN');
   }
 
   /**

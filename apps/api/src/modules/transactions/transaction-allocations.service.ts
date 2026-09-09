@@ -10,8 +10,12 @@ import {
   AssetCategory,
   Prisma,
   TransactionStatus,
+  TransactionType,
 } from '../../generated/prisma/client';
 import {
+  CREDIT_SOURCE_TYPES,
+  LIFECYCLE_OBLIGATION_TYPES,
+  OBLIGATION_SIGN,
   computeOutstanding,
   isCreditSourceType,
   isLifecycleObligationType,
@@ -453,6 +457,103 @@ export class TransactionAllocationsService {
       },
       orderBy: { date: 'desc' },
     });
+  }
+
+  /**
+   * Credit pools with unapplied balance left, for the "settle from" picker.
+   * `contactId` is optional on purpose: a contact paying on behalf of another
+   * is one of the things this feature exists for.
+   */
+  async availableCredits(
+    userId: string,
+    orgId: string | null,
+    contactId?: string,
+    currency?: string,
+  ) {
+    return this.findAllocatable(
+      userId,
+      orgId,
+      [...CREDIT_SOURCE_TYPES],
+      contactId,
+      currency,
+    );
+  }
+
+  /**
+   * Obligations this credit may legally settle: opposite standing sign, same
+   * currency, still outstanding. Filters on the *computed* remainder rather
+   * than a `status: PENDING` shortcut — status is a derived cache and a row
+   * can be PENDING with nothing left after a gift conversion.
+   */
+  async allocatableObligations(
+    sourceTransactionId: string,
+    userId: string,
+    orgId: string | null,
+    contactId?: string,
+  ) {
+    const source = await this.loadEndpoint(sourceTransactionId, 'source');
+    await this.assertEndpointUsable(source, userId, orgId, 'source');
+
+    const sourceSign = OBLIGATION_SIGN[source.type];
+    if (!sourceSign) return [];
+
+    const opposite = LIFECYCLE_OBLIGATION_TYPES.filter(
+      (type) => OBLIGATION_SIGN[type] === -sourceSign,
+    );
+
+    const rows = await this.findAllocatable(
+      userId,
+      orgId,
+      opposite,
+      contactId,
+      source.currency,
+    );
+    return rows.filter((row) => row.id !== sourceTransactionId);
+  }
+
+  /**
+   * Shared body of the two pickers: scope, hygiene filters, then drop anything
+   * with nothing left on it. Capped at 50 — these feed a checkbox list, not a
+   * report.
+   */
+  private async findAllocatable(
+    userId: string,
+    orgId: string | null,
+    types: readonly string[],
+    contactId?: string,
+    currency?: string,
+  ) {
+    const rows = await this.prisma.transaction.findMany({
+      where: {
+        ...(orgId ? { orgId } : { createdById: userId, orgId: null }),
+        type: { in: types as TransactionType[] },
+        category: AssetCategory.FUNDS,
+        status: { not: TransactionStatus.CANCELLED },
+        parentId: null,
+        orgSourceTransactionId: null,
+        isMirroredFromProject: false,
+        ...(contactId ? { contactId } : {}),
+        ...(currency ? { currency } : {}),
+      },
+      include: { contact: true },
+      orderBy: { date: 'desc' },
+      take: 50,
+    });
+
+    const settled = await this.transactionsService.loadSettledAmounts(
+      this.prisma,
+      rows.map((row) => row.id),
+    );
+
+    return rows
+      .map((row) => ({
+        ...row,
+        remainingAmount: computeOutstanding(
+          row.amount,
+          settled.get(row.id) ?? 0,
+        ),
+      }))
+      .filter((row) => row.remainingAmount > 0);
   }
 
   private async loadEndpoint(

@@ -80,6 +80,23 @@ input AdminUsersFilterInput {
   tier: SubscriptionTier
 }
 
+input AllocateTransactionsInput {
+  allocations: [AllocationTargetInput!]!
+  date: DateTime
+  note: String
+  sourceTransactionId: ID!
+}
+
+enum AllocationStatus {
+  ACTIVE
+  REVERSED
+}
+
+input AllocationTargetInput {
+  amount: Float!
+  targetTransactionId: ID!
+}
+
 enum AssetCategory {
   FUNDS
   ITEM
@@ -378,6 +395,7 @@ type Mutation {
   adminCreatePlan(input: CreatePlanInput!): PlanEntity!
   adminSyncPlans: [PlanEntity!]!
   adminUpdatePlan(id: ID!, input: UpdatePlanInput!): PlanEntity!
+  allocateTransactions(input: AllocateTransactionsInput!): [TransactionAllocation!]!
   cancelSubscription: Boolean!
   changePassword(changePasswordInput: ChangePasswordInput!): Boolean!
   createCheckoutSession(currency: String, interval: BillingInterval = MONTHLY, tier: SubscriptionTier!): CheckoutSession!
@@ -422,6 +440,7 @@ type Mutation {
   resendVerificationEmail(email: String!): Boolean!
   resendWitnessInvitation(witnessId: ID!): Witness!
   resetPassword(resetPasswordInput: ResetPasswordInput!): Boolean!
+  reverseTransactionAllocation(id: ID!): TransactionAllocation!
   revokeAccess(id: String!): AccessGrant!
   setUserRole(input: SetUserRoleInput!): User!
   signup(signupInput: SignupInput!): AuthPayload!
@@ -731,6 +750,8 @@ type Query {
   adminStats: AdminStats!
   adminUser(id: ID!): User!
   adminUsers(filter: AdminUsersFilterInput = {}): PaginatedUsersResponse!
+  allocatableObligations(contactId: ID, sourceTransactionId: ID!): [Transaction!]!
+  availableCredits(contactId: ID, currency: String): [Transaction!]!
   checkContactOnPlatform(contactId: ID!): ContactPlatformStatus!
   contact(id: ID!): Contact!
   contacts(filter: FilterContactInput): PaginatedContactsResponse!
@@ -881,6 +902,8 @@ type TierLimitsEntity {
 }
 
 type Transaction {
+  allocationsIn: [TransactionAllocation!]!
+  allocationsOut: [TransactionAllocation!]!
   amount: Float
   category: AssetCategory!
   contact: Contact
@@ -909,6 +932,22 @@ type Transaction {
   status: TransactionStatus!
   type: TransactionType!
   witnesses: [Witness!]
+}
+
+type TransactionAllocation {
+  amount: Float!
+  createdAt: DateTime!
+  createdBy: User
+  currency: String!
+  date: DateTime!
+  id: ID!
+  note: String
+  reversedAt: DateTime
+  sourceTransaction: Transaction
+  sourceTransactionId: ID!
+  status: AllocationStatus!
+  targetTransaction: Transaction
+  targetTransactionId: ID!
 }
 
 type TransactionHistory {

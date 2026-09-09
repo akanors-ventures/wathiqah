@@ -207,6 +207,37 @@ export class TransactionsService {
   }
 
   /**
+   * Attaches a pre-computed `remainingAmount` to each lifecycle row in a page
+   * of results. Three queries for the whole page instead of three per row —
+   * the `remainingAmount` ResolveField short-circuits when the value is
+   * already here. There is no DataLoader in this codebase; that is the general
+   * fix and belongs in its own change.
+   *
+   * @internal call sites within TransactionsModule only
+   */
+  async attachRemainingAmounts<
+    T extends { id: string; type: string; amount: unknown },
+  >(items: T[]): Promise<T[]> {
+    const lifecycleIds = items
+      .filter((item) => isLifecycleObligationType(item.type) && item.amount)
+      .map((item) => item.id);
+    if (lifecycleIds.length === 0) return items;
+
+    const settled = await this.loadSettledAmounts(this.prisma, lifecycleIds);
+    return items.map((item) =>
+      settled.has(item.id)
+        ? {
+            ...item,
+            remainingAmount: computeOutstanding(
+              item.amount as number,
+              settled.get(item.id) ?? 0,
+            ),
+          }
+        : item,
+    );
+  }
+
+  /**
    * Recomputes a parent transaction's lifecycle status based on its
    * non-cancelled children.
    *
@@ -1391,8 +1422,8 @@ export class TransactionsService {
       }),
     ]);
 
-    const transformedItems = items.map((item) =>
-      this.applyPerspective(item, userId),
+    const transformedItems = await this.attachRemainingAmounts(
+      items.map((item) => this.applyPerspective(item, userId)),
     );
 
     const combinedItems = transformedItems;
@@ -2497,7 +2528,9 @@ export class TransactionsService {
     ]);
 
     return {
-      items: items.map((item) => this.applyPerspective(item, userId)),
+      items: await this.attachRemainingAmounts(
+        items.map((item) => this.applyPerspective(item, userId)),
+      ),
       total,
       page,
       limit,
