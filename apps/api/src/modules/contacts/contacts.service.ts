@@ -20,6 +20,7 @@ import {
   FilterContactInput,
   ContactBalanceStanding,
 } from './dto/filter-contact.input';
+import { computeEffectiveObligationAmount } from '../transactions/settlement.util';
 
 /** + = contact owes me, − = I owe contact. GIFT excluded (no ongoing obligation). */
 const CONTACT_STANDING_SIGN: Partial<Record<string, 1 | -1>> = {
@@ -33,6 +34,17 @@ const CONTACT_STANDING_SIGN: Partial<Record<string, 1 | -1>> = {
   ADVANCE_RECEIVED: -1,
   DEPOSIT_RECEIVED: -1,
   ESCROWED: -1,
+};
+
+/** One transaction row as loaded for balance math. */
+type BalanceTransaction = {
+  type: string;
+  amount: unknown;
+  status?: string;
+  parentId?: string | null;
+  conversions?: Array<{ amount: unknown }>;
+  allocationsIn?: Array<{ amount: unknown }>;
+  allocationsOut?: Array<{ amount: unknown }>;
 };
 
 @Injectable()
@@ -124,6 +136,14 @@ export class ContactsService {
                 },
                 select: { amount: true },
               },
+              allocationsIn: {
+                where: { status: 'ACTIVE' },
+                select: { amount: true },
+              },
+              allocationsOut: {
+                where: { status: 'ACTIVE' },
+                select: { amount: true },
+              },
             },
           },
         },
@@ -206,42 +226,27 @@ export class ContactsService {
   }
 
   /**
-   * Returns the effective principal of a transaction for balance math:
-   * the raw amount minus any non-cancelled gift conversions (clamped at 0).
-   * Shared by `computeContactBalance` (list view) and `getBalance`
-   * (single contact) so both code paths stay in lockstep.
+   * Returns the effective principal of a transaction for balance math: the raw
+   * amount minus the two things that discharge an obligation without a signed
+   * row of their own — non-cancelled gift conversions and ACTIVE allocations
+   * on either leg (clamped at 0). Shared by `computeContactBalance` (list
+   * view) and `getBalance` (single contact) so both code paths stay in
+   * lockstep.
+   *
+   * Repayment children are deliberately NOT subtracted here: they are summed
+   * as their own signed rows by the callers. See settlement.util.ts.
    */
-  private effectiveTransactionAmount(tx: {
-    amount: unknown;
-    conversions?: Array<{ amount: unknown }>;
-  }): number {
-    const toNum = (value: unknown): number => {
-      if (value == null) return 0;
-      if (typeof value === 'object' && value !== null && 'toNumber' in value) {
-        return (value as { toNumber: () => number }).toNumber();
-      }
-      return Number(value);
-    };
-
-    let amount = toNum(tx.amount);
-    if (tx.conversions && tx.conversions.length > 0) {
-      const totalGifted = tx.conversions.reduce(
-        (sum, conv) => sum + toNum(conv.amount),
-        0,
-      );
-      amount = Math.max(0, amount - totalGifted);
-    }
-    return amount;
+  private effectiveTransactionAmount(tx: BalanceTransaction): number {
+    return computeEffectiveObligationAmount({
+      amount: tx.amount,
+      giftConversions: tx.conversions,
+      allocationsIn: tx.allocationsIn,
+      allocationsOut: tx.allocationsOut,
+    });
   }
 
   private computeContactBalance(
-    transactions: Array<{
-      type: string;
-      amount: unknown;
-      status: string;
-      parentId?: string | null;
-      conversions?: Array<{ amount: unknown }>;
-    }>,
+    transactions: BalanceTransaction[],
     isCreator = true,
   ): number {
     let balance = 0;
@@ -368,12 +373,7 @@ export class ContactsService {
    * `flip: true` for the shared-ledger reverse side (see `getBalance`).
    */
   private sumBalanceTransactions(
-    transactions: Array<{
-      type: string;
-      amount: unknown;
-      parentId?: string | null;
-      conversions?: Array<{ amount: unknown }>;
-    }>,
+    transactions: BalanceTransaction[],
     flip: boolean,
   ): number {
     let balance = 0;
@@ -412,6 +412,14 @@ export class ContactsService {
       select: { amount: true },
     };
 
+    // Allocations discharge an obligation without a signed row of their own,
+    // so both legs must be subtracted from the effective principal exactly the
+    // way gift conversions are.
+    const allocationsSelect = {
+      where: { status: 'ACTIVE' } as Prisma.TransactionAllocationWhereInput,
+      select: { amount: true },
+    };
+
     // Direct transactions recorded against this Contact row. For an org
     // contact these can be created by *any* member — the sign is applied
     // as-is regardless of creator, since org standing doesn't flip per
@@ -428,6 +436,8 @@ export class ContactsService {
         amount: true,
         parentId: true,
         conversions: conversionsSelect,
+        allocationsIn: allocationsSelect,
+        allocationsOut: allocationsSelect,
       },
     });
     let balance = this.sumBalanceTransactions(directTransactions, false);
@@ -454,6 +464,8 @@ export class ContactsService {
           amount: true,
           parentId: true,
           conversions: conversionsSelect,
+          allocationsIn: allocationsSelect,
+          allocationsOut: allocationsSelect,
         },
       });
       balance += this.sumBalanceTransactions(reverseTransactions, true);

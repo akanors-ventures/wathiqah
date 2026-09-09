@@ -33,6 +33,11 @@ import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { computeProjectTransactionBalanceEffect } from '../projects/project-transactions.service';
+import {
+  computeOutstanding,
+  computeSettledAmount,
+  isLifecycleObligationType,
+} from './settlement.util';
 
 /** Perspective-flip pairs for shared-ledger view. */
 const PERSPECTIVE_FLIP_MAP: Partial<Record<string, string>> = {
@@ -115,6 +120,93 @@ export class TransactionsService {
   ) {}
 
   /**
+   * Total amount discharged against one transaction: non-cancelled children
+   * (repayments / remittances / gift conversions) plus ACTIVE allocations on
+   * BOTH legs. Three aggregates rather than findMany + reduce — same result,
+   * less data over the wire.
+   *
+   * @internal call sites within TransactionsModule only
+   */
+  async loadSettledAmount(
+    prisma: Prisma.TransactionClient,
+    transactionId: string,
+  ): Promise<number> {
+    const [children, allocationsIn, allocationsOut] = await Promise.all([
+      prisma.transaction.aggregate({
+        _sum: { amount: true },
+        where: {
+          parentId: transactionId,
+          status: { not: TransactionStatus.CANCELLED },
+        },
+      }),
+      prisma.transactionAllocation.aggregate({
+        _sum: { amount: true },
+        where: { targetTransactionId: transactionId, status: 'ACTIVE' },
+      }),
+      prisma.transactionAllocation.aggregate({
+        _sum: { amount: true },
+        where: { sourceTransactionId: transactionId, status: 'ACTIVE' },
+      }),
+    ]);
+
+    return computeSettledAmount({
+      children: [{ amount: children._sum.amount }],
+      allocationsIn: [{ amount: allocationsIn._sum.amount }],
+      allocationsOut: [{ amount: allocationsOut._sum.amount }],
+    });
+  }
+
+  /**
+   * Batched form of loadSettledAmount: three groupBy queries regardless of how
+   * many ids are passed. Used to pre-compute `remainingAmount` for a whole page
+   * of results instead of one query per row (there is no DataLoader in this
+   * codebase — see the remainingAmount ResolveField).
+   *
+   * @internal call sites within TransactionsModule only
+   */
+  async loadSettledAmounts(
+    prisma: Prisma.TransactionClient,
+    ids: string[],
+  ): Promise<Map<string, number>> {
+    const settled = new Map<string, number>();
+    if (ids.length === 0) return settled;
+
+    const [children, allocationsIn, allocationsOut] = await Promise.all([
+      prisma.transaction.groupBy({
+        by: ['parentId'],
+        _sum: { amount: true },
+        where: {
+          parentId: { in: ids },
+          status: { not: TransactionStatus.CANCELLED },
+        },
+      }),
+      prisma.transactionAllocation.groupBy({
+        by: ['targetTransactionId'],
+        _sum: { amount: true },
+        where: { targetTransactionId: { in: ids }, status: 'ACTIVE' },
+      }),
+      prisma.transactionAllocation.groupBy({
+        by: ['sourceTransactionId'],
+        _sum: { amount: true },
+        where: { sourceTransactionId: { in: ids }, status: 'ACTIVE' },
+      }),
+    ]);
+
+    const add = (id: string | null, amount: unknown) => {
+      if (!id) return;
+      settled.set(id, (settled.get(id) ?? 0) + Number(amount ?? 0));
+    };
+    for (const row of children) add(row.parentId, row._sum.amount);
+    for (const row of allocationsIn)
+      add(row.targetTransactionId, row._sum.amount);
+    for (const row of allocationsOut)
+      add(row.sourceTransactionId, row._sum.amount);
+
+    for (const id of ids) if (!settled.has(id)) settled.set(id, 0);
+    return settled;
+  }
+
+  /**
    * Recomputes a parent transaction's lifecycle status based on its
    * non-cancelled children.
    *
@@ -145,29 +237,12 @@ export class TransactionsService {
 
     if (!parent || !parent.amount) return;
     if (parent.status === TransactionStatus.CANCELLED) return;
-    // Only loan and escrow parents have a "settled" lifecycle
-    if (
-      parent.type !== 'LOAN_GIVEN' &&
-      parent.type !== 'LOAN_RECEIVED' &&
-      parent.type !== 'ESCROWED'
-    ) {
-      return;
-    }
+    // Only obligation types carry a "settled" lifecycle
+    if (!isLifecycleObligationType(parent.type)) return;
 
-    let settled = preloadedSettledAmount;
-    if (settled === undefined) {
-      const children = await prisma.transaction.findMany({
-        where: {
-          parentId,
-          status: { not: TransactionStatus.CANCELLED },
-        },
-        select: { amount: true },
-      });
-      settled = children.reduce(
-        (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-        0,
-      );
-    }
+    const settled =
+      preloadedSettledAmount ??
+      (await this.loadSettledAmount(prisma, parentId));
     const parentAmount = Number(parent.amount);
     const isFullySettled = settled >= parentAmount;
     const nextStatus = isFullySettled
@@ -684,22 +759,16 @@ export class TransactionsService {
         rest.currency =
           parentTransaction.currency ?? rest.currency ?? undefined;
 
-        // Outstanding = parent amount - (sum of existing repayment children + sum of gift conversions)
-        const children = await prisma.transaction.findMany({
-          where: {
-            parentId: rest.parentId,
-            status: { not: 'CANCELLED' },
-          },
-          select: { amount: true, type: true },
-        });
-        const alreadySettled = children.reduce(
-          (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-          0,
+        // Outstanding = parent amount - (repayment children + gift conversions
+        // + anything already allocated against it from a credit pool)
+        const alreadySettled = await this.loadSettledAmount(
+          prisma,
+          rest.parentId,
         );
-        const parentAmount = parentTransaction.amount
-          ? Number(parentTransaction.amount)
-          : 0;
-        const outstanding = Math.max(0, parentAmount - alreadySettled);
+        const outstanding = computeOutstanding(
+          parentTransaction.amount,
+          alreadySettled,
+        );
         const repayAmount = Number(amount ?? 0);
 
         if (repayAmount <= 0) {
@@ -736,22 +805,18 @@ export class TransactionsService {
         rest.currency =
           parentTransaction.currency ?? rest.currency ?? undefined;
 
-        // Outstanding = parent amount - sum of existing remittance children
-        const children = await prisma.transaction.findMany({
-          where: {
-            parentId: rest.parentId,
-            status: { not: 'CANCELLED' },
-          },
-          select: { amount: true },
-        });
-        const alreadyRemitted = children.reduce(
-          (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-          0,
+        // Outstanding = parent amount - (remittance children + anything already
+        // allocated out of this escrow to settle an obligation elsewhere).
+        // Without the allocation term the same money could be both allocated
+        // and remitted — this is the anti-double-spend guard.
+        const alreadyRemitted = await this.loadSettledAmount(
+          prisma,
+          rest.parentId,
         );
-        const parentAmount = parentTransaction.amount
-          ? Number(parentTransaction.amount)
-          : 0;
-        const outstanding = Math.max(0, parentAmount - alreadyRemitted);
+        const outstanding = computeOutstanding(
+          parentTransaction.amount,
+          alreadyRemitted,
+        );
         const remitAmount = Number(amount ?? 0);
 
         if (remitAmount <= 0) {
@@ -809,10 +874,7 @@ export class TransactionsService {
     // them. Children themselves (repayments / remittances) keep the
     // default COMPLETED — they're standalone settled events.
     const isLifecycleParent =
-      !rest.parentId &&
-      (rest.type === 'LOAN_GIVEN' ||
-        rest.type === 'LOAN_RECEIVED' ||
-        rest.type === 'ESCROWED');
+      !rest.parentId && isLifecycleObligationType(rest.type);
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -944,20 +1006,14 @@ export class TransactionsService {
     // what's already been settled by its children would leave a negative
     // outstanding balance — the same bound createWithClient enforces when a
     // repayment/remittance is first created.
-    const isLifecycleParent =
-      mirrored.type === 'LOAN_GIVEN' ||
-      mirrored.type === 'LOAN_RECEIVED' ||
-      mirrored.type === 'ESCROWED';
+    const isLifecycleParent = isLifecycleObligationType(mirrored.type);
     let alreadySettled = 0;
     if (isLifecycleParent) {
-      const children = await prisma.transaction.findMany({
-        where: { parentId: transactionId, status: { not: 'CANCELLED' } },
-        select: { amount: true },
-      });
-      alreadySettled = children.reduce(
-        (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-        0,
-      );
+      // Allocation-inclusive: this same figure is handed to
+      // recomputeParentLoanStatus as preloadedSettledAmount below, so a
+      // children-only value here would make a fully-settled parent never
+      // reach COMPLETED.
+      alreadySettled = await this.loadSettledAmount(prisma, transactionId);
       if (newAmount < alreadySettled) {
         throw new BadRequestException(
           `Amount (${newAmount}) cannot be less than the amount already settled (${alreadySettled}) against this transaction`,

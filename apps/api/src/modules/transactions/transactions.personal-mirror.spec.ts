@@ -8,6 +8,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { TransactionType, AssetCategory } from '../../generated/prisma/client';
+import { withSettlementAggregates } from './__tests__/settlement-mocks';
 
 /**
  * Covers TransactionsService.maybeCreatePersonalMirror and the guards that
@@ -58,7 +59,7 @@ function contactMap(
     Promise.resolve(byId.get(where.id) ?? null);
 }
 
-const mockPrismaService = {
+const mockPrismaService = withSettlementAggregates({
   transaction: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
@@ -83,7 +84,7 @@ const mockPrismaService = {
     updateMany: jest.fn(),
   },
   $transaction: jest.fn((fn) => fn(mockPrismaService)),
-};
+});
 
 const mockNotificationService = {
   sendTransactionWitnessInvite: jest.fn(),

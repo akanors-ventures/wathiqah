@@ -391,6 +391,7 @@ export const ModelName = {
   WebhookLog: 'WebhookLog',
   Contact: 'Contact',
   Transaction: 'Transaction',
+  TransactionAllocation: 'TransactionAllocation',
   TransactionHistory: 'TransactionHistory',
   Witness: 'Witness',
   Notification: 'Notification',
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "subscription" | "plan" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionHistory" | "witness" | "notification" | "project" | "projectTransaction" | "projectTransactionHistory" | "personalEntry" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "adminAuditLog" | "support" | "smsOptOut" | "organisation" | "organisationMember" | "orgSubscription" | "orgEvent" | "note"
+    modelProps: "user" | "subscription" | "plan" | "payment" | "webhookLog" | "contact" | "transaction" | "transactionAllocation" | "transactionHistory" | "witness" | "notification" | "project" | "projectTransaction" | "projectTransactionHistory" | "personalEntry" | "promise" | "accessGrant" | "exchangeRate" | "exchangeRateHistory" | "contactInvitation" | "adminAuditLog" | "support" | "smsOptOut" | "organisation" | "organisationMember" | "orgSubscription" | "orgEvent" | "note"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -945,6 +946,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TransactionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TransactionCountAggregateOutputType> | number
+        }
+      }
+    }
+    TransactionAllocation: {
+      payload: Prisma.$TransactionAllocationPayload<ExtArgs>
+      fields: Prisma.TransactionAllocationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TransactionAllocationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TransactionAllocationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>
+        }
+        findFirst: {
+          args: Prisma.TransactionAllocationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TransactionAllocationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>
+        }
+        findMany: {
+          args: Prisma.TransactionAllocationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>[]
+        }
+        create: {
+          args: Prisma.TransactionAllocationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>
+        }
+        createMany: {
+          args: Prisma.TransactionAllocationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TransactionAllocationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>[]
+        }
+        delete: {
+          args: Prisma.TransactionAllocationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>
+        }
+        update: {
+          args: Prisma.TransactionAllocationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>
+        }
+        deleteMany: {
+          args: Prisma.TransactionAllocationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TransactionAllocationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TransactionAllocationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>[]
+        }
+        upsert: {
+          args: Prisma.TransactionAllocationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TransactionAllocationPayload>
+        }
+        aggregate: {
+          args: Prisma.TransactionAllocationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTransactionAllocation>
+        }
+        groupBy: {
+          args: Prisma.TransactionAllocationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TransactionAllocationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TransactionAllocationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TransactionAllocationCountAggregateOutputType> | number
         }
       }
     }
@@ -2603,6 +2678,25 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
+export const TransactionAllocationScalarFieldEnum = {
+  id: 'id',
+  sourceTransactionId: 'sourceTransactionId',
+  targetTransactionId: 'targetTransactionId',
+  amount: 'amount',
+  currency: 'currency',
+  date: 'date',
+  note: 'note',
+  status: 'status',
+  orgId: 'orgId',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  reversedAt: 'reversedAt',
+  reversedById: 'reversedById'
+} as const
+
+export type TransactionAllocationScalarFieldEnum = (typeof TransactionAllocationScalarFieldEnum)[keyof typeof TransactionAllocationScalarFieldEnum]
+
+
 export const TransactionHistoryScalarFieldEnum = {
   id: 'id',
   transactionId: 'transactionId',
@@ -3135,6 +3229,20 @@ export type ListEnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInput
 
 
 /**
+ * Reference to a field of type 'AllocationStatus'
+ */
+export type EnumAllocationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllocationStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'AllocationStatus[]'
+ */
+export type ListEnumAllocationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AllocationStatus[]'>
+    
+
+
+/**
  * Reference to a field of type 'WitnessStatus'
  */
 export type EnumWitnessStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'WitnessStatus'>
@@ -3445,6 +3553,7 @@ export type GlobalOmitConfig = {
   webhookLog?: Prisma.WebhookLogOmit
   contact?: Prisma.ContactOmit
   transaction?: Prisma.TransactionOmit
+  transactionAllocation?: Prisma.TransactionAllocationOmit
   transactionHistory?: Prisma.TransactionHistoryOmit
   witness?: Prisma.WitnessOmit
   notification?: Prisma.NotificationOmit

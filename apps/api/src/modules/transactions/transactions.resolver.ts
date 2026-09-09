@@ -29,6 +29,10 @@ import { User } from '../users/entities/user.entity';
 import { CheckFeature } from '../subscription/decorators/check-feature.decorator';
 import { FeatureLimitInterceptor } from '../subscription/interceptors/feature-limit.interceptor';
 import { ActiveOrg } from '../organisations/decorators/active-org.decorator';
+import {
+  computeOutstanding,
+  isLifecycleObligationType,
+} from './settlement.util';
 
 @Resolver(() => Transaction)
 @UseGuards(GqlAuthGuard)
@@ -39,35 +43,32 @@ export class TransactionsResolver {
   ) {}
 
   /**
-   * For lifecycle parent transactions (loans + escrows), the unsettled
-   * balance = parent.amount − Σ (non-cancelled child amounts).
+   * For lifecycle obligation transactions (loans, advances, deposits, escrows
+   * and standalone remittances), the unsettled balance = amount − (child
+   * amounts + ACTIVE allocations on both legs).
    * Returns null for non-lifecycle or itemised transactions.
+   *
+   * List paths pre-compute this via `loadSettledAmounts` (3 queries for a whole
+   * page) and attach it to each item; the short-circuit below honours that.
+   * The per-row fallback still serves `findOne` and any un-preloaded caller.
+   * A DataLoader would be the general fix, but there is none in this codebase
+   * yet — that belongs in its own change.
    */
   @ResolveField(() => Float, { nullable: true })
   async remainingAmount(
     @Parent() transaction: Transaction,
   ): Promise<number | null> {
-    if (
-      transaction.type !== 'LOAN_GIVEN' &&
-      transaction.type !== 'LOAN_RECEIVED' &&
-      transaction.type !== 'ESCROWED'
-    ) {
-      return null;
-    }
+    if (!isLifecycleObligationType(transaction.type)) return null;
     if (!transaction.amount) return null;
+    if (transaction.remainingAmount !== undefined) {
+      return transaction.remainingAmount;
+    }
 
-    const children = await this.prisma.transaction.findMany({
-      where: {
-        parentId: transaction.id,
-        status: { not: 'CANCELLED' },
-      },
-      select: { amount: true },
-    });
-    const settled = children.reduce(
-      (sum, child) => sum + (child.amount ? Number(child.amount) : 0),
-      0,
+    const settled = await this.transactionsService.loadSettledAmount(
+      this.prisma,
+      transaction.id,
     );
-    return Math.max(0, Number(transaction.amount) - settled);
+    return computeOutstanding(transaction.amount, settled);
   }
 
   /**

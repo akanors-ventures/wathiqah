@@ -33,6 +33,7 @@ function matchesCondition(rowValue: unknown, condition: unknown): boolean {
 export class FakePrisma {
   contacts = new Map<string, Row>();
   transactions = new Map<string, Row>();
+  allocations = new Map<string, Row>();
   members = new Map<string, Row>(); // key: `${orgId}:${userId}`
   users = new Map<string, Row>();
   private nextId = 1;
@@ -189,6 +190,63 @@ export class FakePrisma {
       _sum: { amount: true };
     }) => {
       const rows = await this.transaction.findMany({ where });
+      const groups = new Map<string, { key: Row; sum: number }>();
+      for (const row of rows) {
+        const keyObj = Object.fromEntries(by.map((k) => [k, row[k]]));
+        const key = JSON.stringify(keyObj);
+        const existing = groups.get(key) ?? { key: keyObj, sum: 0 };
+        existing.sum += Number(row.amount) || 0;
+        groups.set(key, existing);
+      }
+      return [...groups.values()].map((g) => ({
+        ...g.key,
+        _sum: { amount: g.sum },
+      }));
+    },
+    aggregate: async ({ where }: { where?: Row; _sum: { amount: true } }) => {
+      const rows = await this.transaction.findMany({ where });
+      const sum = rows.reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+      // Prisma returns null, not 0, for an empty aggregate.
+      return { _sum: { amount: rows.length === 0 ? null : sum } };
+    },
+  };
+
+  /**
+   * Allocation links (TransactionAllocation). Real rows, like everything else
+   * here, so settlement sums that span children AND allocations are actually
+   * exercised rather than stubbed to zero.
+   */
+  transactionAllocation = {
+    create: async ({ data }: { data: Row }) => {
+      const id = this.genId('alloc');
+      const row: Row = { status: 'ACTIVE', ...data, id };
+      this.allocations.set(id, row);
+      return row;
+    },
+    findUnique: async ({ where }: { where: { id: string } }) =>
+      this.allocations.get(where.id) ?? null,
+    findMany: async ({ where }: { where?: Row }) =>
+      [...this.allocations.values()].filter((a) =>
+        this.matchesTransactionWhere(a, where),
+      ),
+    update: async ({ where, data }: { where: { id: string }; data: Row }) => {
+      const row = this.allocations.get(where.id);
+      if (!row) throw new Error(`fake-prisma: no allocation ${where.id}`);
+      Object.assign(row, data);
+      return row;
+    },
+    updateMany: async ({ where, data }: { where?: Row; data: Row }) => {
+      const rows = await this.transactionAllocation.findMany({ where });
+      for (const row of rows) Object.assign(row, data);
+      return { count: rows.length };
+    },
+    aggregate: async ({ where }: { where?: Row; _sum: { amount: true } }) => {
+      const rows = await this.transactionAllocation.findMany({ where });
+      const sum = rows.reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+      return { _sum: { amount: rows.length === 0 ? null : sum } };
+    },
+    groupBy: async ({ where, by }: { where?: Row; by: string[] }) => {
+      const rows = await this.transactionAllocation.findMany({ where });
       const groups = new Map<string, { key: Row; sum: number }>();
       for (const row of rows) {
         const keyObj = Object.fromEntries(by.map((k) => [k, row[k]]));
