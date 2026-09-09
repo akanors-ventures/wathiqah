@@ -66,9 +66,19 @@ export function setAllocations(
  * that delegate's own `findMany`, so existing per-test stubs keep working
  * unchanged; allocations default to empty.
  */
+export type SettlementAllocationDelegate = {
+  findMany: jest.Mock;
+  findUnique: jest.Mock;
+  create: jest.Mock;
+  update: jest.Mock;
+  updateMany: jest.Mock;
+  aggregate: jest.Mock;
+  groupBy: jest.Mock;
+};
+
 export function withSettlementAggregates<T extends Record<string, unknown>>(
   mockPrisma: T,
-): T {
+): T & { transactionAllocation: SettlementAllocationDelegate } {
   const txDelegate = mockPrisma.transaction as Record<string, unknown>;
 
   const legIn = jest.fn().mockResolvedValue([]);
@@ -109,5 +119,7 @@ export function withSettlementAggregates<T extends Record<string, unknown>>(
     txDelegate.groupBy = jest.fn().mockResolvedValue([]);
   }
 
-  return mockPrisma;
+  return mockPrisma as T & {
+    transactionAllocation: SettlementAllocationDelegate;
+  };
 }

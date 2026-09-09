@@ -221,7 +221,8 @@ export class TransactionsService {
    * and COMPLETED writes a TransactionHistory row so the audit trail
    * captures the auto-transition.
    */
-  private async recomputeParentLoanStatus(
+  /** @internal call sites within TransactionsModule only */
+  async recomputeParentLoanStatus(
     prisma: Prisma.TransactionClient,
     parentId: string,
     userId: string,
@@ -265,6 +266,65 @@ export class TransactionsService {
         newState: { status: nextStatus } as Prisma.InputJsonValue,
       },
     });
+  }
+
+  /**
+   * Voids every ACTIVE allocation touching a transaction that is being
+   * cancelled or deleted, and recomputes the surviving counterpart. Without
+   * this, cancelling a credit pool would leave every obligation it settled
+   * silently over-settled. Must run BEFORE a hard delete, while the rows are
+   * still readable.
+   *
+   * @internal called by remove() below
+   */
+  async voidAllocationsFor(
+    tx: Prisma.TransactionClient,
+    transactionId: string,
+    userId: string,
+  ): Promise<void> {
+    const active = await tx.transactionAllocation.findMany({
+      where: {
+        status: 'ACTIVE',
+        OR: [
+          { sourceTransactionId: transactionId },
+          { targetTransactionId: transactionId },
+        ],
+      },
+    });
+    if (active.length === 0) return;
+
+    await tx.transactionAllocation.updateMany({
+      where: { id: { in: active.map((a) => a.id) } },
+      data: {
+        status: 'REVERSED',
+        reversedAt: new Date(),
+        reversedById: userId,
+      },
+    });
+
+    for (const allocation of active) {
+      const counterpartId =
+        allocation.sourceTransactionId === transactionId
+          ? allocation.targetTransactionId
+          : allocation.sourceTransactionId;
+
+      await tx.transactionHistory.create({
+        data: {
+          transactionId: counterpartId,
+          userId,
+          changeType: 'ALLOCATION_VOIDED',
+          previousState: { allocationId: allocation.id, status: 'ACTIVE' },
+          newState: {
+            allocationId: allocation.id,
+            status: 'REVERSED',
+            amount: Number(allocation.amount),
+            reason: 'counterpart transaction removed',
+          },
+        },
+      });
+
+      await this.recomputeParentLoanStatus(tx, counterpartId, userId);
+    }
   }
 
   private async processWitnesses(
@@ -839,11 +899,13 @@ export class TransactionsService {
       throw new BadRequestException(
         'Repayments must be linked to a parent loan via parentId',
       );
-    } else if (isRemittance) {
-      throw new BadRequestException(
-        'Remittances must be linked to a parent escrow via parentId',
-      );
     }
+    // A REMITTED with no parentId is a STANDALONE outgoing lump sum: money I
+    // disbursed whose unapplied remainder can be allocated against obligations
+    // I owe (standing sign +1, the mirror of a standalone ESCROWED). It gets
+    // the same PENDING lifecycle as any other credit pool via
+    // isLifecycleParent below. A REMITTED *with* a parentId is still the
+    // classic escrow disbursement and is validated in the branch above.
 
     // Validate contactId if provided (skipped when derived from parent above)
     if (rest.contactId && !derivedContactId) {
@@ -1620,7 +1682,8 @@ export class TransactionsService {
    * that org — same shape as ContactsService.assertContactAccess. Personal
    * transactions (orgId null) remain gated on creator-or-linked-contact.
    */
-  private async assertTransactionAccess(
+  /** @internal call sites within TransactionsModule only */
+  async assertTransactionAccess(
     transaction: {
       orgId: string | null;
       createdById: string;
@@ -2204,6 +2267,14 @@ export class TransactionsService {
             userId,
           );
         }
+        // Before the row disappears. The FK cascade would remove the
+        // allocation rows silently, leaving every counterpart permanently
+        // over-settled with no history of why.
+        await this.voidAllocationsFor(
+          prisma as Prisma.TransactionClient,
+          id,
+          userId,
+        );
         const removed = await prisma.transaction.delete({ where: { id } });
         if (transaction.parentId) {
           await this.recomputeParentLoanStatus(
@@ -2244,6 +2315,14 @@ export class TransactionsService {
             } as Prisma.InputJsonValue,
           },
         });
+        // A cancelled credit pool can no longer settle anything, and a
+        // cancelled obligation is no longer owed — either way the allocations
+        // on it are void and their counterparts must reopen.
+        await this.voidAllocationsFor(
+          prisma as Prisma.TransactionClient,
+          id,
+          userId,
+        );
         // Cancelling a child repayment can re-open the parent loan
         if (transaction.parentId) {
           await this.recomputeParentLoanStatus(

@@ -524,7 +524,7 @@ describe('TransactionsService - Pagination', () => {
       };
       organisationMember: { findUnique: jest.Mock };
       contact: { findUnique: jest.Mock };
-      transactionHistory: { create: jest.Mock };
+      transactionHistory: { create: jest.Mock; createMany: jest.Mock };
       witness: { updateMany: jest.Mock };
       user: { findUnique: jest.Mock };
       $transaction: jest.Mock;
@@ -558,7 +558,7 @@ describe('TransactionsService - Pagination', () => {
     };
 
     beforeEach(async () => {
-      accessPrisma = {
+      accessPrisma = withSettlementAggregates({
         transaction: {
           findUnique: jest.fn(),
           findMany: jest.fn().mockResolvedValue([]),
@@ -567,11 +567,11 @@ describe('TransactionsService - Pagination', () => {
         },
         organisationMember: { findUnique: jest.fn() },
         contact: { findUnique: jest.fn() },
-        transactionHistory: { create: jest.fn() },
+        transactionHistory: { create: jest.fn(), createMany: jest.fn() },
         witness: { updateMany: jest.fn() },
         user: { findUnique: jest.fn() },
         $transaction: jest.fn((fn) => fn(accessPrisma)),
-      };
+      });
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,

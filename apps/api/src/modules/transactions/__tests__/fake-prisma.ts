@@ -289,12 +289,56 @@ export class FakePrisma {
     },
   };
 
-  transactionHistory = { create: async () => ({}) };
+  /** Audit rows, kept so specs can assert on what was written. */
+  histories: Row[] = [];
+
+  transactionHistory = {
+    create: async ({ data }: { data: Row }) => {
+      this.histories.push(data);
+      return data;
+    },
+    createMany: async ({ data }: { data: Row[] }) => {
+      this.histories.push(...data);
+      return { count: data.length };
+    },
+  };
   witness = { updateMany: async () => ({ count: 0 }) };
 
+  /**
+   * The allocation path issues `SELECT ... FOR UPDATE` to serialise concurrent
+   * passes. There is no concurrency in a fake, so the lock is a no-op — but the
+   * call must not throw, or every allocation test fails on the lock line.
+   */
+  $queryRaw = async (): Promise<unknown[]> => [];
+
+  private snapshot() {
+    const clone = (m: Map<string, Row>) =>
+      new Map([...m.entries()].map(([k, v]) => [k, { ...v }]));
+    return {
+      contacts: clone(this.contacts),
+      transactions: clone(this.transactions),
+      allocations: clone(this.allocations),
+      histories: [...this.histories],
+    };
+  }
+
+  /**
+   * Rolls back on throw. Not a nicety: the all-or-nothing guarantee of a
+   * multi-target allocation pass is only testable if a failure on the third
+   * row actually undoes the first two.
+   */
   $transaction = async <T>(arg: unknown): Promise<T> => {
     if (Array.isArray(arg)) return Promise.all(arg) as Promise<T>;
-    return (arg as (p: FakePrisma) => Promise<T>)(this);
+    const before = this.snapshot();
+    try {
+      return await (arg as (p: FakePrisma) => Promise<T>)(this);
+    } catch (error) {
+      this.contacts = before.contacts;
+      this.transactions = before.transactions;
+      this.allocations = before.allocations;
+      this.histories = before.histories;
+      throw error;
+    }
   };
 
   seedUser(user: { id: string } & Row) {
