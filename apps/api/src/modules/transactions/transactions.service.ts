@@ -1782,6 +1782,20 @@ export class TransactionsService {
       (category === AssetCategory.FUNDS ||
         (!category && transaction.category === AssetCategory.FUNDS))
     ) {
+      // Shrinking a lifecycle obligation below what has already been settled
+      // against it leaves a negative outstanding balance that computeOutstanding
+      // silently clamps to 0 — so the over-settlement would never surface. This
+      // is the same bound createWithClient enforces when a repayment/remittance
+      // is first created, and that syncMirroredAmount enforces for project
+      // mirrors; update() was the one path missing it.
+      if (isLifecycleObligationType(transaction.type)) {
+        const alreadySettled = await this.loadSettledAmount(this.prisma, id);
+        if (Number(amount) < alreadySettled) {
+          throw new BadRequestException(
+            `Amount (${amount}) cannot be less than the amount already settled (${alreadySettled}) against this transaction`,
+          );
+        }
+      }
       changes.amount = amount;
       changeDescriptions.push(`Amount changed to ${amount}`);
     }
