@@ -86,6 +86,43 @@ export class FakePrisma {
     });
   }
 
+  /**
+   * Attaches the nested relations a `select` asks for. Balance math reads
+   * `conversions`, `allocationsIn` and `allocationsOut` off each row, so a
+   * findMany that ignored `select` would hand every caller an undischarged
+   * principal and quietly prove nothing.
+   */
+  private hydrate(row: Row, select: Row): Row {
+    const out: Row = { ...row };
+    const nested = (key: string) => select[key] as { where?: Row } | undefined;
+
+    const conversions = nested('conversions');
+    if (conversions) {
+      out.conversions = [...this.transactions.values()].filter(
+        (c) =>
+          c.parentId === row.id &&
+          this.matchesTransactionWhere(c, conversions.where),
+      );
+    }
+    const allocationsIn = nested('allocationsIn');
+    if (allocationsIn) {
+      out.allocationsIn = [...this.allocations.values()].filter(
+        (a) =>
+          a.targetTransactionId === row.id &&
+          this.matchesTransactionWhere(a, allocationsIn.where),
+      );
+    }
+    const allocationsOut = nested('allocationsOut');
+    if (allocationsOut) {
+      out.allocationsOut = [...this.allocations.values()].filter(
+        (a) =>
+          a.sourceTransactionId === row.id &&
+          this.matchesTransactionWhere(a, allocationsOut.where),
+      );
+    }
+    return out;
+  }
+
   contact = {
     create: async ({ data }: { data: Row }) => {
       const id = this.genId('contact');
@@ -164,10 +201,12 @@ export class FakePrisma {
       }
       return row;
     },
-    findMany: async ({ where }: { where?: Row }) =>
-      [...this.transactions.values()].filter((t) =>
+    findMany: async ({ where, select }: { where?: Row; select?: Row }) => {
+      const rows = [...this.transactions.values()].filter((t) =>
         this.matchesTransactionWhere(t, where),
-      ),
+      );
+      return select ? rows.map((row) => this.hydrate(row, select)) : rows;
+    },
     count: async ({ where }: { where?: Row }) =>
       (await this.transaction.findMany({ where })).length,
     update: async ({ where, data }: { where: { id: string }; data: Row }) => {
