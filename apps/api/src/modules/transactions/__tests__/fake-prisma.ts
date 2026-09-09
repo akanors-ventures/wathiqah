@@ -199,6 +199,35 @@ export class FakePrisma {
             : null,
         };
       }
+      // findOne() reads these unconditionally (`transaction.witnesses.length`),
+      // so an include that silently returned undefined would crash rather than
+      // exercise the code under test.
+      if (include?.conversions) {
+        const spec = include.conversions as { where?: Row };
+        row = {
+          ...row,
+          conversions: [...this.transactions.values()].filter(
+            (c) =>
+              c.parentId === row?.id &&
+              this.matchesTransactionWhere(c, spec?.where),
+          ),
+        };
+      }
+      if (include?.witnesses) {
+        row = { ...row, witnesses: (row.witnesses as Row[]) ?? [] };
+      }
+      if (include?.history) {
+        row = { ...row, history: (row.history as Row[]) ?? [] };
+      }
+      if (include?.personalMirror) {
+        row = {
+          ...row,
+          personalMirror:
+            [...this.transactions.values()].find(
+              (t) => t.orgSourceTransactionId === row?.id,
+            ) ?? null,
+        };
+      }
       return row;
     },
     findMany: async ({ where, select }: { where?: Row; select?: Row }) => {
@@ -262,8 +291,23 @@ export class FakePrisma {
       this.allocations.set(id, row);
       return row;
     },
-    findUnique: async ({ where }: { where: { id: string } }) =>
-      this.allocations.get(where.id) ?? null,
+    findUnique: async ({
+      where,
+    }: {
+      where: { id?: string; orgSourceAllocationId?: string };
+    }) => {
+      if (where.id) return this.allocations.get(where.id) ?? null;
+      if (where.orgSourceAllocationId) {
+        return (
+          [...this.allocations.values()].find(
+            (a) => a.orgSourceAllocationId === where.orgSourceAllocationId,
+          ) ?? null
+        );
+      }
+      throw new Error(
+        `fake-prisma: unsupported transactionAllocation.findUnique where ${JSON.stringify(where)}`,
+      );
+    },
     findMany: async ({ where }: { where?: Row }) =>
       [...this.allocations.values()].filter((a) =>
         this.matchesTransactionWhere(a, where),

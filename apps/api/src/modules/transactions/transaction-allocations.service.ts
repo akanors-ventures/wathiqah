@@ -237,6 +237,14 @@ export class TransactionAllocationsService {
           targetTransactionId,
           userId,
         );
+
+        await this.maybeMirrorAllocation(
+          tx,
+          allocation,
+          source,
+          target,
+          userId,
+        );
       }
 
       await this.transactionsService.recomputeParentLoanStatus(
@@ -323,8 +331,109 @@ export class TransactionAllocationsService {
         userId,
       );
 
+      await this.reverseMirrorOf(tx, allocationId, userId);
+
       return updated;
     });
+  }
+
+  /**
+   * Echoes an org-side allocation onto the personal ledger when BOTH endpoints
+   * carry a personal mirror owned by this user.
+   *
+   * A loan recorded personally has to settle personally or the mirrored loan
+   * never reaches COMPLETED — the same principle maybeCreatePersonalMirror
+   * applies to repayment children. Allocations are not children, so they need
+   * their own echo.
+   *
+   * If only one endpoint is mirrored, skip entirely: a half-mirrored
+   * allocation would shrink one personal row with nothing on the other side to
+   * account for it, which is worse than not mirroring at all.
+   */
+  private async maybeMirrorAllocation(
+    tx: Prisma.TransactionClient,
+    allocation: { id: string; amount: Prisma.Decimal | number; date: Date },
+    source: EndpointRow,
+    target: EndpointRow,
+    userId: string,
+  ): Promise<void> {
+    if (!source.orgId) return;
+
+    const [sourceMirror, targetMirror] = await Promise.all([
+      tx.transaction.findUnique({
+        where: { orgSourceTransactionId: source.id },
+        select: { id: true, createdById: true, currency: true },
+      }),
+      tx.transaction.findUnique({
+        where: { orgSourceTransactionId: target.id },
+        select: { id: true, createdById: true },
+      }),
+    ]);
+    if (!sourceMirror || !targetMirror) return;
+    // The mirrors belong to whichever member shared the contact and reflected
+    // the original rows — never write onto a ledger another member controls.
+    if (sourceMirror.createdById !== userId) return;
+    if (targetMirror.createdById !== userId) return;
+
+    await tx.transactionAllocation.create({
+      data: {
+        sourceTransactionId: sourceMirror.id,
+        targetTransactionId: targetMirror.id,
+        amount: allocation.amount,
+        currency: sourceMirror.currency,
+        date: allocation.date,
+        orgId: null,
+        createdById: userId,
+        orgSourceAllocationId: allocation.id,
+      },
+    });
+
+    await this.transactionsService.recomputeParentLoanStatus(
+      tx,
+      sourceMirror.id,
+      userId,
+    );
+    await this.transactionsService.recomputeParentLoanStatus(
+      tx,
+      targetMirror.id,
+      userId,
+    );
+  }
+
+  /**
+   * Reverses the personal-ledger echo alongside its org original. Without
+   * this, reversing an org allocation leaves the personal mirror permanently
+   * over-settled and its obligation stuck at COMPLETED.
+   */
+  private async reverseMirrorOf(
+    tx: Prisma.TransactionClient,
+    orgAllocationId: string,
+    userId: string,
+  ): Promise<void> {
+    const mirror = await tx.transactionAllocation.findUnique({
+      where: { orgSourceAllocationId: orgAllocationId },
+    });
+    if (!mirror || mirror.status === 'REVERSED') return;
+
+    await tx.transactionAllocation.update({
+      where: { id: mirror.id },
+      data: {
+        status: 'REVERSED',
+        reversedAt: new Date(),
+        reversedById: userId,
+      },
+    });
+
+    await this.transactionsService.recomputeParentLoanStatus(
+      tx,
+      mirror.sourceTransactionId,
+      userId,
+    );
+    await this.transactionsService.recomputeParentLoanStatus(
+      tx,
+      mirror.targetTransactionId,
+      userId,
+    );
   }
 
   /**

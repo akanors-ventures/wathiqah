@@ -248,11 +248,18 @@ model TransactionAllocation {
   reversedAt          DateTime?
   reversedById        String?
 
-  sourceTransaction Transaction   @relation("AllocationSource", fields: [sourceTransactionId], references: [id], onDelete: Cascade)
-  targetTransaction Transaction   @relation("AllocationTarget", fields: [targetTransactionId], references: [id], onDelete: Cascade)
-  organisation      Organisation? @relation("OrgAllocations", fields: [orgId], references: [id])
-  createdBy         User          @relation("AllocationCreator", fields: [createdById], references: [id])
-  reversedBy        User?         @relation("AllocationReverser", fields: [reversedById], references: [id])
+  /// Set on the personal-ledger echo of an org allocation, so reversing the
+  /// org row reverses its mirror instead of leaving the personal ledger
+  /// permanently over-settled.
+  orgSourceAllocationId String? @unique
+
+  sourceTransaction   Transaction            @relation("AllocationSource", fields: [sourceTransactionId], references: [id], onDelete: Cascade)
+  targetTransaction   Transaction            @relation("AllocationTarget", fields: [targetTransactionId], references: [id], onDelete: Cascade)
+  organisation        Organisation?          @relation("OrgAllocations", fields: [orgId], references: [id])
+  createdBy           User                   @relation("AllocationCreator", fields: [createdById], references: [id])
+  reversedBy          User?                  @relation("AllocationReverser", fields: [reversedById], references: [id])
+  orgSourceAllocation TransactionAllocation? @relation("AllocationMirror", fields: [orgSourceAllocationId], references: [id], onDelete: Cascade)
+  personalMirror      TransactionAllocation? @relation("AllocationMirror")
 
   @@index([sourceTransactionId, status])
   @@index([targetTransactionId, status])

@@ -1128,6 +1128,11 @@ export class TransactionsService {
     });
     if (!mirrored) return;
 
+    // Same reason as in remove(): the FK cascade would drop this row's
+    // allocation links silently, leaving every personal-ledger counterpart
+    // permanently over-settled with no history of why.
+    await this.voidAllocationsFor(prisma, transactionId, userId);
+
     await prisma.transaction.delete({ where: { id: transactionId } });
 
     if (mirrored.parentId) {

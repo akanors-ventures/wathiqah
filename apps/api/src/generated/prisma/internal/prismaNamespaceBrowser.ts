@@ -246,7 +246,8 @@ export const TransactionAllocationScalarFieldEnum = {
   createdById: 'createdById',
   createdAt: 'createdAt',
   reversedAt: 'reversedAt',
-  reversedById: 'reversedById'
+  reversedById: 'reversedById',
+  orgSourceAllocationId: 'orgSourceAllocationId'
 } as const
 
 export type TransactionAllocationScalarFieldEnum = (typeof TransactionAllocationScalarFieldEnum)[keyof typeof TransactionAllocationScalarFieldEnum]

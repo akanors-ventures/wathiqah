@@ -51,6 +51,7 @@ export type TransactionAllocationMinAggregateOutputType = {
   createdAt: Date | null
   reversedAt: Date | null
   reversedById: string | null
+  orgSourceAllocationId: string | null
 }
 
 export type TransactionAllocationMaxAggregateOutputType = {
@@ -67,6 +68,7 @@ export type TransactionAllocationMaxAggregateOutputType = {
   createdAt: Date | null
   reversedAt: Date | null
   reversedById: string | null
+  orgSourceAllocationId: string | null
 }
 
 export type TransactionAllocationCountAggregateOutputType = {
@@ -83,6 +85,7 @@ export type TransactionAllocationCountAggregateOutputType = {
   createdAt: number
   reversedAt: number
   reversedById: number
+  orgSourceAllocationId: number
   _all: number
 }
 
@@ -109,6 +112,7 @@ export type TransactionAllocationMinAggregateInputType = {
   createdAt?: true
   reversedAt?: true
   reversedById?: true
+  orgSourceAllocationId?: true
 }
 
 export type TransactionAllocationMaxAggregateInputType = {
@@ -125,6 +129,7 @@ export type TransactionAllocationMaxAggregateInputType = {
   createdAt?: true
   reversedAt?: true
   reversedById?: true
+  orgSourceAllocationId?: true
 }
 
 export type TransactionAllocationCountAggregateInputType = {
@@ -141,6 +146,7 @@ export type TransactionAllocationCountAggregateInputType = {
   createdAt?: true
   reversedAt?: true
   reversedById?: true
+  orgSourceAllocationId?: true
   _all?: true
 }
 
@@ -244,6 +250,7 @@ export type TransactionAllocationGroupByOutputType = {
   createdAt: Date
   reversedAt: Date | null
   reversedById: string | null
+  orgSourceAllocationId: string | null
   _count: TransactionAllocationCountAggregateOutputType | null
   _avg: TransactionAllocationAvgAggregateOutputType | null
   _sum: TransactionAllocationSumAggregateOutputType | null
@@ -283,11 +290,14 @@ export type TransactionAllocationWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"TransactionAllocation"> | Date | string
   reversedAt?: Prisma.DateTimeNullableFilter<"TransactionAllocation"> | Date | string | null
   reversedById?: Prisma.StringNullableFilter<"TransactionAllocation"> | string | null
+  orgSourceAllocationId?: Prisma.StringNullableFilter<"TransactionAllocation"> | string | null
   sourceTransaction?: Prisma.XOR<Prisma.TransactionScalarRelationFilter, Prisma.TransactionWhereInput>
   targetTransaction?: Prisma.XOR<Prisma.TransactionScalarRelationFilter, Prisma.TransactionWhereInput>
   organisation?: Prisma.XOR<Prisma.OrganisationNullableScalarRelationFilter, Prisma.OrganisationWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reversedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
+  orgSourceAllocation?: Prisma.XOR<Prisma.TransactionAllocationNullableScalarRelationFilter, Prisma.TransactionAllocationWhereInput> | null
+  personalMirror?: Prisma.XOR<Prisma.TransactionAllocationNullableScalarRelationFilter, Prisma.TransactionAllocationWhereInput> | null
 }
 
 export type TransactionAllocationOrderByWithRelationInput = {
@@ -304,15 +314,19 @@ export type TransactionAllocationOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   reversedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reversedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  orgSourceAllocationId?: Prisma.SortOrderInput | Prisma.SortOrder
   sourceTransaction?: Prisma.TransactionOrderByWithRelationInput
   targetTransaction?: Prisma.TransactionOrderByWithRelationInput
   organisation?: Prisma.OrganisationOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
   reversedBy?: Prisma.UserOrderByWithRelationInput
+  orgSourceAllocation?: Prisma.TransactionAllocationOrderByWithRelationInput
+  personalMirror?: Prisma.TransactionAllocationOrderByWithRelationInput
 }
 
 export type TransactionAllocationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  orgSourceAllocationId?: string
   AND?: Prisma.TransactionAllocationWhereInput | Prisma.TransactionAllocationWhereInput[]
   OR?: Prisma.TransactionAllocationWhereInput[]
   NOT?: Prisma.TransactionAllocationWhereInput | Prisma.TransactionAllocationWhereInput[]
@@ -333,7 +347,9 @@ export type TransactionAllocationWhereUniqueInput = Prisma.AtLeast<{
   organisation?: Prisma.XOR<Prisma.OrganisationNullableScalarRelationFilter, Prisma.OrganisationWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   reversedBy?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
-}, "id">
+  orgSourceAllocation?: Prisma.XOR<Prisma.TransactionAllocationNullableScalarRelationFilter, Prisma.TransactionAllocationWhereInput> | null
+  personalMirror?: Prisma.XOR<Prisma.TransactionAllocationNullableScalarRelationFilter, Prisma.TransactionAllocationWhereInput> | null
+}, "id" | "orgSourceAllocationId">
 
 export type TransactionAllocationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -349,6 +365,7 @@ export type TransactionAllocationOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   reversedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   reversedById?: Prisma.SortOrderInput | Prisma.SortOrder
+  orgSourceAllocationId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.TransactionAllocationCountOrderByAggregateInput
   _avg?: Prisma.TransactionAllocationAvgOrderByAggregateInput
   _max?: Prisma.TransactionAllocationMaxOrderByAggregateInput
@@ -373,6 +390,7 @@ export type TransactionAllocationScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"TransactionAllocation"> | Date | string
   reversedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"TransactionAllocation"> | Date | string | null
   reversedById?: Prisma.StringNullableWithAggregatesFilter<"TransactionAllocation"> | string | null
+  orgSourceAllocationId?: Prisma.StringNullableWithAggregatesFilter<"TransactionAllocation"> | string | null
 }
 
 export type TransactionAllocationCreateInput = {
@@ -389,6 +407,8 @@ export type TransactionAllocationCreateInput = {
   organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
   reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUncheckedCreateInput = {
@@ -405,6 +425,8 @@ export type TransactionAllocationUncheckedCreateInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUpdateInput = {
@@ -421,6 +443,8 @@ export type TransactionAllocationUpdateInput = {
   organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
   reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateInput = {
@@ -437,6 +461,8 @@ export type TransactionAllocationUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationCreateManyInput = {
@@ -453,6 +479,7 @@ export type TransactionAllocationCreateManyInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
 }
 
 export type TransactionAllocationUpdateManyMutationInput = {
@@ -480,6 +507,7 @@ export type TransactionAllocationUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TransactionAllocationListRelationFilter = {
@@ -490,6 +518,11 @@ export type TransactionAllocationListRelationFilter = {
 
 export type TransactionAllocationOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
+}
+
+export type TransactionAllocationNullableScalarRelationFilter = {
+  is?: Prisma.TransactionAllocationWhereInput | null
+  isNot?: Prisma.TransactionAllocationWhereInput | null
 }
 
 export type TransactionAllocationCountOrderByAggregateInput = {
@@ -506,6 +539,7 @@ export type TransactionAllocationCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   reversedAt?: Prisma.SortOrder
   reversedById?: Prisma.SortOrder
+  orgSourceAllocationId?: Prisma.SortOrder
 }
 
 export type TransactionAllocationAvgOrderByAggregateInput = {
@@ -526,6 +560,7 @@ export type TransactionAllocationMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   reversedAt?: Prisma.SortOrder
   reversedById?: Prisma.SortOrder
+  orgSourceAllocationId?: Prisma.SortOrder
 }
 
 export type TransactionAllocationMinOrderByAggregateInput = {
@@ -542,6 +577,7 @@ export type TransactionAllocationMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   reversedAt?: Prisma.SortOrder
   reversedById?: Prisma.SortOrder
+  orgSourceAllocationId?: Prisma.SortOrder
 }
 
 export type TransactionAllocationSumOrderByAggregateInput = {
@@ -716,8 +752,56 @@ export type TransactionAllocationUncheckedUpdateManyWithoutTargetTransactionNest
   deleteMany?: Prisma.TransactionAllocationScalarWhereInput | Prisma.TransactionAllocationScalarWhereInput[]
 }
 
+export type TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput = {
+  create?: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutPersonalMirrorInput, Prisma.TransactionAllocationUncheckedCreateWithoutPersonalMirrorInput>
+  connectOrCreate?: Prisma.TransactionAllocationCreateOrConnectWithoutPersonalMirrorInput
+  connect?: Prisma.TransactionAllocationWhereUniqueInput
+}
+
+export type TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput = {
+  create?: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput>
+  connectOrCreate?: Prisma.TransactionAllocationCreateOrConnectWithoutOrgSourceAllocationInput
+  connect?: Prisma.TransactionAllocationWhereUniqueInput
+}
+
+export type TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput = {
+  create?: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput>
+  connectOrCreate?: Prisma.TransactionAllocationCreateOrConnectWithoutOrgSourceAllocationInput
+  connect?: Prisma.TransactionAllocationWhereUniqueInput
+}
+
 export type EnumAllocationStatusFieldUpdateOperationsInput = {
   set?: $Enums.AllocationStatus
+}
+
+export type TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutPersonalMirrorInput, Prisma.TransactionAllocationUncheckedCreateWithoutPersonalMirrorInput>
+  connectOrCreate?: Prisma.TransactionAllocationCreateOrConnectWithoutPersonalMirrorInput
+  upsert?: Prisma.TransactionAllocationUpsertWithoutPersonalMirrorInput
+  disconnect?: Prisma.TransactionAllocationWhereInput | boolean
+  delete?: Prisma.TransactionAllocationWhereInput | boolean
+  connect?: Prisma.TransactionAllocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TransactionAllocationUpdateToOneWithWhereWithoutPersonalMirrorInput, Prisma.TransactionAllocationUpdateWithoutPersonalMirrorInput>, Prisma.TransactionAllocationUncheckedUpdateWithoutPersonalMirrorInput>
+}
+
+export type TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput>
+  connectOrCreate?: Prisma.TransactionAllocationCreateOrConnectWithoutOrgSourceAllocationInput
+  upsert?: Prisma.TransactionAllocationUpsertWithoutOrgSourceAllocationInput
+  disconnect?: Prisma.TransactionAllocationWhereInput | boolean
+  delete?: Prisma.TransactionAllocationWhereInput | boolean
+  connect?: Prisma.TransactionAllocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TransactionAllocationUpdateToOneWithWhereWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUpdateWithoutOrgSourceAllocationInput>, Prisma.TransactionAllocationUncheckedUpdateWithoutOrgSourceAllocationInput>
+}
+
+export type TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput = {
+  create?: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput>
+  connectOrCreate?: Prisma.TransactionAllocationCreateOrConnectWithoutOrgSourceAllocationInput
+  upsert?: Prisma.TransactionAllocationUpsertWithoutOrgSourceAllocationInput
+  disconnect?: Prisma.TransactionAllocationWhereInput | boolean
+  delete?: Prisma.TransactionAllocationWhereInput | boolean
+  connect?: Prisma.TransactionAllocationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TransactionAllocationUpdateToOneWithWhereWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUpdateWithoutOrgSourceAllocationInput>, Prisma.TransactionAllocationUncheckedUpdateWithoutOrgSourceAllocationInput>
 }
 
 export type TransactionAllocationCreateNestedManyWithoutOrganisationInput = {
@@ -775,6 +859,8 @@ export type TransactionAllocationCreateWithoutCreatedByInput = {
   targetTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsInInput
   organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
   reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUncheckedCreateWithoutCreatedByInput = {
@@ -790,6 +876,8 @@ export type TransactionAllocationUncheckedCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationCreateOrConnectWithoutCreatedByInput = {
@@ -815,6 +903,8 @@ export type TransactionAllocationCreateWithoutReversedByInput = {
   targetTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsInInput
   organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUncheckedCreateWithoutReversedByInput = {
@@ -830,6 +920,8 @@ export type TransactionAllocationUncheckedCreateWithoutReversedByInput = {
   createdById: string
   createdAt?: Date | string
   reversedAt?: Date | string | null
+  orgSourceAllocationId?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationCreateOrConnectWithoutReversedByInput = {
@@ -875,6 +967,7 @@ export type TransactionAllocationScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"TransactionAllocation"> | Date | string
   reversedAt?: Prisma.DateTimeNullableFilter<"TransactionAllocation"> | Date | string | null
   reversedById?: Prisma.StringNullableFilter<"TransactionAllocation"> | string | null
+  orgSourceAllocationId?: Prisma.StringNullableFilter<"TransactionAllocation"> | string | null
 }
 
 export type TransactionAllocationUpsertWithWhereUniqueWithoutReversedByInput = {
@@ -906,6 +999,8 @@ export type TransactionAllocationCreateWithoutSourceTransactionInput = {
   organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
   reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUncheckedCreateWithoutSourceTransactionInput = {
@@ -921,6 +1016,8 @@ export type TransactionAllocationUncheckedCreateWithoutSourceTransactionInput = 
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationCreateOrConnectWithoutSourceTransactionInput = {
@@ -946,6 +1043,8 @@ export type TransactionAllocationCreateWithoutTargetTransactionInput = {
   organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
   reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUncheckedCreateWithoutTargetTransactionInput = {
@@ -961,6 +1060,8 @@ export type TransactionAllocationUncheckedCreateWithoutTargetTransactionInput = 
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationCreateOrConnectWithoutTargetTransactionInput = {
@@ -1005,6 +1106,174 @@ export type TransactionAllocationUpdateManyWithWhereWithoutTargetTransactionInpu
   data: Prisma.XOR<Prisma.TransactionAllocationUpdateManyMutationInput, Prisma.TransactionAllocationUncheckedUpdateManyWithoutTargetTransactionInput>
 }
 
+export type TransactionAllocationCreateWithoutPersonalMirrorInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency: string
+  date: Date | string
+  note?: string | null
+  status?: $Enums.AllocationStatus
+  createdAt?: Date | string
+  reversedAt?: Date | string | null
+  sourceTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsOutInput
+  targetTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsInInput
+  organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
+  createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
+  reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+}
+
+export type TransactionAllocationUncheckedCreateWithoutPersonalMirrorInput = {
+  id?: string
+  sourceTransactionId: string
+  targetTransactionId: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency: string
+  date: Date | string
+  note?: string | null
+  status?: $Enums.AllocationStatus
+  orgId?: string | null
+  createdById: string
+  createdAt?: Date | string
+  reversedAt?: Date | string | null
+  reversedById?: string | null
+  orgSourceAllocationId?: string | null
+}
+
+export type TransactionAllocationCreateOrConnectWithoutPersonalMirrorInput = {
+  where: Prisma.TransactionAllocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutPersonalMirrorInput, Prisma.TransactionAllocationUncheckedCreateWithoutPersonalMirrorInput>
+}
+
+export type TransactionAllocationCreateWithoutOrgSourceAllocationInput = {
+  id?: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency: string
+  date: Date | string
+  note?: string | null
+  status?: $Enums.AllocationStatus
+  createdAt?: Date | string
+  reversedAt?: Date | string | null
+  sourceTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsOutInput
+  targetTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsInInput
+  organisation?: Prisma.OrganisationCreateNestedOneWithoutAllocationsInput
+  createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
+  reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
+}
+
+export type TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput = {
+  id?: string
+  sourceTransactionId: string
+  targetTransactionId: string
+  amount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency: string
+  date: Date | string
+  note?: string | null
+  status?: $Enums.AllocationStatus
+  orgId?: string | null
+  createdById: string
+  createdAt?: Date | string
+  reversedAt?: Date | string | null
+  reversedById?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
+}
+
+export type TransactionAllocationCreateOrConnectWithoutOrgSourceAllocationInput = {
+  where: Prisma.TransactionAllocationWhereUniqueInput
+  create: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput>
+}
+
+export type TransactionAllocationUpsertWithoutPersonalMirrorInput = {
+  update: Prisma.XOR<Prisma.TransactionAllocationUpdateWithoutPersonalMirrorInput, Prisma.TransactionAllocationUncheckedUpdateWithoutPersonalMirrorInput>
+  create: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutPersonalMirrorInput, Prisma.TransactionAllocationUncheckedCreateWithoutPersonalMirrorInput>
+  where?: Prisma.TransactionAllocationWhereInput
+}
+
+export type TransactionAllocationUpdateToOneWithWhereWithoutPersonalMirrorInput = {
+  where?: Prisma.TransactionAllocationWhereInput
+  data: Prisma.XOR<Prisma.TransactionAllocationUpdateWithoutPersonalMirrorInput, Prisma.TransactionAllocationUncheckedUpdateWithoutPersonalMirrorInput>
+}
+
+export type TransactionAllocationUpdateWithoutPersonalMirrorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAllocationStatusFieldUpdateOperationsInput | $Enums.AllocationStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsOutNestedInput
+  targetTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsInNestedInput
+  organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
+  reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+}
+
+export type TransactionAllocationUncheckedUpdateWithoutPersonalMirrorInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAllocationStatusFieldUpdateOperationsInput | $Enums.AllocationStatus
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type TransactionAllocationUpsertWithoutOrgSourceAllocationInput = {
+  update: Prisma.XOR<Prisma.TransactionAllocationUpdateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedUpdateWithoutOrgSourceAllocationInput>
+  create: Prisma.XOR<Prisma.TransactionAllocationCreateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedCreateWithoutOrgSourceAllocationInput>
+  where?: Prisma.TransactionAllocationWhereInput
+}
+
+export type TransactionAllocationUpdateToOneWithWhereWithoutOrgSourceAllocationInput = {
+  where?: Prisma.TransactionAllocationWhereInput
+  data: Prisma.XOR<Prisma.TransactionAllocationUpdateWithoutOrgSourceAllocationInput, Prisma.TransactionAllocationUncheckedUpdateWithoutOrgSourceAllocationInput>
+}
+
+export type TransactionAllocationUpdateWithoutOrgSourceAllocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAllocationStatusFieldUpdateOperationsInput | $Enums.AllocationStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sourceTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsOutNestedInput
+  targetTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsInNestedInput
+  organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
+  reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
+}
+
+export type TransactionAllocationUncheckedUpdateWithoutOrgSourceAllocationInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
+  targetTransactionId?: Prisma.StringFieldUpdateOperationsInput | string
+  amount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  date?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  note?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumAllocationStatusFieldUpdateOperationsInput | $Enums.AllocationStatus
+  orgId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
+}
+
 export type TransactionAllocationCreateWithoutOrganisationInput = {
   id?: string
   amount: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1018,6 +1287,8 @@ export type TransactionAllocationCreateWithoutOrganisationInput = {
   targetTransaction: Prisma.TransactionCreateNestedOneWithoutAllocationsInInput
   createdBy: Prisma.UserCreateNestedOneWithoutCreatedAllocationsInput
   reversedBy?: Prisma.UserCreateNestedOneWithoutReversedAllocationsInput
+  orgSourceAllocation?: Prisma.TransactionAllocationCreateNestedOneWithoutPersonalMirrorInput
+  personalMirror?: Prisma.TransactionAllocationCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationUncheckedCreateWithoutOrganisationInput = {
@@ -1033,6 +1304,8 @@ export type TransactionAllocationUncheckedCreateWithoutOrganisationInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedCreateNestedOneWithoutOrgSourceAllocationInput
 }
 
 export type TransactionAllocationCreateOrConnectWithoutOrganisationInput = {
@@ -1074,6 +1347,7 @@ export type TransactionAllocationCreateManyCreatedByInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
 }
 
 export type TransactionAllocationCreateManyReversedByInput = {
@@ -1089,6 +1363,7 @@ export type TransactionAllocationCreateManyReversedByInput = {
   createdById: string
   createdAt?: Date | string
   reversedAt?: Date | string | null
+  orgSourceAllocationId?: string | null
 }
 
 export type TransactionAllocationUpdateWithoutCreatedByInput = {
@@ -1104,6 +1379,8 @@ export type TransactionAllocationUpdateWithoutCreatedByInput = {
   targetTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsInNestedInput
   organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
   reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateWithoutCreatedByInput = {
@@ -1119,6 +1396,8 @@ export type TransactionAllocationUncheckedUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateManyWithoutCreatedByInput = {
@@ -1134,6 +1413,7 @@ export type TransactionAllocationUncheckedUpdateManyWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TransactionAllocationUpdateWithoutReversedByInput = {
@@ -1149,6 +1429,8 @@ export type TransactionAllocationUpdateWithoutReversedByInput = {
   targetTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsInNestedInput
   organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateWithoutReversedByInput = {
@@ -1164,6 +1446,8 @@ export type TransactionAllocationUncheckedUpdateWithoutReversedByInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateManyWithoutReversedByInput = {
@@ -1179,6 +1463,7 @@ export type TransactionAllocationUncheckedUpdateManyWithoutReversedByInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TransactionAllocationCreateManySourceTransactionInput = {
@@ -1194,6 +1479,7 @@ export type TransactionAllocationCreateManySourceTransactionInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
 }
 
 export type TransactionAllocationCreateManyTargetTransactionInput = {
@@ -1209,6 +1495,7 @@ export type TransactionAllocationCreateManyTargetTransactionInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
 }
 
 export type TransactionAllocationUpdateWithoutSourceTransactionInput = {
@@ -1224,6 +1511,8 @@ export type TransactionAllocationUpdateWithoutSourceTransactionInput = {
   organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
   reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateWithoutSourceTransactionInput = {
@@ -1239,6 +1528,8 @@ export type TransactionAllocationUncheckedUpdateWithoutSourceTransactionInput = 
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateManyWithoutSourceTransactionInput = {
@@ -1254,6 +1545,7 @@ export type TransactionAllocationUncheckedUpdateManyWithoutSourceTransactionInpu
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TransactionAllocationUpdateWithoutTargetTransactionInput = {
@@ -1269,6 +1561,8 @@ export type TransactionAllocationUpdateWithoutTargetTransactionInput = {
   organisation?: Prisma.OrganisationUpdateOneWithoutAllocationsNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
   reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateWithoutTargetTransactionInput = {
@@ -1284,6 +1578,8 @@ export type TransactionAllocationUncheckedUpdateWithoutTargetTransactionInput = 
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateManyWithoutTargetTransactionInput = {
@@ -1299,6 +1595,7 @@ export type TransactionAllocationUncheckedUpdateManyWithoutTargetTransactionInpu
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type TransactionAllocationCreateManyOrganisationInput = {
@@ -1314,6 +1611,7 @@ export type TransactionAllocationCreateManyOrganisationInput = {
   createdAt?: Date | string
   reversedAt?: Date | string | null
   reversedById?: string | null
+  orgSourceAllocationId?: string | null
 }
 
 export type TransactionAllocationUpdateWithoutOrganisationInput = {
@@ -1329,6 +1627,8 @@ export type TransactionAllocationUpdateWithoutOrganisationInput = {
   targetTransaction?: Prisma.TransactionUpdateOneRequiredWithoutAllocationsInNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput
   reversedBy?: Prisma.UserUpdateOneWithoutReversedAllocationsNestedInput
+  orgSourceAllocation?: Prisma.TransactionAllocationUpdateOneWithoutPersonalMirrorNestedInput
+  personalMirror?: Prisma.TransactionAllocationUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateWithoutOrganisationInput = {
@@ -1344,6 +1644,8 @@ export type TransactionAllocationUncheckedUpdateWithoutOrganisationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  personalMirror?: Prisma.TransactionAllocationUncheckedUpdateOneWithoutOrgSourceAllocationNestedInput
 }
 
 export type TransactionAllocationUncheckedUpdateManyWithoutOrganisationInput = {
@@ -1359,6 +1661,7 @@ export type TransactionAllocationUncheckedUpdateManyWithoutOrganisationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reversedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   reversedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  orgSourceAllocationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1377,11 +1680,14 @@ export type TransactionAllocationSelect<ExtArgs extends runtime.Types.Extensions
   createdAt?: boolean
   reversedAt?: boolean
   reversedById?: boolean
+  orgSourceAllocationId?: boolean
   sourceTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   targetTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   organisation?: boolean | Prisma.TransactionAllocation$organisationArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reversedBy?: boolean | Prisma.TransactionAllocation$reversedByArgs<ExtArgs>
+  orgSourceAllocation?: boolean | Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>
+  personalMirror?: boolean | Prisma.TransactionAllocation$personalMirrorArgs<ExtArgs>
 }, ExtArgs["result"]["transactionAllocation"]>
 
 export type TransactionAllocationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1398,11 +1704,13 @@ export type TransactionAllocationSelectCreateManyAndReturn<ExtArgs extends runti
   createdAt?: boolean
   reversedAt?: boolean
   reversedById?: boolean
+  orgSourceAllocationId?: boolean
   sourceTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   targetTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   organisation?: boolean | Prisma.TransactionAllocation$organisationArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reversedBy?: boolean | Prisma.TransactionAllocation$reversedByArgs<ExtArgs>
+  orgSourceAllocation?: boolean | Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>
 }, ExtArgs["result"]["transactionAllocation"]>
 
 export type TransactionAllocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1419,11 +1727,13 @@ export type TransactionAllocationSelectUpdateManyAndReturn<ExtArgs extends runti
   createdAt?: boolean
   reversedAt?: boolean
   reversedById?: boolean
+  orgSourceAllocationId?: boolean
   sourceTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   targetTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   organisation?: boolean | Prisma.TransactionAllocation$organisationArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reversedBy?: boolean | Prisma.TransactionAllocation$reversedByArgs<ExtArgs>
+  orgSourceAllocation?: boolean | Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>
 }, ExtArgs["result"]["transactionAllocation"]>
 
 export type TransactionAllocationSelectScalar = {
@@ -1440,15 +1750,18 @@ export type TransactionAllocationSelectScalar = {
   createdAt?: boolean
   reversedAt?: boolean
   reversedById?: boolean
+  orgSourceAllocationId?: boolean
 }
 
-export type TransactionAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sourceTransactionId" | "targetTransactionId" | "amount" | "currency" | "date" | "note" | "status" | "orgId" | "createdById" | "createdAt" | "reversedAt" | "reversedById", ExtArgs["result"]["transactionAllocation"]>
+export type TransactionAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sourceTransactionId" | "targetTransactionId" | "amount" | "currency" | "date" | "note" | "status" | "orgId" | "createdById" | "createdAt" | "reversedAt" | "reversedById" | "orgSourceAllocationId", ExtArgs["result"]["transactionAllocation"]>
 export type TransactionAllocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sourceTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   targetTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
   organisation?: boolean | Prisma.TransactionAllocation$organisationArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reversedBy?: boolean | Prisma.TransactionAllocation$reversedByArgs<ExtArgs>
+  orgSourceAllocation?: boolean | Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>
+  personalMirror?: boolean | Prisma.TransactionAllocation$personalMirrorArgs<ExtArgs>
 }
 export type TransactionAllocationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sourceTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
@@ -1456,6 +1769,7 @@ export type TransactionAllocationIncludeCreateManyAndReturn<ExtArgs extends runt
   organisation?: boolean | Prisma.TransactionAllocation$organisationArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reversedBy?: boolean | Prisma.TransactionAllocation$reversedByArgs<ExtArgs>
+  orgSourceAllocation?: boolean | Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>
 }
 export type TransactionAllocationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sourceTransaction?: boolean | Prisma.TransactionDefaultArgs<ExtArgs>
@@ -1463,6 +1777,7 @@ export type TransactionAllocationIncludeUpdateManyAndReturn<ExtArgs extends runt
   organisation?: boolean | Prisma.TransactionAllocation$organisationArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   reversedBy?: boolean | Prisma.TransactionAllocation$reversedByArgs<ExtArgs>
+  orgSourceAllocation?: boolean | Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>
 }
 
 export type $TransactionAllocationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1473,6 +1788,8 @@ export type $TransactionAllocationPayload<ExtArgs extends runtime.Types.Extensio
     organisation: Prisma.$OrganisationPayload<ExtArgs> | null
     createdBy: Prisma.$UserPayload<ExtArgs>
     reversedBy: Prisma.$UserPayload<ExtArgs> | null
+    orgSourceAllocation: Prisma.$TransactionAllocationPayload<ExtArgs> | null
+    personalMirror: Prisma.$TransactionAllocationPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1488,6 +1805,12 @@ export type $TransactionAllocationPayload<ExtArgs extends runtime.Types.Extensio
     createdAt: Date
     reversedAt: Date | null
     reversedById: string | null
+    /**
+     * Set on the personal-ledger echo of an org allocation, so reversing the
+     * org row reverses its mirror instead of leaving the personal ledger
+     * permanently over-settled.
+     */
+    orgSourceAllocationId: string | null
   }, ExtArgs["result"]["transactionAllocation"]>
   composites: {}
 }
@@ -1887,6 +2210,8 @@ export interface Prisma__TransactionAllocationClient<T, Null = never, ExtArgs ex
   organisation<T extends Prisma.TransactionAllocation$organisationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransactionAllocation$organisationArgs<ExtArgs>>): Prisma.Prisma__OrganisationClient<runtime.Types.Result.GetResult<Prisma.$OrganisationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reversedBy<T extends Prisma.TransactionAllocation$reversedByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransactionAllocation$reversedByArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  orgSourceAllocation<T extends Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransactionAllocation$orgSourceAllocationArgs<ExtArgs>>): Prisma.Prisma__TransactionAllocationClient<runtime.Types.Result.GetResult<Prisma.$TransactionAllocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  personalMirror<T extends Prisma.TransactionAllocation$personalMirrorArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TransactionAllocation$personalMirrorArgs<ExtArgs>>): Prisma.Prisma__TransactionAllocationClient<runtime.Types.Result.GetResult<Prisma.$TransactionAllocationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1929,6 +2254,7 @@ export interface TransactionAllocationFieldRefs {
   readonly createdAt: Prisma.FieldRef<"TransactionAllocation", 'DateTime'>
   readonly reversedAt: Prisma.FieldRef<"TransactionAllocation", 'DateTime'>
   readonly reversedById: Prisma.FieldRef<"TransactionAllocation", 'String'>
+  readonly orgSourceAllocationId: Prisma.FieldRef<"TransactionAllocation", 'String'>
 }
     
 
@@ -2360,6 +2686,44 @@ export type TransactionAllocation$reversedByArgs<ExtArgs extends runtime.Types.E
    */
   include?: Prisma.UserInclude<ExtArgs> | null
   where?: Prisma.UserWhereInput
+}
+
+/**
+ * TransactionAllocation.orgSourceAllocation
+ */
+export type TransactionAllocation$orgSourceAllocationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TransactionAllocation
+   */
+  select?: Prisma.TransactionAllocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TransactionAllocation
+   */
+  omit?: Prisma.TransactionAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionAllocationInclude<ExtArgs> | null
+  where?: Prisma.TransactionAllocationWhereInput
+}
+
+/**
+ * TransactionAllocation.personalMirror
+ */
+export type TransactionAllocation$personalMirrorArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TransactionAllocation
+   */
+  select?: Prisma.TransactionAllocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TransactionAllocation
+   */
+  omit?: Prisma.TransactionAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionAllocationInclude<ExtArgs> | null
+  where?: Prisma.TransactionAllocationWhereInput
 }
 
 /**
