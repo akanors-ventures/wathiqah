@@ -15,6 +15,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Split,
   Undo2,
   Wallet,
 } from "lucide-react";
@@ -172,6 +173,30 @@ const CHANGE_TYPE_META: Record<string, ChangeMeta> = {
     chip: "bg-amber-500/10 text-amber-600 border-amber-500/20",
     dot: "bg-amber-500",
   },
+  ALLOCATION_APPLIED: {
+    label: "Applied to an obligation",
+    Icon: Split,
+    chip: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    dot: "bg-emerald-500",
+  },
+  ALLOCATION_RECEIVED: {
+    label: "Settled from a credit",
+    Icon: Split,
+    chip: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+    dot: "bg-emerald-500",
+  },
+  ALLOCATION_REVERSED: {
+    label: "Allocation reversed",
+    Icon: Undo2,
+    chip: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    dot: "bg-amber-500",
+  },
+  ALLOCATION_VOIDED: {
+    label: "Allocation voided",
+    Icon: Ban,
+    chip: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+    dot: "bg-rose-500",
+  },
 };
 
 const getMeta = (changeType: string): ChangeMeta => CHANGE_TYPE_META[changeType] ?? DEFAULT_META;
@@ -256,6 +281,26 @@ function buildSummary(item: HistoryEntry): string | null {
       }
       return "Converted part of this loan to a gift";
     }
+    case "ALLOCATION_APPLIED": {
+      const amount = newState.amount;
+      return amount != null
+        ? `Applied ${formatCurrency(Number(amount), currency)} to another record`
+        : "Applied part of this money to another record";
+    }
+    case "ALLOCATION_RECEIVED": {
+      const amount = newState.amount;
+      return amount != null
+        ? `Settled ${formatCurrency(Number(amount), currency)} from money already received or paid`
+        : "Settled from money already received or paid";
+    }
+    case "ALLOCATION_REVERSED": {
+      const amount = newState.amount;
+      return amount != null
+        ? `Reversed an allocation of ${formatCurrency(Number(amount), currency)}`
+        : "Reversed an allocation";
+    }
+    case "ALLOCATION_VOIDED":
+      return "The record on the other side of an allocation was removed";
     case "AUTO_SETTLED":
       return "All repayments received — loan marked as settled";
     case "AUTO_REOPENED":
@@ -283,6 +328,12 @@ const SKIP_DIFF_FOR: ReadonlySet<string> = new Set([
   "WITNESS_MODIFIED",
   "AUTO_SETTLED",
   "AUTO_REOPENED",
+  // Allocation payloads are counterpart ids, not a field diff of this row —
+  // the chip and summary already carry everything readable in them.
+  "ALLOCATION_APPLIED",
+  "ALLOCATION_RECEIVED",
+  "ALLOCATION_REVERSED",
+  "ALLOCATION_VOIDED",
 ]);
 
 /* ------------------------------------------------------------------ */
