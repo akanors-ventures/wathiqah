@@ -70,6 +70,7 @@ const mockPrismaService = withSettlementAggregates({
     updateMany: jest.fn(),
   },
   $transaction: jest.fn((fn) => fn(mockPrismaService)),
+  $queryRaw: jest.fn().mockResolvedValue([]),
 });
 
 const mockNotificationService = {

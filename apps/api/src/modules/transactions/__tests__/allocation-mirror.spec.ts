@@ -311,5 +311,37 @@ describe('Allocation × mirrors, cancellation and deletion', () => {
       );
       expect(prisma.transactions.get('loan-p2')?.status).toBe('COMPLETED');
     });
+
+    // Regression: cancelling or deleting an org endpoint used to reverse
+    // only the org-side allocation, leaving its personal-ledger echo ACTIVE
+    // forever — the mirrored loan stayed COMPLETED with no path to fix it,
+    // since reverse() short-circuits on an already-REVERSED org allocation
+    // before ever reaching the mirror.
+    it('reverses the personal mirror too when the org credit is deleted', async () => {
+      seedMirrors();
+      const [orgAllocation] = await allocateOrg();
+      expect(prisma.transactions.get('loan-mirror')?.status).toBe('COMPLETED');
+
+      await transactions.remove('esc-org', FAWAZ, ORG);
+
+      expect(mirrorOf(orgAllocation.id as string)?.status).toBe('REVERSED');
+      expect(prisma.transactions.get('loan-mirror')?.status).toBe('PENDING');
+      expect(prisma.transactions.get('loan-org')?.status).toBe('PENDING');
+    });
+
+    it('reverses the personal mirror too when the org obligation is cancelled', async () => {
+      seedMirrors();
+      const [orgAllocation] = await allocateOrg();
+      const row = prisma.transactions.get('loan-org');
+      if (row) row.witnesses = [{ id: 'w-1' }];
+
+      await transactions.remove('loan-org', FAWAZ, ORG);
+
+      expect(prisma.transactions.get('loan-org')?.status).toBe('CANCELLED');
+      expect(mirrorOf(orgAllocation.id as string)?.status).toBe('REVERSED');
+      // The credit's own mirror reopens — the money it once claimed to have
+      // settled is no longer accounted for.
+      expect(prisma.transactions.get('esc-mirror')?.status).toBe('PENDING');
+    });
   });
 });

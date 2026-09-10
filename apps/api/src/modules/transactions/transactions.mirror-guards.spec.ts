@@ -49,6 +49,7 @@ const mockPrismaService = withSettlementAggregates({
   witness: { updateMany: jest.fn() },
   user: { findUnique: jest.fn() },
   $transaction: jest.fn((fn) => fn(mockPrismaService)),
+  $queryRaw: jest.fn().mockResolvedValue([]),
 });
 
 const mockNotificationService = {

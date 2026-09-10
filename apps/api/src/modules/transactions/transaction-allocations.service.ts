@@ -107,9 +107,16 @@ export class TransactionAllocationsService {
       );
     }
 
+    // One batched read for every target instead of N sequential findUniques —
+    // a settlement spread across a dozen obligations otherwise cost a dozen
+    // round trips just to load the rows before validation even starts.
+    const targetRows = await this.loadEndpoints(targetIds);
     const targets = new Map<string, EndpointRow>();
     for (const id of targetIds) {
-      const target = await this.loadEndpoint(id, 'target');
+      const target = targetRows.get(id);
+      if (!target) {
+        throw new NotFoundException(`Obligation ${id} not found`);
+      }
       await this.assertEndpointUsable(target, userId, orgId, 'target');
 
       if (!isLifecycleObligationType(target.type)) {
@@ -156,20 +163,25 @@ export class TransactionAllocationsService {
       const lockIds = [sourceTransactionId, ...targetIds].sort();
       await tx.$queryRaw`SELECT id FROM "transactions" WHERE id IN (${Prisma.join(lockIds)}) FOR UPDATE`;
 
-      const sourceSettled = await this.transactionsService.loadSettledAmount(
+      // One batched read for source + every target's settled amount instead
+      // of N+1 singular loadSettledAmount calls (3 aggregate queries each) —
+      // this used to run serially while every FOR UPDATE lock above was
+      // held, extending lock contention with any concurrent allocation
+      // against the same rows.
+      const settledById = await this.transactionsService.loadSettledAmounts(
         tx,
-        sourceTransactionId,
+        [sourceTransactionId, ...targetIds],
       );
+
+      const sourceSettled = settledById.get(sourceTransactionId) ?? 0;
       let sourceRemaining = computeOutstanding(source.amount, sourceSettled);
 
       const created = [];
+      let totalAllocated = 0;
       for (const { targetTransactionId, amount } of allocations) {
         const target = targets.get(targetTransactionId) as EndpointRow;
 
-        const targetSettled = await this.transactionsService.loadSettledAmount(
-          tx,
-          targetTransactionId,
-        );
+        const targetSettled = settledById.get(targetTransactionId) ?? 0;
         const targetOutstanding = computeOutstanding(
           target.amount,
           targetSettled,
@@ -200,6 +212,7 @@ export class TransactionAllocationsService {
         });
         created.push(allocation);
         sourceRemaining -= amount;
+        totalAllocated += amount;
 
         // One history row per endpoint. Deliberately no top-level `type` key:
         // flipStatePerspective rewrites any top-level `type` through
@@ -236,10 +249,14 @@ export class TransactionAllocationsService {
           ],
         });
 
+        // targetSettled + amount is the exact post-allocation total — no
+        // target receives more than one allocation per pass (targetIds are
+        // deduped above), so this doesn't need to be re-read.
         await this.transactionsService.recomputeParentLoanStatus(
           tx,
           targetTransactionId,
           userId,
+          targetSettled + amount,
         );
 
         await this.maybeMirrorAllocation(
@@ -255,6 +272,7 @@ export class TransactionAllocationsService {
         tx,
         sourceTransactionId,
         userId,
+        sourceSettled + totalAllocated,
       );
 
       return created;
@@ -295,6 +313,21 @@ export class TransactionAllocationsService {
         allocation.targetTransactionId,
       ].sort();
       await tx.$queryRaw`SELECT id FROM "transactions" WHERE id IN (${Prisma.join(lockIds)}) FOR UPDATE`;
+
+      // Re-check under the lock: the status read above happened before it,
+      // so two near-simultaneous reverse() calls (a double-click, or two
+      // collaborators) can both pass that check while still ACTIVE, then
+      // serialize on this same lock (both touch the same two transaction
+      // rows) — without this, the second writer would silently overwrite
+      // the first's reversedAt/reversedById, misattributing who actually
+      // reversed it.
+      const current = await tx.transactionAllocation.findUnique({
+        where: { id: allocationId },
+      });
+      if (!current) {
+        throw new NotFoundException(`Allocation ${allocationId} not found`);
+      }
+      if (current.status === 'REVERSED') return current;
 
       const updated = await tx.transactionAllocation.update({
         where: { id: allocationId },
@@ -606,6 +639,21 @@ export class TransactionAllocationsService {
     return row as unknown as EndpointRow;
   }
 
+  /** Batched form of loadEndpoint: one query for every target in a pass. */
+  private async loadEndpoints(
+    ids: string[],
+  ): Promise<Map<string, EndpointRow>> {
+    const rows = await this.prisma.transaction.findMany({
+      where: { id: { in: ids } },
+      include: { contact: { select: { linkedUserId: true } } },
+    });
+    const byId = new Map<string, EndpointRow>();
+    for (const row of rows) {
+      byId.set(row.id, row as unknown as EndpointRow);
+    }
+    return byId;
+  }
+
   /** Shared usability rules: FUNDS, live, not a mirror, and writable. */
   private async assertEndpointUsable(
     row: EndpointRow,
@@ -647,10 +695,10 @@ export class TransactionAllocationsService {
     orgId: string | null,
   ): Promise<void> {
     await this.transactionsService.assertTransactionAccess(row, userId, orgId);
-    if (!row.orgId && row.createdById !== userId) {
-      throw new ForbiddenException(
-        'You can only allocate against your own transactions',
-      );
-    }
+    this.transactionsService.assertWriteAuthority(
+      row,
+      userId,
+      'allocate against this transaction',
+    );
   }
 }

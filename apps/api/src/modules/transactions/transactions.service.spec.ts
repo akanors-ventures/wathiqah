@@ -57,6 +57,9 @@ const mockPrismaService = withSettlementAggregates({
     }
     return arg(mockPrismaService);
   }),
+  // No real locking in a mock — just needs to not throw, same as FakePrisma's
+  // stub, so update()'s FOR UPDATE re-check line doesn't blow up every test.
+  $queryRaw: jest.fn().mockResolvedValue([]),
 });
 
 const mockConfigService = {
@@ -683,6 +686,41 @@ describe('TransactionsService - Pagination', () => {
     });
   });
 
+  describe('TransactionsService.assertWriteAuthority', () => {
+    // The single home for "personal rows are creator-only" — update(),
+    // remove(), and TransactionAllocationsService.assertWriteAuthority all
+    // call this rather than each hand-writing the same condition.
+    it('forbids a non-creator on a personal row', () => {
+      expect(() =>
+        service.assertWriteAuthority(
+          { orgId: null, createdById: 'fawaz' },
+          'someone-else',
+          'edit this thing',
+        ),
+      ).toThrow('Only the creator can edit this thing');
+    });
+
+    it('allows the creator on a personal row', () => {
+      expect(() =>
+        service.assertWriteAuthority(
+          { orgId: null, createdById: 'fawaz' },
+          'fawaz',
+          'edit this thing',
+        ),
+      ).not.toThrow();
+    });
+
+    it('allows anyone on an org-scoped row — membership is checked separately', () => {
+      expect(() =>
+        service.assertWriteAuthority(
+          { orgId: 'org-1', createdById: 'fawaz' },
+          'someone-else',
+          'edit this thing',
+        ),
+      ).not.toThrow();
+    });
+  });
+
   describe('TransactionsService — update() outstanding-balance guard', () => {
     beforeEach(() => {
       jest.clearAllMocks();
@@ -778,6 +816,30 @@ describe('TransactionsService - Pagination', () => {
         ),
       ).resolves.toBeDefined();
       expect(mockPrismaService.transaction.update).toHaveBeenCalled();
+    });
+
+    it('re-checks under lock and rejects if settled grew between the fast check and the write', async () => {
+      // Regression: the guard used to read settled amount once, outside any
+      // lock, well before the write — a concurrent allocate() (which does
+      // take a FOR UPDATE lock) could land in that gap and the shrink would
+      // go through anyway. update() now re-reads settled amount a second
+      // time, under its own lock, immediately before the write.
+      mockPrismaService.transaction.findUnique.mockResolvedValue(loanRow);
+      mockPrismaService.transaction.findMany
+        .mockResolvedValueOnce([]) // fast pre-check: nothing settled yet
+        .mockResolvedValueOnce([{ amount: 400 }]); // locked re-check: an allocation landed in between
+
+      await expect(
+        service.update(
+          'loan-1',
+          { id: 'loan-1', amount: 250 } as never,
+          'fawaz',
+          null,
+        ),
+      ).rejects.toThrow(
+        'Amount (250) cannot be less than the amount already settled (400) against this transaction',
+      );
+      expect(mockPrismaService.transaction.update).not.toHaveBeenCalled();
     });
 
     it('leaves non-lifecycle types (e.g. a repayment child) unguarded', async () => {

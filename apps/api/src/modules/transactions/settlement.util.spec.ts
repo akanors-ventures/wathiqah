@@ -1,4 +1,5 @@
 import {
+  CONTACT_STANDING_SIGN,
   CREDIT_SOURCE_TYPES,
   LIFECYCLE_OBLIGATION_TYPES,
   OBLIGATION_SIGN,
@@ -210,20 +211,21 @@ describe('settlement.util', () => {
   });
 
   describe('OBLIGATION_SIGN', () => {
-    it('mirrors CONTACT_STANDING_SIGN for every lifecycle type', () => {
-      // Sourced from contacts.service.ts CONTACT_STANDING_SIGN. If that map
-      // changes, this must change with it — the allocation direction rule
-      // depends on the two agreeing.
-      expect(OBLIGATION_SIGN).toMatchObject({
-        LOAN_GIVEN: 1,
-        ADVANCE_PAID: 1,
-        DEPOSIT_PAID: 1,
-        REMITTED: 1,
-        LOAN_RECEIVED: -1,
-        ADVANCE_RECEIVED: -1,
-        DEPOSIT_RECEIVED: -1,
-        ESCROWED: -1,
-      });
+    it('is derived from CONTACT_STANDING_SIGN, not a hand-copied duplicate', () => {
+      // contacts.service.ts imports CONTACT_STANDING_SIGN from this module —
+      // OBLIGATION_SIGN is filtered from the same object, so the two cannot
+      // structurally drift apart the way two independently hand-written maps
+      // could.
+      for (const [type, sign] of Object.entries(OBLIGATION_SIGN)) {
+        expect(CONTACT_STANDING_SIGN[type]).toBe(sign);
+      }
+    });
+
+    it('excludes REPAYMENT_MADE/RECEIVED — never independently outstanding', () => {
+      expect(OBLIGATION_SIGN.REPAYMENT_MADE).toBeUndefined();
+      expect(OBLIGATION_SIGN.REPAYMENT_RECEIVED).toBeUndefined();
+      expect(CONTACT_STANDING_SIGN.REPAYMENT_MADE).toBe(1);
+      expect(CONTACT_STANDING_SIGN.REPAYMENT_RECEIVED).toBe(-1);
     });
 
     it('gives every lifecycle obligation type a sign', () => {

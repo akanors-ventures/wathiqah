@@ -355,6 +355,68 @@ export class TransactionsService {
       });
 
       await this.recomputeParentLoanStatus(tx, counterpartId, userId);
+
+      // The allocation being voided may itself have a personal-ledger echo
+      // (maybeMirrorAllocation, transaction-allocations.service.ts) when the
+      // credit and obligation are both org rows mirrored to the same user.
+      // Without this, cancelling or deleting an org endpoint reversed the
+      // org-side allocation but left the mirror ACTIVE — its obligation
+      // stayed permanently COMPLETED with no path to fix it, since reverse()
+      // short-circuits on an already-REVERSED org allocation before ever
+      // reaching the mirror.
+      const mirror = await tx.transactionAllocation.findUnique({
+        where: { orgSourceAllocationId: allocation.id },
+      });
+      if (mirror && mirror.status === 'ACTIVE') {
+        await tx.transactionAllocation.update({
+          where: { id: mirror.id },
+          data: {
+            status: 'REVERSED',
+            reversedAt: new Date(),
+            reversedById: userId,
+          },
+        });
+
+        await tx.transactionHistory.createMany({
+          data: [
+            {
+              transactionId: mirror.sourceTransactionId,
+              userId,
+              changeType: 'ALLOCATION_VOIDED',
+              previousState: { allocationId: mirror.id, status: 'ACTIVE' },
+              newState: {
+                allocationId: mirror.id,
+                status: 'REVERSED',
+                amount: Number(mirror.amount),
+                reason: 'counterpart transaction removed',
+              },
+            },
+            {
+              transactionId: mirror.targetTransactionId,
+              userId,
+              changeType: 'ALLOCATION_VOIDED',
+              previousState: { allocationId: mirror.id, status: 'ACTIVE' },
+              newState: {
+                allocationId: mirror.id,
+                status: 'REVERSED',
+                amount: Number(mirror.amount),
+                reason: 'counterpart transaction removed',
+              },
+            },
+          ],
+        });
+
+        await this.recomputeParentLoanStatus(
+          tx,
+          mirror.sourceTransactionId,
+          userId,
+        );
+        await this.recomputeParentLoanStatus(
+          tx,
+          mirror.targetTransactionId,
+          userId,
+        );
+      }
     }
   }
 
@@ -1755,6 +1817,28 @@ export class TransactionsService {
     }
   }
 
+  /**
+   * Read access (assertTransactionAccess) is not the same as write access: a
+   * shared-ledger linked contact can view a personal transaction but must
+   * never mutate it — only its creator can. Org-scoped rows are shared by
+   * every active member, so this only bites on personal (orgId null) rows.
+   *
+   * Single home for that rule. It used to be hand-written independently at
+   * every call site (update(), remove(), and TransactionAllocationsService's
+   * own copy) with drifting wording — exactly the gap this repo's CLAUDE.md
+   * warns about for access-control checks. `action` only changes the message.
+   */
+  /** @internal call sites within TransactionsModule only */
+  assertWriteAuthority(
+    transaction: { orgId: string | null; createdById: string },
+    userId: string,
+    action: string,
+  ): void {
+    if (!transaction.orgId && transaction.createdById !== userId) {
+      throw new ForbiddenException(`Only the creator can ${action}`);
+    }
+  }
+
   async findOne(
     id: string,
     userId: string,
@@ -1813,11 +1897,7 @@ export class TransactionsService {
     // (already verified by findOne/assertTransactionAccess above) — personal
     // transactions remain creator-only, so the other party in a shared
     // ledger can view but not edit.
-    if (!transaction.orgId && transaction.createdById !== userId) {
-      throw new ForbiddenException(
-        'Only the creator can update this transaction',
-      );
-    }
+    this.assertWriteAuthority(transaction, userId, 'update this transaction');
 
     if (transaction.isMirroredFromProject) {
       throw new BadRequestException(
@@ -2060,6 +2140,28 @@ export class TransactionsService {
 
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
+        // The shrink-cap check above ran outside any lock, against a read
+        // that could already be stale by the time we get here — a
+        // concurrent allocate() takes a FOR UPDATE lock on this same row
+        // and could commit a new allocation in the gap. Re-check under that
+        // same lock, right before the write, so the two can't interleave
+        // into an amount lower than what's actually settled.
+        if (
+          changes.amount !== undefined &&
+          isLifecycleObligationType(transaction.type)
+        ) {
+          await prisma.$queryRaw`SELECT id FROM "transactions" WHERE id = ${id} FOR UPDATE`;
+          const settledUnderLock = await this.loadSettledAmount(
+            prisma as Prisma.TransactionClient,
+            id,
+          );
+          if (Number(changes.amount) < settledUnderLock) {
+            throw new BadRequestException(
+              `Amount (${changes.amount}) cannot be less than the amount already settled (${settledUnderLock}) against this transaction`,
+            );
+          }
+        }
+
         const updated = await prisma.transaction.update({
           where: { id },
           data: {
@@ -2272,11 +2374,7 @@ export class TransactionsService {
     // Org-scoped transactions are shared by every active member of that org
     // (already verified by findOne/assertTransactionAccess above) — personal
     // transactions remain creator-only.
-    if (!transaction.orgId && transaction.createdById !== userId) {
-      throw new ForbiddenException(
-        'Only the creator can remove this transaction',
-      );
-    }
+    this.assertWriteAuthority(transaction, userId, 'remove this transaction');
 
     if (transaction.isMirroredFromProject) {
       throw new BadRequestException(

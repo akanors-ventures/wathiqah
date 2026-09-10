@@ -11,20 +11,41 @@
  * settlement that none of those sites knew about, so they all route here now.
  */
 
-/** + = contact owes me, − = I owe contact. Mirrors CONTACT_STANDING_SIGN in
- *  contacts.service.ts, which stays the authority for balance math; this copy
- *  exists so the allocation direction rule can be enforced without importing
- *  ContactsService into TransactionsModule. Keep the two in sync. */
-export const OBLIGATION_SIGN: Readonly<Record<string, 1 | -1>> = {
+/**
+ * + = contact owes me, − = I owe contact. The single canonical sign map —
+ * ContactsService imports this rather than keeping its own copy, so the
+ * balance math and the allocation direction rule (OBLIGATION_SIGN below)
+ * can never drift apart. GIFT_* carry no ongoing obligation and are
+ * deliberately absent (no sign).
+ */
+export const CONTACT_STANDING_SIGN: Readonly<Record<string, 1 | -1>> = {
   LOAN_GIVEN: 1,
+  REPAYMENT_MADE: 1,
   ADVANCE_PAID: 1,
   DEPOSIT_PAID: 1,
   REMITTED: 1,
   LOAN_RECEIVED: -1,
+  REPAYMENT_RECEIVED: -1,
   ADVANCE_RECEIVED: -1,
   DEPOSIT_RECEIVED: -1,
   ESCROWED: -1,
 };
+
+/**
+ * Same signs, restricted to the types that are actually valid allocation
+ * endpoints (REPAYMENT_* are settled events in their own right, never
+ * independently outstanding — see LIFECYCLE_OBLIGATION_TYPES below).
+ * Derived from CONTACT_STANDING_SIGN rather than duplicated, so a future
+ * type added to one map can't silently diverge from the other and let the
+ * opposite-sign rule (isValueConservingPair) disagree with what the balance
+ * actually does.
+ */
+export const OBLIGATION_SIGN: Readonly<Record<string, 1 | -1>> =
+  Object.fromEntries(
+    Object.entries(CONTACT_STANDING_SIGN).filter(
+      ([type]) => type !== 'REPAYMENT_MADE' && type !== 'REPAYMENT_RECEIVED',
+    ),
+  ) as Record<string, 1 | -1>;
 
 /**
  * Types that carry an outstanding balance and a PENDING/COMPLETED lifecycle,

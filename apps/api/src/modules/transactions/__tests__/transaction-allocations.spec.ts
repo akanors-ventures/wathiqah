@@ -608,6 +608,24 @@ describe('TransactionAllocationsService', () => {
         /not found/,
       );
     });
+
+    it('does not double-write when two reverse() calls race on the same allocation', async () => {
+      // Regression: the idempotency check used to read `status` once, before
+      // acquiring the row lock — two near-simultaneous calls could both pass
+      // it while still ACTIVE, both proceed to the write, and the second
+      // writer's reversedAt/reversedById would silently overwrite the
+      // first's, misattributing the audit trail. The write now happens
+      // behind a re-check taken under the lock.
+      const [first, second] = await Promise.all([
+        service.reverse(allocationId, FAWAZ, null),
+        service.reverse(allocationId, FAWAZ, null),
+      ]);
+
+      expect(first.status).toBe('REVERSED');
+      expect(second.status).toBe('REVERSED');
+      expect(historyFor('esc-1', 'ALLOCATION_REVERSED')).toHaveLength(1);
+      expect(historyFor('loan-1', 'ALLOCATION_REVERSED')).toHaveLength(1);
+    });
   });
 
   describe('listForTransaction', () => {

@@ -50,6 +50,7 @@ const mockPrismaService = withSettlementAggregates({
     }
     return arg(mockPrismaService);
   }),
+  $queryRaw: jest.fn().mockResolvedValue([]),
 });
 
 const mockConfigService = {

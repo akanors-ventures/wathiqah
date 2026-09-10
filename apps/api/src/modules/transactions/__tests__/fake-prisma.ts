@@ -230,11 +230,32 @@ export class FakePrisma {
       }
       return row;
     },
-    findMany: async ({ where, select }: { where?: Row; select?: Row }) => {
+    findMany: async ({
+      where,
+      select,
+      include,
+    }: {
+      where?: Row;
+      select?: Row;
+      include?: Row;
+    }): Promise<Row[]> => {
       const rows = [...this.transactions.values()].filter((t) =>
         this.matchesTransactionWhere(t, where),
       );
-      return select ? rows.map((row) => this.hydrate(row, select)) : rows;
+      // loadEndpoints (transaction-allocations.service.ts) is the only
+      // findMany caller that passes `include` — it only ever asks for
+      // `contact`, so that's the only relation wired here.
+      const withIncludes: Row[] = include?.contact
+        ? rows.map((row) => ({
+            ...row,
+            contact: row.contactId
+              ? this.contacts.get(row.contactId as string)
+              : null,
+          }))
+        : rows;
+      return select
+        ? withIncludes.map((row) => this.hydrate(row, select))
+        : withIncludes;
     },
     count: async ({ where }: { where?: Row }) =>
       (await this.transaction.findMany({ where })).length,

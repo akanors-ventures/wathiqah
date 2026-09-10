@@ -20,21 +20,10 @@ import {
   FilterContactInput,
   ContactBalanceStanding,
 } from './dto/filter-contact.input';
-import { computeEffectiveObligationAmount } from '../transactions/settlement.util';
-
-/** + = contact owes me, − = I owe contact. GIFT excluded (no ongoing obligation). */
-const CONTACT_STANDING_SIGN: Partial<Record<string, 1 | -1>> = {
-  LOAN_GIVEN: 1,
-  REPAYMENT_MADE: 1,
-  ADVANCE_PAID: 1,
-  DEPOSIT_PAID: 1,
-  REMITTED: 1,
-  LOAN_RECEIVED: -1,
-  REPAYMENT_RECEIVED: -1,
-  ADVANCE_RECEIVED: -1,
-  DEPOSIT_RECEIVED: -1,
-  ESCROWED: -1,
-};
+import {
+  computeEffectiveObligationAmount,
+  CONTACT_STANDING_SIGN,
+} from '../transactions/settlement.util';
 
 /** One transaction row as loaded for balance math. */
 type BalanceTransaction = {
