@@ -137,16 +137,25 @@ describe('TransactionsResolver — allocation ResolveFields', () => {
       {} as never,
     );
 
-    await resolver.allocationsOut({ id: 'tx-1' } as never);
+    const parent = {
+      id: 'tx-1',
+      orgId: null,
+      contactId: 'contact-1',
+      createdById: 'fawaz',
+    };
+
+    await resolver.allocationsOut(parent as never, { id: 'fawaz' } as never);
     expect(allocationsService.listForTransaction).toHaveBeenCalledWith(
-      'tx-1',
+      parent,
       'OUT',
+      'fawaz',
     );
 
-    await resolver.allocationsIn({ id: 'tx-1' } as never);
+    await resolver.allocationsIn(parent as never, { id: 'musa' } as never);
     expect(allocationsService.listForTransaction).toHaveBeenCalledWith(
-      'tx-1',
+      parent,
       'IN',
+      'musa',
     );
   });
 });

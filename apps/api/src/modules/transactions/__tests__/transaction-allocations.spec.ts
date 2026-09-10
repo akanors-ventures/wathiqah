@@ -611,6 +611,16 @@ describe('TransactionAllocationsService', () => {
   });
 
   describe('listForTransaction', () => {
+    const asParent = (id: string) => {
+      const row = prisma.transactions.get(id) as Record<string, unknown>;
+      return {
+        id,
+        orgId: (row.orgId as string | null) ?? null,
+        contactId: (row.contactId as string | null) ?? null,
+        createdById: row.createdById as string,
+      };
+    };
+
     it('reads the same link from both ends', async () => {
       await service.allocate(
         {
@@ -621,12 +631,127 @@ describe('TransactionAllocationsService', () => {
         null,
       );
 
-      const out = await service.listForTransaction('esc-1', 'OUT');
-      const inbound = await service.listForTransaction('loan-1', 'IN');
+      const out = await service.listForTransaction(
+        asParent('esc-1'),
+        'OUT',
+        FAWAZ,
+      );
+      const inbound = await service.listForTransaction(
+        asParent('loan-1'),
+        'IN',
+        FAWAZ,
+      );
 
       expect(out).toHaveLength(1);
       expect(inbound).toHaveLength(1);
       expect(out[0].id).toBe(inbound[0].id);
+    });
+
+    describe('shared-ledger redaction', () => {
+      // Musa is a registered user linked to contact c-musa, so he can READ
+      // Fawaz's loan to him. He must not learn that Ade — a contact of
+      // Fawaz's he has nothing to do with — is who handed over the money.
+      const MUSA = 'user-musa';
+
+      beforeEach(async () => {
+        prisma.seedUser({ id: MUSA, email: 'musa@example.com' });
+        prisma.contacts.set('c-musa', {
+          id: 'c-musa',
+          name: 'Musa',
+          linkedUserId: MUSA,
+        });
+        prisma.contacts.set('c-ade', {
+          id: 'c-ade',
+          name: 'Ade',
+          linkedUserId: null,
+        });
+        seedTx({
+          id: 'esc-ade',
+          type: 'ESCROWED',
+          amount: 100,
+          contactId: 'c-ade',
+        });
+
+        await service.allocate(
+          {
+            sourceTransactionId: 'esc-ade',
+            allocations: [{ targetTransactionId: 'loan-1', amount: 100 }],
+          },
+          FAWAZ,
+          null,
+        );
+      });
+
+      it("hides another contact's counterpart from a shared-ledger viewer", async () => {
+        const [row] = await service.listForTransaction(
+          asParent('loan-1'),
+          'IN',
+          MUSA,
+        );
+
+        expect(row.amount).toBe(100);
+        expect(row.status).toBe('ACTIVE');
+        expect(row.sourceTransaction).toBeNull();
+        expect(row.targetTransaction).toBeNull();
+        expect(row.note).toBeNull();
+      });
+
+      it('shows the owner the full counterpart', async () => {
+        const [row] = await service.listForTransaction(
+          asParent('loan-1'),
+          'IN',
+          FAWAZ,
+        );
+
+        expect(row.sourceTransaction?.id).toBe('esc-ade');
+        expect(row.sourceTransaction?.contact?.id).toBe('c-ade');
+      });
+
+      it('keeps a same-contact counterpart visible to the linked contact', async () => {
+        await service.allocate(
+          {
+            sourceTransactionId: 'esc-1',
+            allocations: [{ targetTransactionId: 'loan-2', amount: 150 }],
+          },
+          FAWAZ,
+          null,
+        );
+
+        const [row] = await service.listForTransaction(
+          asParent('loan-2'),
+          'IN',
+          MUSA,
+        );
+
+        expect(row.sourceTransaction?.id).toBe('esc-1');
+      });
+
+      it('does not redact org rows — members share the whole org ledger', async () => {
+        seedTx({ id: 'org-esc', type: 'ESCROWED', amount: 100, orgId: ORG });
+        seedTx({
+          id: 'org-loan',
+          type: 'LOAN_GIVEN',
+          amount: 100,
+          orgId: ORG,
+          contactId: 'c-ade',
+        });
+        await service.allocate(
+          {
+            sourceTransactionId: 'org-esc',
+            allocations: [{ targetTransactionId: 'org-loan', amount: 100 }],
+          },
+          FAWAZ,
+          ORG,
+        );
+
+        const [row] = await service.listForTransaction(
+          asParent('org-loan'),
+          'IN',
+          OTHER,
+        );
+
+        expect(row.sourceTransaction?.id).toBe('org-esc');
+      });
     });
   });
 });

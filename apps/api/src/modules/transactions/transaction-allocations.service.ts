@@ -442,20 +442,52 @@ export class TransactionAllocationsService {
 
   /**
    * Allocations on one leg of a transaction, newest first. Includes REVERSED
-   * rows — the UI distinguishes them. Access is already enforced by whoever
-   * resolved the parent Transaction, so there is no re-check here.
+   * rows — the UI distinguishes them.
+   *
+   * Read access to the parent is enforced upstream, but that is NOT enough on
+   * its own: a cross-contact allocation names a *third* contact. A
+   * shared-ledger viewer (the linked contact, who did not create the row) is
+   * entitled to know their own debt was settled and by how much, but not to
+   * learn that some unrelated contact of the owner's handed over the money.
+   * So for a non-creator on a personal row, any counterpart belonging to a
+   * different contact is stripped to amount/date/status only. Org rows are
+   * exempt: every member of the org already shares the whole org ledger.
    */
-  async listForTransaction(transactionId: string, direction: 'IN' | 'OUT') {
-    return this.prisma.transactionAllocation.findMany({
+  async listForTransaction(
+    parent: {
+      id: string;
+      orgId?: string | null;
+      contactId?: string | null;
+      createdById: string;
+    },
+    direction: 'IN' | 'OUT',
+    viewerId: string,
+  ) {
+    const rows = await this.prisma.transactionAllocation.findMany({
       where:
         direction === 'IN'
-          ? { targetTransactionId: transactionId }
-          : { sourceTransactionId: transactionId },
+          ? { targetTransactionId: parent.id }
+          : { sourceTransactionId: parent.id },
       include: {
         sourceTransaction: { include: { contact: true } },
         targetTransaction: { include: { contact: true } },
       },
       orderBy: { date: 'desc' },
+    });
+
+    if (parent.orgId || parent.createdById === viewerId) return rows;
+
+    return rows.map((row) => {
+      const counterpart =
+        direction === 'IN' ? row.sourceTransaction : row.targetTransaction;
+      if (counterpart?.contactId === parent.contactId) return row;
+      // The note is the owner's own annotation and routinely names the payer.
+      return {
+        ...row,
+        note: null,
+        sourceTransaction: null,
+        targetTransaction: null,
+      };
     });
   }
 

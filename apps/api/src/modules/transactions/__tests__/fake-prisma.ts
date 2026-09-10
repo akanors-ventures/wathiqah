@@ -308,10 +308,37 @@ export class FakePrisma {
         `fake-prisma: unsupported transactionAllocation.findUnique where ${JSON.stringify(where)}`,
       );
     },
-    findMany: async ({ where }: { where?: Row }) =>
-      [...this.allocations.values()].filter((a) =>
+    findMany: async ({
+      where,
+      include,
+    }: {
+      where?: Row;
+      include?: Row;
+    }): Promise<Row[]> => {
+      const rows = [...this.allocations.values()].filter((a) =>
         this.matchesTransactionWhere(a, where),
-      ),
+      );
+      if (!include) return rows;
+      // Only `listForTransaction` passes an include; it wants each endpoint
+      // with its contact so the redaction rule can compare contactIds.
+      const endpoint = (id: unknown) => {
+        const tx = this.transactions.get(id as string);
+        if (!tx) return null;
+        return {
+          ...tx,
+          contact: this.contacts.get(tx.contactId as string) ?? null,
+        };
+      };
+      return rows.map((row) => ({
+        ...row,
+        ...(include.sourceTransaction
+          ? { sourceTransaction: endpoint(row.sourceTransactionId) }
+          : {}),
+        ...(include.targetTransaction
+          ? { targetTransaction: endpoint(row.targetTransactionId) }
+          : {}),
+      }));
+    },
     update: async ({ where, data }: { where: { id: string }; data: Row }) => {
       const row = this.allocations.get(where.id);
       if (!row) throw new Error(`fake-prisma: no allocation ${where.id}`);

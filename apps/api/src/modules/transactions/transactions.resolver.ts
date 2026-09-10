@@ -79,14 +79,32 @@ export class TransactionsResolver {
    * obligations." Detail query only — never selected on a list page.
    */
   @ResolveField(() => [TransactionAllocation])
-  async allocationsOut(@Parent() transaction: Transaction) {
-    return this.allocationsService.listForTransaction(transaction.id, 'OUT');
+  async allocationsOut(
+    @Parent() transaction: Transaction,
+    @CurrentUser() user: User,
+  ) {
+    return this.allocationsService.listForTransaction(
+      transaction,
+      'OUT',
+      user.id,
+    );
   }
 
-  /** Credit applied IN to this transaction: "settled from that lump sum." */
+  /**
+   * Credit applied IN to this transaction: "settled from that lump sum."
+   * Counterparts belonging to another contact are redacted for a
+   * shared-ledger viewer — see `listForTransaction`.
+   */
   @ResolveField(() => [TransactionAllocation])
-  async allocationsIn(@Parent() transaction: Transaction) {
-    return this.allocationsService.listForTransaction(transaction.id, 'IN');
+  async allocationsIn(
+    @Parent() transaction: Transaction,
+    @CurrentUser() user: User,
+  ) {
+    return this.allocationsService.listForTransaction(
+      transaction,
+      'IN',
+      user.id,
+    );
   }
 
   /**
