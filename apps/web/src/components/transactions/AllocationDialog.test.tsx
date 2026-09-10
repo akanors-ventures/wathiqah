@@ -132,9 +132,9 @@ describe("AllocationDialog — applyCredit mode", () => {
     expect(applyButton()).toBeDisabled();
   });
 
-  it("blocks submit when the ticked rows together exceed the pool", () => {
-    // Pool of 100k against 200k + 150k of obligations: each row is individually
-    // capped at 100k, so only the running total can catch this.
+  it("caps a newly ticked row at what earlier ticked rows left in the pool", () => {
+    // Pool of 100k against 200k + 150k of obligations: the first row ticked
+    // takes the whole pool by default, so the second has nothing left.
     render(
       <AllocationDialog
         open
@@ -145,10 +145,35 @@ describe("AllocationDialog — applyCredit mode", () => {
     );
 
     tick(/loan given of ₦200,000/i);
-    // Two rows share the ₦150,000 label; either will do here.
     fireEvent.click(screen.getAllByRole("checkbox", { name: /loan given of ₦150,000/i })[0]);
 
-    expect(screen.getByText("Unallocated -₦100,000")).toBeInTheDocument();
+    expect(amountBox("loan-1")).toHaveValue("₦100,000");
+    // The pool is exhausted by loan-1, so loan-2 defaults to nothing — still
+    // checked, still ₦0, and correctly blocking (nothing to allocate to it)
+    // rather than silently overshooting the pool the old bug allowed.
+    expect(amountBox("loan-2")).toHaveValue("");
+    expect(screen.getByText("Unallocated ₦0")).toBeInTheDocument();
+    expect(applyButton()).toBeDisabled();
+  });
+
+  it("blocks submit and flags the offending row when a typed amount exceeds what's left", () => {
+    render(
+      <AllocationDialog
+        open
+        onOpenChange={vi.fn()}
+        mode="applyCredit"
+        transaction={{ id: "esc-small", currency: "NGN", remainingAmount: 100000 }}
+      />,
+    );
+
+    tick(/loan given of ₦200,000/i);
+    fireEvent.click(screen.getAllByRole("checkbox", { name: /loan given of ₦150,000/i })[0]);
+    // loan-2 defaulted to ₦0 (the pool was fully claimed by loan-1); push it
+    // over its own cap by typing into it directly.
+    fireEvent.change(amountBox("loan-2"), { target: { value: "50000" } });
+
+    expect(screen.getByText("Cannot exceed ₦0")).toBeInTheDocument();
+    expect(screen.getByText("Unallocated -₦50,000")).toBeInTheDocument();
     expect(applyButton()).toBeDisabled();
   });
 
@@ -235,6 +260,19 @@ describe("AllocationDialog — applyCredit mode", () => {
     expect(screen.queryByLabelText("Amount to apply to loan-1")).not.toBeInTheDocument();
     expect(screen.getByPlaceholderText("What this settlement covers")).toHaveValue("");
   });
+
+  it("checking a new row doesn't discard an in-progress edit on an already-checked row", () => {
+    renderApply();
+    tick(/loan given of ₦200,000/i);
+    fireEvent.change(amountBox("loan-1"), { target: { value: "150000" } });
+    expect(amountBox("loan-1")).toHaveValue("₦150,000");
+
+    // Checking a second, unrelated row used to remount the whole list (a
+    // shared `resetKey` bump), wiping this not-yet-blurred edit.
+    fireEvent.click(screen.getAllByRole("checkbox", { name: /loan given of ₦150,000/i })[0]);
+
+    expect(amountBox("loan-1")).toHaveValue("₦150,000");
+  });
 });
 
 describe("AllocationDialog — settleFromCredit mode", () => {
@@ -261,15 +299,17 @@ describe("AllocationDialog — settleFromCredit mode", () => {
     expect(screen.getByText("· Ade")).toBeInTheDocument();
   });
 
-  it("refuses more than one credit at a time", () => {
+  it("checking a second credit replaces the first rather than stacking", () => {
     renderSettle();
     tick(/escrowed of ₦500,000/i);
     tick(/escrowed of ₦100,000/i);
 
-    expect(
-      screen.getByText("Choose one credit at a time so the whole entry applies together."),
-    ).toBeInTheDocument();
-    expect(applyButton()).toBeDisabled();
+    // Only the most recently checked credit stays selected — checking a
+    // second one is a switch, not an addition, since the mutation can only
+    // draw from one source at a time.
+    expect(screen.queryByLabelText("Amount to apply to esc-1")).not.toBeInTheDocument();
+    expect(amountBox("esc-ade")).toBeInTheDocument();
+    expect(applyButton()).toBeEnabled();
   });
 
   it("submits with the credit as source and this record as the single target", async () => {

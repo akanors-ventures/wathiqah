@@ -195,23 +195,46 @@ export function AllocationDialog({
     }
   }, [open]);
 
-  const capFor = (row: PickerRow) => round2(Math.min(pool, row.remainingAmount ?? 0));
-
   const selected = rows.filter((row) => checked[row.id]);
+
+  // A row's cap is the pool minus whatever OTHER checked rows have already
+  // claimed from it — not the raw pool. Two rows each defaulting to the full
+  // pool (then only catching the overshoot at the total) left every row
+  // looking individually fine while the total silently went negative.
+  const capFor = (row: PickerRow) => {
+    const committedByOthers = selected
+      .filter((r) => r.id !== row.id)
+      .reduce((sum, r) => sum + (amounts[r.id] ?? 0), 0);
+    return round2(Math.max(0, Math.min(pool - committedByOthers, row.remainingAmount ?? 0)));
+  };
+
   const total = round2(selected.reduce((sum, row) => sum + (amounts[row.id] ?? 0), 0));
   const unallocated = round2(pool - total);
 
   const rowOverCap = selected.some((row) => (amounts[row.id] ?? 0) > capFor(row));
   const rowEmpty = selected.some((row) => !((amounts[row.id] ?? 0) > 0));
-  const tooManySources = !isApplyMode && selected.length > 1;
-  const canSubmit =
-    selected.length > 0 && !rowOverCap && !rowEmpty && !tooManySources && unallocated >= 0;
+  const canSubmit = selected.length > 0 && !rowOverCap && !rowEmpty && unallocated >= 0;
 
   const toggle = (row: PickerRow, next: boolean) => {
+    if (next && !isApplyMode) {
+      // settleFromCredit draws one source across many targets — checking a
+      // second credit here would need a second mutation and break the
+      // all-or-nothing guarantee, so it replaces the prior pick instead of
+      // stacking toward a submit that's blocked anyway. Cap against the raw
+      // pool, not capFor(row) — that reads the about-to-be-replaced
+      // `selected`/`checked` from this render's closure, so it would still
+      // count the row being replaced as "other" competition for the pool.
+      setChecked({ [row.id]: true });
+      setAmounts({ [row.id]: round2(Math.min(pool, row.remainingAmount ?? 0)) });
+      return;
+    }
     setChecked((prev) => ({ ...prev, [row.id]: next }));
+    // Filling in the default amount only touches this row's own state, so
+    // React updates just this row's controlled input — no need to remount
+    // the whole list (that's reserved for autoFill/close, which really do
+    // want every row's typed-state flag cleared).
     if (next && amounts[row.id] === undefined) {
       setAmounts((prev) => ({ ...prev, [row.id]: capFor(row) }));
-      setResetKey((k) => k + 1);
     }
   };
 
@@ -333,12 +356,6 @@ export function AllocationDialog({
                 Unallocated {formatCurrency(unallocated, currencyCode)}
               </span>
             </div>
-          ) : null}
-
-          {tooManySources ? (
-            <p className="text-sm text-destructive">
-              Choose one credit at a time so the whole entry applies together.
-            </p>
           ) : null}
 
           <div className="space-y-2">
