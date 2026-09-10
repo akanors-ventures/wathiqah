@@ -119,6 +119,12 @@ const DIRECTIONS: Record<Intent, DirectionOption[]> = {
       helper: "I'm holding cash that needs to be disbursed",
       flow: "in",
     },
+    {
+      value: TransactionType.Remitted,
+      label: "Paid on their behalf",
+      helper: "I disbursed cash for my contact — settle their debts from it",
+      flow: "out",
+    },
   ],
 };
 
