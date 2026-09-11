@@ -81,12 +81,20 @@ export function ProjectTransactionCard({
   const hasWitnesses = !!tx.witnesses && tx.witnesses.length > 0;
   const linkedContact = tx.contact;
   const remainingAmount = tx.transaction?.remainingAmount;
+  // "Repaid" is loan-specific wording. remainingAmount now resolves for the
+  // full lifecycle set (advances, deposits, escrow/remittance too, per
+  // settlement.util.ts), so a non-loan type needs a neutral verb instead of
+  // implying it was ever a debt being paid back.
+  const isLoanType =
+    tx.transaction?.type === "LOAN_GIVEN" || tx.transaction?.type === "LOAN_RECEIVED";
   const settlementLine =
     remainingAmount == null
       ? null
       : remainingAmount === 0
         ? "Fully settled"
-        : `${formatCurrency(amount - remainingAmount, currency)} repaid of ${formatCurrency(amount, currency)}`;
+        : `${formatCurrency(amount - remainingAmount, currency)} ${
+            isLoanType ? "repaid" : "settled"
+          } of ${formatCurrency(amount, currency)}`;
 
   return (
     <TooltipProvider>

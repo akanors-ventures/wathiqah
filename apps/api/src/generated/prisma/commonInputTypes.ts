@@ -484,6 +484,23 @@ export type EnumTransactionStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumTransactionStatusFilter<$PrismaModel>
 }
 
+export type EnumAllocationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AllocationStatus | Prisma.EnumAllocationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAllocationStatusFilter<$PrismaModel> | $Enums.AllocationStatus
+}
+
+export type EnumAllocationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AllocationStatus | Prisma.EnumAllocationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAllocationStatusWithAggregatesFilter<$PrismaModel> | $Enums.AllocationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAllocationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAllocationStatusFilter<$PrismaModel>
+}
+
 export type EnumWitnessStatusFilter<$PrismaModel = never> = {
   equals?: $Enums.WitnessStatus | Prisma.EnumWitnessStatusFieldRefInput<$PrismaModel>
   in?: $Enums.WitnessStatus[] | Prisma.ListEnumWitnessStatusFieldRefInput<$PrismaModel>
@@ -1166,6 +1183,23 @@ export type NestedEnumTransactionStatusWithAggregatesFilter<$PrismaModel = never
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumTransactionStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumTransactionStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumAllocationStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.AllocationStatus | Prisma.EnumAllocationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAllocationStatusFilter<$PrismaModel> | $Enums.AllocationStatus
+}
+
+export type NestedEnumAllocationStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.AllocationStatus | Prisma.EnumAllocationStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.AllocationStatus[] | Prisma.ListEnumAllocationStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumAllocationStatusWithAggregatesFilter<$PrismaModel> | $Enums.AllocationStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumAllocationStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumAllocationStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumWitnessStatusFilter<$PrismaModel = never> = {

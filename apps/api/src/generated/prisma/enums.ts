@@ -36,6 +36,14 @@ export const PaymentType = {
 export type PaymentType = (typeof PaymentType)[keyof typeof PaymentType]
 
 
+export const AllocationStatus = {
+  ACTIVE: 'ACTIVE',
+  REVERSED: 'REVERSED'
+} as const
+
+export type AllocationStatus = (typeof AllocationStatus)[keyof typeof AllocationStatus]
+
+
 export const AssetCategory = {
   FUNDS: 'FUNDS',
   ITEM: 'ITEM'

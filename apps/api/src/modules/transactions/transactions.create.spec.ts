@@ -7,6 +7,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { TransactionType, AssetCategory } from '../../generated/prisma/client';
+import { withSettlementAggregates } from './__tests__/settlement-mocks';
 
 const CREATOR_ID = 'creator-1';
 const CONTACT_ID = 'contact-1';
@@ -50,7 +51,7 @@ const mockTransaction = {
   dueDate: null,
 };
 
-const mockPrismaService = {
+const mockPrismaService = withSettlementAggregates({
   transaction: {
     findUnique: jest.fn(),
     create: jest.fn(),
@@ -69,7 +70,8 @@ const mockPrismaService = {
     updateMany: jest.fn(),
   },
   $transaction: jest.fn((fn) => fn(mockPrismaService)),
-};
+  $queryRaw: jest.fn().mockResolvedValue([]),
+});
 
 const mockNotificationService = {
   sendTransactionWitnessInvite: jest.fn(),

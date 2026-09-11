@@ -297,6 +297,8 @@ export type UserWhereInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogListRelationFilter
   adminActionsReceived?: Prisma.AdminAuditLogListRelationFilter
   plansCreated?: Prisma.PlanListRelationFilter
+  createdAllocations?: Prisma.TransactionAllocationListRelationFilter
+  reversedAllocations?: Prisma.TransactionAllocationListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -340,6 +342,8 @@ export type UserOrderByWithRelationInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogOrderByRelationAggregateInput
   adminActionsReceived?: Prisma.AdminAuditLogOrderByRelationAggregateInput
   plansCreated?: Prisma.PlanOrderByRelationAggregateInput
+  createdAllocations?: Prisma.TransactionAllocationOrderByRelationAggregateInput
+  reversedAllocations?: Prisma.TransactionAllocationOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -386,6 +390,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   adminActionsPerformed?: Prisma.AdminAuditLogListRelationFilter
   adminActionsReceived?: Prisma.AdminAuditLogListRelationFilter
   plansCreated?: Prisma.PlanListRelationFilter
+  createdAllocations?: Prisma.TransactionAllocationListRelationFilter
+  reversedAllocations?: Prisma.TransactionAllocationListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -475,6 +481,8 @@ export type UserCreateInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -518,6 +526,8 @@ export type UserUncheckedCreateInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUpdateInput = {
@@ -561,6 +571,8 @@ export type UserUpdateInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -604,6 +616,8 @@ export type UserUncheckedUpdateInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -860,6 +874,36 @@ export type UserUpdateOneRequiredWithoutTransactionsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutTransactionsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutTransactionsInput, Prisma.UserUpdateWithoutTransactionsInput>, Prisma.UserUncheckedUpdateWithoutTransactionsInput>
+}
+
+export type UserCreateNestedOneWithoutCreatedAllocationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedAllocationsInput, Prisma.UserUncheckedCreateWithoutCreatedAllocationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedAllocationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutReversedAllocationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReversedAllocationsInput, Prisma.UserUncheckedCreateWithoutReversedAllocationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReversedAllocationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutCreatedAllocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutCreatedAllocationsInput, Prisma.UserUncheckedCreateWithoutCreatedAllocationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutCreatedAllocationsInput
+  upsert?: Prisma.UserUpsertWithoutCreatedAllocationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutCreatedAllocationsInput, Prisma.UserUpdateWithoutCreatedAllocationsInput>, Prisma.UserUncheckedUpdateWithoutCreatedAllocationsInput>
+}
+
+export type UserUpdateOneWithoutReversedAllocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutReversedAllocationsInput, Prisma.UserUncheckedCreateWithoutReversedAllocationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutReversedAllocationsInput
+  upsert?: Prisma.UserUpsertWithoutReversedAllocationsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutReversedAllocationsInput, Prisma.UserUpdateWithoutReversedAllocationsInput>, Prisma.UserUncheckedUpdateWithoutReversedAllocationsInput>
 }
 
 export type UserCreateNestedOneWithoutTransactionHistoryInput = {
@@ -1132,6 +1176,8 @@ export type UserCreateWithoutProvisionedSubscriptionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
@@ -1174,6 +1220,8 @@ export type UserUncheckedCreateWithoutProvisionedSubscriptionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutProvisionedSubscriptionsInput = {
@@ -1221,6 +1269,8 @@ export type UserCreateWithoutSubscriptionInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutSubscriptionInput = {
@@ -1263,6 +1313,8 @@ export type UserUncheckedCreateWithoutSubscriptionInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutSubscriptionInput = {
@@ -1321,6 +1373,8 @@ export type UserUpdateWithoutProvisionedSubscriptionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
@@ -1363,6 +1417,8 @@ export type UserUncheckedUpdateWithoutProvisionedSubscriptionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUpsertWithoutSubscriptionInput = {
@@ -1416,6 +1472,8 @@ export type UserUpdateWithoutSubscriptionInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSubscriptionInput = {
@@ -1458,6 +1516,8 @@ export type UserUncheckedUpdateWithoutSubscriptionInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutPlansCreatedInput = {
@@ -1500,6 +1560,8 @@ export type UserCreateWithoutPlansCreatedInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutPlansCreatedInput = {
@@ -1542,6 +1604,8 @@ export type UserUncheckedCreateWithoutPlansCreatedInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutPlansCreatedInput = {
@@ -1600,6 +1664,8 @@ export type UserUpdateWithoutPlansCreatedInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPlansCreatedInput = {
@@ -1642,6 +1708,8 @@ export type UserUncheckedUpdateWithoutPlansCreatedInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutPaymentsInput = {
@@ -1684,6 +1752,8 @@ export type UserCreateWithoutPaymentsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutPaymentsInput = {
@@ -1726,6 +1796,8 @@ export type UserUncheckedCreateWithoutPaymentsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutPaymentsInput = {
@@ -1784,6 +1856,8 @@ export type UserUpdateWithoutPaymentsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPaymentsInput = {
@@ -1826,6 +1900,8 @@ export type UserUncheckedUpdateWithoutPaymentsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutLinkedContactsInput = {
@@ -1868,6 +1944,8 @@ export type UserCreateWithoutLinkedContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutLinkedContactsInput = {
@@ -1910,6 +1988,8 @@ export type UserUncheckedCreateWithoutLinkedContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutLinkedContactsInput = {
@@ -1957,6 +2037,8 @@ export type UserCreateWithoutContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutContactsInput = {
@@ -1999,6 +2081,8 @@ export type UserUncheckedCreateWithoutContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutContactsInput = {
@@ -2057,6 +2141,8 @@ export type UserUpdateWithoutLinkedContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutLinkedContactsInput = {
@@ -2099,6 +2185,8 @@ export type UserUncheckedUpdateWithoutLinkedContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUpsertWithoutContactsInput = {
@@ -2152,6 +2240,8 @@ export type UserUpdateWithoutContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactsInput = {
@@ -2194,6 +2284,8 @@ export type UserUncheckedUpdateWithoutContactsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -2236,6 +2328,8 @@ export type UserCreateWithoutTransactionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -2278,6 +2372,8 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -2336,6 +2432,8 @@ export type UserUpdateWithoutTransactionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -2378,6 +2476,392 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
+}
+
+export type UserCreateWithoutCreatedAllocationsInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
+  adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
+  plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
+}
+
+export type UserUncheckedCreateWithoutCreatedAllocationsInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
+  adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
+  plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
+}
+
+export type UserCreateOrConnectWithoutCreatedAllocationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedAllocationsInput, Prisma.UserUncheckedCreateWithoutCreatedAllocationsInput>
+}
+
+export type UserCreateWithoutReversedAllocationsInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventCreateNestedManyWithoutCreatedByInput
+  notes?: Prisma.NoteCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
+  adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
+  adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
+  plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutReversedAllocationsInput = {
+  id?: string
+  email: string
+  passwordHash?: string | null
+  createdAt?: Date | string
+  refreshTokenHash?: string | null
+  isEmailVerified?: boolean
+  firstName: string
+  lastName: string
+  phoneNumber?: string | null
+  preferredCurrency?: string
+  tier?: $Enums.SubscriptionTier
+  subscriptionStatus?: string | null
+  subscriptionId?: string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: boolean
+  hasSeenSharedHistory?: boolean
+  role?: $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedCreateNestedManyWithoutGranterInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInvitedUserInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedCreateNestedManyWithoutInviterInput
+  linkedContacts?: Prisma.ContactUncheckedCreateNestedManyWithoutLinkedUserInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutUserInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutUserInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutUserInput
+  personalEntries?: Prisma.PersonalEntryUncheckedCreateNestedManyWithoutCreatedByInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutCreatedByInput
+  witnessRecords?: Prisma.WitnessUncheckedCreateNestedManyWithoutUserInput
+  supports?: Prisma.SupportUncheckedCreateNestedManyWithoutSupporterInput
+  payments?: Prisma.PaymentUncheckedCreateNestedManyWithoutUserInput
+  subscription?: Prisma.SubscriptionUncheckedCreateNestedOneWithoutUserInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedCreateNestedManyWithoutProvisionedByInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutUserInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedCreateNestedManyWithoutCreatedByInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutCreatedByInput
+  notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
+  adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
+  adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
+  plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutReversedAllocationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutReversedAllocationsInput, Prisma.UserUncheckedCreateWithoutReversedAllocationsInput>
+}
+
+export type UserUpsertWithoutCreatedAllocationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutCreatedAllocationsInput, Prisma.UserUncheckedUpdateWithoutCreatedAllocationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutCreatedAllocationsInput, Prisma.UserUncheckedCreateWithoutCreatedAllocationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutCreatedAllocationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutCreatedAllocationsInput, Prisma.UserUncheckedUpdateWithoutCreatedAllocationsInput>
+}
+
+export type UserUpdateWithoutCreatedAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
+  adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
+  plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutCreatedAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
+  plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
+}
+
+export type UserUpsertWithoutReversedAllocationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutReversedAllocationsInput, Prisma.UserUncheckedUpdateWithoutReversedAllocationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutReversedAllocationsInput, Prisma.UserUncheckedCreateWithoutReversedAllocationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutReversedAllocationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutReversedAllocationsInput, Prisma.UserUncheckedUpdateWithoutReversedAllocationsInput>
+}
+
+export type UserUpdateWithoutReversedAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUpdateManyWithoutCreatedByNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
+  adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
+  adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
+  plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutReversedAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isEmailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.StringFieldUpdateOperationsInput | string
+  phoneNumber?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  preferredCurrency?: Prisma.StringFieldUpdateOperationsInput | string
+  tier?: Prisma.EnumSubscriptionTierFieldUpdateOperationsInput | $Enums.SubscriptionTier
+  subscriptionStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  subscriptionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  featureUsage?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isSupporter?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasSeenSharedHistory?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  accessGrants?: Prisma.AccessGrantUncheckedUpdateManyWithoutGranterNestedInput
+  contactInvitationsReceived?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInvitedUserNestedInput
+  contactInvitationsSent?: Prisma.ContactInvitationUncheckedUpdateManyWithoutInviterNestedInput
+  linkedContacts?: Prisma.ContactUncheckedUpdateManyWithoutLinkedUserNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutUserNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutUserNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutUserNestedInput
+  personalEntries?: Prisma.PersonalEntryUncheckedUpdateManyWithoutCreatedByNestedInput
+  transactionHistory?: Prisma.TransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  projectTransactionHistory?: Prisma.ProjectTransactionHistoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutCreatedByNestedInput
+  witnessRecords?: Prisma.WitnessUncheckedUpdateManyWithoutUserNestedInput
+  supports?: Prisma.SupportUncheckedUpdateManyWithoutSupporterNestedInput
+  payments?: Prisma.PaymentUncheckedUpdateManyWithoutUserNestedInput
+  subscription?: Prisma.SubscriptionUncheckedUpdateOneWithoutUserNestedInput
+  provisionedSubscriptions?: Prisma.SubscriptionUncheckedUpdateManyWithoutProvisionedByNestedInput
+  organisationMembers?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutUserNestedInput
+  orgEventsCreated?: Prisma.OrgEventUncheckedUpdateManyWithoutCreatedByNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutCreatedByNestedInput
+  notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
+  adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
+  adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
+  plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutTransactionHistoryInput = {
@@ -2420,6 +2904,8 @@ export type UserCreateWithoutTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutTransactionHistoryInput = {
@@ -2462,6 +2948,8 @@ export type UserUncheckedCreateWithoutTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutTransactionHistoryInput = {
@@ -2520,6 +3008,8 @@ export type UserUpdateWithoutTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
@@ -2562,6 +3052,8 @@ export type UserUncheckedUpdateWithoutTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutWitnessRecordsInput = {
@@ -2604,6 +3096,8 @@ export type UserCreateWithoutWitnessRecordsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutWitnessRecordsInput = {
@@ -2646,6 +3140,8 @@ export type UserUncheckedCreateWithoutWitnessRecordsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutWitnessRecordsInput = {
@@ -2704,6 +3200,8 @@ export type UserUpdateWithoutWitnessRecordsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
@@ -2746,6 +3244,8 @@ export type UserUncheckedUpdateWithoutWitnessRecordsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutNotificationsInput = {
@@ -2788,6 +3288,8 @@ export type UserCreateWithoutNotificationsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutNotificationsInput = {
@@ -2830,6 +3332,8 @@ export type UserUncheckedCreateWithoutNotificationsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutNotificationsInput = {
@@ -2888,6 +3392,8 @@ export type UserUpdateWithoutNotificationsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotificationsInput = {
@@ -2930,6 +3436,8 @@ export type UserUncheckedUpdateWithoutNotificationsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutProjectsInput = {
@@ -2972,6 +3480,8 @@ export type UserCreateWithoutProjectsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectsInput = {
@@ -3014,6 +3524,8 @@ export type UserUncheckedCreateWithoutProjectsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectsInput = {
@@ -3072,6 +3584,8 @@ export type UserUpdateWithoutProjectsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectsInput = {
@@ -3114,6 +3628,8 @@ export type UserUncheckedUpdateWithoutProjectsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutProjectTransactionHistoryInput = {
@@ -3156,6 +3672,8 @@ export type UserCreateWithoutProjectTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
@@ -3198,6 +3716,8 @@ export type UserUncheckedCreateWithoutProjectTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutProjectTransactionHistoryInput = {
@@ -3256,6 +3776,8 @@ export type UserUpdateWithoutProjectTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
@@ -3298,6 +3820,8 @@ export type UserUncheckedUpdateWithoutProjectTransactionHistoryInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutPersonalEntriesInput = {
@@ -3340,6 +3864,8 @@ export type UserCreateWithoutPersonalEntriesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutPersonalEntriesInput = {
@@ -3382,6 +3908,8 @@ export type UserUncheckedCreateWithoutPersonalEntriesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutPersonalEntriesInput = {
@@ -3440,6 +3968,8 @@ export type UserUpdateWithoutPersonalEntriesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
@@ -3482,6 +4012,8 @@ export type UserUncheckedUpdateWithoutPersonalEntriesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutPromisesInput = {
@@ -3524,6 +4056,8 @@ export type UserCreateWithoutPromisesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutPromisesInput = {
@@ -3566,6 +4100,8 @@ export type UserUncheckedCreateWithoutPromisesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutPromisesInput = {
@@ -3624,6 +4160,8 @@ export type UserUpdateWithoutPromisesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPromisesInput = {
@@ -3666,6 +4204,8 @@ export type UserUncheckedUpdateWithoutPromisesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutAccessGrantsInput = {
@@ -3708,6 +4248,8 @@ export type UserCreateWithoutAccessGrantsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutAccessGrantsInput = {
@@ -3750,6 +4292,8 @@ export type UserUncheckedCreateWithoutAccessGrantsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutAccessGrantsInput = {
@@ -3808,6 +4352,8 @@ export type UserUpdateWithoutAccessGrantsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccessGrantsInput = {
@@ -3850,6 +4396,8 @@ export type UserUncheckedUpdateWithoutAccessGrantsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutContactInvitationsReceivedInput = {
@@ -3892,6 +4440,8 @@ export type UserCreateWithoutContactInvitationsReceivedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
@@ -3934,6 +4484,8 @@ export type UserUncheckedCreateWithoutContactInvitationsReceivedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutContactInvitationsReceivedInput = {
@@ -3981,6 +4533,8 @@ export type UserCreateWithoutContactInvitationsSentInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
@@ -4023,6 +4577,8 @@ export type UserUncheckedCreateWithoutContactInvitationsSentInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutContactInvitationsSentInput = {
@@ -4081,6 +4637,8 @@ export type UserUpdateWithoutContactInvitationsReceivedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
@@ -4123,6 +4681,8 @@ export type UserUncheckedUpdateWithoutContactInvitationsReceivedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUpsertWithoutContactInvitationsSentInput = {
@@ -4176,6 +4736,8 @@ export type UserUpdateWithoutContactInvitationsSentInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
@@ -4218,6 +4780,8 @@ export type UserUncheckedUpdateWithoutContactInvitationsSentInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutAdminActionsPerformedInput = {
@@ -4260,6 +4824,8 @@ export type UserCreateWithoutAdminActionsPerformedInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutAdminActionsPerformedInput = {
@@ -4302,6 +4868,8 @@ export type UserUncheckedCreateWithoutAdminActionsPerformedInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutAdminActionsPerformedInput = {
@@ -4349,6 +4917,8 @@ export type UserCreateWithoutAdminActionsReceivedInput = {
   notifications?: Prisma.NotificationCreateNestedManyWithoutUserInput
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutAdminActionsReceivedInput = {
@@ -4391,6 +4961,8 @@ export type UserUncheckedCreateWithoutAdminActionsReceivedInput = {
   notifications?: Prisma.NotificationUncheckedCreateNestedManyWithoutUserInput
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutAdminActionsReceivedInput = {
@@ -4449,6 +5021,8 @@ export type UserUpdateWithoutAdminActionsPerformedInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAdminActionsPerformedInput = {
@@ -4491,6 +5065,8 @@ export type UserUncheckedUpdateWithoutAdminActionsPerformedInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUpsertWithoutAdminActionsReceivedInput = {
@@ -4544,6 +5120,8 @@ export type UserUpdateWithoutAdminActionsReceivedInput = {
   notifications?: Prisma.NotificationUpdateManyWithoutUserNestedInput
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAdminActionsReceivedInput = {
@@ -4586,6 +5164,8 @@ export type UserUncheckedUpdateWithoutAdminActionsReceivedInput = {
   notifications?: Prisma.NotificationUncheckedUpdateManyWithoutUserNestedInput
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutSupportsInput = {
@@ -4628,6 +5208,8 @@ export type UserCreateWithoutSupportsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutSupportsInput = {
@@ -4670,6 +5252,8 @@ export type UserUncheckedCreateWithoutSupportsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutSupportsInput = {
@@ -4728,6 +5312,8 @@ export type UserUpdateWithoutSupportsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSupportsInput = {
@@ -4770,6 +5356,8 @@ export type UserUncheckedUpdateWithoutSupportsInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutOrganisationMembersInput = {
@@ -4812,6 +5400,8 @@ export type UserCreateWithoutOrganisationMembersInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutOrganisationMembersInput = {
@@ -4854,6 +5444,8 @@ export type UserUncheckedCreateWithoutOrganisationMembersInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutOrganisationMembersInput = {
@@ -4912,6 +5504,8 @@ export type UserUpdateWithoutOrganisationMembersInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrganisationMembersInput = {
@@ -4954,6 +5548,8 @@ export type UserUncheckedUpdateWithoutOrganisationMembersInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutOrgEventsCreatedInput = {
@@ -4996,6 +5592,8 @@ export type UserCreateWithoutOrgEventsCreatedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutOrgEventsCreatedInput = {
@@ -5038,6 +5636,8 @@ export type UserUncheckedCreateWithoutOrgEventsCreatedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutOrgEventsCreatedInput = {
@@ -5096,6 +5696,8 @@ export type UserUpdateWithoutOrgEventsCreatedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrgEventsCreatedInput = {
@@ -5138,6 +5740,8 @@ export type UserUncheckedUpdateWithoutOrgEventsCreatedInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserCreateWithoutNotesInput = {
@@ -5180,6 +5784,8 @@ export type UserCreateWithoutNotesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationCreateNestedManyWithoutReversedByInput
 }
 
 export type UserUncheckedCreateWithoutNotesInput = {
@@ -5222,6 +5828,8 @@ export type UserUncheckedCreateWithoutNotesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutActorInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedCreateNestedManyWithoutTargetUserInput
   plansCreated?: Prisma.PlanUncheckedCreateNestedManyWithoutCreatedByInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutCreatedByInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutReversedByInput
 }
 
 export type UserCreateOrConnectWithoutNotesInput = {
@@ -5280,6 +5888,8 @@ export type UserUpdateWithoutNotesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUpdateManyWithoutReversedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutNotesInput = {
@@ -5322,6 +5932,8 @@ export type UserUncheckedUpdateWithoutNotesInput = {
   adminActionsPerformed?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutActorNestedInput
   adminActionsReceived?: Prisma.AdminAuditLogUncheckedUpdateManyWithoutTargetUserNestedInput
   plansCreated?: Prisma.PlanUncheckedUpdateManyWithoutCreatedByNestedInput
+  createdAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutCreatedByNestedInput
+  reversedAllocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutReversedByNestedInput
 }
 
 
@@ -5352,6 +5964,8 @@ export type UserCountOutputType = {
   adminActionsPerformed: number
   adminActionsReceived: number
   plansCreated: number
+  createdAllocations: number
+  reversedAllocations: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5377,6 +5991,8 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   adminActionsPerformed?: boolean | UserCountOutputTypeCountAdminActionsPerformedArgs
   adminActionsReceived?: boolean | UserCountOutputTypeCountAdminActionsReceivedArgs
   plansCreated?: boolean | UserCountOutputTypeCountPlansCreatedArgs
+  createdAllocations?: boolean | UserCountOutputTypeCountCreatedAllocationsArgs
+  reversedAllocations?: boolean | UserCountOutputTypeCountReversedAllocationsArgs
 }
 
 /**
@@ -5543,6 +6159,20 @@ export type UserCountOutputTypeCountPlansCreatedArgs<ExtArgs extends runtime.Typ
   where?: Prisma.PlanWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountCreatedAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionAllocationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountReversedAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionAllocationWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5585,6 +6215,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   adminActionsPerformed?: boolean | Prisma.User$adminActionsPerformedArgs<ExtArgs>
   adminActionsReceived?: boolean | Prisma.User$adminActionsReceivedArgs<ExtArgs>
   plansCreated?: boolean | Prisma.User$plansCreatedArgs<ExtArgs>
+  createdAllocations?: boolean | Prisma.User$createdAllocationsArgs<ExtArgs>
+  reversedAllocations?: boolean | Prisma.User$reversedAllocationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -5673,6 +6305,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   adminActionsPerformed?: boolean | Prisma.User$adminActionsPerformedArgs<ExtArgs>
   adminActionsReceived?: boolean | Prisma.User$adminActionsReceivedArgs<ExtArgs>
   plansCreated?: boolean | Prisma.User$plansCreatedArgs<ExtArgs>
+  createdAllocations?: boolean | Prisma.User$createdAllocationsArgs<ExtArgs>
+  reversedAllocations?: boolean | Prisma.User$reversedAllocationsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -5704,6 +6338,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     adminActionsPerformed: Prisma.$AdminAuditLogPayload<ExtArgs>[]
     adminActionsReceived: Prisma.$AdminAuditLogPayload<ExtArgs>[]
     plansCreated: Prisma.$PlanPayload<ExtArgs>[]
+    createdAllocations: Prisma.$TransactionAllocationPayload<ExtArgs>[]
+    reversedAllocations: Prisma.$TransactionAllocationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6140,6 +6776,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   adminActionsPerformed<T extends Prisma.User$adminActionsPerformedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$adminActionsPerformedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   adminActionsReceived<T extends Prisma.User$adminActionsReceivedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$adminActionsReceivedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AdminAuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   plansCreated<T extends Prisma.User$plansCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$plansCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PlanPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  createdAllocations<T extends Prisma.User$createdAllocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$createdAllocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  reversedAllocations<T extends Prisma.User$reversedAllocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reversedAllocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7118,6 +7756,54 @@ export type User$plansCreatedArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.PlanScalarFieldEnum | Prisma.PlanScalarFieldEnum[]
+}
+
+/**
+ * User.createdAllocations
+ */
+export type User$createdAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TransactionAllocation
+   */
+  select?: Prisma.TransactionAllocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TransactionAllocation
+   */
+  omit?: Prisma.TransactionAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionAllocationInclude<ExtArgs> | null
+  where?: Prisma.TransactionAllocationWhereInput
+  orderBy?: Prisma.TransactionAllocationOrderByWithRelationInput | Prisma.TransactionAllocationOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionAllocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionAllocationScalarFieldEnum | Prisma.TransactionAllocationScalarFieldEnum[]
+}
+
+/**
+ * User.reversedAllocations
+ */
+export type User$reversedAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TransactionAllocation
+   */
+  select?: Prisma.TransactionAllocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TransactionAllocation
+   */
+  omit?: Prisma.TransactionAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionAllocationInclude<ExtArgs> | null
+  where?: Prisma.TransactionAllocationWhereInput
+  orderBy?: Prisma.TransactionAllocationOrderByWithRelationInput | Prisma.TransactionAllocationOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionAllocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionAllocationScalarFieldEnum | Prisma.TransactionAllocationScalarFieldEnum[]
 }
 
 /**

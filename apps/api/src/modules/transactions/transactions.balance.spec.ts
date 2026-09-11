@@ -12,8 +12,9 @@ import {
   TransactionStatus,
   WitnessStatus,
 } from '../../generated/prisma/client';
+import { withSettlementAggregates } from './__tests__/settlement-mocks';
 
-const mockPrismaService = {
+const mockPrismaService = withSettlementAggregates({
   transaction: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
@@ -49,7 +50,8 @@ const mockPrismaService = {
     }
     return arg(mockPrismaService);
   }),
-};
+  $queryRaw: jest.fn().mockResolvedValue([]),
+});
 
 const mockConfigService = {
   getOrThrow: jest.fn(),

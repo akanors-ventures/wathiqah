@@ -99,6 +99,23 @@ export type AdminUsersFilterInput = {
   tier?: InputMaybe<SubscriptionTier>;
 };
 
+export type AllocateTransactionsInput = {
+  allocations: Array<AllocationTargetInput>;
+  date?: InputMaybe<Scalars['DateTime']['input']>;
+  note?: InputMaybe<Scalars['String']['input']>;
+  sourceTransactionId: Scalars['ID']['input'];
+};
+
+export enum AllocationStatus {
+  Active = 'ACTIVE',
+  Reversed = 'REVERSED'
+}
+
+export type AllocationTargetInput = {
+  amount: Scalars['Float']['input'];
+  targetTransactionId: Scalars['ID']['input'];
+};
+
 export enum AssetCategory {
   Funds = 'FUNDS',
   Item = 'ITEM'
@@ -396,6 +413,7 @@ export type Mutation = {
   adminCreatePlan: PlanEntity;
   adminSyncPlans: Array<PlanEntity>;
   adminUpdatePlan: PlanEntity;
+  allocateTransactions: Array<TransactionAllocation>;
   cancelSubscription: Scalars['Boolean']['output'];
   changePassword: Scalars['Boolean']['output'];
   createCheckoutSession: CheckoutSession;
@@ -440,6 +458,7 @@ export type Mutation = {
   resendVerificationEmail: Scalars['Boolean']['output'];
   resendWitnessInvitation: Witness;
   resetPassword: Scalars['Boolean']['output'];
+  reverseTransactionAllocation: TransactionAllocation;
   revokeAccess: AccessGrant;
   setUserRole: User;
   signup: AuthPayload;
@@ -493,6 +512,11 @@ export type MutationAdminCreatePlanArgs = {
 export type MutationAdminUpdatePlanArgs = {
   id: Scalars['ID']['input'];
   input: UpdatePlanInput;
+};
+
+
+export type MutationAllocateTransactionsArgs = {
+  input: AllocateTransactionsInput;
 };
 
 
@@ -691,6 +715,11 @@ export type MutationResendWitnessInvitationArgs = {
 
 export type MutationResetPasswordArgs = {
   resetPasswordInput: ResetPasswordInput;
+};
+
+
+export type MutationReverseTransactionAllocationArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1099,6 +1128,8 @@ export type Query = {
   adminStats: AdminStats;
   adminUser: User;
   adminUsers: PaginatedUsersResponse;
+  allocatableObligations: Array<Transaction>;
+  availableCredits: Array<Transaction>;
   checkContactOnPlatform: ContactPlatformStatus;
   contact: Contact;
   contacts: PaginatedContactsResponse;
@@ -1156,6 +1187,18 @@ export type QueryAdminUserArgs = {
 
 export type QueryAdminUsersArgs = {
   filter?: InputMaybe<AdminUsersFilterInput>;
+};
+
+
+export type QueryAllocatableObligationsArgs = {
+  contactId?: InputMaybe<Scalars['ID']['input']>;
+  sourceTransactionId: Scalars['ID']['input'];
+};
+
+
+export type QueryAvailableCreditsArgs = {
+  contactId?: InputMaybe<Scalars['ID']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -1422,6 +1465,8 @@ export type TierLimitsEntity = {
 
 export type Transaction = {
   __typename: 'Transaction';
+  allocationsIn: Array<TransactionAllocation>;
+  allocationsOut: Array<TransactionAllocation>;
   amount: Maybe<Scalars['Float']['output']>;
   category: AssetCategory;
   contact: Maybe<Contact>;
@@ -1450,6 +1495,23 @@ export type Transaction = {
   status: TransactionStatus;
   type: TransactionType;
   witnesses: Maybe<Array<Witness>>;
+};
+
+export type TransactionAllocation = {
+  __typename: 'TransactionAllocation';
+  amount: Scalars['Float']['output'];
+  createdAt: Scalars['DateTime']['output'];
+  createdBy: Maybe<User>;
+  currency: Scalars['String']['output'];
+  date: Scalars['DateTime']['output'];
+  id: Scalars['ID']['output'];
+  note: Maybe<Scalars['String']['output']>;
+  reversedAt: Maybe<Scalars['DateTime']['output']>;
+  sourceTransaction: Maybe<Transaction>;
+  sourceTransactionId: Scalars['ID']['output'];
+  status: AllocationStatus;
+  targetTransaction: Maybe<Transaction>;
+  targetTransactionId: Scalars['ID']['output'];
 };
 
 export type TransactionHistory = {
@@ -2348,7 +2410,7 @@ export type TransactionQueryVariables = Exact<{
 }>;
 
 
-export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, status: TransactionStatus, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, parentId: string | null, orgId: string | null, projectTransactionId: string | null, isMirroredFromProject: boolean, orgSourceTransactionId: string | null, orgSourceTransaction: { __typename: 'Transaction', id: string, organisation: { __typename: 'Organisation', id: string, name: string, slug: string } | null, projectTransaction: { __typename: 'ProjectTransaction', id: string, project: { __typename: 'Project', id: string, name: string } | null } | null } | null, projectTransaction: { __typename: 'ProjectTransaction', id: string, projectId: string, project: { __typename: 'Project', id: string, name: string } | null } | null, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string, status: TransactionStatus }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
+export type TransactionQuery = { transaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, status: TransactionStatus, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, createdAt: string | null, parentId: string | null, orgId: string | null, projectTransactionId: string | null, isMirroredFromProject: boolean, orgSourceTransactionId: string | null, remainingAmount: number | null, orgSourceTransaction: { __typename: 'Transaction', id: string, organisation: { __typename: 'Organisation', id: string, name: string, slug: string } | null, projectTransaction: { __typename: 'ProjectTransaction', id: string, project: { __typename: 'Project', id: string, name: string } | null } | null } | null, projectTransaction: { __typename: 'ProjectTransaction', id: string, projectId: string, project: { __typename: 'Project', id: string, name: string } | null } | null, allocationsOut: Array<{ __typename: 'TransactionAllocation', id: string, amount: number, currency: string, date: string, note: string | null, status: AllocationStatus, targetTransaction: { __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, contact: { __typename: 'Contact', id: string, name: string } | null } | null }>, allocationsIn: Array<{ __typename: 'TransactionAllocation', id: string, amount: number, currency: string, date: string, note: string | null, status: AllocationStatus, sourceTransaction: { __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, contact: { __typename: 'Contact', id: string, name: string } | null } | null }>, conversions: Array<{ __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, date: string, status: TransactionStatus }> | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null, witnesses: Array<{ __typename: 'Witness', id: string, status: WitnessStatus, invitedAt: string, acknowledgedAt: string | null, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null, history: Array<{ __typename: 'TransactionHistory', id: string, changeType: string, previousState: Record<string, unknown>, newState: Record<string, unknown>, createdAt: string, user: { __typename: 'User', id: string, name: string, email: string, isSupporter: boolean } | null }> | null } };
 
 export type RemoveTransactionMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -2398,6 +2460,36 @@ export type UpdateTransactionMutationVariables = Exact<{
 
 
 export type UpdateTransactionMutation = { updateTransaction: { __typename: 'Transaction', id: string, amount: number | null, category: AssetCategory, type: TransactionType, currency: string, date: string, description: string | null, itemName: string | null, quantity: number | null, contact: { __typename: 'Contact', id: string, name: string, isSupporter: boolean } | null } };
+
+export type AllocateTransactionsMutationVariables = Exact<{
+  input: AllocateTransactionsInput;
+}>;
+
+
+export type AllocateTransactionsMutation = { allocateTransactions: Array<{ __typename: 'TransactionAllocation', id: string, amount: number, currency: string, date: string, status: AllocationStatus, sourceTransactionId: string, targetTransactionId: string }> };
+
+export type ReverseTransactionAllocationMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type ReverseTransactionAllocationMutation = { reverseTransactionAllocation: { __typename: 'TransactionAllocation', id: string, status: AllocationStatus } };
+
+export type AvailableCreditsQueryVariables = Exact<{
+  contactId?: InputMaybe<Scalars['ID']['input']>;
+  currency?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type AvailableCreditsQuery = { availableCredits: Array<{ __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, description: string | null, remainingAmount: number | null, contact: { __typename: 'Contact', id: string, name: string } | null }> };
+
+export type AllocatableObligationsQueryVariables = Exact<{
+  sourceTransactionId: Scalars['ID']['input'];
+  contactId?: InputMaybe<Scalars['ID']['input']>;
+}>;
+
+
+export type AllocatableObligationsQuery = { allocatableObligations: Array<{ __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, description: string | null, remainingAmount: number | null, contact: { __typename: 'Contact', id: string, name: string } | null }> };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;

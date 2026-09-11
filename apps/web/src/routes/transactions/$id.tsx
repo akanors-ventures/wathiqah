@@ -9,6 +9,7 @@ import {
   FileText,
   Gift,
   Package,
+  Split,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
+import { AllocationDialog } from "@/components/transactions/AllocationDialog";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
 import { OrgAttributionBadge } from "@/components/transactions/OrgAttributionBadge";
@@ -36,12 +38,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
+import { useAllocations } from "@/hooks/useAllocations";
 import { useTransaction } from "@/hooks/useTransaction";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useRemoveWitness, useResendWitnessInvitation } from "@/hooks/useWitnesses";
 import { formatCurrency } from "@/lib/utils/formatters";
 import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
+
+/** Types that carry an outstanding balance and can be settled from a credit. */
+const LIFECYCLE_TYPES: TransactionType[] = [
+  TransactionType.LoanGiven,
+  TransactionType.LoanReceived,
+  TransactionType.AdvancePaid,
+  TransactionType.AdvanceReceived,
+  TransactionType.DepositPaid,
+  TransactionType.DepositReceived,
+];
 
 export const Route = createFileRoute("/transactions/$id")({
   component: TransactionDetailPage,
@@ -56,12 +69,15 @@ function TransactionDetailPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isRecordReturnOpen, setIsRecordReturnOpen] = useState(false);
   const [isRecordRemitOpen, setIsRecordRemitOpen] = useState(false);
+  const [isAllocateOpen, setIsAllocateOpen] = useState(false);
+  const [reversingId, setReversingId] = useState<string | null>(null);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [removingWitnessId, setRemovingWitnessId] = useState<string | null>(null);
 
   const { transaction, loading, error, refetch } = useTransaction(id);
   const { removeTransaction, removing } = useTransactions();
+  const { reverseAllocation } = useAllocations();
 
   const { resend } = useResendWitnessInvitation(() => {
     toast.success("Invitation resent successfully");
@@ -91,6 +107,20 @@ function TransactionDetailPage() {
     } catch (_err) {
       toast.error("Failed to remove witness");
       setRemovingWitnessId(null);
+    }
+  };
+
+  const handleReverse = async (allocationId: string) => {
+    setReversingId(allocationId);
+    try {
+      await reverseAllocation(allocationId);
+      toast.success("Allocation reversed");
+      await refetch();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to reverse allocation");
+    } finally {
+      setReversingId(null);
     }
   };
 
@@ -160,12 +190,46 @@ function TransactionDetailPage() {
     currentTransaction.type === TransactionType.Escrowed &&
     !!currentTransaction.contact;
 
+  const allocationsOut = (currentTransaction.allocationsOut ?? []).filter(
+    (a): a is NonNullable<typeof a> => a !== null,
+  );
+  const allocationsIn = (currentTransaction.allocationsIn ?? []).filter(
+    (a): a is NonNullable<typeof a> => a !== null,
+  );
+
+  const isCreditPool =
+    currentTransaction.type === TransactionType.Escrowed ||
+    currentTransaction.type === TransactionType.Remitted;
+
+  // A credit pool spends its balance; every other lifecycle obligation
+  // receives from one. The server enforces the opposite-sign rule either way —
+  // these flags only decide which button to offer.
+  const canApplyCredit =
+    !isPersonalMirror &&
+    !currentTransaction.isMirroredFromProject &&
+    currentTransaction.category === AssetCategory.Funds &&
+    isCreditPool &&
+    !currentTransaction.parentId;
+
+  const canSettleFromCredit =
+    !isPersonalMirror &&
+    !currentTransaction.isMirroredFromProject &&
+    currentTransaction.category === AssetCategory.Funds &&
+    !isCreditPool &&
+    !currentTransaction.parentId &&
+    LIFECYCLE_TYPES.includes(currentTransaction.type);
+
+  // Per-channel breakdown, for display only — never for the remaining balance.
   const totalGifted = giftConversions.reduce((sum, c) => sum + (c.amount || 0), 0);
   const totalRepaid = repayments.reduce((sum, c) => sum + (c.amount || 0), 0);
   const totalRemitted = remittances.reduce((sum, c) => sum + (c.amount || 0), 0);
-  const totalSettled = totalGifted + totalRepaid + totalRemitted;
 
-  const remainingAmount = Math.max(0, (currentTransaction.amount || 0) - totalSettled);
+  // Server-computed. It must NOT be derived here from `conversions`:
+  // allocations are not children, so a local sum silently ignores them and
+  // every cap and capability flag on this page goes stale — the escrow's
+  // "Record Remittance" button would offer money already allocated away.
+  const remainingAmount = currentTransaction.remainingAmount ?? 0;
+  const totalSettled = Math.max(0, (currentTransaction.amount || 0) - remainingAmount);
 
   return (
     <div className="container mx-auto max-w-3xl p-4 py-8">
@@ -244,11 +308,16 @@ function TransactionDetailPage() {
                   Remitted: {formatCurrency(totalRemitted, currentTransaction.currency)}
                 </div>
               )}
-              {(canConvertToGift || canRecordReturn || canRecordRemit) && totalSettled > 0 && (
-                <div className="text-xs sm:text-sm font-medium text-muted-foreground mt-0.5">
-                  Remaining: {formatCurrency(remainingAmount, currentTransaction.currency)}
-                </div>
-              )}
+              {(canConvertToGift ||
+                canRecordReturn ||
+                canRecordRemit ||
+                canApplyCredit ||
+                canSettleFromCredit) &&
+                totalSettled > 0 && (
+                  <div className="text-xs sm:text-sm font-medium text-muted-foreground mt-0.5">
+                    Remaining: {formatCurrency(remainingAmount, currentTransaction.currency)}
+                  </div>
+                )}
               {currentTransaction.category === AssetCategory.Item &&
                 currentTransaction.quantity && (
                   <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -280,6 +349,28 @@ function TransactionDetailPage() {
               >
                 <ArrowRightLeft size={14} />
                 Record Remittance
+              </Button>
+            )}
+            {canApplyCredit && remainingAmount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
+                onClick={() => setIsAllocateOpen(true)}
+              >
+                <Split size={14} />
+                Apply to obligations
+              </Button>
+            )}
+            {canSettleFromCredit && remainingAmount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
+                onClick={() => setIsAllocateOpen(true)}
+              >
+                <Split size={14} />
+                Settle from a credit
               </Button>
             )}
             {canConvertToGift && remainingAmount > 0 && (
@@ -504,6 +595,50 @@ function TransactionDetailPage() {
           </div>
         )}
 
+        {/* Applied To — credit drawn out of this record */}
+        {allocationsOut.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
+              <Split size={20} className="text-emerald-600" />
+              Applied To
+            </h3>
+            <div className="space-y-3">
+              {allocationsOut.map((allocation) => (
+                <AllocationRowCard
+                  key={allocation.id}
+                  allocation={allocation}
+                  counterpart={allocation.targetTransaction}
+                  fallbackCurrency={currentTransaction.currency}
+                  reversing={reversingId === allocation.id}
+                  onReverse={() => handleReverse(allocation.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Settled From — credit applied into this record */}
+        {allocationsIn.length > 0 && (
+          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
+              <Split size={20} className="text-emerald-600" />
+              Settled From
+            </h3>
+            <div className="space-y-3">
+              {allocationsIn.map((allocation) => (
+                <AllocationRowCard
+                  key={allocation.id}
+                  allocation={allocation}
+                  counterpart={allocation.sourceTransaction}
+                  fallbackCurrency={currentTransaction.currency}
+                  reversing={reversingId === allocation.id}
+                  onReverse={() => handleReverse(allocation.id)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Witnesses Section */}
         <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
           <div className="flex items-center justify-between mb-4">
@@ -558,6 +693,21 @@ function TransactionDetailPage() {
               contactId: currentTransaction.contact.id,
               contactName: currentTransaction.contact.name,
               remainingAmount,
+            }}
+            onSuccess={refetch}
+          />
+        )}
+
+        {(canApplyCredit || canSettleFromCredit) && remainingAmount > 0 && (
+          <AllocationDialog
+            open={isAllocateOpen}
+            onOpenChange={setIsAllocateOpen}
+            mode={canApplyCredit ? "applyCredit" : "settleFromCredit"}
+            transaction={{
+              id: currentTransaction.id,
+              currency: currentTransaction.currency,
+              remainingAmount,
+              contactName: currentTransaction.contact?.name,
             }}
             onSuccess={refetch}
           />
@@ -624,6 +774,87 @@ function TransactionDetailPage() {
               }))}
           />
         </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * One allocation link, readable from either end. The counterpart's contact
+ * name is the point of the row when the money came from someone else — the
+ * "paid by Ade" case that a plain amount would hide.
+ */
+function AllocationRowCard({
+  allocation,
+  counterpart,
+  fallbackCurrency,
+  reversing,
+  onReverse,
+}: {
+  allocation: {
+    id: string;
+    amount: number;
+    currency: string;
+    date: unknown;
+    note?: string | null;
+    status: string;
+  };
+  counterpart?: {
+    id: string;
+    type: string;
+    contact?: { id: string; name: string } | null;
+  } | null;
+  fallbackCurrency: string;
+  reversing: boolean;
+  onReverse: () => void;
+}) {
+  const isReversed = allocation.status === "REVERSED";
+
+  return (
+    <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800">
+      <div className="min-w-0">
+        {counterpart ? (
+          <Link
+            to="/transactions/$id"
+            params={{ id: counterpart.id }}
+            className="text-sm font-medium hover:text-emerald-600 transition-colors"
+          >
+            <span className="capitalize">{counterpart.type.toLowerCase().replace(/_/g, " ")}</span>
+            {counterpart.contact?.name ? ` — ${counterpart.contact.name}` : ""}
+          </Link>
+        ) : (
+          <span className="text-sm font-medium">Linked record</span>
+        )}
+        <p className="text-xs text-neutral-500">
+          {format(new Date(allocation.date as string), "MMM d, yyyy")}
+          {allocation.note ? ` · ${allocation.note}` : ""}
+        </p>
+      </div>
+      <div className="flex items-center gap-3 shrink-0">
+        <span
+          className={
+            isReversed
+              ? "font-semibold text-neutral-400 line-through"
+              : "font-semibold text-emerald-600"
+          }
+        >
+          {formatCurrency(allocation.amount, allocation.currency || fallbackCurrency)}
+        </span>
+        {isReversed ? (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-500 border border-neutral-500/20">
+            Reversed
+          </span>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7"
+            onClick={onReverse}
+            disabled={reversing}
+          >
+            {reversing ? "Reversing..." : "Reverse"}
+          </Button>
+        )}
       </div>
     </div>
   );
