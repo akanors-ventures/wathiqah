@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -109,6 +110,7 @@ describe('TransactionsService - Pagination', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -164,6 +166,8 @@ describe('TransactionsService - Pagination', () => {
     parentId: null,
     parent: null,
     conversions: [],
+    allocationsIn: [],
+    allocationsOut: [],
   });
 
   describe('findAll with pagination', () => {
@@ -260,6 +264,7 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
           { provide: PrismaService, useValue: scopePrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -360,6 +365,7 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
           { provide: PrismaService, useValue: validationPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -557,6 +563,8 @@ describe('TransactionsService - Pagination', () => {
       witnesses: [],
       history: [],
       conversions: [],
+      allocationsIn: [],
+      allocationsOut: [],
     };
 
     const personalRow = {
@@ -583,6 +591,7 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
           { provide: PrismaService, useValue: accessPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -938,12 +947,15 @@ describe('TransactionsService — in-app notification wiring', () => {
     createdBy: { firstName: 'Musa', lastName: 'Ibrahim' },
     history: [],
     conversions: [],
+    allocationsIn: [],
+    allocationsOut: [],
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },

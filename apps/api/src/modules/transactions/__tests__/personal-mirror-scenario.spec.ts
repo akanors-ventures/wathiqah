@@ -4,6 +4,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { ContactsService } from '../../contacts/contacts.service';
 import { OrganisationsService } from '../../organisations/organisations.service';
 import { TransactionsService } from '../transactions.service';
+import { TransactionSummaryService } from '../transaction-summary.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { NotificationService } from '../../notifications/notification.service';
 import { ExchangeRateService } from '../../exchange-rate/exchange-rate.service';
@@ -78,6 +79,7 @@ describe('Personal-mirror ledger scenario (end-to-end)', () => {
         ContactsService,
         OrganisationsService,
         TransactionsService,
+        TransactionSummaryService,
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },

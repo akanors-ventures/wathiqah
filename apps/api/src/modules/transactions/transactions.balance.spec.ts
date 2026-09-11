@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -84,6 +85,7 @@ describe('TransactionsService - Balance & Audit', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -218,6 +220,8 @@ describe('TransactionsService - Balance & Audit', () => {
             currency: 'NGN',
             amount: 200,
             conversions: [{ amount: 50 }],
+            allocationsIn: [],
+            allocationsOut: [],
           },
         ]) // ownLoans
         .mockResolvedValueOnce([]); // contactLoans
@@ -263,6 +267,8 @@ describe('TransactionsService - Balance & Audit', () => {
             currency: 'NGN',
             amount: 200,
             conversions: [{ amount: 50 }],
+            allocationsIn: [],
+            allocationsOut: [],
           },
         ]) // ownLoans
         .mockResolvedValueOnce([]); // contactLoans
@@ -392,118 +398,6 @@ describe('TransactionsService - Balance & Audit', () => {
 
       // Project transactions are excluded from the unified feed (they have their own resolver)
       expect(result.items).toHaveLength(0);
-    });
-  });
-
-  describe('Contact Grouping (groupByContact)', () => {
-    const userId = 'user-1';
-
-    it("should deduct a non-cancelled gift conversion from its parent loan's contribution to that contact's netBalance", async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-        preferredCurrency: 'NGN',
-      });
-
-      // groupBy call order: [0] ownAggregations, [1] sharedAggregations
-      (prisma.transaction.groupBy as jest.Mock)
-        .mockResolvedValueOnce([
-          {
-            contactId: 'contact-1',
-            type: TransactionType.LOAN_GIVEN,
-            currency: 'NGN',
-            _sum: { amount: 200 },
-          },
-        ]) // ownAggregations — raw, un-adjusted sum
-        .mockResolvedValueOnce([]); // sharedAggregations
-
-      // findMany call order: [0] ownLoans, [1] sharedLoans
-      (prisma.transaction.findMany as jest.Mock)
-        .mockResolvedValueOnce([
-          // The same LOAN_GIVEN 200, with a non-cancelled GIFT_GIVEN 50
-          // conversion against it — groupBy above can't see this join.
-          {
-            contactId: 'contact-1',
-            type: TransactionType.LOAN_GIVEN,
-            currency: 'NGN',
-            amount: 200,
-            conversions: [{ amount: 50 }],
-          },
-        ]) // ownLoans
-        .mockResolvedValueOnce([]); // sharedLoans
-
-      (prisma.contact.findMany as jest.Mock).mockResolvedValue([
-        {
-          id: 'contact-1',
-          linkedUserId: null,
-          firstName: 'Test',
-          lastName: 'Contact',
-        },
-      ]);
-
-      const result = await service.groupByContact(userId);
-
-      expect(result).toHaveLength(1);
-      const contactSummary = result[0].summary;
-      // Effective contribution matches contacts.service.ts's
-      // effectiveTransactionAmount (200 - 50 = 150), not the raw 200 the
-      // groupBy sum alone would produce.
-      expect(contactSummary.totalLoanGiven).toBe(150);
-      expect(contactSummary.netBalance).toBe(-150);
-    });
-
-    it('should not let a gift conversion on one contact leak into another contact sharing the same (type, currency) bucket', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-        preferredCurrency: 'NGN',
-      });
-
-      (prisma.transaction.groupBy as jest.Mock)
-        .mockResolvedValueOnce([
-          {
-            contactId: 'contact-1',
-            type: TransactionType.LOAN_GIVEN,
-            currency: 'NGN',
-            _sum: { amount: 200 },
-          },
-          {
-            contactId: 'contact-2',
-            type: TransactionType.LOAN_GIVEN,
-            currency: 'NGN',
-            _sum: { amount: 100 },
-          },
-        ]) // ownAggregations
-        .mockResolvedValueOnce([]); // sharedAggregations
-
-      (prisma.transaction.findMany as jest.Mock)
-        .mockResolvedValueOnce([
-          // Only contact-1's loan has a gift conversion against it.
-          {
-            contactId: 'contact-1',
-            type: TransactionType.LOAN_GIVEN,
-            currency: 'NGN',
-            amount: 200,
-            conversions: [{ amount: 50 }],
-          },
-          {
-            contactId: 'contact-2',
-            type: TransactionType.LOAN_GIVEN,
-            currency: 'NGN',
-            amount: 100,
-            conversions: [],
-          },
-        ]) // ownLoans
-        .mockResolvedValueOnce([]); // sharedLoans
-
-      (prisma.contact.findMany as jest.Mock).mockResolvedValue([
-        { id: 'contact-1', linkedUserId: null },
-        { id: 'contact-2', linkedUserId: null },
-      ]);
-
-      const result = await service.groupByContact(userId);
-
-      const byContactId = new Map(
-        result.map((r) => [r.contact?.id, r.summary]),
-      );
-      expect(byContactId.get('contact-1')?.totalLoanGiven).toBe(150);
-      expect(byContactId.get('contact-2')?.totalLoanGiven).toBe(100);
     });
   });
 

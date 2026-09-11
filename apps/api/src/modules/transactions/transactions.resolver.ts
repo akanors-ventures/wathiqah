@@ -10,6 +10,7 @@ import {
 } from '@nestjs/graphql';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
 import { Transaction } from './entities/transaction.entity';
 import { TransactionAllocation } from './entities/transaction-allocation.entity';
 import { TransactionAllocationsService } from './transaction-allocations.service';
@@ -41,6 +42,7 @@ import {
 export class TransactionsResolver {
   constructor(
     private readonly transactionsService: TransactionsService,
+    private readonly transactionSummaryService: TransactionSummaryService,
     private readonly allocationsService: TransactionAllocationsService,
     private readonly prisma: PrismaService,
   ) {}
@@ -210,7 +212,7 @@ export class TransactionsResolver {
     @CurrentUser() user: User,
     @Args('filter', { nullable: true }) filter?: FilterTransactionInput,
   ) {
-    return this.transactionsService.groupByContact(user.id, filter);
+    return this.transactionSummaryService.groupByContact(user.id, filter);
   }
 
   @Query(() => Transaction, { name: 'transaction' })

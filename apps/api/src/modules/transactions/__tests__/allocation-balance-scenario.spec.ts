@@ -7,6 +7,7 @@ import { ExchangeRateService } from '../../exchange-rate/exchange-rate.service';
 import { InAppNotificationsService } from '../../in-app-notifications/in-app-notifications.service';
 import { ContactsService } from '../../contacts/contacts.service';
 import { TransactionsService } from '../transactions.service';
+import { TransactionSummaryService } from '../transaction-summary.service';
 import { TransactionAllocationsService } from '../transaction-allocations.service';
 import { FakePrisma } from './fake-prisma';
 
@@ -77,6 +78,7 @@ describe('Allocation × contact standing (scenario)', () => {
       providers: [
         ContactsService,
         TransactionsService,
+        TransactionSummaryService,
         TransactionAllocationsService,
         { provide: PrismaService, useValue: prisma },
         {

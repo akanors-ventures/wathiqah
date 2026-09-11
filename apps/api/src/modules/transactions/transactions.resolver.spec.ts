@@ -15,6 +15,7 @@ describe('TransactionsResolver — projectTransaction ResolveField', () => {
     resolver = new TransactionsResolver(
       {} as never,
       {} as never,
+      {} as never,
       prisma as never,
     );
   });
@@ -72,6 +73,7 @@ describe('TransactionsResolver — remainingAmount ResolveField', () => {
     };
     const resolver = new TransactionsResolver(
       transactionsService as never,
+      {} as never,
       {} as never,
       {} as never,
     );
@@ -132,6 +134,7 @@ describe('TransactionsResolver — allocation ResolveFields', () => {
       listForTransaction: jest.fn().mockResolvedValue([{ id: 'alloc-1' }]),
     };
     const resolver = new TransactionsResolver(
+      {} as never,
       {} as never,
       allocationsService as never,
       {} as never,
