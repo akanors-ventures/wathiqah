@@ -33,6 +33,7 @@ function matchesCondition(rowValue: unknown, condition: unknown): boolean {
 export class FakePrisma {
   contacts = new Map<string, Row>();
   transactions = new Map<string, Row>();
+  allocations = new Map<string, Row>();
   members = new Map<string, Row>(); // key: `${orgId}:${userId}`
   users = new Map<string, Row>();
   private nextId = 1;
@@ -83,6 +84,43 @@ export class FakePrisma {
       }
       return matchesCondition(row[key], condition);
     });
+  }
+
+  /**
+   * Attaches the nested relations a `select` asks for. Balance math reads
+   * `conversions`, `allocationsIn` and `allocationsOut` off each row, so a
+   * findMany that ignored `select` would hand every caller an undischarged
+   * principal and quietly prove nothing.
+   */
+  private hydrate(row: Row, select: Row): Row {
+    const out: Row = { ...row };
+    const nested = (key: string) => select[key] as { where?: Row } | undefined;
+
+    const conversions = nested('conversions');
+    if (conversions) {
+      out.conversions = [...this.transactions.values()].filter(
+        (c) =>
+          c.parentId === row.id &&
+          this.matchesTransactionWhere(c, conversions.where),
+      );
+    }
+    const allocationsIn = nested('allocationsIn');
+    if (allocationsIn) {
+      out.allocationsIn = [...this.allocations.values()].filter(
+        (a) =>
+          a.targetTransactionId === row.id &&
+          this.matchesTransactionWhere(a, allocationsIn.where),
+      );
+    }
+    const allocationsOut = nested('allocationsOut');
+    if (allocationsOut) {
+      out.allocationsOut = [...this.allocations.values()].filter(
+        (a) =>
+          a.sourceTransactionId === row.id &&
+          this.matchesTransactionWhere(a, allocationsOut.where),
+      );
+    }
+    return out;
   }
 
   contact = {
@@ -161,35 +199,63 @@ export class FakePrisma {
             : null,
         };
       }
+      // findOne() reads these unconditionally (`transaction.witnesses.length`),
+      // so an include that silently returned undefined would crash rather than
+      // exercise the code under test.
+      if (include?.conversions) {
+        const spec = include.conversions as { where?: Row };
+        row = {
+          ...row,
+          conversions: [...this.transactions.values()].filter(
+            (c) =>
+              c.parentId === row?.id &&
+              this.matchesTransactionWhere(c, spec?.where),
+          ),
+        };
+      }
+      if (include?.witnesses) {
+        row = { ...row, witnesses: (row.witnesses as Row[]) ?? [] };
+      }
+      if (include?.history) {
+        row = { ...row, history: (row.history as Row[]) ?? [] };
+      }
+      if (include?.personalMirror) {
+        row = {
+          ...row,
+          personalMirror:
+            [...this.transactions.values()].find(
+              (t) => t.orgSourceTransactionId === row?.id,
+            ) ?? null,
+        };
+      }
       return row;
     },
     findMany: async ({
       where,
       select,
+      include,
     }: {
       where?: Row;
       select?: Row;
+      include?: Row;
     }): Promise<Row[]> => {
       const rows = [...this.transactions.values()].filter((t) =>
         this.matchesTransactionWhere(t, where),
       );
-      // Only the `conversions` (gift-conversion children) relation is
-      // resolved here — extend further if another selected relation shows
-      // up in a query this scenario exercises.
-      const conversionsSpec = select?.conversions as
-        | { where?: Row }
-        | undefined;
-      if (!conversionsSpec) return rows;
-      return rows.map(
-        (row): Row => ({
-          ...row,
-          conversions: [...this.transactions.values()].filter(
-            (child) =>
-              child.parentId === row.id &&
-              this.matchesTransactionWhere(child, conversionsSpec.where),
-          ),
-        }),
-      );
+      // loadEndpoints (transaction-allocations.service.ts) is the only
+      // findMany caller that passes `include` — it only ever asks for
+      // `contact`, so that's the only relation wired here.
+      const withIncludes: Row[] = include?.contact
+        ? rows.map((row) => ({
+            ...row,
+            contact: row.contactId
+              ? this.contacts.get(row.contactId as string)
+              : null,
+          }))
+        : rows;
+      return select
+        ? withIncludes.map((row) => this.hydrate(row, select))
+        : withIncludes;
     },
     count: async ({ where }: { where?: Row }) =>
       (await this.transaction.findMany({ where })).length,
@@ -213,6 +279,105 @@ export class FakePrisma {
       _sum: { amount: true };
     }) => {
       const rows = await this.transaction.findMany({ where });
+      const groups = new Map<string, { key: Row; sum: number }>();
+      for (const row of rows) {
+        const keyObj = Object.fromEntries(by.map((k) => [k, row[k]]));
+        const key = JSON.stringify(keyObj);
+        const existing = groups.get(key) ?? { key: keyObj, sum: 0 };
+        existing.sum += Number(row.amount) || 0;
+        groups.set(key, existing);
+      }
+      return [...groups.values()].map((g) => ({
+        ...g.key,
+        _sum: { amount: g.sum },
+      }));
+    },
+    aggregate: async ({ where }: { where?: Row; _sum: { amount: true } }) => {
+      const rows = await this.transaction.findMany({ where });
+      const sum = rows.reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+      // Prisma returns null, not 0, for an empty aggregate.
+      return { _sum: { amount: rows.length === 0 ? null : sum } };
+    },
+  };
+
+  /**
+   * Allocation links (TransactionAllocation). Real rows, like everything else
+   * here, so settlement sums that span children AND allocations are actually
+   * exercised rather than stubbed to zero.
+   */
+  transactionAllocation = {
+    create: async ({ data }: { data: Row }) => {
+      const id = this.genId('alloc');
+      const row: Row = { status: 'ACTIVE', ...data, id };
+      this.allocations.set(id, row);
+      return row;
+    },
+    findUnique: async ({
+      where,
+    }: {
+      where: { id?: string; orgSourceAllocationId?: string };
+    }) => {
+      if (where.id) return this.allocations.get(where.id) ?? null;
+      if (where.orgSourceAllocationId) {
+        return (
+          [...this.allocations.values()].find(
+            (a) => a.orgSourceAllocationId === where.orgSourceAllocationId,
+          ) ?? null
+        );
+      }
+      throw new Error(
+        `fake-prisma: unsupported transactionAllocation.findUnique where ${JSON.stringify(where)}`,
+      );
+    },
+    findMany: async ({
+      where,
+      include,
+    }: {
+      where?: Row;
+      include?: Row;
+    }): Promise<Row[]> => {
+      const rows = [...this.allocations.values()].filter((a) =>
+        this.matchesTransactionWhere(a, where),
+      );
+      if (!include) return rows;
+      // Only `listForTransaction` passes an include; it wants each endpoint
+      // with its contact so the redaction rule can compare contactIds.
+      const endpoint = (id: unknown) => {
+        const tx = this.transactions.get(id as string);
+        if (!tx) return null;
+        return {
+          ...tx,
+          contact: this.contacts.get(tx.contactId as string) ?? null,
+        };
+      };
+      return rows.map((row) => ({
+        ...row,
+        ...(include.sourceTransaction
+          ? { sourceTransaction: endpoint(row.sourceTransactionId) }
+          : {}),
+        ...(include.targetTransaction
+          ? { targetTransaction: endpoint(row.targetTransactionId) }
+          : {}),
+      }));
+    },
+    update: async ({ where, data }: { where: { id: string }; data: Row }) => {
+      const row = this.allocations.get(where.id);
+      if (!row) throw new Error(`fake-prisma: no allocation ${where.id}`);
+      Object.assign(row, data);
+      return row;
+    },
+    updateMany: async ({ where, data }: { where?: Row; data: Row }) => {
+      const rows = await this.transactionAllocation.findMany({ where });
+      for (const row of rows) Object.assign(row, data);
+      return { count: rows.length };
+    },
+    aggregate: async ({ where }: { where?: Row; _sum: { amount: true } }) => {
+      const rows = await this.transactionAllocation.findMany({ where });
+      const sum = rows.reduce((acc, row) => acc + (Number(row.amount) || 0), 0);
+      return { _sum: { amount: rows.length === 0 ? null : sum } };
+    },
+    groupBy: async ({ where, by }: { where?: Row; by: string[] }) => {
+      const rows = await this.transactionAllocation.findMany({ where });
       const groups = new Map<string, { key: Row; sum: number }>();
       for (const row of rows) {
         const keyObj = Object.fromEntries(by.map((k) => [k, row[k]]));
@@ -255,12 +420,56 @@ export class FakePrisma {
     },
   };
 
-  transactionHistory = { create: async () => ({}) };
+  /** Audit rows, kept so specs can assert on what was written. */
+  histories: Row[] = [];
+
+  transactionHistory = {
+    create: async ({ data }: { data: Row }) => {
+      this.histories.push(data);
+      return data;
+    },
+    createMany: async ({ data }: { data: Row[] }) => {
+      this.histories.push(...data);
+      return { count: data.length };
+    },
+  };
   witness = { updateMany: async () => ({ count: 0 }) };
 
+  /**
+   * The allocation path issues `SELECT ... FOR UPDATE` to serialise concurrent
+   * passes. There is no concurrency in a fake, so the lock is a no-op — but the
+   * call must not throw, or every allocation test fails on the lock line.
+   */
+  $queryRaw = async (): Promise<unknown[]> => [];
+
+  private snapshot() {
+    const clone = (m: Map<string, Row>) =>
+      new Map([...m.entries()].map(([k, v]) => [k, { ...v }]));
+    return {
+      contacts: clone(this.contacts),
+      transactions: clone(this.transactions),
+      allocations: clone(this.allocations),
+      histories: [...this.histories],
+    };
+  }
+
+  /**
+   * Rolls back on throw. Not a nicety: the all-or-nothing guarantee of a
+   * multi-target allocation pass is only testable if a failure on the third
+   * row actually undoes the first two.
+   */
   $transaction = async <T>(arg: unknown): Promise<T> => {
     if (Array.isArray(arg)) return Promise.all(arg) as Promise<T>;
-    return (arg as (p: FakePrisma) => Promise<T>)(this);
+    const before = this.snapshot();
+    try {
+      return await (arg as (p: FakePrisma) => Promise<T>)(this);
+    } catch (error) {
+      this.contacts = before.contacts;
+      this.transactions = before.transactions;
+      this.allocations = before.allocations;
+      this.histories = before.histories;
+      throw error;
+    }
   };
 
   seedUser(user: { id: string } & Row) {

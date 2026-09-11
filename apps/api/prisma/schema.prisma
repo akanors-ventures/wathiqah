@@ -9,71 +9,73 @@ datasource db {
 }
 
 model User {
-  id                         String               @id @default(uuid())
-  email                      String               @unique
+  id                         String                      @id @default(uuid())
+  email                      String                      @unique
   passwordHash               String?
-  createdAt                  DateTime             @default(now())
+  createdAt                  DateTime                    @default(now())
   refreshTokenHash           String?
-  isEmailVerified            Boolean              @default(false)
+  isEmailVerified            Boolean                     @default(false)
   firstName                  String
   lastName                   String
   phoneNumber                String?
-  preferredCurrency          String               @default("NGN")
-  tier                       SubscriptionTier     @default(FREE)
+  preferredCurrency          String                      @default("NGN")
+  tier                       SubscriptionTier            @default(FREE)
   subscriptionStatus         String?
   subscriptionId             String?
-  featureUsage               Json?                @default("{}")
-  isSupporter                Boolean              @default(false)
-  hasSeenSharedHistory       Boolean              @default(false)
-  role                       UserRole             @default(USER)
+  featureUsage               Json?                       @default("{}")
+  isSupporter                Boolean                     @default(false)
+  hasSeenSharedHistory       Boolean                     @default(false)
+  role                       UserRole                    @default(USER)
   accessGrants               AccessGrant[]
-  contactInvitationsReceived ContactInvitation[]  @relation("InvitedUser")
-  contactInvitationsSent     ContactInvitation[]  @relation("InviterUser")
-  linkedContacts             Contact[]            @relation("ContactLinkedUser")
+  contactInvitationsReceived ContactInvitation[]         @relation("InvitedUser")
+  contactInvitationsSent     ContactInvitation[]         @relation("InviterUser")
+  linkedContacts             Contact[]                   @relation("ContactLinkedUser")
   contacts                   Contact[]
   projects                   Project[]
   promises                   Promise[]
   personalEntries            PersonalEntry[]
-  transactionHistory         TransactionHistory[]         @relation("HistoryUser")
-  projectTransactionHistory  ProjectTransactionHistory[]  @relation("ProjectHistoryUser")
-  transactions               Transaction[]        @relation("TransactionCreator")
-  witnessRecords             Witness[]            @relation("WitnessUser")
+  transactionHistory         TransactionHistory[]        @relation("HistoryUser")
+  projectTransactionHistory  ProjectTransactionHistory[] @relation("ProjectHistoryUser")
+  transactions               Transaction[]               @relation("TransactionCreator")
+  witnessRecords             Witness[]                   @relation("WitnessUser")
   supports                   Support[]
   payments                   Payment[]
   subscription               Subscription?
-  provisionedSubscriptions   Subscription[]       @relation("ProvisionedBy")
+  provisionedSubscriptions   Subscription[]              @relation("ProvisionedBy")
   organisationMembers        OrganisationMember[]
-  orgEventsCreated           OrgEvent[]           @relation("OrgEventCreator")
-  notes                      Note[]               @relation("NoteCreator")
-  notifications              Notification[]       @relation("UserNotifications")
-  adminActionsPerformed      AdminAuditLog[]      @relation("AdminAuditActor")
-  adminActionsReceived       AdminAuditLog[]      @relation("AdminAuditTarget")
-  plansCreated               Plan[]               @relation("PlanCreatedBy")
+  orgEventsCreated           OrgEvent[]                  @relation("OrgEventCreator")
+  notes                      Note[]                      @relation("NoteCreator")
+  notifications              Notification[]              @relation("UserNotifications")
+  adminActionsPerformed      AdminAuditLog[]             @relation("AdminAuditActor")
+  adminActionsReceived       AdminAuditLog[]             @relation("AdminAuditTarget")
+  plansCreated               Plan[]                      @relation("PlanCreatedBy")
+  createdAllocations         TransactionAllocation[]     @relation("AllocationCreator")
+  reversedAllocations        TransactionAllocation[]     @relation("AllocationReverser")
 
   @@index([phoneNumber])
   @@map("users")
 }
 
 model Subscription {
-  id                 String           @id @default(uuid())
-  userId             String           @unique
-  tier               SubscriptionTier @default(FREE)
-  status             String // active, trialing, past_due, canceled, unpaid
-  provider           String // stripe, flutterwave, lemonsqueezy
-  externalId         String?          @unique // Stripe Subscription ID or Flutterwave transaction/charge ID
-  providerSubscriptionId String?      @unique // Resolved Flutterwave subscription resource ID (from GET /v3/subscriptions) — distinct from externalId, which renewal webhooks overwrite with a transaction ID
-  planId             String? // FK to Plan — source of truth for this subscription's billing interval/amount/currency
-  plan               Plan?            @relation(fields: [planId], references: [id])
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  cancelAtPeriodEnd  Boolean          @default(false)
-  canceledAt         DateTime?
-  endedAt            DateTime?
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  isProvisioned      Boolean          @default(false)
-  provisionedById    String?
-  provisionedBy      User?            @relation("ProvisionedBy", fields: [provisionedById], references: [id])
+  id                     String           @id @default(uuid())
+  userId                 String           @unique
+  tier                   SubscriptionTier @default(FREE)
+  status                 String // active, trialing, past_due, canceled, unpaid
+  provider               String // stripe, flutterwave, lemonsqueezy
+  externalId             String?          @unique // Stripe Subscription ID or Flutterwave transaction/charge ID
+  providerSubscriptionId String?          @unique // Resolved Flutterwave subscription resource ID (from GET /v3/subscriptions) — distinct from externalId, which renewal webhooks overwrite with a transaction ID
+  planId                 String? // FK to Plan — source of truth for this subscription's billing interval/amount/currency
+  plan                   Plan?            @relation(fields: [planId], references: [id])
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean          @default(false)
+  canceledAt             DateTime?
+  endedAt                DateTime?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  isProvisioned          Boolean          @default(false)
+  provisionedById        String?
+  provisionedBy          User?            @relation("ProvisionedBy", fields: [provisionedById], references: [id])
 
   user User @relation(fields: [userId], references: [id])
 
@@ -187,37 +189,82 @@ model Contact {
 }
 
 model Transaction {
-  id                    String               @id @default(uuid())
-  category              AssetCategory        @default(FUNDS)
-  amount                Decimal?             @db.Decimal(10, 2)
-  itemName              String?
-  quantity              Int?                 @default(1)
-  type                  TransactionType
-  date                  DateTime
-  description           String?
-  createdAt             DateTime             @default(now())
-  contactId             String?
-  createdById           String
-  status                TransactionStatus    @default(COMPLETED)
+  id          String            @id @default(uuid())
+  category    AssetCategory     @default(FUNDS)
+  amount      Decimal?          @db.Decimal(10, 2)
+  itemName    String?
+  quantity    Int?              @default(1)
+  type        TransactionType
+  date        DateTime
+  description String?
+  createdAt   DateTime          @default(now())
+  contactId   String?
+  createdById String
+  status      TransactionStatus @default(COMPLETED)
 
-  parentId              String?
-  currency              String               @default("NGN")
-  orgId                 String?
-  projectTransactionId  String?              @unique
-  isMirroredFromProject Boolean              @default(false)
-  orgSourceTransactionId String?             @unique
-  history               TransactionHistory[]
-  contact               Contact?             @relation(fields: [contactId], references: [id])
-  createdBy             User                 @relation("TransactionCreator", fields: [createdById], references: [id])
-  parent                Transaction?         @relation("TransactionConversion", fields: [parentId], references: [id])
-  conversions           Transaction[]        @relation("TransactionConversion")
-  witnesses             Witness[]
-  organisation          Organisation?        @relation("OrgTransactions", fields: [orgId], references: [id])
-  projectTransaction    ProjectTransaction?  @relation(fields: [projectTransactionId], references: [id], onDelete: Restrict)
-  orgSourceTransaction  Transaction?         @relation("OrgPersonalMirror", fields: [orgSourceTransactionId], references: [id])
-  personalMirror        Transaction?         @relation("OrgPersonalMirror")
+  parentId               String?
+  currency               String                  @default("NGN")
+  orgId                  String?
+  projectTransactionId   String?                 @unique
+  isMirroredFromProject  Boolean                 @default(false)
+  orgSourceTransactionId String?                 @unique
+  history                TransactionHistory[]
+  contact                Contact?                @relation(fields: [contactId], references: [id])
+  createdBy              User                    @relation("TransactionCreator", fields: [createdById], references: [id])
+  parent                 Transaction?            @relation("TransactionConversion", fields: [parentId], references: [id])
+  conversions            Transaction[]           @relation("TransactionConversion")
+  witnesses              Witness[]
+  organisation           Organisation?           @relation("OrgTransactions", fields: [orgId], references: [id])
+  projectTransaction     ProjectTransaction?     @relation(fields: [projectTransactionId], references: [id], onDelete: Restrict)
+  orgSourceTransaction   Transaction?            @relation("OrgPersonalMirror", fields: [orgSourceTransactionId], references: [id])
+  personalMirror         Transaction?            @relation("OrgPersonalMirror")
+  allocationsOut         TransactionAllocation[] @relation("AllocationSource")
+  allocationsIn          TransactionAllocation[] @relation("AllocationTarget")
 
   @@map("transactions")
+}
+
+enum AllocationStatus {
+  ACTIVE
+  REVERSED
+}
+
+/// A link recording that `amount` of the source transaction's unapplied credit has
+/// been applied against the target obligation. Creates NO Transaction row — one real
+/// money movement, N allocations. Endpoints must have opposite CONTACT_STANDING_SIGN
+/// values, which is what keeps an allocation value-conserving (see settlement.util.ts).
+model TransactionAllocation {
+  id                  String           @id @default(uuid())
+  sourceTransactionId String
+  targetTransactionId String
+  amount              Decimal          @db.Decimal(10, 2)
+  currency            String
+  date                DateTime
+  note                String?
+  status              AllocationStatus @default(ACTIVE)
+  orgId               String?
+  createdById         String
+  createdAt           DateTime         @default(now())
+  reversedAt          DateTime?
+  reversedById        String?
+
+  /// Set on the personal-ledger echo of an org allocation, so reversing the
+  /// org row reverses its mirror instead of leaving the personal ledger
+  /// permanently over-settled.
+  orgSourceAllocationId String? @unique
+
+  sourceTransaction   Transaction            @relation("AllocationSource", fields: [sourceTransactionId], references: [id], onDelete: Cascade)
+  targetTransaction   Transaction            @relation("AllocationTarget", fields: [targetTransactionId], references: [id], onDelete: Cascade)
+  organisation        Organisation?          @relation("OrgAllocations", fields: [orgId], references: [id])
+  createdBy           User                   @relation("AllocationCreator", fields: [createdById], references: [id])
+  reversedBy          User?                  @relation("AllocationReverser", fields: [reversedById], references: [id])
+  orgSourceAllocation TransactionAllocation? @relation("AllocationMirror", fields: [orgSourceAllocationId], references: [id], onDelete: Cascade)
+  personalMirror      TransactionAllocation? @relation("AllocationMirror")
+
+  @@index([sourceTransactionId, status])
+  @@index([targetTransactionId, status])
+  @@index([orgId])
+  @@map("transaction_allocations")
 }
 
 model TransactionHistory {
@@ -339,19 +386,19 @@ model PersonalEntry {
 }
 
 model Promise {
-  id          String        @id @default(uuid())
-  description String
-  promiseTo   String
-  dueDate     DateTime
-  notes       String?
-  priority    Priority      @default(MEDIUM)
-  category    String?
-  status      PromiseStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  userId      String
-  orgId       String?
-  user        User          @relation(fields: [userId], references: [id])
+  id           String        @id @default(uuid())
+  description  String
+  promiseTo    String
+  dueDate      DateTime
+  notes        String?
+  priority     Priority      @default(MEDIUM)
+  category     String?
+  status       PromiseStatus @default(PENDING)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String
+  orgId        String?
+  user         User          @relation(fields: [userId], references: [id])
   organisation Organisation? @relation("OrgPromises", fields: [orgId], references: [id])
 
   @@map("promises")
@@ -410,7 +457,6 @@ model ContactInvitation {
 
   @@map("contact_invitations")
 }
-
 
 enum AssetCategory {
   FUNDS
@@ -543,19 +589,19 @@ enum AdminAction {
 }
 
 model Support {
-  id              String             @id @default(uuid())
-  amount          Decimal            @db.Decimal(20, 2)
-  currency        String             @default("NGN")
-  status          SupportStatus      @default(PENDING)
+  id              String        @id @default(uuid())
+  amount          Decimal       @db.Decimal(20, 2)
+  currency        String        @default("NGN")
+  status          SupportStatus @default(PENDING)
   paymentProvider String? // e.g., "paystack", "stripe"
-  paymentRef      String?            @unique
+  paymentRef      String?       @unique
   supporterId     String?
   supporterName   String?
   supporterEmail  String?
   message         String?
-  isAnonymous     Boolean            @default(false)
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
+  isAnonymous     Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   supporter User? @relation(fields: [supporterId], references: [id])
 
@@ -583,23 +629,24 @@ model SmsOptOut {
 }
 
 model Organisation {
-  id              String               @id @default(uuid())
+  id              String                  @id @default(uuid())
   name            String
-  slug            String               @unique
+  slug            String                  @unique
   description     String?
   logoUrl         String?
   industry        String?
-  attributionMode AttributionMode      @default(ORG_ONLY)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  attributionMode AttributionMode         @default(ORG_ONLY)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
   members         OrganisationMember[]
-  contacts        Contact[]            @relation("OrgContacts")
-  transactions    Transaction[]        @relation("OrgTransactions")
-  projects        Project[]            @relation("OrgProjects")
-  promises        Promise[]            @relation("OrgPromises")
+  contacts        Contact[]               @relation("OrgContacts")
+  transactions    Transaction[]           @relation("OrgTransactions")
+  projects        Project[]               @relation("OrgProjects")
+  promises        Promise[]               @relation("OrgPromises")
   events          OrgEvent[]
   notes           Note[]
   subscription    OrgSubscription?
+  allocations     TransactionAllocation[] @relation("OrgAllocations")
 
   @@map("organisations")
 }
@@ -619,17 +666,17 @@ model OrganisationMember {
 }
 
 model OrgSubscription {
-  id                 String           @id @default(uuid())
-  orgId              String           @unique
-  tier               SubscriptionTier @default(FREE)
-  status             String
-  provider           String
-  externalId         String?          @unique
-  currentPeriodEnd   DateTime?
-  cancelAtPeriodEnd  Boolean          @default(false)
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  organisation       Organisation     @relation(fields: [orgId], references: [id])
+  id                String           @id @default(uuid())
+  orgId             String           @unique
+  tier              SubscriptionTier @default(FREE)
+  status            String
+  provider          String
+  externalId        String?          @unique
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  organisation      Organisation     @relation(fields: [orgId], references: [id])
 
   @@map("org_subscriptions")
 }
@@ -653,7 +700,6 @@ model OrgEvent {
   @@index([orgId, date])
   @@map("org_events")
 }
-
 
 enum OrgRole {
   ADMIN

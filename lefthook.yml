@@ -11,6 +11,13 @@ pre-commit:
       glob: "apps/api/{src,test}/**/*.{ts,js}"
       run: node_modules/.bin/prettier --write {staged_files}
       stage_fixed: true
+    prisma-format:
+      root: "apps/api/"
+      glob: "apps/api/**/*.prisma"
+      # `prisma format` takes --schema, not a file list, so loop over the
+      # staged schemas rather than passing {staged_files} as arguments.
+      run: for f in {staged_files}; do node_modules/.bin/prisma format --schema "$f"; done
+      stage_fixed: true
     web-biome:
       root: "apps/web/"
       glob: "apps/web/**/*.{ts,tsx,js,jsx,json,css,html}"

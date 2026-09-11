@@ -58,6 +58,7 @@ export const ModelName = {
   WebhookLog: 'WebhookLog',
   Contact: 'Contact',
   Transaction: 'Transaction',
+  TransactionAllocation: 'TransactionAllocation',
   TransactionHistory: 'TransactionHistory',
   Witness: 'Witness',
   Notification: 'Notification',
@@ -230,6 +231,26 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
+
+
+export const TransactionAllocationScalarFieldEnum = {
+  id: 'id',
+  sourceTransactionId: 'sourceTransactionId',
+  targetTransactionId: 'targetTransactionId',
+  amount: 'amount',
+  currency: 'currency',
+  date: 'date',
+  note: 'note',
+  status: 'status',
+  orgId: 'orgId',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  reversedAt: 'reversedAt',
+  reversedById: 'reversedById',
+  orgSourceAllocationId: 'orgSourceAllocationId'
+} as const
+
+export type TransactionAllocationScalarFieldEnum = (typeof TransactionAllocationScalarFieldEnum)[keyof typeof TransactionAllocationScalarFieldEnum]
 
 
 export const TransactionHistoryScalarFieldEnum = {

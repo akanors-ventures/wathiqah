@@ -2,12 +2,20 @@ import { gql, type TypedDocumentNode } from "@apollo/client";
 import type {
   AddWitnessMutation,
   AddWitnessMutationVariables,
+  AllocatableObligationsQuery,
+  AllocatableObligationsQueryVariables,
+  AllocateTransactionsMutation,
+  AllocateTransactionsMutationVariables,
+  AvailableCreditsQuery,
+  AvailableCreditsQueryVariables,
   CreateTransactionMutation,
   CreateTransactionMutationVariables,
   MyContactTransactionsQuery,
   MyContactTransactionsQueryVariables,
   RemoveTransactionMutation,
   RemoveTransactionMutationVariables,
+  ReverseTransactionAllocationMutation,
+  ReverseTransactionAllocationMutationVariables,
   TotalBalanceQuery,
   TotalBalanceQueryVariables,
   TransactionQuery,
@@ -81,6 +89,45 @@ export const GET_TRANSACTION: TypedDocumentNode<TransactionQuery, TransactionQue
         project {
           id
           name
+        }
+      }
+      remainingAmount
+      allocationsOut {
+        id
+        amount
+        currency
+        date
+        note
+        status
+        targetTransaction {
+          id
+          type
+          amount
+          currency
+          date
+          contact {
+            id
+            name
+          }
+        }
+      }
+      allocationsIn {
+        id
+        amount
+        currency
+        date
+        note
+        status
+        sourceTransaction {
+          id
+          type
+          amount
+          currency
+          date
+          contact {
+            id
+            name
+          }
         }
       }
       conversions {
@@ -354,6 +401,77 @@ export const UPDATE_TRANSACTION: TypedDocumentNode<
         id
         name
         isSupporter
+      }
+    }
+  }
+`;
+
+export const ALLOCATE_TRANSACTIONS: TypedDocumentNode<
+  AllocateTransactionsMutation,
+  AllocateTransactionsMutationVariables
+> = gql`
+  mutation AllocateTransactions($input: AllocateTransactionsInput!) {
+    allocateTransactions(input: $input) {
+      id
+      amount
+      currency
+      date
+      status
+      sourceTransactionId
+      targetTransactionId
+    }
+  }
+`;
+
+export const REVERSE_TRANSACTION_ALLOCATION: TypedDocumentNode<
+  ReverseTransactionAllocationMutation,
+  ReverseTransactionAllocationMutationVariables
+> = gql`
+  mutation ReverseTransactionAllocation($id: ID!) {
+    reverseTransactionAllocation(id: $id) {
+      id
+      status
+    }
+  }
+`;
+
+export const GET_AVAILABLE_CREDITS: TypedDocumentNode<
+  AvailableCreditsQuery,
+  AvailableCreditsQueryVariables
+> = gql`
+  query AvailableCredits($contactId: ID, $currency: String) {
+    availableCredits(contactId: $contactId, currency: $currency) {
+      id
+      type
+      amount
+      currency
+      date
+      description
+      remainingAmount
+      contact {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const GET_ALLOCATABLE_OBLIGATIONS: TypedDocumentNode<
+  AllocatableObligationsQuery,
+  AllocatableObligationsQueryVariables
+> = gql`
+  query AllocatableObligations($sourceTransactionId: ID!, $contactId: ID) {
+    allocatableObligations(sourceTransactionId: $sourceTransactionId, contactId: $contactId) {
+      id
+      type
+      amount
+      currency
+      date
+      description
+      remainingAmount
+      contact {
+        id
+        name
       }
     }
   }

@@ -73,6 +73,14 @@ export type Contact = Prisma.ContactModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
+ * Model TransactionAllocation
+ * A link recording that `amount` of the source transaction's unapplied credit has
+ * been applied against the target obligation. Creates NO Transaction row — one real
+ * money movement, N allocations. Endpoints must have opposite CONTACT_STANDING_SIGN
+ * values, which is what keeps an allocation value-conserving (see settlement.util.ts).
+ */
+export type TransactionAllocation = Prisma.TransactionAllocationModel
+/**
  * Model TransactionHistory
  * 
  */
