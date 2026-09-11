@@ -38,39 +38,14 @@ import {
   computeSettledAmount,
   isLifecycleObligationType,
 } from './settlement.util';
+import {
+  PERSPECTIVE_FLIP_MAP,
+  TransactionSummary,
+  computeNetBalance,
+  applyPerspective,
+} from './summary.util';
 
-/** Perspective-flip pairs for shared-ledger view. */
-const PERSPECTIVE_FLIP_MAP: Partial<Record<string, string>> = {
-  LOAN_GIVEN: 'LOAN_RECEIVED',
-  LOAN_RECEIVED: 'LOAN_GIVEN',
-  REPAYMENT_MADE: 'REPAYMENT_RECEIVED',
-  REPAYMENT_RECEIVED: 'REPAYMENT_MADE',
-  GIFT_GIVEN: 'GIFT_RECEIVED',
-  GIFT_RECEIVED: 'GIFT_GIVEN',
-  ADVANCE_PAID: 'ADVANCE_RECEIVED',
-  ADVANCE_RECEIVED: 'ADVANCE_PAID',
-  DEPOSIT_PAID: 'DEPOSIT_RECEIVED',
-  DEPOSIT_RECEIVED: 'DEPOSIT_PAID',
-  ESCROWED: 'REMITTED',
-  REMITTED: 'ESCROWED',
-};
-
-function computeNetBalance(summary: TransactionSummary): number {
-  return (
-    summary.totalLoanReceived -
-    summary.totalLoanGiven +
-    summary.totalRepaymentReceived -
-    summary.totalRepaymentMade +
-    summary.totalGiftReceived -
-    summary.totalGiftGiven +
-    summary.totalAdvanceReceived -
-    summary.totalAdvancePaid +
-    summary.totalDepositReceived -
-    summary.totalDepositPaid +
-    summary.totalEscrowed -
-    summary.totalRemitted
-  );
-}
+export { TransactionSummary } from './summary.util';
 
 export interface WitnessNotification {
   witnessId: string;
@@ -89,23 +64,6 @@ export interface WitnessNotification {
     category: AssetCategory;
     type: TransactionType;
   };
-}
-
-export interface TransactionSummary {
-  totalLoanGiven: number;
-  totalLoanReceived: number;
-  totalRepaymentMade: number;
-  totalRepaymentReceived: number;
-  totalGiftGiven: number;
-  totalGiftReceived: number;
-  totalAdvancePaid: number;
-  totalAdvanceReceived: number;
-  totalDepositPaid: number;
-  totalDepositReceived: number;
-  totalEscrowed: number;
-  totalRemitted: number;
-  netBalance?: number;
-  currency: string;
 }
 
 @Injectable()
@@ -1310,80 +1268,6 @@ export class TransactionsService {
     return updatedTransaction;
   }
 
-  private flipStatePerspective(state: Record<string, unknown> | null) {
-    if (!state) return null;
-    const flipped = { ...state };
-    if (typeof state.type === 'string' && PERSPECTIVE_FLIP_MAP[state.type]) {
-      flipped.type = PERSPECTIVE_FLIP_MAP[state.type];
-    }
-    return flipped;
-  }
-
-  private applyPerspective<
-    T extends {
-      createdById: string;
-      type: TransactionType;
-      history?: {
-        previousState: unknown;
-        newState: unknown;
-      }[];
-      createdBy?: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-        isSupporter: boolean;
-      } | null;
-      contact?: unknown;
-    },
-  >(transaction: T, userId: string): T {
-    if (transaction.createdById === userId) return transaction;
-
-    // Flip perspective for the contact
-    const transformed = { ...transaction };
-
-    // If we have creator info, use it as the contact for the viewer
-    if (transaction.createdBy) {
-      // Create a virtual contact from the creator
-      const creator = transaction.createdBy;
-      const virtualContact = {
-        id: creator.id, // Using creator's user ID as contact ID
-        firstName: creator.firstName,
-        lastName: creator.lastName,
-        name: `${creator.firstName} ${creator.lastName}`,
-        email: creator.email,
-        isSupporter: creator.isSupporter,
-        linkedUserId: creator.id,
-        userId: userId, // The viewer "owns" this virtual contact view
-        isOnPlatform: true,
-      };
-
-      // We need to cast this because we're modifying the structure potentially
-      transformed.contact = virtualContact;
-    }
-
-    if (PERSPECTIVE_FLIP_MAP[transaction.type]) {
-      transformed.type = PERSPECTIVE_FLIP_MAP[
-        transaction.type
-      ] as TransactionType;
-    }
-
-    // Flip history entries if present
-    if (transformed.history && Array.isArray(transformed.history)) {
-      transformed.history = transformed.history.map((h) => ({
-        ...h,
-        previousState: this.flipStatePerspective(
-          h.previousState as Record<string, unknown>,
-        ),
-        newState: this.flipStatePerspective(
-          h.newState as Record<string, unknown>,
-        ),
-      }));
-    }
-
-    return transformed;
-  }
-
   async findAll(
     userId: string,
     orgId: string | null,
@@ -1507,7 +1391,7 @@ export class TransactionsService {
     ]);
 
     const transformedItems = await this.attachRemainingAmounts(
-      items.map((item) => this.applyPerspective(item, userId)),
+      items.map((item) => applyPerspective(item, userId)),
     );
 
     const combinedItems = transformedItems;
@@ -2046,7 +1930,7 @@ export class TransactionsService {
     await this.assertTransactionAccess(transaction, userId, orgId);
 
     return flipPerspective
-      ? this.applyPerspective(transaction, userId)
+      ? applyPerspective(transaction, userId)
       : transaction;
   }
 
@@ -2792,7 +2676,7 @@ export class TransactionsService {
 
     return {
       items: await this.attachRemainingAmounts(
-        items.map((item) => this.applyPerspective(item, userId)),
+        items.map((item) => applyPerspective(item, userId)),
       ),
       total,
       page,
