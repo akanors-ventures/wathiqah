@@ -209,10 +209,15 @@ describe('TransactionsService - Pagination', () => {
         return (arg as (p: unknown) => Promise<unknown>)(prisma);
       });
 
-      // Capture findMany args by spying
+      // Capture the args of the FIRST findMany call — the paginated items
+      // query. calculateConvertedSummary issues its own later findMany
+      // calls (gift-conversion lookups) with no skip/take, so only the
+      // first call is relevant here.
       prisma.transaction.findMany.mockImplementation(
         (args: Record<string, unknown>) => {
-          capturedFindManyArgs = args;
+          if (capturedFindManyArgs === undefined) {
+            capturedFindManyArgs = args;
+          }
           return Promise.resolve(mockItems);
         },
       );

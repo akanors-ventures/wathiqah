@@ -163,10 +163,34 @@ export class FakePrisma {
       }
       return row;
     },
-    findMany: async ({ where }: { where?: Row }) =>
-      [...this.transactions.values()].filter((t) =>
+    findMany: async ({
+      where,
+      select,
+    }: {
+      where?: Row;
+      select?: Row;
+    }): Promise<Row[]> => {
+      const rows = [...this.transactions.values()].filter((t) =>
         this.matchesTransactionWhere(t, where),
-      ),
+      );
+      // Only the `conversions` (gift-conversion children) relation is
+      // resolved here — extend further if another selected relation shows
+      // up in a query this scenario exercises.
+      const conversionsSpec = select?.conversions as
+        | { where?: Row }
+        | undefined;
+      if (!conversionsSpec) return rows;
+      return rows.map(
+        (row): Row => ({
+          ...row,
+          conversions: [...this.transactions.values()].filter(
+            (child) =>
+              child.parentId === row.id &&
+              this.matchesTransactionWhere(child, conversionsSpec.where),
+          ),
+        }),
+      );
+    },
     count: async ({ where }: { where?: Row }) =>
       (await this.transaction.findMany({ where })).length,
     update: async ({ where, data }: { where: { id: string }; data: Row }) => {

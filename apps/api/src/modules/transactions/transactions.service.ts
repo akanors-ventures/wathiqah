@@ -1327,6 +1327,54 @@ export class TransactionsService {
       },
     });
 
+    // groupBy sums the raw loan amount, but a non-cancelled gift conversion
+    // extinguishes part of its parent loan (see `effectiveTransactionAmount`
+    // in contacts.service.ts). Fetch loans-with-conversions separately —
+    // groupBy can't express the parent/child join — and net the gifted
+    // portion out of the matching (type, currency) bucket below.
+    const loanTypeFilter: Prisma.TransactionWhereInput = {
+      type: { in: [TransactionType.LOAN_GIVEN, TransactionType.LOAN_RECEIVED] },
+    };
+    const giftConversionsSelect = {
+      where: {
+        type: {
+          in: [TransactionType.GIFT_GIVEN, TransactionType.GIFT_RECEIVED],
+        } as Prisma.EnumTransactionTypeFilter,
+        status: {
+          not: TransactionStatus.CANCELLED,
+        } as Prisma.EnumTransactionStatusFilter,
+      },
+      select: { amount: true },
+    };
+
+    const ownLoans = await this.prisma.transaction.findMany({
+      where: { ...where, createdById: userId, ...loanTypeFilter },
+      select: {
+        type: true,
+        currency: true,
+        amount: true,
+        conversions: giftConversionsSelect,
+      },
+    });
+    const contactLoans = await this.prisma.transaction.findMany({
+      where: {
+        ...where,
+        createdById: { not: userId },
+        contact: { linkedUserId: userId },
+        ...loanTypeFilter,
+      },
+      select: {
+        type: true,
+        currency: true,
+        amount: true,
+        conversions: giftConversionsSelect,
+      },
+    });
+
+    const ownGiftDeductions = this.sumGiftConversionDeductions(ownLoans);
+    const contactGiftDeductions =
+      this.sumGiftConversionDeductions(contactLoans);
+
     const summary: TransactionSummary = {
       totalLoanGiven: 0,
       totalLoanReceived: 0,
@@ -1346,7 +1394,9 @@ export class TransactionsService {
 
     // Process own transactions
     for (const agg of ownAggregations) {
-      const amount = Number(agg._sum.amount) || 0;
+      const amount =
+        (Number(agg._sum.amount) || 0) -
+        (ownGiftDeductions.get(`${agg.type}::${agg.currency}`) ?? 0);
       if (amount === 0) continue;
 
       const convertedAmount = await this.exchangeRateService.convert(
@@ -1360,7 +1410,9 @@ export class TransactionsService {
 
     // Process contact transactions (with flip)
     for (const agg of contactAggregations) {
-      const amount = Number(agg._sum.amount) || 0;
+      const amount =
+        (Number(agg._sum.amount) || 0) -
+        (contactGiftDeductions.get(`${agg.type}::${agg.currency}`) ?? 0);
       if (amount === 0) continue;
 
       const convertedAmount = await this.exchangeRateService.convert(
@@ -1377,6 +1429,44 @@ export class TransactionsService {
     summary.netBalance = computeNetBalance(summary);
 
     return summary;
+  }
+
+  /**
+   * Sums, per bucket, how much of each loan's raw amount has been converted
+   * to a gift — clamped to the loan's own amount so a single loan can never
+   * contribute a negative effective value, matching
+   * `effectiveTransactionAmount` in contacts.service.ts. Buckets by
+   * (type, currency) by default; pass `keyOf` to add a further grouping
+   * dimension (e.g. contactId, to match `groupByContact`'s per-contact
+   * aggregation).
+   */
+  private sumGiftConversionDeductions<
+    T extends {
+      type: TransactionType;
+      currency: string;
+      amount: Prisma.Decimal | null;
+      conversions: Array<{ amount: Prisma.Decimal | null }>;
+    },
+  >(
+    loans: T[],
+    keyOf: (loan: T) => string = (loan) => `${loan.type}::${loan.currency}`,
+  ): Map<string, number> {
+    const deductions = new Map<string, number>();
+    for (const loan of loans) {
+      if (loan.conversions.length === 0) continue;
+
+      const rawAmount = loan.amount ? Number(loan.amount) : 0;
+      const totalGifted = loan.conversions.reduce(
+        (sum, conv) => sum + (conv.amount ? Number(conv.amount) : 0),
+        0,
+      );
+      const deduction = Math.min(totalGifted, rawAmount);
+      if (deduction <= 0) continue;
+
+      const key = keyOf(loan);
+      deductions.set(key, (deductions.get(key) ?? 0) + deduction);
+    }
+    return deductions;
   }
 
   private updateSummaryWithTransaction(
@@ -1465,6 +1555,68 @@ export class TransactionsService {
       },
     });
 
+    // groupBy sums the raw loan amount, but a non-cancelled gift conversion
+    // extinguishes part of its parent loan (see `effectiveTransactionAmount`
+    // in contacts.service.ts, and the identical fix in
+    // calculateConvertedSummary above). Fetch loans-with-conversions
+    // separately, bucketed the same way as each aggregation above (own: by
+    // contactId; shared: by createdById), and net the gifted portion out
+    // before it's added to a contact's summary below.
+    const loanTypeFilter: Prisma.TransactionWhereInput = {
+      type: { in: [TransactionType.LOAN_GIVEN, TransactionType.LOAN_RECEIVED] },
+    };
+    const giftConversionsSelect = {
+      where: {
+        type: {
+          in: [TransactionType.GIFT_GIVEN, TransactionType.GIFT_RECEIVED],
+        } as Prisma.EnumTransactionTypeFilter,
+        status: {
+          not: TransactionStatus.CANCELLED,
+        } as Prisma.EnumTransactionStatusFilter,
+      },
+      select: { amount: true },
+    };
+
+    const ownLoans = await this.prisma.transaction.findMany({
+      where: {
+        ...baseWhere,
+        createdById: userId,
+        contactId: filter?.contactId || undefined,
+        ...loanTypeFilter,
+      },
+      select: {
+        contactId: true,
+        type: true,
+        currency: true,
+        amount: true,
+        conversions: giftConversionsSelect,
+      },
+    });
+    const sharedLoans = await this.prisma.transaction.findMany({
+      where: {
+        ...baseWhere,
+        createdById: { not: userId },
+        contact: { linkedUserId: userId },
+        ...loanTypeFilter,
+      },
+      select: {
+        createdById: true,
+        type: true,
+        currency: true,
+        amount: true,
+        conversions: giftConversionsSelect,
+      },
+    });
+
+    const ownGiftDeductions = this.sumGiftConversionDeductions(
+      ownLoans,
+      (loan) => `${loan.contactId}::${loan.type}::${loan.currency}`,
+    );
+    const sharedGiftDeductions = this.sumGiftConversionDeductions(
+      sharedLoans,
+      (loan) => `${loan.createdById}::${loan.type}::${loan.currency}`,
+    );
+
     // Get all contacts for this user to map names
     const contacts = await this.prisma.contact.findMany({
       where: { userId },
@@ -1504,7 +1656,10 @@ export class TransactionsService {
       }
 
       const summary = groupedByContact.get(contactId);
-      const amount = Number(agg._sum.amount) || 0;
+      const amount =
+        (Number(agg._sum.amount) || 0) -
+        (ownGiftDeductions.get(`${contactId}::${agg.type}::${agg.currency}`) ??
+          0);
       if (amount === 0) continue;
 
       const convertedAmount = await this.exchangeRateService.convert(
@@ -1529,7 +1684,11 @@ export class TransactionsService {
       }
 
       const summary = groupedByContact.get(contactId);
-      const amount = Number(agg._sum.amount) || 0;
+      const amount =
+        (Number(agg._sum.amount) || 0) -
+        (sharedGiftDeductions.get(
+          `${agg.createdById}::${agg.type}::${agg.currency}`,
+        ) ?? 0);
       if (amount === 0) continue;
 
       const convertedAmount = await this.exchangeRateService.convert(
