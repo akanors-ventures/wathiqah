@@ -105,6 +105,28 @@ export interface TransactionSummary {
 
 @Injectable()
 export class TransactionsService {
+  /** Only LOAN_GIVEN/LOAN_RECEIVED can be the parent of a gift conversion. */
+  private static readonly LOAN_TYPES_FILTER: Prisma.TransactionWhereInput = {
+    type: { in: [TransactionType.LOAN_GIVEN, TransactionType.LOAN_RECEIVED] },
+  };
+
+  /**
+   * Nested-relation select for a loan's non-cancelled gift-conversion
+   * children — shared by calculateConvertedSummary and groupByContact so the
+   * two stay in lockstep (mirrors `conversionsSelect` in contacts.service.ts).
+   */
+  private static readonly GIFT_CONVERSIONS_SELECT = {
+    where: {
+      type: {
+        in: [TransactionType.GIFT_GIVEN, TransactionType.GIFT_RECEIVED],
+      } as Prisma.EnumTransactionTypeFilter,
+      status: {
+        not: TransactionStatus.CANCELLED,
+      } as Prisma.EnumTransactionStatusFilter,
+    },
+    select: { amount: true },
+  };
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
@@ -1305,71 +1327,63 @@ export class TransactionsService {
     where: Prisma.TransactionWhereInput,
     targetCurrency: string,
   ) {
-    // 1. Aggregations for transactions created by the user
-    const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'currency'],
-      where: { ...where, createdById: userId },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    // 2. Aggregations for transactions where user is the contact (flip required)
-    const contactAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'currency'],
-      where: {
-        ...where,
-        createdById: { not: userId },
-        contact: { linkedUserId: userId },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
     // groupBy sums the raw loan amount, but a non-cancelled gift conversion
     // extinguishes part of its parent loan (see `effectiveTransactionAmount`
     // in contacts.service.ts). Fetch loans-with-conversions separately —
     // groupBy can't express the parent/child join — and net the gifted
-    // portion out of the matching (type, currency) bucket below.
-    const loanTypeFilter: Prisma.TransactionWhereInput = {
-      type: { in: [TransactionType.LOAN_GIVEN, TransactionType.LOAN_RECEIVED] },
-    };
-    const giftConversionsSelect = {
-      where: {
-        type: {
-          in: [TransactionType.GIFT_GIVEN, TransactionType.GIFT_RECEIVED],
-        } as Prisma.EnumTransactionTypeFilter,
-        status: {
-          not: TransactionStatus.CANCELLED,
-        } as Prisma.EnumTransactionStatusFilter,
-      },
-      select: { amount: true },
-    };
-
-    const ownLoans = await this.prisma.transaction.findMany({
-      where: { ...where, createdById: userId, ...loanTypeFilter },
-      select: {
-        type: true,
-        currency: true,
-        amount: true,
-        conversions: giftConversionsSelect,
-      },
-    });
-    const contactLoans = await this.prisma.transaction.findMany({
-      where: {
-        ...where,
-        createdById: { not: userId },
-        contact: { linkedUserId: userId },
-        ...loanTypeFilter,
-      },
-      select: {
-        type: true,
-        currency: true,
-        amount: true,
-        conversions: giftConversionsSelect,
-      },
-    });
+    // portion out of the matching (type, currency) bucket below. All four
+    // queries are independent of each other, so run them concurrently
+    // instead of round-tripping to the DB one at a time.
+    const [ownAggregations, contactAggregations, ownLoans, contactLoans] =
+      await Promise.all([
+        // 1. Aggregations for transactions created by the user
+        this.prisma.transaction.groupBy({
+          by: ['type', 'currency'],
+          where: { ...where, createdById: userId },
+          _sum: {
+            amount: true,
+          },
+        }),
+        // 2. Aggregations for transactions where user is the contact (flip required)
+        this.prisma.transaction.groupBy({
+          by: ['type', 'currency'],
+          where: {
+            ...where,
+            createdById: { not: userId },
+            contact: { linkedUserId: userId },
+          },
+          _sum: {
+            amount: true,
+          },
+        }),
+        this.prisma.transaction.findMany({
+          where: {
+            ...where,
+            createdById: userId,
+            ...TransactionsService.LOAN_TYPES_FILTER,
+          },
+          select: {
+            type: true,
+            currency: true,
+            amount: true,
+            conversions: TransactionsService.GIFT_CONVERSIONS_SELECT,
+          },
+        }),
+        this.prisma.transaction.findMany({
+          where: {
+            ...where,
+            createdById: { not: userId },
+            contact: { linkedUserId: userId },
+            ...TransactionsService.LOAN_TYPES_FILTER,
+          },
+          select: {
+            type: true,
+            currency: true,
+            amount: true,
+            conversions: TransactionsService.GIFT_CONVERSIONS_SELECT,
+          },
+        }),
+      ]);
 
     const ownGiftDeductions = this.sumGiftConversionDeductions(ownLoans);
     const contactGiftDeductions =
@@ -1529,84 +1543,81 @@ export class TransactionsService {
       targetCurrency = user?.preferredCurrency || 'NGN';
     }
 
-    // 1. Aggregations for transactions created by the user
-    const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['contactId', 'type', 'currency'],
-      where: {
-        ...baseWhere,
-        createdById: userId,
-        contactId: filter?.contactId || undefined,
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    // 2. Aggregations for transactions where user is the contact (flip required)
-    const sharedAggregations = await this.prisma.transaction.groupBy({
-      by: ['createdById', 'type', 'currency'],
-      where: {
-        ...baseWhere,
-        createdById: { not: userId },
-        contact: { linkedUserId: userId },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
     // groupBy sums the raw loan amount, but a non-cancelled gift conversion
     // extinguishes part of its parent loan (see `effectiveTransactionAmount`
     // in contacts.service.ts, and the identical fix in
     // calculateConvertedSummary above). Fetch loans-with-conversions
     // separately, bucketed the same way as each aggregation above (own: by
     // contactId; shared: by createdById), and net the gifted portion out
-    // before it's added to a contact's summary below.
-    const loanTypeFilter: Prisma.TransactionWhereInput = {
-      type: { in: [TransactionType.LOAN_GIVEN, TransactionType.LOAN_RECEIVED] },
-    };
-    const giftConversionsSelect = {
-      where: {
-        type: {
-          in: [TransactionType.GIFT_GIVEN, TransactionType.GIFT_RECEIVED],
-        } as Prisma.EnumTransactionTypeFilter,
-        status: {
-          not: TransactionStatus.CANCELLED,
-        } as Prisma.EnumTransactionStatusFilter,
-      },
-      select: { amount: true },
-    };
-
-    const ownLoans = await this.prisma.transaction.findMany({
-      where: {
-        ...baseWhere,
-        createdById: userId,
-        contactId: filter?.contactId || undefined,
-        ...loanTypeFilter,
-      },
-      select: {
-        contactId: true,
-        type: true,
-        currency: true,
-        amount: true,
-        conversions: giftConversionsSelect,
-      },
-    });
-    const sharedLoans = await this.prisma.transaction.findMany({
-      where: {
-        ...baseWhere,
-        createdById: { not: userId },
-        contact: { linkedUserId: userId },
-        ...loanTypeFilter,
-      },
-      select: {
-        createdById: true,
-        type: true,
-        currency: true,
-        amount: true,
-        conversions: giftConversionsSelect,
-      },
-    });
+    // before it's added to a contact's summary below. All five queries here
+    // are independent, so run them concurrently instead of round-tripping to
+    // the DB one at a time.
+    const [
+      ownAggregations,
+      sharedAggregations,
+      ownLoans,
+      sharedLoans,
+      contacts,
+    ] = await Promise.all([
+      // 1. Aggregations for transactions created by the user
+      this.prisma.transaction.groupBy({
+        by: ['contactId', 'type', 'currency'],
+        where: {
+          ...baseWhere,
+          createdById: userId,
+          contactId: filter?.contactId || undefined,
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+      // 2. Aggregations for transactions where user is the contact (flip required)
+      this.prisma.transaction.groupBy({
+        by: ['createdById', 'type', 'currency'],
+        where: {
+          ...baseWhere,
+          createdById: { not: userId },
+          contact: { linkedUserId: userId },
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+      this.prisma.transaction.findMany({
+        where: {
+          ...baseWhere,
+          createdById: userId,
+          contactId: filter?.contactId || undefined,
+          ...TransactionsService.LOAN_TYPES_FILTER,
+        },
+        select: {
+          contactId: true,
+          type: true,
+          currency: true,
+          amount: true,
+          conversions: TransactionsService.GIFT_CONVERSIONS_SELECT,
+        },
+      }),
+      this.prisma.transaction.findMany({
+        where: {
+          ...baseWhere,
+          createdById: { not: userId },
+          contact: { linkedUserId: userId },
+          ...TransactionsService.LOAN_TYPES_FILTER,
+        },
+        select: {
+          createdById: true,
+          type: true,
+          currency: true,
+          amount: true,
+          conversions: TransactionsService.GIFT_CONVERSIONS_SELECT,
+        },
+      }),
+      // Get all contacts for this user to map names
+      this.prisma.contact.findMany({
+        where: { userId },
+      }),
+    ]);
 
     const ownGiftDeductions = this.sumGiftConversionDeductions(
       ownLoans,
@@ -1616,11 +1627,6 @@ export class TransactionsService {
       sharedLoans,
       (loan) => `${loan.createdById}::${loan.type}::${loan.currency}`,
     );
-
-    // Get all contacts for this user to map names
-    const contacts = await this.prisma.contact.findMany({
-      where: { userId },
-    });
 
     const contactMap = new Map(contacts.map((c) => [c.id, c]));
     // Map linkedUserId to local contactId for shared transactions

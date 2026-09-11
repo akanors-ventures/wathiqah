@@ -243,6 +243,56 @@ describe('TransactionsService - Balance & Audit', () => {
       expect(result.summary.netBalance).toBe(-150); // totalLoanReceived(0) - totalLoanGiven(150)
     });
 
+    it('should not double-count a gift conversion when its own GIFT_GIVEN row is also present in the raw aggregation', async () => {
+      // The gift-conversion child is a real Transaction row (type
+      // GIFT_GIVEN, parentId set) with nothing excluding it from the
+      // ownAggregations groupBy — a real DB call returns it as its own
+      // bucket entry alongside the parent LOAN_GIVEN bucket, unlike the
+      // previous test which only mocks the loan bucket in isolation.
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        preferredCurrency: 'NGN',
+      });
+
+      (prisma.transaction.findMany as jest.Mock)
+        .mockResolvedValueOnce([]) // items list
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            amount: 200,
+            conversions: [{ amount: 50 }],
+          },
+        ]) // ownLoans
+        .mockResolvedValueOnce([]); // contactLoans
+
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 200 },
+          },
+          {
+            // The conversion child itself, summed under its own type by the
+            // same groupBy call — this is what a live DB query returns.
+            type: TransactionType.GIFT_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 50 },
+          },
+        ]) // ownAggregations
+        .mockResolvedValueOnce([]); // contactAggregations
+
+      const result = await service.findAll(userId, null);
+
+      // totalLoanGiven is gift-adjusted (150), and the conversion still
+      // shows up as its own gift (50) — together they equal the original
+      // loan (200), so netBalance reflects the total value transferred
+      // exactly once, not twice (-250) and not zero-summed (-150).
+      expect(result.summary.totalLoanGiven).toBe(150);
+      expect(result.summary.totalGiftGiven).toBe(50);
+      expect(result.summary.netBalance).toBe(-200);
+    });
+
     it('should exclude CANCELLED transactions from balance calculation', async () => {
       // Mock user preferred currency
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
