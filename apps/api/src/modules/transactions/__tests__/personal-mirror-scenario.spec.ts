@@ -5,6 +5,7 @@ import { ContactsService } from '../../contacts/contacts.service';
 import { OrganisationsService } from '../../organisations/organisations.service';
 import { TransactionsService } from '../transactions.service';
 import { TransactionSummaryService } from '../transaction-summary.service';
+import { TransactionSettlementService } from '../transaction-settlement.service';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { NotificationService } from '../../notifications/notification.service';
 import { ExchangeRateService } from '../../exchange-rate/exchange-rate.service';
@@ -80,6 +81,7 @@ describe('Personal-mirror ledger scenario (end-to-end)', () => {
         OrganisationsService,
         TransactionsService,
         TransactionSummaryService,
+        TransactionSettlementService,
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },

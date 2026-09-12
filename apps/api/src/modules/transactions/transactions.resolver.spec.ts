@@ -16,6 +16,7 @@ describe('TransactionsResolver — projectTransaction ResolveField', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
       prisma as never,
     );
   });
@@ -68,16 +69,17 @@ describe('TransactionsResolver — projectTransaction ResolveField', () => {
 
 describe('TransactionsResolver — remainingAmount ResolveField', () => {
   const build = (settled: number) => {
-    const transactionsService = {
+    const transactionSettlementService = {
       loadSettledAmount: jest.fn().mockResolvedValue(settled),
     };
     const resolver = new TransactionsResolver(
-      transactionsService as never,
       {} as never,
+      {} as never,
+      transactionSettlementService as never,
       {} as never,
       {} as never,
     );
-    return { resolver, transactionsService };
+    return { resolver, transactionSettlementService };
   };
 
   it('subtracts settlement from the principal', async () => {
@@ -103,7 +105,7 @@ describe('TransactionsResolver — remainingAmount ResolveField', () => {
   });
 
   it('returns null for a type with no outstanding balance', async () => {
-    const { resolver, transactionsService } = build(0);
+    const { resolver, transactionSettlementService } = build(0);
     await expect(
       resolver.remainingAmount({
         id: 'tx-1',
@@ -111,11 +113,13 @@ describe('TransactionsResolver — remainingAmount ResolveField', () => {
         amount: 300,
       } as never),
     ).resolves.toBeNull();
-    expect(transactionsService.loadSettledAmount).not.toHaveBeenCalled();
+    expect(
+      transactionSettlementService.loadSettledAmount,
+    ).not.toHaveBeenCalled();
   });
 
   it('honours the value pre-computed by a list path instead of querying again', async () => {
-    const { resolver, transactionsService } = build(999);
+    const { resolver, transactionSettlementService } = build(999);
     await expect(
       resolver.remainingAmount({
         id: 'tx-1',
@@ -124,7 +128,9 @@ describe('TransactionsResolver — remainingAmount ResolveField', () => {
         remainingAmount: 50,
       } as never),
     ).resolves.toBe(50);
-    expect(transactionsService.loadSettledAmount).not.toHaveBeenCalled();
+    expect(
+      transactionSettlementService.loadSettledAmount,
+    ).not.toHaveBeenCalled();
   });
 });
 
@@ -134,6 +140,7 @@ describe('TransactionsResolver — allocation ResolveFields', () => {
       listForTransaction: jest.fn().mockResolvedValue([{ id: 'alloc-1' }]),
     };
     const resolver = new TransactionsResolver(
+      {} as never,
       {} as never,
       {} as never,
       allocationsService as never,

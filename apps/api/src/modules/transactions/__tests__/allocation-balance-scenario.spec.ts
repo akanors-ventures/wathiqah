@@ -8,6 +8,7 @@ import { InAppNotificationsService } from '../../in-app-notifications/in-app-not
 import { ContactsService } from '../../contacts/contacts.service';
 import { TransactionsService } from '../transactions.service';
 import { TransactionSummaryService } from '../transaction-summary.service';
+import { TransactionSettlementService } from '../transaction-settlement.service';
 import { TransactionAllocationsService } from '../transaction-allocations.service';
 import { FakePrisma } from './fake-prisma';
 
@@ -79,6 +80,7 @@ describe('Allocation × contact standing (scenario)', () => {
         ContactsService,
         TransactionsService,
         TransactionSummaryService,
+        TransactionSettlementService,
         TransactionAllocationsService,
         { provide: PrismaService, useValue: prisma },
         {

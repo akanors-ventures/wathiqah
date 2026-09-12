@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { TransactionsService } from './transactions.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
 import {
   AssetCategory,
   Prisma,
@@ -51,7 +51,7 @@ type EndpointRow = {
 export class TransactionAllocationsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly transactionsService: TransactionsService,
+    private readonly transactionSettlementService: TransactionSettlementService,
   ) {}
 
   /**
@@ -168,10 +168,11 @@ export class TransactionAllocationsService {
       // this used to run serially while every FOR UPDATE lock above was
       // held, extending lock contention with any concurrent allocation
       // against the same rows.
-      const settledById = await this.transactionsService.loadSettledAmounts(
-        tx,
-        [sourceTransactionId, ...targetIds],
-      );
+      const settledById =
+        await this.transactionSettlementService.loadSettledAmounts(tx, [
+          sourceTransactionId,
+          ...targetIds,
+        ]);
 
       const sourceSettled = settledById.get(sourceTransactionId) ?? 0;
       let sourceRemaining = computeOutstanding(source.amount, sourceSettled);
@@ -252,7 +253,7 @@ export class TransactionAllocationsService {
         // targetSettled + amount is the exact post-allocation total — no
         // target receives more than one allocation per pass (targetIds are
         // deduped above), so this doesn't need to be re-read.
-        await this.transactionsService.recomputeParentLoanStatus(
+        await this.transactionSettlementService.recomputeParentLoanStatus(
           tx,
           targetTransactionId,
           userId,
@@ -268,7 +269,7 @@ export class TransactionAllocationsService {
         );
       }
 
-      await this.transactionsService.recomputeParentLoanStatus(
+      await this.transactionSettlementService.recomputeParentLoanStatus(
         tx,
         sourceTransactionId,
         userId,
@@ -357,12 +358,12 @@ export class TransactionAllocationsService {
 
       // Order matters only for readability — each recompute reads the now
       // REVERSED row, so both see the restored balances.
-      await this.transactionsService.recomputeParentLoanStatus(
+      await this.transactionSettlementService.recomputeParentLoanStatus(
         tx,
         allocation.sourceTransactionId,
         userId,
       );
-      await this.transactionsService.recomputeParentLoanStatus(
+      await this.transactionSettlementService.recomputeParentLoanStatus(
         tx,
         allocation.targetTransactionId,
         userId,
@@ -425,12 +426,12 @@ export class TransactionAllocationsService {
       },
     });
 
-    await this.transactionsService.recomputeParentLoanStatus(
+    await this.transactionSettlementService.recomputeParentLoanStatus(
       tx,
       sourceMirror.id,
       userId,
     );
-    await this.transactionsService.recomputeParentLoanStatus(
+    await this.transactionSettlementService.recomputeParentLoanStatus(
       tx,
       targetMirror.id,
       userId,
@@ -461,12 +462,12 @@ export class TransactionAllocationsService {
       },
     });
 
-    await this.transactionsService.recomputeParentLoanStatus(
+    await this.transactionSettlementService.recomputeParentLoanStatus(
       tx,
       mirror.sourceTransactionId,
       userId,
     );
-    await this.transactionsService.recomputeParentLoanStatus(
+    await this.transactionSettlementService.recomputeParentLoanStatus(
       tx,
       mirror.targetTransactionId,
       userId,
@@ -605,7 +606,7 @@ export class TransactionAllocationsService {
       take: 50,
     });
 
-    const settled = await this.transactionsService.loadSettledAmounts(
+    const settled = await this.transactionSettlementService.loadSettledAmounts(
       this.prisma,
       rows.map((row) => row.id),
     );
@@ -694,8 +695,12 @@ export class TransactionAllocationsService {
     userId: string,
     orgId: string | null,
   ): Promise<void> {
-    await this.transactionsService.assertTransactionAccess(row, userId, orgId);
-    this.transactionsService.assertWriteAuthority(
+    await this.transactionSettlementService.assertTransactionAccess(
+      row,
+      userId,
+      orgId,
+    );
+    this.transactionSettlementService.assertWriteAuthority(
       row,
       userId,
       'allocate against this transaction',

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -111,6 +112,7 @@ describe('TransactionsService - Pagination', () => {
       providers: [
         TransactionsService,
         TransactionSummaryService,
+        TransactionSettlementService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -265,6 +267,7 @@ describe('TransactionsService - Pagination', () => {
         providers: [
           TransactionsService,
           TransactionSummaryService,
+          TransactionSettlementService,
           { provide: PrismaService, useValue: scopePrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -366,6 +369,7 @@ describe('TransactionsService - Pagination', () => {
         providers: [
           TransactionsService,
           TransactionSummaryService,
+          TransactionSettlementService,
           { provide: PrismaService, useValue: validationPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -592,6 +596,7 @@ describe('TransactionsService - Pagination', () => {
         providers: [
           TransactionsService,
           TransactionSummaryService,
+          TransactionSettlementService,
           { provide: PrismaService, useValue: accessPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -697,41 +702,6 @@ describe('TransactionsService - Pagination', () => {
           null,
         ),
       ).rejects.toThrow(ForbiddenException);
-    });
-  });
-
-  describe('TransactionsService.assertWriteAuthority', () => {
-    // The single home for "personal rows are creator-only" — update(),
-    // remove(), and TransactionAllocationsService.assertWriteAuthority all
-    // call this rather than each hand-writing the same condition.
-    it('forbids a non-creator on a personal row', () => {
-      expect(() =>
-        service.assertWriteAuthority(
-          { orgId: null, createdById: 'fawaz' },
-          'someone-else',
-          'edit this thing',
-        ),
-      ).toThrow('Only the creator can edit this thing');
-    });
-
-    it('allows the creator on a personal row', () => {
-      expect(() =>
-        service.assertWriteAuthority(
-          { orgId: null, createdById: 'fawaz' },
-          'fawaz',
-          'edit this thing',
-        ),
-      ).not.toThrow();
-    });
-
-    it('allows anyone on an org-scoped row — membership is checked separately', () => {
-      expect(() =>
-        service.assertWriteAuthority(
-          { orgId: 'org-1', createdById: 'fawaz' },
-          'someone-else',
-          'edit this thing',
-        ),
-      ).not.toThrow();
     });
   });
 
@@ -956,6 +926,7 @@ describe('TransactionsService — in-app notification wiring', () => {
       providers: [
         TransactionsService,
         TransactionSummaryService,
+        TransactionSettlementService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },

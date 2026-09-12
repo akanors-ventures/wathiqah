@@ -11,6 +11,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from './transactions.service';
 import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
 import { Transaction } from './entities/transaction.entity';
 import { TransactionAllocation } from './entities/transaction-allocation.entity';
 import { TransactionAllocationsService } from './transaction-allocations.service';
@@ -43,6 +44,7 @@ export class TransactionsResolver {
   constructor(
     private readonly transactionsService: TransactionsService,
     private readonly transactionSummaryService: TransactionSummaryService,
+    private readonly transactionSettlementService: TransactionSettlementService,
     private readonly allocationsService: TransactionAllocationsService,
     private readonly prisma: PrismaService,
   ) {}
@@ -69,7 +71,7 @@ export class TransactionsResolver {
       return transaction.remainingAmount;
     }
 
-    const settled = await this.transactionsService.loadSettledAmount(
+    const settled = await this.transactionSettlementService.loadSettledAmount(
       this.prisma,
       transaction.id,
     );
