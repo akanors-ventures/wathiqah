@@ -7,6 +7,9 @@ import { NotificationService } from '../../notifications/notification.service';
 import { ExchangeRateService } from '../../exchange-rate/exchange-rate.service';
 import { InAppNotificationsService } from '../../in-app-notifications/in-app-notifications.service';
 import { TransactionsService } from '../transactions.service';
+import { TransactionSummaryService } from '../transaction-summary.service';
+import { TransactionSettlementService } from '../transaction-settlement.service';
+import { WitnessesService } from '../../witnesses/witnesses.service';
 import { TransactionAllocationsService } from '../transaction-allocations.service';
 import { FakePrisma } from './fake-prisma';
 
@@ -67,6 +70,9 @@ describe('TransactionAllocationsService', () => {
     const module = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         TransactionAllocationsService,
         { provide: PrismaService, useValue: prisma },
         {

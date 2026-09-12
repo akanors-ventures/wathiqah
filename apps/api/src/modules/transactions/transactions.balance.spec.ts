@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -84,6 +87,9 @@ describe('TransactionsService - Balance & Audit', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -202,6 +208,103 @@ describe('TransactionsService - Balance & Audit', () => {
       expect(result.summary.totalLoanReceived).toBe(15000); // 10 * 1500
       expect(result.summary.netBalance).toBe(15000);
     });
+
+    it("should deduct a non-cancelled gift conversion from its parent loan's contribution to netBalance", async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        preferredCurrency: 'NGN',
+      });
+
+      // findMany call order: [0] items list (findAll), [1] ownLoans, [2] contactLoans
+      (prisma.transaction.findMany as jest.Mock)
+        .mockResolvedValueOnce([]) // items list
+        .mockResolvedValueOnce([
+          // A LOAN_GIVEN 200 with a non-cancelled GIFT_GIVEN 50 conversion against it
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            amount: 200,
+            conversions: [{ amount: 50 }],
+            allocationsIn: [],
+            allocationsOut: [],
+          },
+        ]) // ownLoans
+        .mockResolvedValueOnce([]); // contactLoans
+
+      // groupBy still returns the raw, un-adjusted sum — it can't see the
+      // parent/child gift-conversion relationship.
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 200 },
+          },
+        ]) // ownAggregations
+        .mockResolvedValueOnce([]); // contactAggregations
+
+      const result = await service.findAll(userId, null);
+
+      // Effective contribution matches contacts.service.ts's
+      // `effectiveTransactionAmount` (200 - 50 = 150), not the raw 200 the
+      // groupBy sum alone would produce — that raw value is exactly what
+      // contact-standing (contacts.service.ts) already avoids by applying
+      // the same gift deduction, so the two now agree instead of diverging.
+      expect(result.summary.totalLoanGiven).toBe(150);
+      expect(result.summary.netBalance).toBe(-150); // totalLoanReceived(0) - totalLoanGiven(150)
+    });
+
+    it('should not double-count a gift conversion when its own GIFT_GIVEN row is also present in the raw aggregation', async () => {
+      // The gift-conversion child is a real Transaction row (type
+      // GIFT_GIVEN, parentId set) with nothing excluding it from the
+      // ownAggregations groupBy — a real DB call returns it as its own
+      // bucket entry alongside the parent LOAN_GIVEN bucket, unlike the
+      // previous test which only mocks the loan bucket in isolation.
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        preferredCurrency: 'NGN',
+      });
+
+      (prisma.transaction.findMany as jest.Mock)
+        .mockResolvedValueOnce([]) // items list
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            amount: 200,
+            conversions: [{ amount: 50 }],
+            allocationsIn: [],
+            allocationsOut: [],
+          },
+        ]) // ownLoans
+        .mockResolvedValueOnce([]); // contactLoans
+
+      (prisma.transaction.groupBy as jest.Mock)
+        .mockResolvedValueOnce([
+          {
+            type: TransactionType.LOAN_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 200 },
+          },
+          {
+            // The conversion child itself, summed under its own type by the
+            // same groupBy call — this is what a live DB query returns.
+            type: TransactionType.GIFT_GIVEN,
+            currency: 'NGN',
+            _sum: { amount: 50 },
+          },
+        ]) // ownAggregations
+        .mockResolvedValueOnce([]); // contactAggregations
+
+      const result = await service.findAll(userId, null);
+
+      // totalLoanGiven is gift-adjusted (150), and the conversion still
+      // shows up as its own gift (50) — together they equal the original
+      // loan (200), so netBalance reflects the total value transferred
+      // exactly once, not twice (-250) and not zero-summed (-150).
+      expect(result.summary.totalLoanGiven).toBe(150);
+      expect(result.summary.totalGiftGiven).toBe(50);
+      expect(result.summary.netBalance).toBe(-200);
+    });
+
     it('should exclude CANCELLED transactions from balance calculation', async () => {
       // Mock user preferred currency
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({

@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -95,11 +98,15 @@ const mockNotificationService = {
 
 describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMirror)', () => {
   let service: TransactionsService;
+  let settlementService: TransactionSettlementService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         {
           provide: ConfigService,
@@ -119,6 +126,7 @@ describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMir
     }).compile();
 
     service = module.get(TransactionsService);
+    settlementService = module.get(TransactionSettlementService);
     jest.clearAllMocks();
 
     // findUnique with no id (e.g. processWitnesses' post-create lookup, or a
@@ -287,7 +295,7 @@ describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMir
       // stays focused on the mirror-creation call itself.
       const recomputeSpy = jest
         .spyOn(
-          service as unknown as {
+          settlementService as unknown as {
             recomputeParentLoanStatus: (...args: unknown[]) => Promise<void>;
           },
           'recomputeParentLoanStatus',
@@ -419,7 +427,7 @@ describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMir
       );
       jest
         .spyOn(
-          service as unknown as {
+          settlementService as unknown as {
             recomputeParentLoanStatus: (...args: unknown[]) => Promise<void>;
           },
           'recomputeParentLoanStatus',

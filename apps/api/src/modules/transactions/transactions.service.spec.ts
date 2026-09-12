@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -109,6 +112,9 @@ describe('TransactionsService - Pagination', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -164,6 +170,8 @@ describe('TransactionsService - Pagination', () => {
     parentId: null,
     parent: null,
     conversions: [],
+    allocationsIn: [],
+    allocationsOut: [],
   });
 
   describe('findAll with pagination', () => {
@@ -216,10 +224,15 @@ describe('TransactionsService - Pagination', () => {
         return (arg as (p: unknown) => Promise<unknown>)(prisma);
       });
 
-      // Capture findMany args by spying
+      // Capture the args of the FIRST findMany call — the paginated items
+      // query. calculateConvertedSummary issues its own later findMany
+      // calls (gift-conversion lookups) with no skip/take, so only the
+      // first call is relevant here.
       prisma.transaction.findMany.mockImplementation(
         (args: Record<string, unknown>) => {
-          capturedFindManyArgs = args;
+          if (capturedFindManyArgs === undefined) {
+            capturedFindManyArgs = args;
+          }
           return Promise.resolve(mockItems);
         },
       );
@@ -255,6 +268,9 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
+          TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: scopePrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -355,6 +371,9 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
+          TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: validationPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -552,6 +571,8 @@ describe('TransactionsService - Pagination', () => {
       witnesses: [],
       history: [],
       conversions: [],
+      allocationsIn: [],
+      allocationsOut: [],
     };
 
     const personalRow = {
@@ -578,6 +599,9 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
+          TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: accessPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -683,41 +707,6 @@ describe('TransactionsService - Pagination', () => {
           null,
         ),
       ).rejects.toThrow(ForbiddenException);
-    });
-  });
-
-  describe('TransactionsService.assertWriteAuthority', () => {
-    // The single home for "personal rows are creator-only" — update(),
-    // remove(), and TransactionAllocationsService.assertWriteAuthority all
-    // call this rather than each hand-writing the same condition.
-    it('forbids a non-creator on a personal row', () => {
-      expect(() =>
-        service.assertWriteAuthority(
-          { orgId: null, createdById: 'fawaz' },
-          'someone-else',
-          'edit this thing',
-        ),
-      ).toThrow('Only the creator can edit this thing');
-    });
-
-    it('allows the creator on a personal row', () => {
-      expect(() =>
-        service.assertWriteAuthority(
-          { orgId: null, createdById: 'fawaz' },
-          'fawaz',
-          'edit this thing',
-        ),
-      ).not.toThrow();
-    });
-
-    it('allows anyone on an org-scoped row — membership is checked separately', () => {
-      expect(() =>
-        service.assertWriteAuthority(
-          { orgId: 'org-1', createdById: 'fawaz' },
-          'someone-else',
-          'edit this thing',
-        ),
-      ).not.toThrow();
     });
   });
 
@@ -933,12 +922,17 @@ describe('TransactionsService — in-app notification wiring', () => {
     createdBy: { firstName: 'Musa', lastName: 'Ibrahim' },
     history: [],
     conversions: [],
+    allocationsIn: [],
+    allocationsOut: [],
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },

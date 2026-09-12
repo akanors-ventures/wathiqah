@@ -3,7 +3,6 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
-  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionInput } from './dto/create-transaction.input';
@@ -16,637 +15,37 @@ import {
   TransactionType,
   ProjectTransactionType,
   Prisma,
-  Witness,
 } from '../../generated/prisma/client';
-import { v4 as uuidv4 } from 'uuid';
-import { hashToken } from '../../common/utils/crypto.utils';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { ConfigService } from '@nestjs/config';
-import * as ms from 'ms';
-import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { NotificationTemplates } from '../in-app-notifications/notification-templates';
-import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
-import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { computeProjectTransactionBalanceEffect } from '../projects/project-transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import {
+  WitnessesService,
+  WitnessNotification,
+} from '../witnesses/witnesses.service';
 import {
   computeOutstanding,
-  computeSettledAmount,
   isLifecycleObligationType,
 } from './settlement.util';
+import { applyPerspective } from './summary.util';
 
-/** Perspective-flip pairs for shared-ledger view. */
-const PERSPECTIVE_FLIP_MAP: Partial<Record<string, string>> = {
-  LOAN_GIVEN: 'LOAN_RECEIVED',
-  LOAN_RECEIVED: 'LOAN_GIVEN',
-  REPAYMENT_MADE: 'REPAYMENT_RECEIVED',
-  REPAYMENT_RECEIVED: 'REPAYMENT_MADE',
-  GIFT_GIVEN: 'GIFT_RECEIVED',
-  GIFT_RECEIVED: 'GIFT_GIVEN',
-  ADVANCE_PAID: 'ADVANCE_RECEIVED',
-  ADVANCE_RECEIVED: 'ADVANCE_PAID',
-  DEPOSIT_PAID: 'DEPOSIT_RECEIVED',
-  DEPOSIT_RECEIVED: 'DEPOSIT_PAID',
-  ESCROWED: 'REMITTED',
-  REMITTED: 'ESCROWED',
-};
-
-function computeNetBalance(summary: TransactionSummary): number {
-  return (
-    summary.totalLoanReceived -
-    summary.totalLoanGiven +
-    summary.totalRepaymentReceived -
-    summary.totalRepaymentMade +
-    summary.totalGiftReceived -
-    summary.totalGiftGiven +
-    summary.totalAdvanceReceived -
-    summary.totalAdvancePaid +
-    summary.totalDepositReceived -
-    summary.totalDepositPaid +
-    summary.totalEscrowed -
-    summary.totalRemitted
-  );
-}
-
-export interface WitnessNotification {
-  witnessId: string;
-  userId: string;
-  email: string;
-  firstName: string;
-  rawToken: string;
-  senderId: string;
-  phoneNumber?: string;
-  transactionDetails: {
-    creatorName: string;
-    contactName: string;
-    amount: string;
-    itemName?: string;
-    currency?: string;
-    category: AssetCategory;
-    type: TransactionType;
-  };
-}
-
-export interface TransactionSummary {
-  totalLoanGiven: number;
-  totalLoanReceived: number;
-  totalRepaymentMade: number;
-  totalRepaymentReceived: number;
-  totalGiftGiven: number;
-  totalGiftReceived: number;
-  totalAdvancePaid: number;
-  totalAdvanceReceived: number;
-  totalDepositPaid: number;
-  totalDepositReceived: number;
-  totalEscrowed: number;
-  totalRemitted: number;
-  netBalance?: number;
-  currency: string;
-}
+export { TransactionSummary } from './summary.util';
 
 @Injectable()
 export class TransactionsService {
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
-    private readonly exchangeRateService: ExchangeRateService,
+    private readonly transactionSummaryService: TransactionSummaryService,
+    private readonly transactionSettlementService: TransactionSettlementService,
     private readonly inAppNotificationsService: InAppNotificationsService,
+    private readonly witnessesService: WitnessesService,
   ) {}
-
-  /**
-   * Total amount discharged against one transaction: non-cancelled children
-   * (repayments / remittances / gift conversions) plus ACTIVE allocations on
-   * BOTH legs. Three aggregates rather than findMany + reduce — same result,
-   * less data over the wire.
-   *
-   * @internal call sites within TransactionsModule only
-   */
-  async loadSettledAmount(
-    prisma: Prisma.TransactionClient,
-    transactionId: string,
-  ): Promise<number> {
-    const [children, allocationsIn, allocationsOut] = await Promise.all([
-      prisma.transaction.aggregate({
-        _sum: { amount: true },
-        where: {
-          parentId: transactionId,
-          status: { not: TransactionStatus.CANCELLED },
-        },
-      }),
-      prisma.transactionAllocation.aggregate({
-        _sum: { amount: true },
-        where: { targetTransactionId: transactionId, status: 'ACTIVE' },
-      }),
-      prisma.transactionAllocation.aggregate({
-        _sum: { amount: true },
-        where: { sourceTransactionId: transactionId, status: 'ACTIVE' },
-      }),
-    ]);
-
-    return computeSettledAmount({
-      children: [{ amount: children._sum.amount }],
-      allocationsIn: [{ amount: allocationsIn._sum.amount }],
-      allocationsOut: [{ amount: allocationsOut._sum.amount }],
-    });
-  }
-
-  /**
-   * Batched form of loadSettledAmount: three groupBy queries regardless of how
-   * many ids are passed. Used to pre-compute `remainingAmount` for a whole page
-   * of results instead of one query per row (there is no DataLoader in this
-   * codebase — see the remainingAmount ResolveField).
-   *
-   * @internal call sites within TransactionsModule only
-   */
-  async loadSettledAmounts(
-    prisma: Prisma.TransactionClient,
-    ids: string[],
-  ): Promise<Map<string, number>> {
-    const settled = new Map<string, number>();
-    if (ids.length === 0) return settled;
-
-    const [children, allocationsIn, allocationsOut] = await Promise.all([
-      prisma.transaction.groupBy({
-        by: ['parentId'],
-        _sum: { amount: true },
-        where: {
-          parentId: { in: ids },
-          status: { not: TransactionStatus.CANCELLED },
-        },
-      }),
-      prisma.transactionAllocation.groupBy({
-        by: ['targetTransactionId'],
-        _sum: { amount: true },
-        where: { targetTransactionId: { in: ids }, status: 'ACTIVE' },
-      }),
-      prisma.transactionAllocation.groupBy({
-        by: ['sourceTransactionId'],
-        _sum: { amount: true },
-        where: { sourceTransactionId: { in: ids }, status: 'ACTIVE' },
-      }),
-    ]);
-
-    const add = (id: string | null, amount: unknown) => {
-      if (!id) return;
-      settled.set(id, (settled.get(id) ?? 0) + Number(amount ?? 0));
-    };
-    for (const row of children) add(row.parentId, row._sum.amount);
-    for (const row of allocationsIn)
-      add(row.targetTransactionId, row._sum.amount);
-    for (const row of allocationsOut)
-      add(row.sourceTransactionId, row._sum.amount);
-
-    for (const id of ids) if (!settled.has(id)) settled.set(id, 0);
-    return settled;
-  }
-
-  /**
-   * Attaches a pre-computed `remainingAmount` to each lifecycle row in a page
-   * of results. Three queries for the whole page instead of three per row —
-   * the `remainingAmount` ResolveField short-circuits when the value is
-   * already here. There is no DataLoader in this codebase; that is the general
-   * fix and belongs in its own change.
-   *
-   * @internal call sites within TransactionsModule only
-   */
-  async attachRemainingAmounts<
-    T extends { id: string; type: string; amount: unknown },
-  >(items: T[]): Promise<T[]> {
-    const lifecycleIds = items
-      .filter((item) => isLifecycleObligationType(item.type) && item.amount)
-      .map((item) => item.id);
-    if (lifecycleIds.length === 0) return items;
-
-    const settled = await this.loadSettledAmounts(this.prisma, lifecycleIds);
-    return items.map((item) =>
-      settled.has(item.id)
-        ? {
-            ...item,
-            remainingAmount: computeOutstanding(
-              item.amount as number,
-              settled.get(item.id) ?? 0,
-            ),
-          }
-        : item,
-    );
-  }
-
-  /**
-   * Recomputes a parent transaction's lifecycle status based on its
-   * non-cancelled children.
-   *
-   * Applies to the three "lifecycle" parent types:
-   *  - LOAN_GIVEN / LOAN_RECEIVED — children are repayments + gift conversions
-   *  - ESCROWED — children are remittances (REMITTED)
-   *
-   * - PENDING (a.k.a. "ACTIVE"): outstanding > 0
-   * - COMPLETED (a.k.a. "SETTLED"): outstanding === 0
-   *
-   * Cancelled parents are left as-is. A parent that flips between PENDING
-   * and COMPLETED writes a TransactionHistory row so the audit trail
-   * captures the auto-transition.
-   */
-  /** @internal call sites within TransactionsModule only */
-  async recomputeParentLoanStatus(
-    prisma: Prisma.TransactionClient,
-    parentId: string,
-    userId: string,
-    // Caller may already have summed the non-cancelled children (e.g.
-    // syncMirroredAmount computes this to validate the new amount) — skip
-    // the redundant findMany when it's passed.
-    preloadedSettledAmount?: number,
-  ): Promise<void> {
-    const parent = await prisma.transaction.findUnique({
-      where: { id: parentId },
-      select: { id: true, amount: true, status: true, type: true },
-    });
-
-    if (!parent || !parent.amount) return;
-    if (parent.status === TransactionStatus.CANCELLED) return;
-    // Only obligation types carry a "settled" lifecycle
-    if (!isLifecycleObligationType(parent.type)) return;
-
-    const settled =
-      preloadedSettledAmount ??
-      (await this.loadSettledAmount(prisma, parentId));
-    const parentAmount = Number(parent.amount);
-    const isFullySettled = settled >= parentAmount;
-    const nextStatus = isFullySettled
-      ? TransactionStatus.COMPLETED
-      : TransactionStatus.PENDING;
-
-    if (nextStatus === parent.status) return;
-
-    await prisma.transaction.update({
-      where: { id: parentId },
-      data: { status: nextStatus },
-    });
-
-    await prisma.transactionHistory.create({
-      data: {
-        transactionId: parentId,
-        userId,
-        changeType: isFullySettled ? 'AUTO_SETTLED' : 'AUTO_REOPENED',
-        previousState: { status: parent.status } as Prisma.InputJsonValue,
-        newState: { status: nextStatus } as Prisma.InputJsonValue,
-      },
-    });
-  }
-
-  /**
-   * Voids every ACTIVE allocation touching a transaction that is being
-   * cancelled or deleted, and recomputes the surviving counterpart. Without
-   * this, cancelling a credit pool would leave every obligation it settled
-   * silently over-settled. Must run BEFORE a hard delete, while the rows are
-   * still readable.
-   *
-   * @internal called by remove() below
-   */
-  async voidAllocationsFor(
-    tx: Prisma.TransactionClient,
-    transactionId: string,
-    userId: string,
-  ): Promise<void> {
-    const active = await tx.transactionAllocation.findMany({
-      where: {
-        status: 'ACTIVE',
-        OR: [
-          { sourceTransactionId: transactionId },
-          { targetTransactionId: transactionId },
-        ],
-      },
-    });
-    if (active.length === 0) return;
-
-    await tx.transactionAllocation.updateMany({
-      where: { id: { in: active.map((a) => a.id) } },
-      data: {
-        status: 'REVERSED',
-        reversedAt: new Date(),
-        reversedById: userId,
-      },
-    });
-
-    for (const allocation of active) {
-      const counterpartId =
-        allocation.sourceTransactionId === transactionId
-          ? allocation.targetTransactionId
-          : allocation.sourceTransactionId;
-
-      await tx.transactionHistory.create({
-        data: {
-          transactionId: counterpartId,
-          userId,
-          changeType: 'ALLOCATION_VOIDED',
-          previousState: { allocationId: allocation.id, status: 'ACTIVE' },
-          newState: {
-            allocationId: allocation.id,
-            status: 'REVERSED',
-            amount: Number(allocation.amount),
-            reason: 'counterpart transaction removed',
-          },
-        },
-      });
-
-      await this.recomputeParentLoanStatus(tx, counterpartId, userId);
-
-      // The allocation being voided may itself have a personal-ledger echo
-      // (maybeMirrorAllocation, transaction-allocations.service.ts) when the
-      // credit and obligation are both org rows mirrored to the same user.
-      // Without this, cancelling or deleting an org endpoint reversed the
-      // org-side allocation but left the mirror ACTIVE — its obligation
-      // stayed permanently COMPLETED with no path to fix it, since reverse()
-      // short-circuits on an already-REVERSED org allocation before ever
-      // reaching the mirror.
-      const mirror = await tx.transactionAllocation.findUnique({
-        where: { orgSourceAllocationId: allocation.id },
-      });
-      if (mirror && mirror.status === 'ACTIVE') {
-        await tx.transactionAllocation.update({
-          where: { id: mirror.id },
-          data: {
-            status: 'REVERSED',
-            reversedAt: new Date(),
-            reversedById: userId,
-          },
-        });
-
-        await tx.transactionHistory.createMany({
-          data: [
-            {
-              transactionId: mirror.sourceTransactionId,
-              userId,
-              changeType: 'ALLOCATION_VOIDED',
-              previousState: { allocationId: mirror.id, status: 'ACTIVE' },
-              newState: {
-                allocationId: mirror.id,
-                status: 'REVERSED',
-                amount: Number(mirror.amount),
-                reason: 'counterpart transaction removed',
-              },
-            },
-            {
-              transactionId: mirror.targetTransactionId,
-              userId,
-              changeType: 'ALLOCATION_VOIDED',
-              previousState: { allocationId: mirror.id, status: 'ACTIVE' },
-              newState: {
-                allocationId: mirror.id,
-                status: 'REVERSED',
-                amount: Number(mirror.amount),
-                reason: 'counterpart transaction removed',
-              },
-            },
-          ],
-        });
-
-        await this.recomputeParentLoanStatus(
-          tx,
-          mirror.sourceTransactionId,
-          userId,
-        );
-        await this.recomputeParentLoanStatus(
-          tx,
-          mirror.targetTransactionId,
-          userId,
-        );
-      }
-    }
-  }
-
-  private async processWitnesses(
-    transactionId: string,
-    witnessUserIds: string[] | undefined,
-    witnessInvites: WitnessInviteInput[] | undefined,
-    prisma: Prisma.TransactionClient,
-  ): Promise<WitnessNotification[]> {
-    const notifications: WitnessNotification[] = [];
-
-    // Fetch transaction details for the notification
-    const transaction = await prisma.transaction.findUnique({
-      where: { id: transactionId },
-      include: {
-        createdBy: true,
-        contact: true,
-      },
-    });
-
-    if (!transaction) return notifications;
-
-    const creatorName = `${transaction.createdBy.firstName} ${transaction.createdBy.lastName}`;
-    const contactName = transaction.contact
-      ? `${transaction.contact.firstName} ${transaction.contact.lastName}`
-      : 'N/A';
-
-    const transactionDetails = {
-      creatorName,
-      contactName,
-      amount: transaction.amount?.toString(),
-      itemName: transaction.itemName,
-      currency: transaction.currency,
-      description: transaction.description || undefined,
-      date: transaction.date
-        ? new Intl.DateTimeFormat('en-NG', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          }).format(new Date(transaction.date))
-        : undefined,
-      quantity: transaction.quantity ? String(transaction.quantity) : undefined,
-      category: transaction.category,
-      type: transaction.type,
-    };
-
-    // Handle existing users as witnesses
-    if (witnessUserIds && witnessUserIds.length > 0) {
-      const witnessDetails: (Witness & {
-        user: {
-          email: string;
-          firstName: string;
-          lastName: string;
-          phoneNumber: string | null;
-        };
-      })[] = [];
-
-      for (const witnessUserId of witnessUserIds) {
-        // Use upsert to handle duplicates and get the witness record
-        const witness = await prisma.witness.upsert({
-          where: {
-            transactionId_userId: {
-              transactionId,
-              userId: witnessUserId,
-            },
-          },
-          update: {}, // No updates needed if it exists
-          create: {
-            transactionId,
-            userId: witnessUserId,
-            status: WitnessStatus.PENDING,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-              },
-            },
-          },
-        });
-
-        witnessDetails.push(
-          witness as Witness & {
-            user: {
-              email: string;
-              firstName: string;
-              lastName: string;
-              phoneNumber: string | null;
-            };
-          },
-        );
-      }
-
-      for (const witness of witnessDetails) {
-        const rawToken = uuidv4();
-
-        notifications.push({
-          witnessId: witness.id,
-          userId: witness.userId,
-          email: witness.user.email,
-          firstName: witness.user.firstName,
-          rawToken,
-          senderId: transaction.createdById,
-          phoneNumber: witness.user.phoneNumber || undefined,
-          transactionDetails,
-        });
-      }
-    }
-
-    // Handle new user invites
-    if (witnessInvites && witnessInvites.length > 0) {
-      for (const invite of witnessInvites) {
-        const normalizedEmail = normalizeEmail(invite.email);
-        // Check if user already exists by email
-        let user = await prisma.user.findUnique({
-          where: { email: normalizedEmail },
-        });
-
-        // If not, create a placeholder user
-        if (!user) {
-          const { firstName, lastName } = splitName(invite.name);
-          user = await prisma.user.create({
-            data: {
-              email: normalizedEmail,
-              firstName,
-              lastName,
-              phoneNumber: invite.phoneNumber,
-              passwordHash: null, // Indicates invited user
-            },
-          });
-        }
-
-        // Check if witness record already exists
-        const existingWitness = await prisma.witness.findUnique({
-          where: {
-            transactionId_userId: {
-              transactionId,
-              userId: user.id,
-            },
-          },
-        });
-
-        let witnessId: string;
-        if (!existingWitness) {
-          // Create witness record WITHOUT invite token first (we'll store it in Redis)
-          const newWitness = await prisma.witness.create({
-            data: {
-              transactionId,
-              userId: user.id,
-              status: WitnessStatus.PENDING,
-            },
-          });
-          witnessId = newWitness.id;
-        } else {
-          witnessId = existingWitness.id;
-        }
-
-        const rawToken = uuidv4();
-
-        const targetEmail = normalizedEmail || user.email;
-        const { firstName } = splitName(invite.name);
-        const targetName = firstName || user.firstName;
-
-        notifications.push({
-          witnessId,
-          userId: user.id,
-          email: targetEmail,
-          firstName: targetName,
-          rawToken,
-          senderId: transaction.createdById,
-          phoneNumber: invite.phoneNumber || user.phoneNumber || undefined,
-          transactionDetails,
-        });
-      }
-    }
-
-    return notifications;
-  }
-
-  async notifyWitnesses(notifications: WitnessNotification[]) {
-    for (const notification of notifications) {
-      const {
-        witnessId,
-        userId,
-        email,
-        firstName,
-        rawToken,
-        senderId,
-        phoneNumber,
-        transactionDetails,
-      } = notification;
-      const hashedToken = hashToken(rawToken);
-
-      // Store in Redis: `invite:${hashedToken}` -> `witnessId`
-      await this.cacheManager.set(
-        `invite:${hashedToken}`,
-        witnessId,
-        ms(
-          this.configService.getOrThrow<string>(
-            'auth.inviteTokenExpiry',
-          ) as ms.StringValue,
-        ),
-      );
-
-      // Send notification
-      await this.notificationService.sendTransactionWitnessInvite(
-        email,
-        firstName,
-        rawToken,
-        transactionDetails,
-        senderId,
-        phoneNumber,
-      );
-
-      // In-app notification — fire-and-forget, never blocks the invite flow
-      this.inAppNotificationsService.createSafely(
-        {
-          userId,
-          ...NotificationTemplates.witnessInvited(
-            transactionDetails.creatorName,
-          ),
-        },
-        `witness invite (${userId})`,
-      );
-    }
-  }
 
   async create(
     createTransactionInput: CreateTransactionInput,
@@ -667,9 +66,11 @@ export class TransactionsService {
 
     // Send notifications after transaction commits
     if (notifications.length > 0) {
-      await this.notifyWitnesses(notifications).catch((err) => {
-        console.error('Failed to send witness notifications:', err);
-      });
+      await this.witnessesService
+        .notifyWitnesses(notifications)
+        .catch((err) => {
+          console.error('Failed to send witness notifications:', err);
+        });
     }
 
     return transaction;
@@ -776,7 +177,11 @@ export class TransactionsService {
     });
 
     if (mirrorParentId) {
-      await this.recomputeParentLoanStatus(prisma, mirrorParentId, userId);
+      await this.transactionSettlementService.recomputeParentLoanStatus(
+        prisma,
+        mirrorParentId,
+        userId,
+      );
     }
   }
 
@@ -914,10 +319,11 @@ export class TransactionsService {
 
         // Outstanding = parent amount - (repayment children + gift conversions
         // + anything already allocated against it from a credit pool)
-        const alreadySettled = await this.loadSettledAmount(
-          prisma,
-          rest.parentId,
-        );
+        const alreadySettled =
+          await this.transactionSettlementService.loadSettledAmount(
+            prisma,
+            rest.parentId,
+          );
         const outstanding = computeOutstanding(
           parentTransaction.amount,
           alreadySettled,
@@ -962,10 +368,11 @@ export class TransactionsService {
         // allocated out of this escrow to settle an obligation elsewhere).
         // Without the allocation term the same money could be both allocated
         // and remitted — this is the anti-double-spend guard.
-        const alreadyRemitted = await this.loadSettledAmount(
-          prisma,
-          rest.parentId,
-        );
+        const alreadyRemitted =
+          await this.transactionSettlementService.loadSettledAmount(
+            prisma,
+            rest.parentId,
+          );
         const outstanding = computeOutstanding(
           parentTransaction.amount,
           alreadyRemitted,
@@ -1103,10 +510,14 @@ export class TransactionsService {
 
     // Auto-flip parent status when a repayment or remittance settles it
     if (rest.parentId && (isRepayment || isRemittance)) {
-      await this.recomputeParentLoanStatus(prisma, rest.parentId, userId);
+      await this.transactionSettlementService.recomputeParentLoanStatus(
+        prisma,
+        rest.parentId,
+        userId,
+      );
     }
 
-    const notifications = await this.processWitnesses(
+    const notifications = await this.witnessesService.processWitnesses(
       transaction.id,
       witnessUserIds,
       witnessInvites,
@@ -1168,7 +579,11 @@ export class TransactionsService {
       // recomputeParentLoanStatus as preloadedSettledAmount below, so a
       // children-only value here would make a fully-settled parent never
       // reach COMPLETED.
-      alreadySettled = await this.loadSettledAmount(prisma, transactionId);
+      alreadySettled =
+        await this.transactionSettlementService.loadSettledAmount(
+          prisma,
+          transactionId,
+        );
       if (newAmount < alreadySettled) {
         throw new BadRequestException(
           `Amount (${newAmount}) cannot be less than the amount already settled (${alreadySettled}) against this transaction`,
@@ -1192,10 +607,14 @@ export class TransactionsService {
     });
 
     if (mirrored.parentId) {
-      await this.recomputeParentLoanStatus(prisma, mirrored.parentId, userId);
+      await this.transactionSettlementService.recomputeParentLoanStatus(
+        prisma,
+        mirrored.parentId,
+        userId,
+      );
     }
     if (isLifecycleParent) {
-      await this.recomputeParentLoanStatus(
+      await this.transactionSettlementService.recomputeParentLoanStatus(
         prisma,
         transactionId,
         userId,
@@ -1224,12 +643,20 @@ export class TransactionsService {
     // Same reason as in remove(): the FK cascade would drop this row's
     // allocation links silently, leaving every personal-ledger counterpart
     // permanently over-settled with no history of why.
-    await this.voidAllocationsFor(prisma, transactionId, userId);
+    await this.transactionSettlementService.voidAllocationsFor(
+      prisma,
+      transactionId,
+      userId,
+    );
 
     await prisma.transaction.delete({ where: { id: transactionId } });
 
     if (mirrored.parentId) {
-      await this.recomputeParentLoanStatus(prisma, mirrored.parentId, userId);
+      await this.transactionSettlementService.recomputeParentLoanStatus(
+        prisma,
+        mirrored.parentId,
+        userId,
+      );
     }
   }
 
@@ -1257,7 +684,7 @@ export class TransactionsService {
     let notifications: WitnessNotification[] = [];
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
-        notifications = await this.processWitnesses(
+        notifications = await this.witnessesService.processWitnesses(
           transaction.id,
           witnessUserIds,
           witnessInvites,
@@ -1280,86 +707,14 @@ export class TransactionsService {
 
     // Send notifications after transaction commits
     if (notifications.length > 0) {
-      await this.notifyWitnesses(notifications).catch((err) => {
-        console.error('Failed to send witness notifications:', err);
-      });
+      await this.witnessesService
+        .notifyWitnesses(notifications)
+        .catch((err) => {
+          console.error('Failed to send witness notifications:', err);
+        });
     }
 
     return updatedTransaction;
-  }
-
-  private flipStatePerspective(state: Record<string, unknown> | null) {
-    if (!state) return null;
-    const flipped = { ...state };
-    if (typeof state.type === 'string' && PERSPECTIVE_FLIP_MAP[state.type]) {
-      flipped.type = PERSPECTIVE_FLIP_MAP[state.type];
-    }
-    return flipped;
-  }
-
-  private applyPerspective<
-    T extends {
-      createdById: string;
-      type: TransactionType;
-      history?: {
-        previousState: unknown;
-        newState: unknown;
-      }[];
-      createdBy?: {
-        id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-        isSupporter: boolean;
-      } | null;
-      contact?: unknown;
-    },
-  >(transaction: T, userId: string): T {
-    if (transaction.createdById === userId) return transaction;
-
-    // Flip perspective for the contact
-    const transformed = { ...transaction };
-
-    // If we have creator info, use it as the contact for the viewer
-    if (transaction.createdBy) {
-      // Create a virtual contact from the creator
-      const creator = transaction.createdBy;
-      const virtualContact = {
-        id: creator.id, // Using creator's user ID as contact ID
-        firstName: creator.firstName,
-        lastName: creator.lastName,
-        name: `${creator.firstName} ${creator.lastName}`,
-        email: creator.email,
-        isSupporter: creator.isSupporter,
-        linkedUserId: creator.id,
-        userId: userId, // The viewer "owns" this virtual contact view
-        isOnPlatform: true,
-      };
-
-      // We need to cast this because we're modifying the structure potentially
-      transformed.contact = virtualContact;
-    }
-
-    if (PERSPECTIVE_FLIP_MAP[transaction.type]) {
-      transformed.type = PERSPECTIVE_FLIP_MAP[
-        transaction.type
-      ] as TransactionType;
-    }
-
-    // Flip history entries if present
-    if (transformed.history && Array.isArray(transformed.history)) {
-      transformed.history = transformed.history.map((h) => ({
-        ...h,
-        previousState: this.flipStatePerspective(
-          h.previousState as Record<string, unknown>,
-        ),
-        newState: this.flipStatePerspective(
-          h.newState as Record<string, unknown>,
-        ),
-      }));
-    }
-
-    return transformed;
   }
 
   async findAll(
@@ -1484,9 +839,10 @@ export class TransactionsService {
       }),
     ]);
 
-    const transformedItems = await this.attachRemainingAmounts(
-      items.map((item) => this.applyPerspective(item, userId)),
-    );
+    const transformedItems =
+      await this.transactionSettlementService.attachRemainingAmounts(
+        items.map((item) => applyPerspective(item, userId)),
+      );
 
     const combinedItems = transformedItems;
 
@@ -1500,11 +856,12 @@ export class TransactionsService {
       targetCurrency = user?.preferredCurrency || 'NGN';
     }
 
-    const summary = await this.calculateConvertedSummary(
-      userId,
-      where,
-      targetCurrency,
-    );
+    const summary =
+      await this.transactionSummaryService.calculateConvertedSummary(
+        userId,
+        where,
+        targetCurrency,
+      );
 
     return {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1514,329 +871,6 @@ export class TransactionsService {
       page,
       limit,
     };
-  }
-
-  private async calculateConvertedSummary(
-    userId: string,
-    where: Prisma.TransactionWhereInput,
-    targetCurrency: string,
-  ) {
-    // 1. Aggregations for transactions created by the user
-    const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'currency'],
-      where: { ...where, createdById: userId },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    // 2. Aggregations for transactions where user is the contact (flip required)
-    const contactAggregations = await this.prisma.transaction.groupBy({
-      by: ['type', 'currency'],
-      where: {
-        ...where,
-        createdById: { not: userId },
-        contact: { linkedUserId: userId },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    const summary: TransactionSummary = {
-      totalLoanGiven: 0,
-      totalLoanReceived: 0,
-      totalRepaymentMade: 0,
-      totalRepaymentReceived: 0,
-      totalGiftGiven: 0,
-      totalGiftReceived: 0,
-      totalAdvancePaid: 0,
-      totalAdvanceReceived: 0,
-      totalDepositPaid: 0,
-      totalDepositReceived: 0,
-      totalEscrowed: 0,
-      totalRemitted: 0,
-      netBalance: 0,
-      currency: targetCurrency,
-    };
-
-    // Process own transactions
-    for (const agg of ownAggregations) {
-      const amount = Number(agg._sum.amount) || 0;
-      if (amount === 0) continue;
-
-      const convertedAmount = await this.exchangeRateService.convert(
-        amount,
-        agg.currency,
-        targetCurrency,
-      );
-
-      this.updateSummaryWithTransaction(summary, agg.type, convertedAmount);
-    }
-
-    // Process contact transactions (with flip)
-    for (const agg of contactAggregations) {
-      const amount = Number(agg._sum.amount) || 0;
-      if (amount === 0) continue;
-
-      const convertedAmount = await this.exchangeRateService.convert(
-        amount,
-        agg.currency,
-        targetCurrency,
-      );
-
-      const flippedType = (PERSPECTIVE_FLIP_MAP[agg.type] ??
-        agg.type) as TransactionType;
-      this.updateSummaryWithTransaction(summary, flippedType, convertedAmount);
-    }
-
-    summary.netBalance = computeNetBalance(summary);
-
-    return summary;
-  }
-
-  private updateSummaryWithTransaction(
-    summary: TransactionSummary,
-    type: TransactionType,
-    amount: number,
-  ) {
-    const fieldMap: Partial<Record<string, keyof TransactionSummary>> = {
-      LOAN_GIVEN: 'totalLoanGiven',
-      LOAN_RECEIVED: 'totalLoanReceived',
-      REPAYMENT_MADE: 'totalRepaymentMade',
-      REPAYMENT_RECEIVED: 'totalRepaymentReceived',
-      GIFT_GIVEN: 'totalGiftGiven',
-      GIFT_RECEIVED: 'totalGiftReceived',
-      ADVANCE_PAID: 'totalAdvancePaid',
-      ADVANCE_RECEIVED: 'totalAdvanceReceived',
-      DEPOSIT_PAID: 'totalDepositPaid',
-      DEPOSIT_RECEIVED: 'totalDepositReceived',
-      ESCROWED: 'totalEscrowed',
-      REMITTED: 'totalRemitted',
-    };
-    const field = fieldMap[type];
-    if (field) (summary[field] as number) += amount;
-  }
-
-  async groupByContact(userId: string, filter?: FilterTransactionInput) {
-    const baseWhere: Prisma.TransactionWhereInput = {
-      status: { not: TransactionStatus.CANCELLED },
-    };
-
-    if (filter?.types && filter.types.length > 0) {
-      baseWhere.type = { in: filter.types };
-    }
-    if (filter?.startDate || filter?.endDate) {
-      baseWhere.date = {
-        ...(filter.startDate && { gte: filter.startDate }),
-        ...(filter.endDate && { lte: filter.endDate }),
-      };
-    }
-    if (filter?.minAmount !== undefined || filter?.maxAmount !== undefined) {
-      baseWhere.amount = {
-        ...(filter.minAmount !== undefined && { gte: filter.minAmount }),
-        ...(filter.maxAmount !== undefined && { lte: filter.maxAmount }),
-      };
-    }
-    if (filter?.search) {
-      baseWhere.OR = [
-        { description: { contains: filter.search, mode: 'insensitive' } },
-        { itemName: { contains: filter.search, mode: 'insensitive' } },
-      ];
-    }
-
-    // Determine target currency for summary
-    let targetCurrency = filter?.summaryCurrency || filter?.currency;
-    if (!targetCurrency) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { preferredCurrency: true },
-      });
-      targetCurrency = user?.preferredCurrency || 'NGN';
-    }
-
-    // 1. Aggregations for transactions created by the user
-    const ownAggregations = await this.prisma.transaction.groupBy({
-      by: ['contactId', 'type', 'currency'],
-      where: {
-        ...baseWhere,
-        createdById: userId,
-        contactId: filter?.contactId || undefined,
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    // 2. Aggregations for transactions where user is the contact (flip required)
-    const sharedAggregations = await this.prisma.transaction.groupBy({
-      by: ['createdById', 'type', 'currency'],
-      where: {
-        ...baseWhere,
-        createdById: { not: userId },
-        contact: { linkedUserId: userId },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    // Get all contacts for this user to map names
-    const contacts = await this.prisma.contact.findMany({
-      where: { userId },
-    });
-
-    const contactMap = new Map(contacts.map((c) => [c.id, c]));
-    // Map linkedUserId to local contactId for shared transactions
-    const linkedUserContactMap = new Map(
-      contacts.filter((c) => c.linkedUserId).map((c) => [c.linkedUserId, c.id]),
-    );
-
-    // Group aggregations by contactId
-    const groupedByContact = new Map<string | null, TransactionSummary>();
-
-    const getInitialSummary = (): TransactionSummary => ({
-      totalLoanGiven: 0,
-      totalLoanReceived: 0,
-      totalRepaymentMade: 0,
-      totalRepaymentReceived: 0,
-      totalGiftGiven: 0,
-      totalGiftReceived: 0,
-      totalAdvancePaid: 0,
-      totalAdvanceReceived: 0,
-      totalDepositPaid: 0,
-      totalDepositReceived: 0,
-      totalEscrowed: 0,
-      totalRemitted: 0,
-      netBalance: 0,
-      currency: targetCurrency,
-    });
-
-    // Process own transactions
-    for (const agg of ownAggregations) {
-      const contactId = agg.contactId;
-      if (!groupedByContact.has(contactId)) {
-        groupedByContact.set(contactId, getInitialSummary());
-      }
-
-      const summary = groupedByContact.get(contactId);
-      const amount = Number(agg._sum.amount) || 0;
-      if (amount === 0) continue;
-
-      const convertedAmount = await this.exchangeRateService.convert(
-        amount,
-        agg.currency,
-        targetCurrency,
-      );
-
-      this.updateSummaryWithTransaction(summary, agg.type, convertedAmount);
-    }
-
-    // Process shared transactions (with flip)
-    for (const agg of sharedAggregations) {
-      // Find the local contact representing the creator
-      const contactId = linkedUserContactMap.get(agg.createdById) || null;
-
-      // If we are filtering by contactId and this shared transaction doesn't match, skip
-      if (filter?.contactId && contactId !== filter.contactId) continue;
-
-      if (!groupedByContact.has(contactId)) {
-        groupedByContact.set(contactId, getInitialSummary());
-      }
-
-      const summary = groupedByContact.get(contactId);
-      const amount = Number(agg._sum.amount) || 0;
-      if (amount === 0) continue;
-
-      const convertedAmount = await this.exchangeRateService.convert(
-        amount,
-        agg.currency,
-        targetCurrency,
-      );
-
-      // Flip perspective
-      const flippedType = (PERSPECTIVE_FLIP_MAP[agg.type] ??
-        agg.type) as TransactionType;
-      this.updateSummaryWithTransaction(summary, flippedType, convertedAmount);
-    }
-
-    // Calculate net balance for each contact and format result
-    const result = Array.from(groupedByContact.entries()).map(
-      ([contactId, summary]) => {
-        summary.netBalance = computeNetBalance(summary);
-
-        return {
-          contact: contactId ? contactMap.get(contactId) : null,
-          summary,
-        };
-      },
-    );
-
-    return result;
-  }
-
-  /**
-   * Org-scoped transactions (orgId set) are shared by every active member of
-   * that org — same shape as ContactsService.assertContactAccess. Personal
-   * transactions (orgId null) remain gated on creator-or-linked-contact.
-   */
-  /** @internal call sites within TransactionsModule only */
-  async assertTransactionAccess(
-    transaction: {
-      orgId: string | null;
-      createdById: string;
-      contact?: { linkedUserId: string | null } | null;
-    },
-    userId: string,
-    orgId: string | null,
-  ): Promise<void> {
-    if (transaction.orgId) {
-      if (transaction.orgId !== orgId) {
-        throw new ForbiddenException(
-          'You do not have permission to access this transaction',
-        );
-      }
-      const member = await this.prisma.organisationMember.findUnique({
-        where: { orgId_userId: { orgId: transaction.orgId, userId } },
-      });
-      if (!member) {
-        throw new ForbiddenException(
-          'You do not have permission to access this transaction',
-        );
-      }
-      return;
-    }
-
-    const isCreator = transaction.createdById === userId;
-    const isLinkedContact = transaction.contact?.linkedUserId === userId;
-
-    if (!isCreator && !isLinkedContact) {
-      throw new ForbiddenException(
-        'You do not have permission to access this transaction',
-      );
-    }
-  }
-
-  /**
-   * Read access (assertTransactionAccess) is not the same as write access: a
-   * shared-ledger linked contact can view a personal transaction but must
-   * never mutate it — only its creator can. Org-scoped rows are shared by
-   * every active member, so this only bites on personal (orgId null) rows.
-   *
-   * Single home for that rule. It used to be hand-written independently at
-   * every call site (update(), remove(), and TransactionAllocationsService's
-   * own copy) with drifting wording — exactly the gap this repo's CLAUDE.md
-   * warns about for access-control checks. `action` only changes the message.
-   */
-  /** @internal call sites within TransactionsModule only */
-  assertWriteAuthority(
-    transaction: { orgId: string | null; createdById: string },
-    userId: string,
-    action: string,
-  ): void {
-    if (!transaction.orgId && transaction.createdById !== userId) {
-      throw new ForbiddenException(`Only the creator can ${action}`);
-    }
   }
 
   async findOne(
@@ -1878,10 +912,14 @@ export class TransactionsService {
       throw new NotFoundException(`Transaction with ID ${id} not found`);
     }
 
-    await this.assertTransactionAccess(transaction, userId, orgId);
+    await this.transactionSettlementService.assertTransactionAccess(
+      transaction,
+      userId,
+      orgId,
+    );
 
     return flipPerspective
-      ? this.applyPerspective(transaction, userId)
+      ? applyPerspective(transaction, userId)
       : transaction;
   }
 
@@ -1897,7 +935,11 @@ export class TransactionsService {
     // (already verified by findOne/assertTransactionAccess above) — personal
     // transactions remain creator-only, so the other party in a shared
     // ledger can view but not edit.
-    this.assertWriteAuthority(transaction, userId, 'update this transaction');
+    this.transactionSettlementService.assertWriteAuthority(
+      transaction,
+      userId,
+      'update this transaction',
+    );
 
     if (transaction.isMirroredFromProject) {
       throw new BadRequestException(
@@ -1968,7 +1010,11 @@ export class TransactionsService {
       // is first created, and that syncMirroredAmount enforces for project
       // mirrors; update() was the one path missing it.
       if (isLifecycleObligationType(transaction.type)) {
-        const alreadySettled = await this.loadSettledAmount(this.prisma, id);
+        const alreadySettled =
+          await this.transactionSettlementService.loadSettledAmount(
+            this.prisma,
+            id,
+          );
         if (Number(amount) < alreadySettled) {
           throw new BadRequestException(
             `Amount (${amount}) cannot be less than the amount already settled (${alreadySettled}) against this transaction`,
@@ -2151,10 +1197,11 @@ export class TransactionsService {
           isLifecycleObligationType(transaction.type)
         ) {
           await prisma.$queryRaw`SELECT id FROM "transactions" WHERE id = ${id} FOR UPDATE`;
-          const settledUnderLock = await this.loadSettledAmount(
-            prisma as Prisma.TransactionClient,
-            id,
-          );
+          const settledUnderLock =
+            await this.transactionSettlementService.loadSettledAmount(
+              prisma as Prisma.TransactionClient,
+              id,
+            );
           if (Number(changes.amount) < settledUnderLock) {
             throw new BadRequestException(
               `Amount (${changes.amount}) cannot be less than the amount already settled (${settledUnderLock}) against this transaction`,
@@ -2199,7 +1246,7 @@ export class TransactionsService {
         });
 
         if (witnessUserIds || witnessInvites) {
-          await this.processWitnesses(
+          await this.witnessesService.processWitnesses(
             id,
             witnessUserIds,
             witnessInvites,
@@ -2213,7 +1260,7 @@ export class TransactionsService {
         const amountChanged = changes.amount !== undefined;
         if (amountChanged) {
           if (transaction.parentId) {
-            await this.recomputeParentLoanStatus(
+            await this.transactionSettlementService.recomputeParentLoanStatus(
               prisma as Prisma.TransactionClient,
               transaction.parentId,
               userId,
@@ -2224,7 +1271,7 @@ export class TransactionsService {
             transaction.type === 'LOAN_RECEIVED' ||
             transaction.type === 'ESCROWED'
           ) {
-            await this.recomputeParentLoanStatus(
+            await this.transactionSettlementService.recomputeParentLoanStatus(
               prisma as Prisma.TransactionClient,
               id,
               userId,
@@ -2265,7 +1312,7 @@ export class TransactionsService {
           if (amountChanged) {
             // Mirror child (e.g. repayment) settling a mirrored loan.
             if (transaction.personalMirror.parentId) {
-              await this.recomputeParentLoanStatus(
+              await this.transactionSettlementService.recomputeParentLoanStatus(
                 prisma as Prisma.TransactionClient,
                 transaction.personalMirror.parentId,
                 userId,
@@ -2277,7 +1324,7 @@ export class TransactionsService {
               transaction.type === 'LOAN_RECEIVED' ||
               transaction.type === 'ESCROWED'
             ) {
-              await this.recomputeParentLoanStatus(
+              await this.transactionSettlementService.recomputeParentLoanStatus(
                 prisma as Prisma.TransactionClient,
                 transaction.personalMirror.id,
                 userId,
@@ -2374,7 +1421,11 @@ export class TransactionsService {
     // Org-scoped transactions are shared by every active member of that org
     // (already verified by findOne/assertTransactionAccess above) — personal
     // transactions remain creator-only.
-    this.assertWriteAuthority(transaction, userId, 'remove this transaction');
+    this.transactionSettlementService.assertWriteAuthority(
+      transaction,
+      userId,
+      'remove this transaction',
+    );
 
     if (transaction.isMirroredFromProject) {
       throw new BadRequestException(
@@ -2404,14 +1455,14 @@ export class TransactionsService {
         // Before the row disappears. The FK cascade would remove the
         // allocation rows silently, leaving every counterpart permanently
         // over-settled with no history of why.
-        await this.voidAllocationsFor(
+        await this.transactionSettlementService.voidAllocationsFor(
           prisma as Prisma.TransactionClient,
           id,
           userId,
         );
         const removed = await prisma.transaction.delete({ where: { id } });
         if (transaction.parentId) {
-          await this.recomputeParentLoanStatus(
+          await this.transactionSettlementService.recomputeParentLoanStatus(
             prisma as Prisma.TransactionClient,
             transaction.parentId,
             userId,
@@ -2452,14 +1503,14 @@ export class TransactionsService {
         // A cancelled credit pool can no longer settle anything, and a
         // cancelled obligation is no longer owed — either way the allocations
         // on it are void and their counterparts must reopen.
-        await this.voidAllocationsFor(
+        await this.transactionSettlementService.voidAllocationsFor(
           prisma as Prisma.TransactionClient,
           id,
           userId,
         );
         // Cancelling a child repayment can re-open the parent loan
         if (transaction.parentId) {
-          await this.recomputeParentLoanStatus(
+          await this.transactionSettlementService.recomputeParentLoanStatus(
             prisma as Prisma.TransactionClient,
             transaction.parentId,
             userId,
@@ -2499,7 +1550,7 @@ export class TransactionsService {
             data: { status: TransactionStatus.CANCELLED },
           });
           if (transaction.personalMirror.parentId) {
-            await this.recomputeParentLoanStatus(
+            await this.transactionSettlementService.recomputeParentLoanStatus(
               prisma as Prisma.TransactionClient,
               transaction.personalMirror.parentId,
               userId,
@@ -2626,8 +1677,8 @@ export class TransactionsService {
     ]);
 
     return {
-      items: await this.attachRemainingAmounts(
-        items.map((item) => this.applyPerspective(item, userId)),
+      items: await this.transactionSettlementService.attachRemainingAmounts(
+        items.map((item) => applyPerspective(item, userId)),
       ),
       total,
       page,
