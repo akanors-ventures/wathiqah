@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -8,6 +11,7 @@ import { NotificationService } from '../notifications/notification.service';
 import { ExchangeRateService } from '../exchange-rate/exchange-rate.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { TransactionType, AssetCategory } from '../../generated/prisma/client';
+import { withSettlementAggregates } from './__tests__/settlement-mocks';
 
 /**
  * Covers TransactionsService.maybeCreatePersonalMirror and the guards that
@@ -58,7 +62,7 @@ function contactMap(
     Promise.resolve(byId.get(where.id) ?? null);
 }
 
-const mockPrismaService = {
+const mockPrismaService = withSettlementAggregates({
   transaction: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
@@ -83,7 +87,8 @@ const mockPrismaService = {
     updateMany: jest.fn(),
   },
   $transaction: jest.fn((fn) => fn(mockPrismaService)),
-};
+  $queryRaw: jest.fn().mockResolvedValue([]),
+});
 
 const mockNotificationService = {
   sendTransactionWitnessInvite: jest.fn(),
@@ -93,11 +98,15 @@ const mockNotificationService = {
 
 describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMirror)', () => {
   let service: TransactionsService;
+  let settlementService: TransactionSettlementService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         {
           provide: ConfigService,
@@ -117,6 +126,7 @@ describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMir
     }).compile();
 
     service = module.get(TransactionsService);
+    settlementService = module.get(TransactionSettlementService);
     jest.clearAllMocks();
 
     // findUnique with no id (e.g. processWitnesses' post-create lookup, or a
@@ -285,7 +295,7 @@ describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMir
       // stays focused on the mirror-creation call itself.
       const recomputeSpy = jest
         .spyOn(
-          service as unknown as {
+          settlementService as unknown as {
             recomputeParentLoanStatus: (...args: unknown[]) => Promise<void>;
           },
           'recomputeParentLoanStatus',
@@ -417,7 +427,7 @@ describe('TransactionsService — personal-ledger mirror (maybeCreatePersonalMir
       );
       jest
         .spyOn(
-          service as unknown as {
+          settlementService as unknown as {
             recomputeParentLoanStatus: (...args: unknown[]) => Promise<void>;
           },
           'recomputeParentLoanStatus',

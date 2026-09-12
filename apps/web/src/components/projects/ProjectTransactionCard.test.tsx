@@ -169,4 +169,61 @@ describe("ProjectTransactionCard", () => {
     expect(screen.queryByRole("button", { name: "Edit transaction" })).not.toBeInTheDocument();
     expect(screen.getByText(/synced from contact/i)).toBeInTheDocument();
   });
+
+  it('shows "repaid" for a loan-type linked transaction', () => {
+    render(
+      <ProjectTransactionCard
+        transaction={{
+          ...baseTx,
+          amount: 100000,
+          contactId: "contact-1",
+          contact: { id: "contact-1", name: "Aminu Musa" },
+          isMirroredFromContact: true,
+          transaction: {
+            id: "tx-1",
+            type: "LOAN_GIVEN",
+            status: "PENDING",
+            remainingAmount: 40000,
+          },
+        }}
+        currency="NGN"
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("₦60,000 repaid of ₦100,000")).toBeInTheDocument();
+  });
+
+  // Regression: remainingAmount became non-null for ADVANCE_PAID/DEPOSIT_PAID
+  // once they joined the settlement lifecycle. This card renders unchanged —
+  // it must not silently start saying "repaid" on a type that was never a
+  // loan.
+  it('shows "settled", not "repaid", for a non-loan lifecycle type like an advance', () => {
+    render(
+      <ProjectTransactionCard
+        transaction={{
+          ...baseTx,
+          amount: 100000,
+          contactId: "contact-1",
+          contact: { id: "contact-1", name: "Aminu Musa" },
+          isMirroredFromContact: true,
+          transaction: {
+            id: "tx-1",
+            type: "ADVANCE_PAID",
+            status: "PENDING",
+            remainingAmount: 40000,
+          },
+        }}
+        currency="NGN"
+        onView={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("₦60,000 settled of ₦100,000")).toBeInTheDocument();
+    expect(screen.queryByText(/repaid/i)).not.toBeInTheDocument();
+  });
 });

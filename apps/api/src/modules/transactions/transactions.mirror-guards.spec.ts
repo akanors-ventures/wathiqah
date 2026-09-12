@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -11,6 +14,7 @@ import {
   TransactionStatus,
   TransactionType,
 } from '../../generated/prisma/client';
+import { withSettlementAggregates } from './__tests__/settlement-mocks';
 
 const USER_ID = 'user-1';
 const TX_ID = 'tx-1';
@@ -32,7 +36,7 @@ const baseTransaction = {
   conversions: [],
 };
 
-const mockPrismaService = {
+const mockPrismaService = withSettlementAggregates({
   transaction: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
@@ -48,7 +52,8 @@ const mockPrismaService = {
   witness: { updateMany: jest.fn() },
   user: { findUnique: jest.fn() },
   $transaction: jest.fn((fn) => fn(mockPrismaService)),
-};
+  $queryRaw: jest.fn().mockResolvedValue([]),
+});
 
 const mockNotificationService = {
   sendTransactionWitnessInvite: jest.fn(),
@@ -62,6 +67,9 @@ describe('TransactionsService — project-mirror guards', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         {
           provide: ConfigService,

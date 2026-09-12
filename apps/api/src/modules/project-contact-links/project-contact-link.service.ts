@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { ProjectTransactionsService } from '../projects/project-transactions.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { ProjectsService } from '../projects/projects.service';
 import { CreateTransactionInput } from '../transactions/dto/create-transaction.input';
 import { UpdateTransactionInput } from '../transactions/dto/update-transaction.input';
@@ -69,6 +70,7 @@ export class ProjectContactLinkService {
     private readonly transactionsService: TransactionsService,
     private readonly projectTransactionsService: ProjectTransactionsService,
     private readonly projectsService: ProjectsService,
+    private readonly witnessesService: WitnessesService,
   ) {}
 
   /** Shared guard: `type` determines cash-flow direction on both sides of a
@@ -426,11 +428,9 @@ export class ProjectContactLinkService {
       });
     });
 
-    await this.transactionsService
-      .notifyWitnesses(notifications)
-      .catch((err) => {
-        console.error('Failed to send witness notifications:', err);
-      });
+    await this.witnessesService.notifyWitnesses(notifications).catch((err) => {
+      console.error('Failed to send witness notifications:', err);
+    });
 
     return result;
   }
@@ -577,7 +577,7 @@ export class ProjectContactLinkService {
 
     // Fired after commit — never hold DB locks open for the duration of
     // outbound email/SMS/Redis calls (matches every other create/update path).
-    await this.transactionsService
+    await this.witnessesService
       .notifyWitnesses(mirrorNotifications)
       .catch((err) => {
         console.error('Failed to send witness notifications:', err);

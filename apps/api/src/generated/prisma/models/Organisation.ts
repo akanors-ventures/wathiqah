@@ -222,6 +222,7 @@ export type OrganisationWhereInput = {
   events?: Prisma.OrgEventListRelationFilter
   notes?: Prisma.NoteListRelationFilter
   subscription?: Prisma.XOR<Prisma.OrgSubscriptionNullableScalarRelationFilter, Prisma.OrgSubscriptionWhereInput> | null
+  allocations?: Prisma.TransactionAllocationListRelationFilter
 }
 
 export type OrganisationOrderByWithRelationInput = {
@@ -242,6 +243,7 @@ export type OrganisationOrderByWithRelationInput = {
   events?: Prisma.OrgEventOrderByRelationAggregateInput
   notes?: Prisma.NoteOrderByRelationAggregateInput
   subscription?: Prisma.OrgSubscriptionOrderByWithRelationInput
+  allocations?: Prisma.TransactionAllocationOrderByRelationAggregateInput
 }
 
 export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
@@ -265,6 +267,7 @@ export type OrganisationWhereUniqueInput = Prisma.AtLeast<{
   events?: Prisma.OrgEventListRelationFilter
   notes?: Prisma.NoteListRelationFilter
   subscription?: Prisma.XOR<Prisma.OrgSubscriptionNullableScalarRelationFilter, Prisma.OrgSubscriptionWhereInput> | null
+  allocations?: Prisma.TransactionAllocationListRelationFilter
 }, "id" | "slug">
 
 export type OrganisationOrderByWithAggregationInput = {
@@ -315,6 +318,7 @@ export type OrganisationCreateInput = {
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateInput = {
@@ -335,6 +339,7 @@ export type OrganisationUncheckedCreateInput = {
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUpdateInput = {
@@ -355,6 +360,7 @@ export type OrganisationUpdateInput = {
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateInput = {
@@ -375,6 +381,7 @@ export type OrganisationUncheckedUpdateInput = {
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateManyInput = {
@@ -491,6 +498,22 @@ export type OrganisationUpdateOneWithoutTransactionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutTransactionsInput, Prisma.OrganisationUpdateWithoutTransactionsInput>, Prisma.OrganisationUncheckedUpdateWithoutTransactionsInput>
 }
 
+export type OrganisationCreateNestedOneWithoutAllocationsInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutAllocationsInput, Prisma.OrganisationUncheckedCreateWithoutAllocationsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutAllocationsInput
+  connect?: Prisma.OrganisationWhereUniqueInput
+}
+
+export type OrganisationUpdateOneWithoutAllocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganisationCreateWithoutAllocationsInput, Prisma.OrganisationUncheckedCreateWithoutAllocationsInput>
+  connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutAllocationsInput
+  upsert?: Prisma.OrganisationUpsertWithoutAllocationsInput
+  disconnect?: Prisma.OrganisationWhereInput | boolean
+  delete?: Prisma.OrganisationWhereInput | boolean
+  connect?: Prisma.OrganisationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganisationUpdateToOneWithWhereWithoutAllocationsInput, Prisma.OrganisationUpdateWithoutAllocationsInput>, Prisma.OrganisationUncheckedUpdateWithoutAllocationsInput>
+}
+
 export type OrganisationCreateNestedOneWithoutProjectsInput = {
   create?: Prisma.XOR<Prisma.OrganisationCreateWithoutProjectsInput, Prisma.OrganisationUncheckedCreateWithoutProjectsInput>
   connectOrCreate?: Prisma.OrganisationCreateOrConnectWithoutProjectsInput
@@ -602,6 +625,7 @@ export type OrganisationCreateWithoutContactsInput = {
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutContactsInput = {
@@ -621,6 +645,7 @@ export type OrganisationUncheckedCreateWithoutContactsInput = {
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutContactsInput = {
@@ -656,6 +681,7 @@ export type OrganisationUpdateWithoutContactsInput = {
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutContactsInput = {
@@ -675,6 +701,7 @@ export type OrganisationUncheckedUpdateWithoutContactsInput = {
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutTransactionsInput = {
@@ -694,6 +721,7 @@ export type OrganisationCreateWithoutTransactionsInput = {
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutTransactionsInput = {
@@ -713,6 +741,7 @@ export type OrganisationUncheckedCreateWithoutTransactionsInput = {
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutTransactionsInput = {
@@ -748,6 +777,7 @@ export type OrganisationUpdateWithoutTransactionsInput = {
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutTransactionsInput = {
@@ -762,6 +792,103 @@ export type OrganisationUncheckedUpdateWithoutTransactionsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutOrganisationNestedInput
   contacts?: Prisma.ContactUncheckedUpdateManyWithoutOrganisationNestedInput
+  projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
+  promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
+  events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
+}
+
+export type OrganisationCreateWithoutAllocationsInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string | null
+  logoUrl?: string | null
+  industry?: string | null
+  attributionMode?: $Enums.AttributionMode
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.OrganisationMemberCreateNestedManyWithoutOrganisationInput
+  contacts?: Prisma.ContactCreateNestedManyWithoutOrganisationInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutOrganisationInput
+  projects?: Prisma.ProjectCreateNestedManyWithoutOrganisationInput
+  promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
+  events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
+  subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+}
+
+export type OrganisationUncheckedCreateWithoutAllocationsInput = {
+  id?: string
+  name: string
+  slug: string
+  description?: string | null
+  logoUrl?: string | null
+  industry?: string | null
+  attributionMode?: $Enums.AttributionMode
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  members?: Prisma.OrganisationMemberUncheckedCreateNestedManyWithoutOrganisationInput
+  contacts?: Prisma.ContactUncheckedCreateNestedManyWithoutOrganisationInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutOrganisationInput
+  projects?: Prisma.ProjectUncheckedCreateNestedManyWithoutOrganisationInput
+  promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
+  events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
+  notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
+  subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+}
+
+export type OrganisationCreateOrConnectWithoutAllocationsInput = {
+  where: Prisma.OrganisationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutAllocationsInput, Prisma.OrganisationUncheckedCreateWithoutAllocationsInput>
+}
+
+export type OrganisationUpsertWithoutAllocationsInput = {
+  update: Prisma.XOR<Prisma.OrganisationUpdateWithoutAllocationsInput, Prisma.OrganisationUncheckedUpdateWithoutAllocationsInput>
+  create: Prisma.XOR<Prisma.OrganisationCreateWithoutAllocationsInput, Prisma.OrganisationUncheckedCreateWithoutAllocationsInput>
+  where?: Prisma.OrganisationWhereInput
+}
+
+export type OrganisationUpdateToOneWithWhereWithoutAllocationsInput = {
+  where?: Prisma.OrganisationWhereInput
+  data: Prisma.XOR<Prisma.OrganisationUpdateWithoutAllocationsInput, Prisma.OrganisationUncheckedUpdateWithoutAllocationsInput>
+}
+
+export type OrganisationUpdateWithoutAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attributionMode?: Prisma.EnumAttributionModeFieldUpdateOperationsInput | $Enums.AttributionMode
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.OrganisationMemberUpdateManyWithoutOrganisationNestedInput
+  contacts?: Prisma.ContactUpdateManyWithoutOrganisationNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutOrganisationNestedInput
+  projects?: Prisma.ProjectUpdateManyWithoutOrganisationNestedInput
+  promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
+  events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
+  notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
+  subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+}
+
+export type OrganisationUncheckedUpdateWithoutAllocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  industry?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  attributionMode?: Prisma.EnumAttributionModeFieldUpdateOperationsInput | $Enums.AttributionMode
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.OrganisationMemberUncheckedUpdateManyWithoutOrganisationNestedInput
+  contacts?: Prisma.ContactUncheckedUpdateManyWithoutOrganisationNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutOrganisationNestedInput
   projects?: Prisma.ProjectUncheckedUpdateManyWithoutOrganisationNestedInput
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
@@ -786,6 +913,7 @@ export type OrganisationCreateWithoutProjectsInput = {
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutProjectsInput = {
@@ -805,6 +933,7 @@ export type OrganisationUncheckedCreateWithoutProjectsInput = {
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutProjectsInput = {
@@ -840,6 +969,7 @@ export type OrganisationUpdateWithoutProjectsInput = {
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutProjectsInput = {
@@ -859,6 +989,7 @@ export type OrganisationUncheckedUpdateWithoutProjectsInput = {
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutPromisesInput = {
@@ -878,6 +1009,7 @@ export type OrganisationCreateWithoutPromisesInput = {
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutPromisesInput = {
@@ -897,6 +1029,7 @@ export type OrganisationUncheckedCreateWithoutPromisesInput = {
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutPromisesInput = {
@@ -932,6 +1065,7 @@ export type OrganisationUpdateWithoutPromisesInput = {
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutPromisesInput = {
@@ -951,6 +1085,7 @@ export type OrganisationUncheckedUpdateWithoutPromisesInput = {
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutMembersInput = {
@@ -970,6 +1105,7 @@ export type OrganisationCreateWithoutMembersInput = {
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutMembersInput = {
@@ -989,6 +1125,7 @@ export type OrganisationUncheckedCreateWithoutMembersInput = {
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutMembersInput = {
@@ -1024,6 +1161,7 @@ export type OrganisationUpdateWithoutMembersInput = {
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutMembersInput = {
@@ -1043,6 +1181,7 @@ export type OrganisationUncheckedUpdateWithoutMembersInput = {
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutSubscriptionInput = {
@@ -1062,6 +1201,7 @@ export type OrganisationCreateWithoutSubscriptionInput = {
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutSubscriptionInput = {
@@ -1081,6 +1221,7 @@ export type OrganisationUncheckedCreateWithoutSubscriptionInput = {
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutSubscriptionInput = {
@@ -1116,6 +1257,7 @@ export type OrganisationUpdateWithoutSubscriptionInput = {
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutSubscriptionInput = {
@@ -1135,6 +1277,7 @@ export type OrganisationUncheckedUpdateWithoutSubscriptionInput = {
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutEventsInput = {
@@ -1154,6 +1297,7 @@ export type OrganisationCreateWithoutEventsInput = {
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutEventsInput = {
@@ -1173,6 +1317,7 @@ export type OrganisationUncheckedCreateWithoutEventsInput = {
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   notes?: Prisma.NoteUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutEventsInput = {
@@ -1208,6 +1353,7 @@ export type OrganisationUpdateWithoutEventsInput = {
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutEventsInput = {
@@ -1227,6 +1373,7 @@ export type OrganisationUncheckedUpdateWithoutEventsInput = {
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   notes?: Prisma.NoteUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationCreateWithoutNotesInput = {
@@ -1246,6 +1393,7 @@ export type OrganisationCreateWithoutNotesInput = {
   promises?: Prisma.PromiseCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationUncheckedCreateWithoutNotesInput = {
@@ -1265,6 +1413,7 @@ export type OrganisationUncheckedCreateWithoutNotesInput = {
   promises?: Prisma.PromiseUncheckedCreateNestedManyWithoutOrganisationInput
   events?: Prisma.OrgEventUncheckedCreateNestedManyWithoutOrganisationInput
   subscription?: Prisma.OrgSubscriptionUncheckedCreateNestedOneWithoutOrganisationInput
+  allocations?: Prisma.TransactionAllocationUncheckedCreateNestedManyWithoutOrganisationInput
 }
 
 export type OrganisationCreateOrConnectWithoutNotesInput = {
@@ -1300,6 +1449,7 @@ export type OrganisationUpdateWithoutNotesInput = {
   promises?: Prisma.PromiseUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUpdateManyWithoutOrganisationNestedInput
 }
 
 export type OrganisationUncheckedUpdateWithoutNotesInput = {
@@ -1319,6 +1469,7 @@ export type OrganisationUncheckedUpdateWithoutNotesInput = {
   promises?: Prisma.PromiseUncheckedUpdateManyWithoutOrganisationNestedInput
   events?: Prisma.OrgEventUncheckedUpdateManyWithoutOrganisationNestedInput
   subscription?: Prisma.OrgSubscriptionUncheckedUpdateOneWithoutOrganisationNestedInput
+  allocations?: Prisma.TransactionAllocationUncheckedUpdateManyWithoutOrganisationNestedInput
 }
 
 
@@ -1334,6 +1485,7 @@ export type OrganisationCountOutputType = {
   promises: number
   events: number
   notes: number
+  allocations: number
 }
 
 export type OrganisationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1344,6 +1496,7 @@ export type OrganisationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   promises?: boolean | OrganisationCountOutputTypeCountPromisesArgs
   events?: boolean | OrganisationCountOutputTypeCountEventsArgs
   notes?: boolean | OrganisationCountOutputTypeCountNotesArgs
+  allocations?: boolean | OrganisationCountOutputTypeCountAllocationsArgs
 }
 
 /**
@@ -1405,6 +1558,13 @@ export type OrganisationCountOutputTypeCountNotesArgs<ExtArgs extends runtime.Ty
   where?: Prisma.NoteWhereInput
 }
 
+/**
+ * OrganisationCountOutputType without action
+ */
+export type OrganisationCountOutputTypeCountAllocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TransactionAllocationWhereInput
+}
+
 
 export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1424,6 +1584,7 @@ export type OrganisationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   events?: boolean | Prisma.Organisation$eventsArgs<ExtArgs>
   notes?: boolean | Prisma.Organisation$notesArgs<ExtArgs>
   subscription?: boolean | Prisma.Organisation$subscriptionArgs<ExtArgs>
+  allocations?: boolean | Prisma.Organisation$allocationsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganisationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organisation"]>
 
@@ -1473,6 +1634,7 @@ export type OrganisationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   events?: boolean | Prisma.Organisation$eventsArgs<ExtArgs>
   notes?: boolean | Prisma.Organisation$notesArgs<ExtArgs>
   subscription?: boolean | Prisma.Organisation$subscriptionArgs<ExtArgs>
+  allocations?: boolean | Prisma.Organisation$allocationsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganisationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganisationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1489,6 +1651,7 @@ export type $OrganisationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     events: Prisma.$OrgEventPayload<ExtArgs>[]
     notes: Prisma.$NotePayload<ExtArgs>[]
     subscription: Prisma.$OrgSubscriptionPayload<ExtArgs> | null
+    allocations: Prisma.$TransactionAllocationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1902,6 +2065,7 @@ export interface Prisma__OrganisationClient<T, Null = never, ExtArgs extends run
   events<T extends Prisma.Organisation$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrgEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   notes<T extends Prisma.Organisation$notesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$notesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NotePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subscription<T extends Prisma.Organisation$subscriptionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$subscriptionArgs<ExtArgs>>): Prisma.Prisma__OrgSubscriptionClient<runtime.Types.Result.GetResult<Prisma.$OrgSubscriptionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  allocations<T extends Prisma.Organisation$allocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organisation$allocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TransactionAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2512,6 +2676,30 @@ export type Organisation$subscriptionArgs<ExtArgs extends runtime.Types.Extensio
    */
   include?: Prisma.OrgSubscriptionInclude<ExtArgs> | null
   where?: Prisma.OrgSubscriptionWhereInput
+}
+
+/**
+ * Organisation.allocations
+ */
+export type Organisation$allocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TransactionAllocation
+   */
+  select?: Prisma.TransactionAllocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TransactionAllocation
+   */
+  omit?: Prisma.TransactionAllocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TransactionAllocationInclude<ExtArgs> | null
+  where?: Prisma.TransactionAllocationWhereInput
+  orderBy?: Prisma.TransactionAllocationOrderByWithRelationInput | Prisma.TransactionAllocationOrderByWithRelationInput[]
+  cursor?: Prisma.TransactionAllocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TransactionAllocationScalarFieldEnum | Prisma.TransactionAllocationScalarFieldEnum[]
 }
 
 /**

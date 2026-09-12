@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
+import { TransactionSummaryService } from './transaction-summary.service';
+import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -14,8 +17,12 @@ import {
   WitnessStatus,
   NotificationType,
 } from '../../generated/prisma/client';
+import {
+  setAllocations,
+  withSettlementAggregates,
+} from './__tests__/settlement-mocks';
 
-const mockPrismaService = {
+const mockPrismaService = withSettlementAggregates({
   transaction: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
@@ -53,7 +60,10 @@ const mockPrismaService = {
     }
     return arg(mockPrismaService);
   }),
-};
+  // No real locking in a mock — just needs to not throw, same as FakePrisma's
+  // stub, so update()'s FOR UPDATE re-check line doesn't blow up every test.
+  $queryRaw: jest.fn().mockResolvedValue([]),
+});
 
 const mockConfigService = {
   getOrThrow: jest.fn(),
@@ -102,6 +112,9 @@ describe('TransactionsService - Pagination', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -157,6 +170,8 @@ describe('TransactionsService - Pagination', () => {
     parentId: null,
     parent: null,
     conversions: [],
+    allocationsIn: [],
+    allocationsOut: [],
   });
 
   describe('findAll with pagination', () => {
@@ -209,10 +224,15 @@ describe('TransactionsService - Pagination', () => {
         return (arg as (p: unknown) => Promise<unknown>)(prisma);
       });
 
-      // Capture findMany args by spying
+      // Capture the args of the FIRST findMany call — the paginated items
+      // query. calculateConvertedSummary issues its own later findMany
+      // calls (gift-conversion lookups) with no skip/take, so only the
+      // first call is relevant here.
       prisma.transaction.findMany.mockImplementation(
         (args: Record<string, unknown>) => {
-          capturedFindManyArgs = args;
+          if (capturedFindManyArgs === undefined) {
+            capturedFindManyArgs = args;
+          }
           return Promise.resolve(mockItems);
         },
       );
@@ -248,6 +268,9 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
+          TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: scopePrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -348,6 +371,9 @@ describe('TransactionsService - Pagination', () => {
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
+          TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: validationPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -520,7 +546,7 @@ describe('TransactionsService - Pagination', () => {
       };
       organisationMember: { findUnique: jest.Mock };
       contact: { findUnique: jest.Mock };
-      transactionHistory: { create: jest.Mock };
+      transactionHistory: { create: jest.Mock; createMany: jest.Mock };
       witness: { updateMany: jest.Mock };
       user: { findUnique: jest.Mock };
       $transaction: jest.Mock;
@@ -545,6 +571,8 @@ describe('TransactionsService - Pagination', () => {
       witnesses: [],
       history: [],
       conversions: [],
+      allocationsIn: [],
+      allocationsOut: [],
     };
 
     const personalRow = {
@@ -554,7 +582,7 @@ describe('TransactionsService - Pagination', () => {
     };
 
     beforeEach(async () => {
-      accessPrisma = {
+      accessPrisma = withSettlementAggregates({
         transaction: {
           findUnique: jest.fn(),
           findMany: jest.fn().mockResolvedValue([]),
@@ -563,14 +591,17 @@ describe('TransactionsService - Pagination', () => {
         },
         organisationMember: { findUnique: jest.fn() },
         contact: { findUnique: jest.fn() },
-        transactionHistory: { create: jest.fn() },
+        transactionHistory: { create: jest.fn(), createMany: jest.fn() },
         witness: { updateMany: jest.fn() },
         user: { findUnique: jest.fn() },
         $transaction: jest.fn((fn) => fn(accessPrisma)),
-      };
+      });
       const module = await Test.createTestingModule({
         providers: [
           TransactionsService,
+          TransactionSummaryService,
+          TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: accessPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -679,6 +710,146 @@ describe('TransactionsService - Pagination', () => {
     });
   });
 
+  describe('TransactionsService — update() outstanding-balance guard', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockPrismaService.contact.findUnique.mockResolvedValue({
+        id: 'contact-1',
+        userId: 'fawaz',
+        orgId: null,
+      });
+      mockPrismaService.transactionHistory.create.mockResolvedValue({});
+      mockPrismaService.witness.updateMany.mockResolvedValue({ count: 0 });
+      mockPrismaService.transaction.update.mockImplementation(({ data }) =>
+        Promise.resolve({ id: 'loan-1', ...data }),
+      );
+      // clearAllMocks wipes queued values but not implementations — reset both
+      // allocation legs explicitly so nothing leaks between tests.
+      setAllocations(mockPrismaService, {});
+    });
+
+    const loanRow = {
+      id: 'loan-1',
+      createdById: 'fawaz',
+      orgId: null,
+      contactId: 'contact-1',
+      contact: { linkedUserId: null },
+      type: TransactionType.LOAN_GIVEN,
+      category: AssetCategory.FUNDS,
+      status: TransactionStatus.PENDING,
+      amount: 500,
+      currency: 'NGN',
+      parentId: null,
+      projectTransactionId: null,
+      isMirroredFromProject: false,
+      orgSourceTransactionId: null,
+      personalMirror: null,
+      witnesses: [],
+    };
+
+    it('rejects shrinking a loan below what its repayment children already settled', async () => {
+      mockPrismaService.transaction.findUnique.mockResolvedValue(loanRow);
+      // 300 already repaid against the 500 loan.
+      mockPrismaService.transaction.findMany.mockResolvedValue([
+        { amount: 300 },
+      ]);
+
+      await expect(
+        service.update(
+          'loan-1',
+          { id: 'loan-1', amount: 100 } as never,
+          'fawaz',
+          null,
+        ),
+      ).rejects.toThrow(
+        'Amount (100) cannot be less than the amount already settled (300) against this transaction',
+      );
+      expect(mockPrismaService.transaction.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects shrinking an escrow below what has been allocated out of it', async () => {
+      mockPrismaService.transaction.findUnique.mockResolvedValue({
+        ...loanRow,
+        type: TransactionType.ESCROWED,
+      });
+      mockPrismaService.transaction.findMany.mockResolvedValue([]);
+      // No children at all — the settlement is entirely allocations. Before the
+      // allocation-aware loader this case was invisible and the edit went
+      // through, leaving the escrow over-drawn behind the Math.max(0) clamp.
+      setAllocations(mockPrismaService, { out: [{ amount: 400 }] });
+
+      await expect(
+        service.update(
+          'loan-1',
+          { id: 'loan-1', amount: 250 } as never,
+          'fawaz',
+          null,
+        ),
+      ).rejects.toThrow(
+        'Amount (250) cannot be less than the amount already settled (400) against this transaction',
+      );
+    });
+
+    it('allows shrinking down to exactly the settled amount', async () => {
+      mockPrismaService.transaction.findUnique.mockResolvedValue(loanRow);
+      mockPrismaService.transaction.findMany.mockResolvedValue([
+        { amount: 300 },
+      ]);
+
+      await expect(
+        service.update(
+          'loan-1',
+          { id: 'loan-1', amount: 300 } as never,
+          'fawaz',
+          null,
+        ),
+      ).resolves.toBeDefined();
+      expect(mockPrismaService.transaction.update).toHaveBeenCalled();
+    });
+
+    it('re-checks under lock and rejects if settled grew between the fast check and the write', async () => {
+      // Regression: the guard used to read settled amount once, outside any
+      // lock, well before the write — a concurrent allocate() (which does
+      // take a FOR UPDATE lock) could land in that gap and the shrink would
+      // go through anyway. update() now re-reads settled amount a second
+      // time, under its own lock, immediately before the write.
+      mockPrismaService.transaction.findUnique.mockResolvedValue(loanRow);
+      mockPrismaService.transaction.findMany
+        .mockResolvedValueOnce([]) // fast pre-check: nothing settled yet
+        .mockResolvedValueOnce([{ amount: 400 }]); // locked re-check: an allocation landed in between
+
+      await expect(
+        service.update(
+          'loan-1',
+          { id: 'loan-1', amount: 250 } as never,
+          'fawaz',
+          null,
+        ),
+      ).rejects.toThrow(
+        'Amount (250) cannot be less than the amount already settled (400) against this transaction',
+      );
+      expect(mockPrismaService.transaction.update).not.toHaveBeenCalled();
+    });
+
+    it('leaves non-lifecycle types (e.g. a repayment child) unguarded', async () => {
+      mockPrismaService.transaction.findUnique.mockResolvedValue({
+        ...loanRow,
+        type: TransactionType.REPAYMENT_RECEIVED,
+        parentId: 'parent-1',
+      });
+      mockPrismaService.transaction.findMany.mockResolvedValue([]);
+
+      await expect(
+        service.update(
+          'loan-1',
+          { id: 'loan-1', amount: 50 } as never,
+          'fawaz',
+          null,
+        ),
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe('findMyContactTransactions with pagination', () => {
     it('should return { items, total, page, limit }', async () => {
       const totalCount = 30;
@@ -751,12 +922,17 @@ describe('TransactionsService — in-app notification wiring', () => {
     createdBy: { firstName: 'Musa', lastName: 'Ibrahim' },
     history: [],
     conversions: [],
+    allocationsIn: [],
+    allocationsOut: [],
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TransactionsService,
+        TransactionSummaryService,
+        TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },

@@ -12,7 +12,13 @@ describe('TransactionsResolver — projectTransaction ResolveField', () => {
 
   beforeEach(() => {
     prisma = { projectTransaction: { findUnique: jest.fn() } };
-    resolver = new TransactionsResolver({} as never, prisma as never);
+    resolver = new TransactionsResolver(
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      prisma as never,
+    );
   });
 
   it("returns null for a linked contact viewing the creator's transaction from the flipped perspective, even when a project link exists", async () => {
@@ -58,5 +64,108 @@ describe('TransactionsResolver — projectTransaction ResolveField', () => {
 
     expect(result).toBeNull();
     expect(prisma.projectTransaction.findUnique).not.toHaveBeenCalled();
+  });
+});
+
+describe('TransactionsResolver — remainingAmount ResolveField', () => {
+  const build = (settled: number) => {
+    const transactionSettlementService = {
+      loadSettledAmount: jest.fn().mockResolvedValue(settled),
+    };
+    const resolver = new TransactionsResolver(
+      {} as never,
+      {} as never,
+      transactionSettlementService as never,
+      {} as never,
+      {} as never,
+    );
+    return { resolver, transactionSettlementService };
+  };
+
+  it('subtracts settlement from the principal', async () => {
+    const { resolver } = build(120);
+    await expect(
+      resolver.remainingAmount({
+        id: 'tx-1',
+        type: 'LOAN_GIVEN',
+        amount: 200,
+      } as never),
+    ).resolves.toBe(80);
+  });
+
+  it('resolves for an ADVANCE_PAID now that it carries a lifecycle', async () => {
+    const { resolver } = build(0);
+    await expect(
+      resolver.remainingAmount({
+        id: 'tx-1',
+        type: 'ADVANCE_PAID',
+        amount: 300,
+      } as never),
+    ).resolves.toBe(300);
+  });
+
+  it('returns null for a type with no outstanding balance', async () => {
+    const { resolver, transactionSettlementService } = build(0);
+    await expect(
+      resolver.remainingAmount({
+        id: 'tx-1',
+        type: 'GIFT_GIVEN',
+        amount: 300,
+      } as never),
+    ).resolves.toBeNull();
+    expect(
+      transactionSettlementService.loadSettledAmount,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('honours the value pre-computed by a list path instead of querying again', async () => {
+    const { resolver, transactionSettlementService } = build(999);
+    await expect(
+      resolver.remainingAmount({
+        id: 'tx-1',
+        type: 'LOAN_GIVEN',
+        amount: 200,
+        remainingAmount: 50,
+      } as never),
+    ).resolves.toBe(50);
+    expect(
+      transactionSettlementService.loadSettledAmount,
+    ).not.toHaveBeenCalled();
+  });
+});
+
+describe('TransactionsResolver — allocation ResolveFields', () => {
+  it('reads each leg through listForTransaction', async () => {
+    const allocationsService = {
+      listForTransaction: jest.fn().mockResolvedValue([{ id: 'alloc-1' }]),
+    };
+    const resolver = new TransactionsResolver(
+      {} as never,
+      {} as never,
+      {} as never,
+      allocationsService as never,
+      {} as never,
+    );
+
+    const parent = {
+      id: 'tx-1',
+      orgId: null,
+      contactId: 'contact-1',
+      createdById: 'fawaz',
+    };
+
+    await resolver.allocationsOut(parent as never, { id: 'fawaz' } as never);
+    expect(allocationsService.listForTransaction).toHaveBeenCalledWith(
+      parent,
+      'OUT',
+      'fawaz',
+    );
+
+    await resolver.allocationsIn(parent as never, { id: 'musa' } as never);
+    expect(allocationsService.listForTransaction).toHaveBeenCalledWith(
+      parent,
+      'IN',
+      'musa',
+    );
   });
 });

@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { ProjectTransactionsService } from '../projects/project-transactions.service';
 import { ProjectsService } from '../projects/projects.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import {
   Prisma,
   ProjectTransactionType,
@@ -50,9 +51,12 @@ const mockTransactionsService = {
   update: jest.fn(),
   remove: jest.fn(),
   findOne: jest.fn(),
-  notifyWitnesses: jest.fn().mockResolvedValue(undefined),
   syncMirroredAmount: jest.fn(),
   deleteMirroredTransaction: jest.fn(),
+};
+
+const mockWitnessesService = {
+  notifyWitnesses: jest.fn().mockResolvedValue(undefined),
 };
 
 const mockProjectTransactionsService = {
@@ -84,6 +88,7 @@ describe('ProjectContactLinkService', () => {
           useValue: mockProjectTransactionsService,
         },
         { provide: ProjectsService, useValue: mockProjectsService },
+        { provide: WitnessesService, useValue: mockWitnessesService },
       ],
     }).compile();
 

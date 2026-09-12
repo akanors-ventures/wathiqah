@@ -3,10 +3,11 @@ import { ProjectContactLinkService } from './project-contact-link.service';
 import { ProjectContactLinkResolver } from './project-contact-link.resolver';
 import { TransactionsModule } from '../transactions/transactions.module';
 import { ProjectsModule } from '../projects/projects.module';
+import { WitnessesModule } from '../witnesses/witnesses.module';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Module({
-  imports: [TransactionsModule, ProjectsModule],
+  imports: [TransactionsModule, ProjectsModule, WitnessesModule],
   providers: [
     ProjectContactLinkService,
     ProjectContactLinkResolver,
