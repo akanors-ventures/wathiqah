@@ -3,6 +3,7 @@ import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { TransactionSummaryService } from './transaction-summary.service';
 import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -68,6 +69,7 @@ describe('TransactionsService — project-mirror guards', () => {
         TransactionsService,
         TransactionSummaryService,
         TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         {
           provide: ConfigService,

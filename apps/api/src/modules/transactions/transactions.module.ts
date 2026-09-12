@@ -8,9 +8,15 @@ import { TransactionAllocationsResolver } from './transaction-allocations.resolv
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ExchangeRateModule } from '../exchange-rate/exchange-rate.module';
 import { InAppNotificationsModule } from '../in-app-notifications/in-app-notifications.module';
+import { WitnessesModule } from '../witnesses/witnesses.module';
 
 @Module({
-  imports: [NotificationsModule, ExchangeRateModule, InAppNotificationsModule],
+  imports: [
+    NotificationsModule,
+    ExchangeRateModule,
+    InAppNotificationsModule,
+    WitnessesModule,
+  ],
   providers: [
     TransactionsResolver,
     TransactionAllocationsResolver,

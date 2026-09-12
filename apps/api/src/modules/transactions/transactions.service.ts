@@ -3,7 +3,6 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
-  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateTransactionInput } from './dto/create-transaction.input';
@@ -16,24 +15,19 @@ import {
   TransactionType,
   ProjectTransactionType,
   Prisma,
-  Witness,
 } from '../../generated/prisma/client';
-import { v4 as uuidv4 } from 'uuid';
-import { hashToken } from '../../common/utils/crypto.utils';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { ConfigService } from '@nestjs/config';
-import * as ms from 'ms';
-import { WitnessInviteInput } from '../witnesses/dto/witness-invite.input';
 import { NotificationService } from '../notifications/notification.service';
 import { InAppNotificationsService } from '../in-app-notifications/in-app-notifications.service';
 import { NotificationTemplates } from '../in-app-notifications/notification-templates';
-import { normalizeEmail, splitName } from '../../common/utils/string.utils';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
 import { FilterSharedHistoryInput } from './dto/filter-shared-history.input';
 import { computeProjectTransactionBalanceEffect } from '../projects/project-transactions.service';
 import { TransactionSummaryService } from './transaction-summary.service';
 import { TransactionSettlementService } from './transaction-settlement.service';
+import {
+  WitnessesService,
+  WitnessNotification,
+} from '../witnesses/witnesses.service';
 import {
   computeOutstanding,
   isLifecycleObligationType,
@@ -42,264 +36,16 @@ import { applyPerspective } from './summary.util';
 
 export { TransactionSummary } from './summary.util';
 
-export interface WitnessNotification {
-  witnessId: string;
-  userId: string;
-  email: string;
-  firstName: string;
-  rawToken: string;
-  senderId: string;
-  phoneNumber?: string;
-  transactionDetails: {
-    creatorName: string;
-    contactName: string;
-    amount: string;
-    itemName?: string;
-    currency?: string;
-    category: AssetCategory;
-    type: TransactionType;
-  };
-}
-
 @Injectable()
 export class TransactionsService {
   constructor(
     private prisma: PrismaService,
-    private configService: ConfigService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache,
     private readonly notificationService: NotificationService,
     private readonly transactionSummaryService: TransactionSummaryService,
     private readonly transactionSettlementService: TransactionSettlementService,
     private readonly inAppNotificationsService: InAppNotificationsService,
+    private readonly witnessesService: WitnessesService,
   ) {}
-
-  private async processWitnesses(
-    transactionId: string,
-    witnessUserIds: string[] | undefined,
-    witnessInvites: WitnessInviteInput[] | undefined,
-    prisma: Prisma.TransactionClient,
-  ): Promise<WitnessNotification[]> {
-    const notifications: WitnessNotification[] = [];
-
-    // Fetch transaction details for the notification
-    const transaction = await prisma.transaction.findUnique({
-      where: { id: transactionId },
-      include: {
-        createdBy: true,
-        contact: true,
-      },
-    });
-
-    if (!transaction) return notifications;
-
-    const creatorName = `${transaction.createdBy.firstName} ${transaction.createdBy.lastName}`;
-    const contactName = transaction.contact
-      ? `${transaction.contact.firstName} ${transaction.contact.lastName}`
-      : 'N/A';
-
-    const transactionDetails = {
-      creatorName,
-      contactName,
-      amount: transaction.amount?.toString(),
-      itemName: transaction.itemName,
-      currency: transaction.currency,
-      description: transaction.description || undefined,
-      date: transaction.date
-        ? new Intl.DateTimeFormat('en-NG', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          }).format(new Date(transaction.date))
-        : undefined,
-      quantity: transaction.quantity ? String(transaction.quantity) : undefined,
-      category: transaction.category,
-      type: transaction.type,
-    };
-
-    // Handle existing users as witnesses
-    if (witnessUserIds && witnessUserIds.length > 0) {
-      const witnessDetails: (Witness & {
-        user: {
-          email: string;
-          firstName: string;
-          lastName: string;
-          phoneNumber: string | null;
-        };
-      })[] = [];
-
-      for (const witnessUserId of witnessUserIds) {
-        // Use upsert to handle duplicates and get the witness record
-        const witness = await prisma.witness.upsert({
-          where: {
-            transactionId_userId: {
-              transactionId,
-              userId: witnessUserId,
-            },
-          },
-          update: {}, // No updates needed if it exists
-          create: {
-            transactionId,
-            userId: witnessUserId,
-            status: WitnessStatus.PENDING,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                phoneNumber: true,
-              },
-            },
-          },
-        });
-
-        witnessDetails.push(
-          witness as Witness & {
-            user: {
-              email: string;
-              firstName: string;
-              lastName: string;
-              phoneNumber: string | null;
-            };
-          },
-        );
-      }
-
-      for (const witness of witnessDetails) {
-        const rawToken = uuidv4();
-
-        notifications.push({
-          witnessId: witness.id,
-          userId: witness.userId,
-          email: witness.user.email,
-          firstName: witness.user.firstName,
-          rawToken,
-          senderId: transaction.createdById,
-          phoneNumber: witness.user.phoneNumber || undefined,
-          transactionDetails,
-        });
-      }
-    }
-
-    // Handle new user invites
-    if (witnessInvites && witnessInvites.length > 0) {
-      for (const invite of witnessInvites) {
-        const normalizedEmail = normalizeEmail(invite.email);
-        // Check if user already exists by email
-        let user = await prisma.user.findUnique({
-          where: { email: normalizedEmail },
-        });
-
-        // If not, create a placeholder user
-        if (!user) {
-          const { firstName, lastName } = splitName(invite.name);
-          user = await prisma.user.create({
-            data: {
-              email: normalizedEmail,
-              firstName,
-              lastName,
-              phoneNumber: invite.phoneNumber,
-              passwordHash: null, // Indicates invited user
-            },
-          });
-        }
-
-        // Check if witness record already exists
-        const existingWitness = await prisma.witness.findUnique({
-          where: {
-            transactionId_userId: {
-              transactionId,
-              userId: user.id,
-            },
-          },
-        });
-
-        let witnessId: string;
-        if (!existingWitness) {
-          // Create witness record WITHOUT invite token first (we'll store it in Redis)
-          const newWitness = await prisma.witness.create({
-            data: {
-              transactionId,
-              userId: user.id,
-              status: WitnessStatus.PENDING,
-            },
-          });
-          witnessId = newWitness.id;
-        } else {
-          witnessId = existingWitness.id;
-        }
-
-        const rawToken = uuidv4();
-
-        const targetEmail = normalizedEmail || user.email;
-        const { firstName } = splitName(invite.name);
-        const targetName = firstName || user.firstName;
-
-        notifications.push({
-          witnessId,
-          userId: user.id,
-          email: targetEmail,
-          firstName: targetName,
-          rawToken,
-          senderId: transaction.createdById,
-          phoneNumber: invite.phoneNumber || user.phoneNumber || undefined,
-          transactionDetails,
-        });
-      }
-    }
-
-    return notifications;
-  }
-
-  async notifyWitnesses(notifications: WitnessNotification[]) {
-    for (const notification of notifications) {
-      const {
-        witnessId,
-        userId,
-        email,
-        firstName,
-        rawToken,
-        senderId,
-        phoneNumber,
-        transactionDetails,
-      } = notification;
-      const hashedToken = hashToken(rawToken);
-
-      // Store in Redis: `invite:${hashedToken}` -> `witnessId`
-      await this.cacheManager.set(
-        `invite:${hashedToken}`,
-        witnessId,
-        ms(
-          this.configService.getOrThrow<string>(
-            'auth.inviteTokenExpiry',
-          ) as ms.StringValue,
-        ),
-      );
-
-      // Send notification
-      await this.notificationService.sendTransactionWitnessInvite(
-        email,
-        firstName,
-        rawToken,
-        transactionDetails,
-        senderId,
-        phoneNumber,
-      );
-
-      // In-app notification — fire-and-forget, never blocks the invite flow
-      this.inAppNotificationsService.createSafely(
-        {
-          userId,
-          ...NotificationTemplates.witnessInvited(
-            transactionDetails.creatorName,
-          ),
-        },
-        `witness invite (${userId})`,
-      );
-    }
-  }
 
   async create(
     createTransactionInput: CreateTransactionInput,
@@ -320,9 +66,11 @@ export class TransactionsService {
 
     // Send notifications after transaction commits
     if (notifications.length > 0) {
-      await this.notifyWitnesses(notifications).catch((err) => {
-        console.error('Failed to send witness notifications:', err);
-      });
+      await this.witnessesService
+        .notifyWitnesses(notifications)
+        .catch((err) => {
+          console.error('Failed to send witness notifications:', err);
+        });
     }
 
     return transaction;
@@ -769,7 +517,7 @@ export class TransactionsService {
       );
     }
 
-    const notifications = await this.processWitnesses(
+    const notifications = await this.witnessesService.processWitnesses(
       transaction.id,
       witnessUserIds,
       witnessInvites,
@@ -936,7 +684,7 @@ export class TransactionsService {
     let notifications: WitnessNotification[] = [];
     const updatedTransaction = await this.prisma.$transaction(
       async (prisma) => {
-        notifications = await this.processWitnesses(
+        notifications = await this.witnessesService.processWitnesses(
           transaction.id,
           witnessUserIds,
           witnessInvites,
@@ -959,9 +707,11 @@ export class TransactionsService {
 
     // Send notifications after transaction commits
     if (notifications.length > 0) {
-      await this.notifyWitnesses(notifications).catch((err) => {
-        console.error('Failed to send witness notifications:', err);
-      });
+      await this.witnessesService
+        .notifyWitnesses(notifications)
+        .catch((err) => {
+          console.error('Failed to send witness notifications:', err);
+        });
     }
 
     return updatedTransaction;
@@ -1496,7 +1246,7 @@ export class TransactionsService {
         });
 
         if (witnessUserIds || witnessInvites) {
-          await this.processWitnesses(
+          await this.witnessesService.processWitnesses(
             id,
             witnessUserIds,
             witnessInvites,

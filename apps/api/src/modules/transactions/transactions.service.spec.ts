@@ -3,6 +3,7 @@ import { ForbiddenException } from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { TransactionSummaryService } from './transaction-summary.service';
 import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -113,6 +114,7 @@ describe('TransactionsService - Pagination', () => {
         TransactionsService,
         TransactionSummaryService,
         TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -268,6 +270,7 @@ describe('TransactionsService - Pagination', () => {
           TransactionsService,
           TransactionSummaryService,
           TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: scopePrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -370,6 +373,7 @@ describe('TransactionsService - Pagination', () => {
           TransactionsService,
           TransactionSummaryService,
           TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: validationPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -597,6 +601,7 @@ describe('TransactionsService - Pagination', () => {
           TransactionsService,
           TransactionSummaryService,
           TransactionSettlementService,
+          WitnessesService,
           { provide: PrismaService, useValue: accessPrisma },
           { provide: ConfigService, useValue: mockConfigService },
           { provide: CACHE_MANAGER, useValue: mockCacheManager },
@@ -927,6 +932,7 @@ describe('TransactionsService — in-app notification wiring', () => {
         TransactionsService,
         TransactionSummaryService,
         TransactionSettlementService,
+        WitnessesService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: CACHE_MANAGER, useValue: mockCacheManager },
