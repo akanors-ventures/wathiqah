@@ -433,7 +433,10 @@ export class FakePrisma {
       return { count: data.length };
     },
   };
-  witness = { updateMany: async () => ({ count: 0 }) };
+  witness = {
+    findMany: async () => [] as Row[],
+    updateMany: async () => ({ count: 0 }),
+  };
 
   /**
    * The allocation path issues `SELECT ... FOR UPDATE` to serialise concurrent

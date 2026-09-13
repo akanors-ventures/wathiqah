@@ -68,6 +68,7 @@ export function setAllocations(
  */
 export type SettlementAllocationDelegate = {
   findMany: jest.Mock;
+  findFirst: jest.Mock;
   findUnique: jest.Mock;
   create: jest.Mock;
   update: jest.Mock;
@@ -99,6 +100,10 @@ export function withSettlementAggregates<T extends Record<string, unknown>>(
     findMany: jest.fn(async (args?: { where?: Record<string, unknown> }) =>
       legFor(args?.where),
     ),
+    findFirst: jest.fn(async (args?: { where?: Record<string, unknown> }) => {
+      const rows = await legFor(args?.where);
+      return rows[0] ?? null;
+    }),
     findUnique: jest.fn().mockResolvedValue(null),
     create: jest.fn(),
     update: jest.fn(),

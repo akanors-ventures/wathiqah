@@ -225,11 +225,18 @@ export class TransactionSettlementService {
       },
     });
 
+    // Every allocation above is already REVERSED by the updateMany, so the
+    // recompute below is safe to defer and dedupe by counterpart — a
+    // transaction touched by two of the voided allocations only needs its
+    // settled amount re-read once, not once per allocation that reached it.
+    const counterpartIds = new Set<string>();
+
     for (const allocation of active) {
       const counterpartId =
         allocation.sourceTransactionId === transactionId
           ? allocation.targetTransactionId
           : allocation.sourceTransactionId;
+      counterpartIds.add(counterpartId);
 
       await tx.transactionHistory.create({
         data: {
@@ -245,8 +252,6 @@ export class TransactionSettlementService {
           },
         },
       });
-
-      await this.recomputeParentLoanStatus(tx, counterpartId, userId);
 
       // The allocation being voided may itself have a personal-ledger echo
       // (maybeMirrorAllocation, transaction-allocations.service.ts) when the
@@ -298,17 +303,13 @@ export class TransactionSettlementService {
           ],
         });
 
-        await this.recomputeParentLoanStatus(
-          tx,
-          mirror.sourceTransactionId,
-          userId,
-        );
-        await this.recomputeParentLoanStatus(
-          tx,
-          mirror.targetTransactionId,
-          userId,
-        );
+        counterpartIds.add(mirror.sourceTransactionId);
+        counterpartIds.add(mirror.targetTransactionId);
       }
+    }
+
+    for (const id of counterpartIds) {
+      await this.recomputeParentLoanStatus(tx, id, userId);
     }
   }
 
