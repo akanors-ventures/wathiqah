@@ -16,8 +16,8 @@ const ALLOCATION_REFETCH = [
   "Transactions",
   "Transaction",
   "MyContactTransactions",
-  "Contacts",
-  "Contact",
+  "GetContacts",
+  "GetContact",
 ];
 
 const evictAllocationFields = (cache: {

@@ -7,11 +7,15 @@ import {
   Prisma,
 } from '../../generated/prisma/client';
 import { FilterTransactionInput } from './dto/filter-transaction.input';
-import { computeEffectiveObligationAmount } from './settlement.util';
+import {
+  LIFECYCLE_OBLIGATION_TYPES,
+  computeEffectiveObligationAmount,
+} from './settlement.util';
 import {
   PERSPECTIVE_FLIP_MAP,
   TransactionSummary,
   computeNetBalance,
+  createEmptySummary,
 } from './summary.util';
 
 /**
@@ -22,10 +26,18 @@ import {
  */
 @Injectable()
 export class TransactionSummaryService {
-  /** Only LOAN_GIVEN/LOAN_RECEIVED can carry gift conversions or allocations. */
-  private static readonly LOAN_TYPES_FILTER: Prisma.TransactionWhereInput = {
-    type: { in: [TransactionType.LOAN_GIVEN, TransactionType.LOAN_RECEIVED] },
-  };
+  /**
+   * Only LOAN_GIVEN/LOAN_RECEIVED can carry a gift conversion, but every
+   * lifecycle obligation type (loans, advances, deposits, escrow/remitted)
+   * can carry an allocation — ContactsService.getBalance fetches this same
+   * deduction for every FUNDS transaction, not loans only. Filtering to
+   * loans here would leave an allocation that settles e.g. an ADVANCE_PAID
+   * transaction undeducted from these totals.
+   */
+  private static readonly OBLIGATION_TYPES_FILTER: Prisma.TransactionWhereInput =
+    {
+      type: { in: [...LIFECYCLE_OBLIGATION_TYPES] as TransactionType[] },
+    };
 
   /**
    * Nested-relation select for a loan's non-cancelled gift-conversion
@@ -99,7 +111,7 @@ export class TransactionSummaryService {
           where: {
             ...where,
             createdById: userId,
-            ...TransactionSummaryService.LOAN_TYPES_FILTER,
+            ...TransactionSummaryService.OBLIGATION_TYPES_FILTER,
           },
           select: {
             type: true,
@@ -115,7 +127,7 @@ export class TransactionSummaryService {
             ...where,
             createdById: { not: userId },
             contact: { linkedUserId: userId },
-            ...TransactionSummaryService.LOAN_TYPES_FILTER,
+            ...TransactionSummaryService.OBLIGATION_TYPES_FILTER,
           },
           select: {
             type: true,
@@ -131,22 +143,7 @@ export class TransactionSummaryService {
     const ownDeductions = this.sumObligationDeductions(ownLoans);
     const contactDeductions = this.sumObligationDeductions(contactLoans);
 
-    const summary: TransactionSummary = {
-      totalLoanGiven: 0,
-      totalLoanReceived: 0,
-      totalRepaymentMade: 0,
-      totalRepaymentReceived: 0,
-      totalGiftGiven: 0,
-      totalGiftReceived: 0,
-      totalAdvancePaid: 0,
-      totalAdvanceReceived: 0,
-      totalDepositPaid: 0,
-      totalDepositReceived: 0,
-      totalEscrowed: 0,
-      totalRemitted: 0,
-      netBalance: 0,
-      currency: targetCurrency,
-    };
+    const summary: TransactionSummary = createEmptySummary(targetCurrency);
 
     // Process own transactions
     for (const agg of ownAggregations) {
@@ -339,7 +336,7 @@ export class TransactionSummaryService {
           ...baseWhere,
           createdById: userId,
           contactId: filter?.contactId || undefined,
-          ...TransactionSummaryService.LOAN_TYPES_FILTER,
+          ...TransactionSummaryService.OBLIGATION_TYPES_FILTER,
         },
         select: {
           contactId: true,
@@ -356,7 +353,7 @@ export class TransactionSummaryService {
           ...baseWhere,
           createdById: { not: userId },
           contact: { linkedUserId: userId },
-          ...TransactionSummaryService.LOAN_TYPES_FILTER,
+          ...TransactionSummaryService.OBLIGATION_TYPES_FILTER,
         },
         select: {
           createdById: true,
@@ -392,22 +389,8 @@ export class TransactionSummaryService {
     // Group aggregations by contactId
     const groupedByContact = new Map<string | null, TransactionSummary>();
 
-    const getInitialSummary = (): TransactionSummary => ({
-      totalLoanGiven: 0,
-      totalLoanReceived: 0,
-      totalRepaymentMade: 0,
-      totalRepaymentReceived: 0,
-      totalGiftGiven: 0,
-      totalGiftReceived: 0,
-      totalAdvancePaid: 0,
-      totalAdvanceReceived: 0,
-      totalDepositPaid: 0,
-      totalDepositReceived: 0,
-      totalEscrowed: 0,
-      totalRemitted: 0,
-      netBalance: 0,
-      currency: targetCurrency,
-    });
+    const getInitialSummary = (): TransactionSummary =>
+      createEmptySummary(targetCurrency);
 
     // Process own transactions
     for (const agg of ownAggregations) {

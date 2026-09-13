@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TransactionSettlementService } from './transaction-settlement.service';
+import { WitnessesService } from '../witnesses/witnesses.service';
 import {
   AssetCategory,
   Prisma,
@@ -21,6 +22,7 @@ import {
   isLifecycleObligationType,
   isValueConservingPair,
 } from './settlement.util';
+import { PERSPECTIVE_FLIP_MAP } from './summary.util';
 import { AllocateTransactionsInput } from './dto/allocate-transactions.input';
 
 /**
@@ -52,6 +54,7 @@ export class TransactionAllocationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly transactionSettlementService: TransactionSettlementService,
+    private readonly witnessesService: WitnessesService,
   ) {}
 
   /**
@@ -155,7 +158,7 @@ export class TransactionAllocationsService {
       targets.set(id, target);
     }
 
-    return this.prisma.$transaction(async (tx) => {
+    const created = await this.prisma.$transaction(async (tx) => {
       // Lock every endpoint in a deterministic order. Without this, two
       // concurrent passes against one pool can both pass the cap and over-draw
       // it, and computeOutstanding's Math.max(0, ...) clamp would hide the
@@ -278,6 +281,19 @@ export class TransactionAllocationsService {
 
       return created;
     });
+
+    // An allocation can change an endpoint's outstanding balance and
+    // auto-flip its status just as materially as a field edit does — the
+    // same WITNESS_SYSTEM invariant TransactionsService.update() enforces
+    // ("updating an ACKNOWLEDGED transaction resets witnesses to MODIFIED")
+    // applies here too, or a witness's attestation goes stale silently.
+    for (const id of new Set([sourceTransactionId, ...targetIds])) {
+      await this.witnessesService.resetAcknowledgedToModified(id, userId, [
+        'Balance changed by an allocation',
+      ]);
+    }
+
+    return created;
   }
 
   /**
@@ -294,21 +310,34 @@ export class TransactionAllocationsService {
       throw new NotFoundException(`Allocation ${allocationId} not found`);
     }
     if (allocation.status === 'REVERSED') return allocation;
+    // This row is itself a personal-ledger echo of an org allocation
+    // (maybeMirrorAllocation). Reversing it directly would reopen the
+    // personal obligation while the org-side original — the source of
+    // truth every other org member still sees — stays ACTIVE, desyncing
+    // the two ledgers. Reversal must start from the org original, which
+    // then cascades onto this mirror via reverseMirrorOf below.
+    if (allocation.orgSourceAllocationId) {
+      throw new BadRequestException(
+        'This allocation is a personal-ledger reflection of an organisation allocation. Reverse it from the organisation instead.',
+      );
+    }
 
-    const source = await this.loadEndpoint(
-      allocation.sourceTransactionId,
-      'source',
-    );
-    const target = await this.loadEndpoint(
-      allocation.targetTransactionId,
-      'target',
-    );
+    // Neither load nor authority check depends on the other's result, and
+    // none of this holds a row lock yet (the $transaction below is where
+    // locking starts) — running all four sequentially just adds latency.
+    const [source, target] = await Promise.all([
+      this.loadEndpoint(allocation.sourceTransactionId, 'source'),
+      this.loadEndpoint(allocation.targetTransactionId, 'target'),
+    ]);
     // A reversal only ever restores balances, so a CANCELLED endpoint is fine
     // here — assertEndpointUsable's usability rules would wrongly block it.
-    await this.assertWriteAuthority(source, userId, orgId);
-    await this.assertWriteAuthority(target, userId, orgId);
+    await Promise.all([
+      this.assertWriteAuthority(source, userId, orgId),
+      this.assertWriteAuthority(target, userId, orgId),
+    ]);
 
-    return this.prisma.$transaction(async (tx) => {
+    let reversedNow = false;
+    const result = await this.prisma.$transaction(async (tx) => {
       const lockIds = [
         allocation.sourceTransactionId,
         allocation.targetTransactionId,
@@ -329,6 +358,7 @@ export class TransactionAllocationsService {
         throw new NotFoundException(`Allocation ${allocationId} not found`);
       }
       if (current.status === 'REVERSED') return current;
+      reversedNow = true;
 
       const updated = await tx.transactionAllocation.update({
         where: { id: allocationId },
@@ -373,6 +403,24 @@ export class TransactionAllocationsService {
 
       return updated;
     });
+
+    // Same WITNESS_SYSTEM invariant as allocate(): reversing restores both
+    // endpoints' balances and can flip status back to PENDING, which is just
+    // as material a change as a field edit for anyone who already
+    // ACKNOWLEDGED it. Skip on the idempotent already-REVERSED path — nothing
+    // actually changed.
+    if (reversedNow) {
+      for (const id of [
+        allocation.sourceTransactionId,
+        allocation.targetTransactionId,
+      ]) {
+        await this.witnessesService.resetAcknowledgedToModified(id, userId, [
+          'Balance changed by an allocation reversal',
+        ]);
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -497,7 +545,7 @@ export class TransactionAllocationsService {
     direction: 'IN' | 'OUT',
     viewerId: string,
   ) {
-    const rows = await this.prisma.transactionAllocation.findMany({
+    const rawRows = await this.prisma.transactionAllocation.findMany({
       where:
         direction === 'IN'
           ? { targetTransactionId: parent.id }
@@ -508,6 +556,23 @@ export class TransactionAllocationsService {
       },
       orderBy: { date: 'desc' },
     });
+
+    // The main transaction is flipped for a shared-ledger viewer via
+    // applyPerspective/PERSPECTIVE_FLIP_MAP elsewhere (transactions.service.ts)
+    // — an allocation counterpart the viewer didn't create needs the same
+    // treatment, or a linked contact sees the creator's raw type instead of
+    // their own perspective's equivalent.
+    const rows = rawRows.map((row) => ({
+      ...row,
+      sourceTransaction: this.flipCounterpartPerspective(
+        row.sourceTransaction,
+        viewerId,
+      ),
+      targetTransaction: this.flipCounterpartPerspective(
+        row.targetTransaction,
+        viewerId,
+      ),
+    }));
 
     if (parent.orgId || parent.createdById === viewerId) return rows;
 
@@ -523,6 +588,18 @@ export class TransactionAllocationsService {
         targetTransaction: null,
       };
     });
+  }
+
+  /** Flips `type` on an allocation counterpart for a viewer who didn't create it. */
+  private flipCounterpartPerspective<
+    T extends { createdById: string; type: string } | null,
+  >(transaction: T, viewerId: string): T {
+    if (!transaction || transaction.createdById === viewerId) {
+      return transaction;
+    }
+    const flippedType = PERSPECTIVE_FLIP_MAP[transaction.type];
+    if (!flippedType) return transaction;
+    return { ...transaction, type: flippedType } as T;
   }
 
   /**

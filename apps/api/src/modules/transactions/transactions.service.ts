@@ -1025,6 +1025,24 @@ export class TransactionsService {
       changeDescriptions.push(`Amount changed to ${amount}`);
     }
     if (currency && currency !== transaction.currency) {
+      // allocate() enforces source.currency === target.currency at creation
+      // time and never re-validates it — an allocation's stored `currency`
+      // is a snapshot, not a live reference. Changing either endpoint's
+      // currency afterward would silently desync that snapshot from the
+      // transaction's actual currency and corrupt settlement/balance math.
+      const hasActiveAllocation =
+        await this.prisma.transactionAllocation.findFirst({
+          where: {
+            status: 'ACTIVE',
+            OR: [{ sourceTransactionId: id }, { targetTransactionId: id }],
+          },
+          select: { id: true },
+        });
+      if (hasActiveAllocation) {
+        throw new BadRequestException(
+          'Currency cannot be changed while this transaction has an active allocation — reverse the allocation first',
+        );
+      }
       changes.currency = currency;
       changeDescriptions.push(`Currency changed to ${currency}`);
     }
