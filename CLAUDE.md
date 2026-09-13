@@ -20,7 +20,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Frontend (Vitest): `@testing-library/user-event` is **not installed** — use `fireEvent` from `@testing-library/react` for click/interaction tests.
 - When mocking `useQuery`/`useMutation` by GraphQL operation name in Vitest, don't assume `document.definitions[0]` is the operation — a query built with an interpolated fragment (`${SOME_FIELDS}`) puts the FragmentDefinition first. Find it via `definitions.find(d => d.kind === "OperationDefinition")`.
 - **Manual browser QA**: fresh signups block login on email verification (no local inbox access to the token) — bypass with `psql ... -c "UPDATE users SET \"isEmailVerified\" = true WHERE email = '...'"` on the local dev DB. Same for testing org features: `UPDATE users SET tier = 'PRO' WHERE email = '...'`. Clean up test users/orgs/contacts afterward.
+- **Manual QA cleanup order**: delete `contacts` (by both `userId` and `linkedUserId`), then `transaction_history`/`transactions` (by `createdById`), before deleting the `users` row — wrong order hits FK violations like `contacts_userId_fkey`.
 - **Browser pane clicks**: the screenshot image is scaled down from the actual viewport (e.g. 800×455 image for a 1280×720 viewport) — clicking raw screenshot pixel coordinates lands in the wrong place. Use `ref` from `read_page`/`find` instead of coordinates whenever possible.
+- Components using `<Link>` from `@tanstack/react-router` need it mocked in Vitest tests (no `RouterProvider` in the test env): `vi.mock("@tanstack/react-router", () => ({ Link: ({ children, to }) => <a href={to}>{children}</a> }))` — otherwise `useLinkProps`/`useRouterState` throw `Cannot read properties of null (reading '__store')`.
+- Frontend is **Biome-linted, not ESLint** — `// eslint-disable-next-line` is inert and Biome still flags the issue (e.g. `useExhaustiveDependencies`). Fix the dependency array or suppress with `// biome-ignore lint/<rule>: <reason>`.
+- `pnpm --filter web exec biome check --write <paths>` — paths must be relative to `apps/web` (the filter already `cd`s there). Repo-root-relative paths double the prefix (`apps/web/apps/web/...`) and Biome silently skips every file.
+- **Testing a TanStack Start route directly**: export the page component itself, not just `Route` (e.g. `export function NewTransactionPage()`, matching `settings.tsx`'s `SettingsPage`) — lets a test `render()` it directly without needing to unpack `createFileRoute`'s return shape.
+- **Submitting a react-hook-form form in Vitest**: `fireEvent.click()` on the `type="submit"` button reliably triggers `form.handleSubmit(onSubmit)`; `fireEvent.submit(formElement)` did not fire it at all in this setup, and failed silently (no error, `onSubmit` just never ran) — always click the submit button.
+- **Mocking a form-fields child component** (e.g. `TransactionFormFields`) to isolate a route's `onSubmit` logic: accept the real `form` prop in the mock and call `form.setValue(...)` in a `useEffect` to satisfy zod `.refine()` checks (e.g. "amount must be positive for funds") that the component's real inputs would otherwise set — otherwise `handleSubmit` resolves to the invalid branch and your submit handler never runs, with no visible error.
 
 ## TypeScript Checks
 
@@ -55,6 +62,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## UI Components — radix-ui Package
 
 - Newer shadcn components (e.g. `progress.tsx`) import from the unified `radix-ui` meta-package (`import { X as XPrimitive } from "radix-ui"`) instead of per-primitive `@radix-ui/react-x` packages. Check an existing component's import style before adding a new `@radix-ui/react-*` dependency — it's likely already covered.
+- `AlertDialogAction` (`components/ui/alert-dialog.tsx`) renders Radix's `DialogPrimitive.Close` under the hood — clicking it *always* closes the enclosing `AlertDialog` (fires its `onOpenChange(false)`) right after your own `onClick`, even if your handler does something else entirely (e.g. opening a second dialog). If the action shouldn't close the dialog — handing off to another dialog, an async action that might fail — call `event.preventDefault()` in `onClick` first. Caused a real bug: an "Allocate now" button meant to open a follow-up `AllocationDialog` instead closed the `AlertDialog`, which was wired to navigate away on close.
 
 ## Quick Start
 
@@ -79,8 +87,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Key vars: `DATABASE_URL`, `JWT_SECRET`, `REDIS_HOST`, `REDIS_PORT`, `MAILTRAP_TOKEN` or `SENDGRID_API_KEY`, `TWILIO_ACCOUNT_SID`, `EXCHANGE_RATE_API_KEY`
 
 **Frontend** (`apps/web`):
-- Copy `.env.example` to `.env.local`
-- Key var: `VITE_API_URL`
+- No `.env.example` exists here — create `.env.local` directly if you need to override the default
+- Key var: `VITE_API_URL` (optional — defaults to `http://localhost:3001/api/graphql` when unset, see `src/router.tsx`)
 
 ## Project Architecture
 
@@ -91,7 +99,7 @@ wathiqah/
 ├── apps/
 │   ├── api/          # NestJS GraphQL Backend (port 3001)
 │   └── web/          # TanStack Start Frontend (port 3000)
-├── packages/         # Shared TypeScript types
+├── packages/         # shared-constants (shared TypeScript constants)
 └── turbo.json        # Turborepo config
 ```
 
@@ -295,6 +303,7 @@ Role-gated platform administration surface. Backend module: `apps/api/src/module
 - After regenerating `schema.gql`, run `pnpm --filter web codegen` to regenerate `apps/web/src/types/__generated__/graphql.ts`.
 - Commit both `schema.gql` and `graphql.ts` together — a stale `schema.gql` in the repo will break CI codegen validation even if the backend code is correct.
 - Frontend codegen reads from `../api/src/schema.gql` — see `apps/web/codegen.ts`.
+- If only a frontend query/fragment selection changes (no backend `@Field()`/schema change), skip starting the api dev server — `pnpm --filter web codegen` alone regenerates types from the `schema.gql` already on disk.
 
 ## Backend Conventions
 
@@ -348,6 +357,9 @@ If the app crashes with `column X does not exist` or `relation X does not exist`
 2. Query the DB directly (`psql ... -c "SELECT column_name FROM information_schema.columns WHERE table_name='...' AND column_name='...'"`) to check what's actually there
 3. For each missing object, find the migration that creates it and run that SQL directly via `psql`
 4. Do **not** re-run `atlas migrate set` — the revision table already has the entry; only the actual DB object is missing
+
+### Prisma Interactive Transactions — Default Timeout
+- `prisma.$transaction(async (tx) => {...})` has a **5000ms default timeout** with no override. A loop inside it that does several sequential DB calls per iteration (create + history write + status recompute, etc.) can exceed this once the loop runs enough iterations — caused a real `INTERNAL_SERVER_ERROR` in `transaction-allocations.service.ts`'s `allocate()` at ~6 iterations. Pass an explicit `{ timeout }` as the second argument for any interactive transaction whose body loops over a caller-controlled list, sized to the realistic max batch size — but treat this as a stopgap, not a fix: round trips still scale with the loop, so prefer batching (`createMany`, one `findMany` instead of N `findUnique`s) when the loop's per-item work allows it.
 
 ### Project Fund Balance Semantics
 - `project.balance` = `totalIncome − totalExpenses` (net cash position, not a budget figure)

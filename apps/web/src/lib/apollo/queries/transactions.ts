@@ -355,10 +355,17 @@ export const CREATE_TRANSACTION: TypedDocumentNode<
       id
       amount
       type
+      category
       currency
       description
       date
       parentId
+      contactId
+      remainingAmount
+      contact {
+        id
+        name
+      }
     }
   }
 `;
@@ -435,23 +442,30 @@ export const REVERSE_TRANSACTION_ALLOCATION: TypedDocumentNode<
   }
 `;
 
+export const ALLOCATION_PICKER_ROW_FIELDS = gql`
+  fragment AllocationPickerRowFields on Transaction {
+    id
+    type
+    amount
+    currency
+    date
+    remainingAmount
+    description
+    contact {
+      id
+      name
+    }
+  }
+`;
+
 export const GET_AVAILABLE_CREDITS: TypedDocumentNode<
   AvailableCreditsQuery,
   AvailableCreditsQueryVariables
 > = gql`
+  ${ALLOCATION_PICKER_ROW_FIELDS}
   query AvailableCredits($contactId: ID, $currency: String) {
     availableCredits(contactId: $contactId, currency: $currency) {
-      id
-      type
-      amount
-      currency
-      date
-      description
-      remainingAmount
-      contact {
-        id
-        name
-      }
+      ...AllocationPickerRowFields
     }
   }
 `;
@@ -460,19 +474,10 @@ export const GET_ALLOCATABLE_OBLIGATIONS: TypedDocumentNode<
   AllocatableObligationsQuery,
   AllocatableObligationsQueryVariables
 > = gql`
+  ${ALLOCATION_PICKER_ROW_FIELDS}
   query AllocatableObligations($sourceTransactionId: ID!, $contactId: ID) {
     allocatableObligations(sourceTransactionId: $sourceTransactionId, contactId: $contactId) {
-      id
-      type
-      amount
-      currency
-      date
-      description
-      remainingAmount
-      contact {
-        id
-        name
-      }
+      ...AllocationPickerRowFields
     }
   }
 `;

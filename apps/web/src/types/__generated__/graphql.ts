@@ -2445,7 +2445,7 @@ export type CreateTransactionMutationVariables = Exact<{
 }>;
 
 
-export type CreateTransactionMutation = { createTransaction: { __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, currency: string, description: string | null, date: string, parentId: string | null } };
+export type CreateTransactionMutation = { createTransaction: { __typename: 'Transaction', id: string, amount: number | null, type: TransactionType, category: AssetCategory, currency: string, description: string | null, date: string, parentId: string | null, contactId: string | null, remainingAmount: number | null, contact: { __typename: 'Contact', id: string, name: string } | null } };
 
 export type AddWitnessMutationVariables = Exact<{
   input: AddWitnessInput;
@@ -2475,13 +2475,15 @@ export type ReverseTransactionAllocationMutationVariables = Exact<{
 
 export type ReverseTransactionAllocationMutation = { reverseTransactionAllocation: { __typename: 'TransactionAllocation', id: string, status: AllocationStatus } };
 
+export type AllocationPickerRowFieldsFragment = { __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, remainingAmount: number | null, description: string | null, contact: { __typename: 'Contact', id: string, name: string } | null };
+
 export type AvailableCreditsQueryVariables = Exact<{
   contactId?: InputMaybe<Scalars['ID']['input']>;
   currency?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type AvailableCreditsQuery = { availableCredits: Array<{ __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, description: string | null, remainingAmount: number | null, contact: { __typename: 'Contact', id: string, name: string } | null }> };
+export type AvailableCreditsQuery = { availableCredits: Array<{ __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, remainingAmount: number | null, description: string | null, contact: { __typename: 'Contact', id: string, name: string } | null }> };
 
 export type AllocatableObligationsQueryVariables = Exact<{
   sourceTransactionId: Scalars['ID']['input'];
@@ -2489,7 +2491,7 @@ export type AllocatableObligationsQueryVariables = Exact<{
 }>;
 
 
-export type AllocatableObligationsQuery = { allocatableObligations: Array<{ __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, description: string | null, remainingAmount: number | null, contact: { __typename: 'Contact', id: string, name: string } | null }> };
+export type AllocatableObligationsQuery = { allocatableObligations: Array<{ __typename: 'Transaction', id: string, type: TransactionType, amount: number | null, currency: string, date: string, remainingAmount: number | null, description: string | null, contact: { __typename: 'Contact', id: string, name: string } | null }> };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
