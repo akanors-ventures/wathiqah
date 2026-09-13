@@ -20,7 +20,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Frontend (Vitest): `@testing-library/user-event` is **not installed** — use `fireEvent` from `@testing-library/react` for click/interaction tests.
 - When mocking `useQuery`/`useMutation` by GraphQL operation name in Vitest, don't assume `document.definitions[0]` is the operation — a query built with an interpolated fragment (`${SOME_FIELDS}`) puts the FragmentDefinition first. Find it via `definitions.find(d => d.kind === "OperationDefinition")`.
 - **Manual browser QA**: fresh signups block login on email verification (no local inbox access to the token) — bypass with `psql ... -c "UPDATE users SET \"isEmailVerified\" = true WHERE email = '...'"` on the local dev DB. Same for testing org features: `UPDATE users SET tier = 'PRO' WHERE email = '...'`. Clean up test users/orgs/contacts afterward.
+- **Manual QA cleanup order**: delete `contacts` (by both `userId` and `linkedUserId`), then `transaction_history`/`transactions` (by `createdById`), before deleting the `users` row — wrong order hits FK violations like `contacts_userId_fkey`.
 - **Browser pane clicks**: the screenshot image is scaled down from the actual viewport (e.g. 800×455 image for a 1280×720 viewport) — clicking raw screenshot pixel coordinates lands in the wrong place. Use `ref` from `read_page`/`find` instead of coordinates whenever possible.
+- Components using `<Link>` from `@tanstack/react-router` need it mocked in Vitest tests (no `RouterProvider` in the test env): `vi.mock("@tanstack/react-router", () => ({ Link: ({ children, to }) => <a href={to}>{children}</a> }))` — otherwise `useLinkProps`/`useRouterState` throw `Cannot read properties of null (reading '__store')`.
+- Frontend is **Biome-linted, not ESLint** — `// eslint-disable-next-line` is inert and Biome still flags the issue (e.g. `useExhaustiveDependencies`). Fix the dependency array or suppress with `// biome-ignore lint/<rule>: <reason>`.
+- `pnpm --filter web exec biome check --write <paths>` — paths must be relative to `apps/web` (the filter already `cd`s there). Repo-root-relative paths double the prefix (`apps/web/apps/web/...`) and Biome silently skips every file.
 
 ## TypeScript Checks
 
@@ -295,6 +299,7 @@ Role-gated platform administration surface. Backend module: `apps/api/src/module
 - After regenerating `schema.gql`, run `pnpm --filter web codegen` to regenerate `apps/web/src/types/__generated__/graphql.ts`.
 - Commit both `schema.gql` and `graphql.ts` together — a stale `schema.gql` in the repo will break CI codegen validation even if the backend code is correct.
 - Frontend codegen reads from `../api/src/schema.gql` — see `apps/web/codegen.ts`.
+- If only a frontend query/fragment selection changes (no backend `@Field()`/schema change), skip starting the api dev server — `pnpm --filter web codegen` alone regenerates types from the `schema.gql` already on disk.
 
 ## Backend Conventions
 
