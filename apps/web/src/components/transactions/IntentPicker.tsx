@@ -1,5 +1,4 @@
 import { ArrowDownLeft, ArrowUpRight, Gift, HandCoins, PiggyBank, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { TransactionType } from "@/types/__generated__/graphql";
 
@@ -152,18 +151,12 @@ interface IntentPickerProps {
 }
 
 export function IntentPicker({ value, onChange }: IntentPickerProps) {
-  // Track which intent the user is browsing. Defaults to whatever the current
-  // value belongs to (so editing an existing draft lands on the right tile).
-  const [intent, setIntent] = useState<Intent>(() => TYPE_TO_INTENT[value] ?? "LENDING");
-
-  // Keep intent in sync if the form value is changed externally (e.g. another
-  // control on the page sets a different type). IMPORTANT: only listen to
-  // `value` changes — including `intent` here would clobber the user's local
-  // intent click before they pick a direction.
-  useEffect(() => {
-    const next = TYPE_TO_INTENT[value];
-    if (next) setIntent(next);
-  }, [value]);
+  // Derived from `value` every render rather than tracked as its own state —
+  // that would leave two sources of truth that can diverge (the bug this
+  // component previously had: the card looked selected while the real form
+  // value hadn't changed). Defaults to "LENDING" only when `value` doesn't
+  // belong to any known intent yet.
+  const intent: Intent = TYPE_TO_INTENT[value] ?? "LENDING";
 
   const directions = DIRECTIONS[intent];
 
@@ -183,14 +176,11 @@ export function IntentPicker({ value, onChange }: IntentPickerProps) {
                 key={card.intent}
                 type="button"
                 onClick={() => {
-                  setIntent(card.intent);
-                  // The card only decides which direction options show below —
-                  // if the form's actual type doesn't already belong to this
-                  // intent, this card visually highlights as selected while the
-                  // form still holds the previous intent's type until a
-                  // direction is also clicked. Defaulting to the first
-                  // direction here keeps what's shown and what's submitted in
-                  // sync at every step, not just after a second click.
+                  // Only default to this intent's first direction when the
+                  // current type isn't already one of its own — otherwise a
+                  // re-click of the active card would discard the user's
+                  // already-chosen direction (e.g. LOAN_RECEIVED back to
+                  // LOAN_GIVEN).
                   if (TYPE_TO_INTENT[value] !== card.intent) {
                     onChange(DIRECTIONS[card.intent][0].value);
                   }

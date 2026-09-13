@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { SupporterBadge } from "@/components/ui/supporter-badge";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { TransactionDetail, TransactionDetailView } from "@/lib/utils/transactionDetailView";
+import { formatTransactionTypeLabel } from "@/lib/utils/transactionDisplay";
 import { AssetCategory, TransactionType } from "@/types/__generated__/graphql";
 
 interface TransactionHeaderProps {
@@ -57,8 +58,7 @@ export function TransactionHeader({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white leading-tight">
-            <span className="capitalize">{transaction.type.toLowerCase().replace(/_/g, " ")}</span>{" "}
-            {"—"}{" "}
+            <span>{formatTransactionTypeLabel(transaction.type)}</span> {"—"}{" "}
             <span className="inline-flex items-center gap-2 flex-wrap">
               {transaction.contact?.name || "Personal"}
               {transaction.contact?.isSupporter && <SupporterBadge className="h-5 px-1.5" />}

@@ -50,7 +50,7 @@ export const Route = createFileRoute("/transactions/new")({
   component: NewTransactionPage,
 });
 
-function NewTransactionPage() {
+export function NewTransactionPage() {
   const navigate = useNavigate();
   const search = useSearch({ from: "/transactions/new" });
   const { createTransaction, creating } = useTransactions();
@@ -62,6 +62,12 @@ function NewTransactionPage() {
       to: "/transactions",
       search: { tab: category === AssetCategory.Item ? "items" : "funds" },
     });
+  }
+
+  function dismissAllocationPrompt() {
+    if (!pendingAllocation) return;
+    goToList(pendingAllocation.category);
+    setPendingAllocation(null);
   }
 
   const form = useForm<TransactionFormValues>({
@@ -136,6 +142,8 @@ function NewTransactionPage() {
       goToList(values.category);
     } catch (error) {
       console.error(error);
+      const message = error instanceof Error ? error.message : "Failed to create transaction";
+      toast.error(message);
     }
   }
 
@@ -167,10 +175,7 @@ function NewTransactionPage() {
           <AlertDialog
             open={!allocationDialogOpen}
             onOpenChange={(open) => {
-              if (!open) {
-                goToList(pendingAllocation.category);
-                setPendingAllocation(null);
-              }
+              if (!open) dismissAllocationPrompt();
             }}
           >
             <AlertDialogContent>
@@ -183,15 +188,18 @@ function NewTransactionPage() {
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel
-                  onClick={() => {
-                    goToList(pendingAllocation.category);
-                    setPendingAllocation(null);
+                <AlertDialogCancel onClick={dismissAllocationPrompt}>Not now</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(event) => {
+                    // AlertDialogAction renders Radix's DialogPrimitive.Close,
+                    // which closes this AlertDialog (firing the onOpenChange
+                    // above) right after this handler unless prevented — that
+                    // would clear pendingAllocation before AllocationDialog
+                    // ever got a chance to open.
+                    event.preventDefault();
+                    setAllocationDialogOpen(true);
                   }}
                 >
-                  Not now
-                </AlertDialogCancel>
-                <AlertDialogAction onClick={() => setAllocationDialogOpen(true)}>
                   Allocate now
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -202,10 +210,7 @@ function NewTransactionPage() {
             open={allocationDialogOpen}
             onOpenChange={(open) => {
               setAllocationDialogOpen(open);
-              if (!open) {
-                goToList(pendingAllocation.category);
-                setPendingAllocation(null);
-              }
+              if (!open) dismissAllocationPrompt();
             }}
             mode={pendingAllocation.mode}
             transaction={pendingAllocation.transaction}

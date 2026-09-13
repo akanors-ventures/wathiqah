@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { ArrowRightLeft } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/formatters";
 import type { TransactionConversion } from "@/lib/utils/transactionDetailView";
+import { formatTransactionTypeLabel } from "@/lib/utils/transactionDisplay";
 
 export function RepaymentsCard({
   repayments,
@@ -33,8 +34,8 @@ export function RepaymentsCard({
               <p className="text-sm font-medium">
                 {format(new Date(repayment.date as string), "MMM d, yyyy")}
               </p>
-              <p className="text-xs text-neutral-500 capitalize">
-                {repayment.type.toLowerCase().replace(/_/g, " ")}
+              <p className="text-xs text-neutral-500">
+                {formatTransactionTypeLabel(repayment.type)}
               </p>
             </div>
             <div className="font-semibold text-emerald-600">

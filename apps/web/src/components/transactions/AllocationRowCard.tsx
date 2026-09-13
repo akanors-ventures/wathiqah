@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils/formatters";
+import { formatTransactionTypeLabel } from "@/lib/utils/transactionDisplay";
 
 /**
  * One allocation link, readable from either end. The counterpart's contact
@@ -43,7 +44,7 @@ export function AllocationRowCard({
             params={{ id: counterpart.id }}
             className="text-sm font-medium hover:text-emerald-600 transition-colors"
           >
-            <span className="capitalize">{counterpart.type.toLowerCase().replace(/_/g, " ")}</span>
+            <span>{formatTransactionTypeLabel(counterpart.type)}</span>
             {counterpart.contact?.name ? ` — ${counterpart.contact.name}` : ""}
           </Link>
         ) : (
