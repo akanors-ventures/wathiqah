@@ -355,10 +355,17 @@ export const CREATE_TRANSACTION: TypedDocumentNode<
       id
       amount
       type
+      category
       currency
       description
       date
       parentId
+      contactId
+      remainingAmount
+      contact {
+        id
+        name
+      }
     }
   }
 `;
@@ -443,6 +450,7 @@ export const ALLOCATION_PICKER_ROW_FIELDS = gql`
     currency
     date
     remainingAmount
+    description
     contact {
       id
       name

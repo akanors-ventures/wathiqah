@@ -182,7 +182,19 @@ export function IntentPicker({ value, onChange }: IntentPickerProps) {
               <button
                 key={card.intent}
                 type="button"
-                onClick={() => setIntent(card.intent)}
+                onClick={() => {
+                  setIntent(card.intent);
+                  // The card only decides which direction options show below —
+                  // if the form's actual type doesn't already belong to this
+                  // intent, this card visually highlights as selected while the
+                  // form still holds the previous intent's type until a
+                  // direction is also clicked. Defaulting to the first
+                  // direction here keeps what's shown and what's submitted in
+                  // sync at every step, not just after a second click.
+                  if (TYPE_TO_INTENT[value] !== card.intent) {
+                    onChange(DIRECTIONS[card.intent][0].value);
+                  }
+                }}
                 className={cn(
                   "group flex items-start gap-2.5 p-3 rounded-xl border text-left transition-all",
                   isActive

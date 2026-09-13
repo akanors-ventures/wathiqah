@@ -56,8 +56,23 @@ export function AllocationRow({
             {format(new Date(row.date), "d MMM yyyy")}
           </span>
         </div>
+        {row.description ? (
+          <p className="truncate text-xs italic text-muted-foreground" title={row.description}>
+            {row.description}
+          </p>
+        ) : null}
         <p className="text-xs text-muted-foreground">
           Outstanding {formatCurrency(row.remainingAmount ?? 0, currencyCode)}
+          {row.amount != null && (row.remainingAmount ?? 0) < row.amount ? (
+            <>
+              {" "}
+              of {formatCurrency(row.amount, currencyCode)}
+              {" · "}
+              <span className="font-medium text-amber-600 dark:text-amber-400">
+                Partially settled
+              </span>
+            </>
+          ) : null}
         </p>
         {checked ? (
           <div className="flex items-center gap-2 pt-1">

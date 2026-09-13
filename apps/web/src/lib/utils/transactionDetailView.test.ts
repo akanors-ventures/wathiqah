@@ -5,7 +5,11 @@ import {
   TransactionStatus,
   TransactionType,
 } from "@/types/__generated__/graphql";
-import { getTransactionDetailView, type TransactionDetail } from "./transactionDetailView";
+import {
+  getAllocationEligibility,
+  getTransactionDetailView,
+  type TransactionDetail,
+} from "./transactionDetailView";
 
 function makeTransaction(overrides: Partial<TransactionDetail> = {}): TransactionDetail {
   return {
@@ -211,5 +215,60 @@ describe("getTransactionDetailView", () => {
     );
     expect(view.allocationsOut).toHaveLength(1);
     expect(view.allocationsOut[0]?.id).toBe("alloc-1");
+  });
+});
+
+describe("getAllocationEligibility", () => {
+  it("returns null for any ITEM-category transaction, regardless of type", () => {
+    expect(getAllocationEligibility(TransactionType.LoanGiven, AssetCategory.Item)).toBeNull();
+    expect(getAllocationEligibility(TransactionType.Escrowed, AssetCategory.Item)).toBeNull();
+  });
+
+  it("treats ESCROWED and REMITTED as credit pools that can apply to obligations", () => {
+    expect(getAllocationEligibility(TransactionType.Escrowed, AssetCategory.Funds)).toBe(
+      "applyCredit",
+    );
+    expect(getAllocationEligibility(TransactionType.Remitted, AssetCategory.Funds)).toBe(
+      "applyCredit",
+    );
+  });
+
+  it("treats every lifecycle obligation type as settleable from a credit", () => {
+    const lifecycleTypes = [
+      TransactionType.LoanGiven,
+      TransactionType.LoanReceived,
+      TransactionType.AdvancePaid,
+      TransactionType.AdvanceReceived,
+      TransactionType.DepositPaid,
+      TransactionType.DepositReceived,
+    ];
+    for (const type of lifecycleTypes) {
+      expect(getAllocationEligibility(type, AssetCategory.Funds)).toBe("settleFromCredit");
+    }
+  });
+
+  it("returns null for gift and repayment types", () => {
+    const ineligibleTypes = [
+      TransactionType.GiftGiven,
+      TransactionType.GiftReceived,
+      TransactionType.RepaymentMade,
+      TransactionType.RepaymentReceived,
+    ];
+    for (const type of ineligibleTypes) {
+      expect(getAllocationEligibility(type, AssetCategory.Funds)).toBeNull();
+    }
+  });
+
+  it("agrees with getTransactionDetailView's canApplyCredit/canSettleFromCredit for a fresh transaction", () => {
+    const escrow = getTransactionDetailView(makeTransaction({ type: TransactionType.Escrowed }));
+    expect(escrow.canApplyCredit).toBe(
+      getAllocationEligibility(TransactionType.Escrowed, AssetCategory.Funds) === "applyCredit",
+    );
+
+    const loan = getTransactionDetailView(makeTransaction({ type: TransactionType.LoanGiven }));
+    expect(loan.canSettleFromCredit).toBe(
+      getAllocationEligibility(TransactionType.LoanGiven, AssetCategory.Funds) ===
+        "settleFromCredit",
+    );
   });
 });

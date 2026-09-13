@@ -6,7 +6,9 @@ export interface PickerRow {
   type: string;
   currency: string;
   date: string;
+  amount?: number | null;
   remainingAmount?: number | null;
+  description?: string | null;
   contact?: { id: string; name: string } | null;
 }
 

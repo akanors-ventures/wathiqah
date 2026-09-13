@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AllocationRow } from "@/components/transactions/AllocationRow";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -21,6 +22,7 @@ import {
   GET_ALLOCATABLE_OBLIGATIONS,
   GET_AVAILABLE_CREDITS,
 } from "@/lib/apollo/queries/transactions";
+import { groupAllocationRowsByContact } from "@/lib/utils/allocationRowGrouping";
 import { formatCurrency } from "@/lib/utils/formatters";
 
 interface AllocationDialogProps {
@@ -66,6 +68,7 @@ export function AllocationDialog({
 
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [note, setNote] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const isApplyMode = mode === "applyCredit";
 
@@ -86,6 +89,8 @@ export function AllocationDialog({
       : (credits.data?.availableCredits ?? []);
     return raw as unknown as PickerRow[];
   }, [isApplyMode, obligations.data, credits.data]);
+
+  const rowGroups = useMemo(() => groupAllocationRowsByContact(rows), [rows]);
 
   const loading = isApplyMode ? obligations.loading : credits.loading;
 
@@ -109,10 +114,12 @@ export function AllocationDialog({
     if (!open) {
       setNote("");
       setDate(format(new Date(), "yyyy-MM-dd"));
+      setError(null);
     }
   }, [open]);
 
   const handleSubmit = async () => {
+    setError(null);
     try {
       const input = isApplyMode
         ? {
@@ -139,7 +146,9 @@ export function AllocationDialog({
       onOpenChange(false);
     } catch (err) {
       console.error(err);
-      toast.error(err instanceof Error ? err.message : "Failed to record allocation");
+      const message = err instanceof Error ? err.message : "Failed to record allocation";
+      toast.error(message);
+      setError(message);
     }
   };
 
@@ -189,19 +198,32 @@ export function AllocationDialog({
                   : "No credit with an unapplied balance in this currency."}
               </p>
             ) : null}
-            {rows.map((row) => (
-              <AllocationRow
-                key={row.id}
-                row={row}
-                currencyCode={currencyCode}
-                checked={!!checked[row.id]}
-                amount={amounts[row.id] ?? 0}
-                cap={capFor(row)}
-                onToggle={(next) => toggle(row, next)}
-                onAmountChange={(value) => setAmount(row.id, value)}
-              />
+            {rowGroups.map((group) => (
+              <div key={group.key} className="space-y-2">
+                <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {group.label}
+                </p>
+                {group.rows.map((row) => (
+                  <AllocationRow
+                    key={row.id}
+                    row={row}
+                    currencyCode={currencyCode}
+                    checked={!!checked[row.id]}
+                    amount={amounts[row.id] ?? 0}
+                    cap={capFor(row)}
+                    onToggle={(next) => toggle(row, next)}
+                    onAmountChange={(value) => setAmount(row.id, value)}
+                  />
+                ))}
+              </div>
             ))}
           </div>
+
+          {error ? (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          ) : null}
 
           {selected.length > 0 ? (
             <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">

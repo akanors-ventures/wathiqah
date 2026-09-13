@@ -19,6 +19,26 @@ const LIFECYCLE_TYPES: TransactionType[] = [
   TransactionType.DepositReceived,
 ];
 
+export type AllocationEligibility = "applyCredit" | "settleFromCredit" | null;
+
+/**
+ * The type/category half of the allocation capability check — independent of
+ * per-transaction state like `parentId` or mirror flags, so it also applies
+ * to a transaction that doesn't exist yet (e.g. right after creation, before
+ * those fields are known to the caller).
+ */
+export function getAllocationEligibility(
+  type: TransactionType,
+  category: AssetCategory,
+): AllocationEligibility {
+  if (category !== AssetCategory.Funds) return null;
+  if (type === TransactionType.Escrowed || type === TransactionType.Remitted) {
+    return "applyCredit";
+  }
+  if (LIFECYCLE_TYPES.includes(type)) return "settleFromCredit";
+  return null;
+}
+
 export interface TransactionDetailView {
   isPersonalMirror: boolean;
   canConvertToGift: boolean;
@@ -94,20 +114,12 @@ export function getTransactionDetailView(transaction: TransactionDetail): Transa
   // A credit pool spends its balance; every other lifecycle obligation
   // receives from one. The server enforces the opposite-sign rule either way —
   // these flags only decide which button to offer.
-  const canApplyCredit =
-    !isPersonalMirror &&
-    !transaction.isMirroredFromProject &&
-    transaction.category === AssetCategory.Funds &&
-    isCreditPool &&
-    !transaction.parentId;
+  const eligibility = getAllocationEligibility(transaction.type, transaction.category);
+  const eligibleForAllocation =
+    !isPersonalMirror && !transaction.isMirroredFromProject && !transaction.parentId;
 
-  const canSettleFromCredit =
-    !isPersonalMirror &&
-    !transaction.isMirroredFromProject &&
-    transaction.category === AssetCategory.Funds &&
-    !isCreditPool &&
-    !transaction.parentId &&
-    LIFECYCLE_TYPES.includes(transaction.type);
+  const canApplyCredit = eligibleForAllocation && eligibility === "applyCredit";
+  const canSettleFromCredit = eligibleForAllocation && eligibility === "settleFromCredit";
 
   // Per-channel breakdown, for display only — never for the remaining balance.
   const totalGifted = giftConversions.reduce((sum, c) => sum + (c.amount || 0), 0);
