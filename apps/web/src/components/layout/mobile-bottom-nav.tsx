@@ -114,9 +114,9 @@ function MoreSheet({
 
           {/* Header */}
           <div className="px-5 pb-3 pt-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <DialogPrimitive.Title className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
               More
-            </p>
+            </DialogPrimitive.Title>
           </div>
 
           {/* Items */}
