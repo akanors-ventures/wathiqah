@@ -332,6 +332,112 @@ describe("AllocationDialog — settleFromCredit mode", () => {
   });
 });
 
+describe("AllocationDialog — richer row detail", () => {
+  it("shows the description and a partially-settled indicator against the original amount", () => {
+    queryResults.set(GET_ALLOCATABLE_OBLIGATIONS, {
+      data: {
+        allocatableObligations: [
+          {
+            id: "loan-partial",
+            type: "LOAN_GIVEN",
+            currency: "NGN",
+            date: "2026-01-10T00:00:00.000Z",
+            amount: 200000,
+            remainingAmount: 80000,
+            description: "School fees loan",
+            contact: { id: "c-musa", name: "Musa" },
+          },
+        ],
+      },
+      loading: false,
+    });
+    renderApply();
+
+    expect(screen.getByText("School fees loan")).toBeInTheDocument();
+    expect(screen.getByText(/Outstanding ₦80,000/)).toBeInTheDocument();
+    expect(screen.getByText(/of ₦200,000/)).toBeInTheDocument();
+    expect(screen.getByText("Partially settled")).toBeInTheDocument();
+  });
+
+  it("omits the partially-settled indicator when nothing has been settled yet", () => {
+    renderApply();
+
+    expect(screen.getByText("Outstanding ₦200,000")).toBeInTheDocument();
+    expect(screen.queryByText("Partially settled")).not.toBeInTheDocument();
+  });
+});
+
+describe("AllocationDialog — contact grouping", () => {
+  it("groups rows under a heading per contact, alphabetically, with no-contact last", () => {
+    queryResults.set(GET_AVAILABLE_CREDITS, {
+      data: {
+        availableCredits: [
+          ...CREDITS,
+          {
+            id: "esc-none",
+            type: "ESCROWED",
+            currency: "NGN",
+            date: "2026-09-03T00:00:00.000Z",
+            remainingAmount: 20000,
+            contact: null,
+          },
+        ],
+      },
+      loading: false,
+    });
+    render(
+      <AllocationDialog open onOpenChange={vi.fn()} mode="settleFromCredit" transaction={LOAN} />,
+    );
+
+    // All three headings render, and in this order: alphabetical by contact
+    // name, with the no-contact bucket pinned last regardless of alphabetical
+    // order — so a real cross-contact allocation can't be made by mistake
+    // against the wrong heading.
+    expect(
+      screen.getByText("Ade").compareDocumentPosition(screen.getByText("Musa")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      screen.getByText("Musa").compareDocumentPosition(screen.getByText("No contact")) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+});
+
+describe("AllocationDialog — error display", () => {
+  it("shows a persistent banner with the failure reason, not just a toast", async () => {
+    allocateTransactions.mockRejectedValue(new Error("Allocation of 50000 exceeds the pool"));
+    renderApply();
+
+    tick(/loan given of ₦200,000/i);
+    fireEvent.click(applyButton());
+
+    expect(await screen.findByText("Allocation of 50000 exceeds the pool")).toBeInTheDocument();
+  });
+
+  it("clears the banner on the next open", async () => {
+    allocateTransactions.mockRejectedValue(new Error("boom"));
+    const { rerender } = renderApply();
+    tick(/loan given of ₦200,000/i);
+    fireEvent.click(applyButton());
+    expect(await screen.findByText("boom")).toBeInTheDocument();
+
+    rerender(
+      <AllocationDialog
+        open={false}
+        onOpenChange={vi.fn()}
+        mode="applyCredit"
+        transaction={ESCROW}
+      />,
+    );
+    rerender(
+      <AllocationDialog open onOpenChange={vi.fn()} mode="applyCredit" transaction={ESCROW} />,
+    );
+
+    expect(screen.queryByText("boom")).not.toBeInTheDocument();
+  });
+});
+
 describe("AllocationDialog — empty states", () => {
   it("says so when nothing is allocatable", () => {
     queryResults.set(GET_ALLOCATABLE_OBLIGATIONS, {

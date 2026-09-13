@@ -158,129 +158,132 @@ export class TransactionAllocationsService {
       targets.set(id, target);
     }
 
-    const created = await this.prisma.$transaction(async (tx) => {
-      // Lock every endpoint in a deterministic order. Without this, two
-      // concurrent passes against one pool can both pass the cap and over-draw
-      // it, and computeOutstanding's Math.max(0, ...) clamp would hide the
-      // over-draw permanently. No CHECK constraint can express a cross-row sum.
-      const lockIds = [sourceTransactionId, ...targetIds].sort();
-      await tx.$queryRaw`SELECT id FROM "transactions" WHERE id IN (${Prisma.join(lockIds)}) FOR UPDATE`;
+    const created = await this.prisma.$transaction(
+      async (tx) => {
+        // Lock every endpoint in a deterministic order. Without this, two
+        // concurrent passes against one pool can both pass the cap and over-draw
+        // it, and computeOutstanding's Math.max(0, ...) clamp would hide the
+        // over-draw permanently. No CHECK constraint can express a cross-row sum.
+        const lockIds = [sourceTransactionId, ...targetIds].sort();
+        await tx.$queryRaw`SELECT id FROM "transactions" WHERE id IN (${Prisma.join(lockIds)}) FOR UPDATE`;
 
-      // One batched read for source + every target's settled amount instead
-      // of N+1 singular loadSettledAmount calls (3 aggregate queries each) —
-      // this used to run serially while every FOR UPDATE lock above was
-      // held, extending lock contention with any concurrent allocation
-      // against the same rows.
-      const settledById =
-        await this.transactionSettlementService.loadSettledAmounts(tx, [
-          sourceTransactionId,
-          ...targetIds,
-        ]);
-
-      const sourceSettled = settledById.get(sourceTransactionId) ?? 0;
-      let sourceRemaining = computeOutstanding(source.amount, sourceSettled);
-
-      const created = [];
-      let totalAllocated = 0;
-      for (const { targetTransactionId, amount } of allocations) {
-        const target = targets.get(targetTransactionId) as EndpointRow;
-
-        const targetSettled = settledById.get(targetTransactionId) ?? 0;
-        const targetOutstanding = computeOutstanding(
-          target.amount,
-          targetSettled,
-        );
-
-        if (amount > sourceRemaining + EPSILON) {
-          throw new BadRequestException(
-            `Allocation of ${amount} exceeds the ${sourceRemaining} still unapplied on this credit`,
-          );
-        }
-        if (amount > targetOutstanding + EPSILON) {
-          throw new BadRequestException(
-            `Allocation of ${amount} exceeds the ${targetOutstanding} outstanding on that obligation`,
-          );
-        }
-
-        const allocation = await tx.transactionAllocation.create({
-          data: {
+        // One batched read for source + every target's settled amount instead
+        // of N+1 singular loadSettledAmount calls (3 aggregate queries each) —
+        // this used to run serially while every FOR UPDATE lock above was
+        // held, extending lock contention with any concurrent allocation
+        // against the same rows.
+        const settledById =
+          await this.transactionSettlementService.loadSettledAmounts(tx, [
             sourceTransactionId,
+            ...targetIds,
+          ]);
+
+        const sourceSettled = settledById.get(sourceTransactionId) ?? 0;
+        let sourceRemaining = computeOutstanding(source.amount, sourceSettled);
+
+        const created = [];
+        let totalAllocated = 0;
+        for (const { targetTransactionId, amount } of allocations) {
+          const target = targets.get(targetTransactionId) as EndpointRow;
+
+          const targetSettled = settledById.get(targetTransactionId) ?? 0;
+          const targetOutstanding = computeOutstanding(
+            target.amount,
+            targetSettled,
+          );
+
+          if (amount > sourceRemaining + EPSILON) {
+            throw new BadRequestException(
+              `Allocation of ${amount} exceeds the ${sourceRemaining} still unapplied on this credit`,
+            );
+          }
+          if (amount > targetOutstanding + EPSILON) {
+            throw new BadRequestException(
+              `Allocation of ${amount} exceeds the ${targetOutstanding} outstanding on that obligation`,
+            );
+          }
+
+          const allocation = await tx.transactionAllocation.create({
+            data: {
+              sourceTransactionId,
+              targetTransactionId,
+              amount,
+              currency: source.currency,
+              date: date ?? new Date(),
+              note: note ?? null,
+              orgId: source.orgId,
+              createdById: userId,
+            },
+          });
+          created.push(allocation);
+          sourceRemaining -= amount;
+          totalAllocated += amount;
+
+          // One history row per endpoint. Deliberately no top-level `type` key:
+          // flipStatePerspective rewrites any top-level `type` through
+          // PERSPECTIVE_FLIP_MAP for shared-ledger viewers, and with two
+          // endpoints in one payload a single flipped type would be ambiguous.
+          await tx.transactionHistory.createMany({
+            data: [
+              {
+                transactionId: sourceTransactionId,
+                userId,
+                changeType: 'ALLOCATION_APPLIED',
+                previousState: { remaining: sourceRemaining + amount },
+                newState: {
+                  allocationId: allocation.id,
+                  amount,
+                  direction: 'OUT',
+                  counterpartTransactionId: targetTransactionId,
+                  counterpartContactId: target.contactId,
+                },
+              },
+              {
+                transactionId: targetTransactionId,
+                userId,
+                changeType: 'ALLOCATION_RECEIVED',
+                previousState: { outstanding: targetOutstanding },
+                newState: {
+                  allocationId: allocation.id,
+                  amount,
+                  direction: 'IN',
+                  counterpartTransactionId: sourceTransactionId,
+                  counterpartContactId: source.contactId,
+                },
+              },
+            ],
+          });
+
+          // targetSettled + amount is the exact post-allocation total — no
+          // target receives more than one allocation per pass (targetIds are
+          // deduped above), so this doesn't need to be re-read.
+          await this.transactionSettlementService.recomputeParentLoanStatus(
+            tx,
             targetTransactionId,
-            amount,
-            currency: source.currency,
-            date: date ?? new Date(),
-            note: note ?? null,
-            orgId: source.orgId,
-            createdById: userId,
-          },
-        });
-        created.push(allocation);
-        sourceRemaining -= amount;
-        totalAllocated += amount;
+            userId,
+            targetSettled + amount,
+          );
 
-        // One history row per endpoint. Deliberately no top-level `type` key:
-        // flipStatePerspective rewrites any top-level `type` through
-        // PERSPECTIVE_FLIP_MAP for shared-ledger viewers, and with two
-        // endpoints in one payload a single flipped type would be ambiguous.
-        await tx.transactionHistory.createMany({
-          data: [
-            {
-              transactionId: sourceTransactionId,
-              userId,
-              changeType: 'ALLOCATION_APPLIED',
-              previousState: { remaining: sourceRemaining + amount },
-              newState: {
-                allocationId: allocation.id,
-                amount,
-                direction: 'OUT',
-                counterpartTransactionId: targetTransactionId,
-                counterpartContactId: target.contactId,
-              },
-            },
-            {
-              transactionId: targetTransactionId,
-              userId,
-              changeType: 'ALLOCATION_RECEIVED',
-              previousState: { outstanding: targetOutstanding },
-              newState: {
-                allocationId: allocation.id,
-                amount,
-                direction: 'IN',
-                counterpartTransactionId: sourceTransactionId,
-                counterpartContactId: source.contactId,
-              },
-            },
-          ],
-        });
+          await this.maybeMirrorAllocation(
+            tx,
+            allocation,
+            source,
+            target,
+            userId,
+          );
+        }
 
-        // targetSettled + amount is the exact post-allocation total — no
-        // target receives more than one allocation per pass (targetIds are
-        // deduped above), so this doesn't need to be re-read.
         await this.transactionSettlementService.recomputeParentLoanStatus(
           tx,
-          targetTransactionId,
+          sourceTransactionId,
           userId,
-          targetSettled + amount,
+          sourceSettled + totalAllocated,
         );
 
-        await this.maybeMirrorAllocation(
-          tx,
-          allocation,
-          source,
-          target,
-          userId,
-        );
-      }
-
-      await this.transactionSettlementService.recomputeParentLoanStatus(
-        tx,
-        sourceTransactionId,
-        userId,
-        sourceSettled + totalAllocated,
-      );
-
-      return created;
-    });
+        return created;
+      },
+      { timeout: 20000 },
+    );
 
     // An allocation can change an endpoint's outstanding balance and
     // auto-flip its status just as materially as a field edit does — the

@@ -1,30 +1,20 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
-import {
-  ArrowLeft,
-  ArrowRightLeft,
-  CalendarDays,
-  CheckCircle2,
-  Edit2,
-  FileText,
-  Gift,
-  Package,
-  Split,
-  Trash2,
-  UserPlus,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
-import { HistoryViewer } from "@/components/history/HistoryViewer";
 import { AddWitnessDialog } from "@/components/transactions/AddWitnessDialog";
 import { AllocationDialog } from "@/components/transactions/AllocationDialog";
+import { AllocationSection } from "@/components/transactions/AllocationSection";
 import { ConvertGiftDialog } from "@/components/transactions/ConvertGiftDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
-import { OrgAttributionBadge } from "@/components/transactions/OrgAttributionBadge";
+import { GiftConversionsCard } from "@/components/transactions/GiftConversionsCard";
 import { RecordRemitDialog } from "@/components/transactions/RecordRemitDialog";
 import { RecordReturnDialog } from "@/components/transactions/RecordReturnDialog";
-import { TransactionAmount } from "@/components/transactions/TransactionAmount";
-import { TransactionWitnessList } from "@/components/transactions/TransactionWitnessList";
+import { RemittancesCard } from "@/components/transactions/RemittancesCard";
+import { RepaymentsCard } from "@/components/transactions/RepaymentsCard";
+import { TransactionDetailsCard } from "@/components/transactions/TransactionDetailsCard";
+import { TransactionHeader } from "@/components/transactions/TransactionHeader";
+import { TransactionHistorySection } from "@/components/transactions/TransactionHistorySection";
+import { TransactionWitnessesCard } from "@/components/transactions/TransactionWitnessesCard";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,24 +27,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
-import { SupporterBadge } from "@/components/ui/supporter-badge";
-import { useAllocations } from "@/hooks/useAllocations";
+import { useAllocationReversal } from "@/hooks/useAllocationReversal";
 import { useTransaction } from "@/hooks/useTransaction";
-import { useTransactions } from "@/hooks/useTransactions";
-import { useRemoveWitness, useResendWitnessInvitation } from "@/hooks/useWitnesses";
-import { formatCurrency } from "@/lib/utils/formatters";
-import { AssetCategory, TransactionType, type Witness } from "@/types/__generated__/graphql";
+import { useTransactionRemoval } from "@/hooks/useTransactionRemoval";
+import { useTransactionWitnessActions } from "@/hooks/useTransactionWitnessActions";
+import { getTransactionDetailView } from "@/lib/utils/transactionDetailView";
+import type { Witness } from "@/types/__generated__/graphql";
 import { authGuard } from "@/utils/auth";
-
-/** Types that carry an outstanding balance and can be settled from a credit. */
-const LIFECYCLE_TYPES: TransactionType[] = [
-  TransactionType.LoanGiven,
-  TransactionType.LoanReceived,
-  TransactionType.AdvancePaid,
-  TransactionType.AdvanceReceived,
-  TransactionType.DepositPaid,
-  TransactionType.DepositReceived,
-];
 
 export const Route = createFileRoute("/transactions/$id")({
   component: TransactionDetailPage,
@@ -70,73 +49,12 @@ function TransactionDetailPage() {
   const [isRecordReturnOpen, setIsRecordReturnOpen] = useState(false);
   const [isRecordRemitOpen, setIsRecordRemitOpen] = useState(false);
   const [isAllocateOpen, setIsAllocateOpen] = useState(false);
-  const [reversingId, setReversingId] = useState<string | null>(null);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
-  const [resendingId, setResendingId] = useState<string | null>(null);
-  const [removingWitnessId, setRemovingWitnessId] = useState<string | null>(null);
 
   const { transaction, loading, error, refetch } = useTransaction(id);
-  const { removeTransaction, removing } = useTransactions();
-  const { reverseAllocation } = useAllocations();
-
-  const { resend } = useResendWitnessInvitation(() => {
-    toast.success("Invitation resent successfully");
-    setResendingId(null);
-  });
-
-  const { remove: removeWitness } = useRemoveWitness(() => {
-    toast.success("Witness removed successfully");
-    setRemovingWitnessId(null);
-    refetch();
-  });
-
-  const handleResendWitness = async (witnessId: string) => {
-    setResendingId(witnessId);
-    try {
-      await resend(witnessId);
-    } catch (_err) {
-      toast.error("Failed to resend invitation");
-      setResendingId(null);
-    }
-  };
-
-  const handleRemoveWitness = async (witnessId: string) => {
-    setRemovingWitnessId(witnessId);
-    try {
-      await removeWitness(witnessId);
-    } catch (_err) {
-      toast.error("Failed to remove witness");
-      setRemovingWitnessId(null);
-    }
-  };
-
-  const handleReverse = async (allocationId: string) => {
-    setReversingId(allocationId);
-    try {
-      // reverseAllocation's mutation already lists "Transaction" (this
-      // page's GET_TRANSACTION) in its refetchQueries — an explicit
-      // refetch() here would just double-fetch the same query.
-      await reverseAllocation(allocationId);
-      toast.success("Allocation reversed");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to reverse allocation");
-    } finally {
-      setReversingId(null);
-    }
-  };
-
-  const handleRemove = async () => {
-    try {
-      await removeTransaction(id);
-      toast.success("Transaction removed successfully");
-      setIsRemoveDialogOpen(false);
-      navigate({ to: "/" });
-    } catch (err) {
-      toast.error("Failed to remove transaction");
-      console.error(err);
-    }
-  };
+  const witnessActions = useTransactionWitnessActions(refetch);
+  const { reversingId, handleReverse } = useAllocationReversal();
+  const { isRemoveDialogOpen, setIsRemoveDialogOpen, removing, handleRemove } =
+    useTransactionRemoval(id, navigate);
 
   if (loading) {
     return <PageLoader />;
@@ -154,84 +72,10 @@ function TransactionDetailPage() {
     );
   }
 
-  const currentTransaction = transaction;
-  const allChildren = (currentTransaction.conversions ?? []).filter(
-    (c): c is NonNullable<typeof c> => c !== null && c.status !== "CANCELLED",
-  );
-  const giftConversions = allChildren.filter(
-    (c) => c.type === TransactionType.GiftGiven || c.type === TransactionType.GiftReceived,
-  );
-  const repayments = allChildren.filter(
-    (c) => c.type === TransactionType.RepaymentMade || c.type === TransactionType.RepaymentReceived,
-  );
-  const remittances = allChildren.filter((c) => c.type === TransactionType.Remitted);
-  const witnesses = currentTransaction.witnesses ?? [];
-  const history = currentTransaction.history ?? [];
-
-  // A personal-ledger mirror's children are only ever created automatically
-  // alongside the org-side child (see TransactionsService.maybeCreatePersonalMirror)
-  // — recording one directly here would desync it from the org ledger.
-  const isPersonalMirror = !!currentTransaction.orgSourceTransactionId;
-
-  const canConvertToGift =
-    !isPersonalMirror &&
-    currentTransaction.category === AssetCategory.Funds &&
-    (currentTransaction.type === TransactionType.LoanGiven ||
-      currentTransaction.type === TransactionType.LoanReceived);
-
-  const canRecordReturn =
-    !isPersonalMirror &&
-    currentTransaction.category === AssetCategory.Funds &&
-    (currentTransaction.type === TransactionType.LoanGiven ||
-      currentTransaction.type === TransactionType.LoanReceived) &&
-    !!currentTransaction.contact;
-
-  const canRecordRemit =
-    !isPersonalMirror &&
-    currentTransaction.category === AssetCategory.Funds &&
-    currentTransaction.type === TransactionType.Escrowed &&
-    !!currentTransaction.contact;
-
-  const allocationsOut = (currentTransaction.allocationsOut ?? []).filter(
-    (a): a is NonNullable<typeof a> => a !== null,
-  );
-  const allocationsIn = (currentTransaction.allocationsIn ?? []).filter(
-    (a): a is NonNullable<typeof a> => a !== null,
-  );
-
-  const isCreditPool =
-    currentTransaction.type === TransactionType.Escrowed ||
-    currentTransaction.type === TransactionType.Remitted;
-
-  // A credit pool spends its balance; every other lifecycle obligation
-  // receives from one. The server enforces the opposite-sign rule either way —
-  // these flags only decide which button to offer.
-  const canApplyCredit =
-    !isPersonalMirror &&
-    !currentTransaction.isMirroredFromProject &&
-    currentTransaction.category === AssetCategory.Funds &&
-    isCreditPool &&
-    !currentTransaction.parentId;
-
-  const canSettleFromCredit =
-    !isPersonalMirror &&
-    !currentTransaction.isMirroredFromProject &&
-    currentTransaction.category === AssetCategory.Funds &&
-    !isCreditPool &&
-    !currentTransaction.parentId &&
-    LIFECYCLE_TYPES.includes(currentTransaction.type);
-
-  // Per-channel breakdown, for display only — never for the remaining balance.
-  const totalGifted = giftConversions.reduce((sum, c) => sum + (c.amount || 0), 0);
-  const totalRepaid = repayments.reduce((sum, c) => sum + (c.amount || 0), 0);
-  const totalRemitted = remittances.reduce((sum, c) => sum + (c.amount || 0), 0);
-
-  // Server-computed. It must NOT be derived here from `conversions`:
-  // allocations are not children, so a local sum silently ignores them and
-  // every cap and capability flag on this page goes stale — the escrow's
-  // "Record Remittance" button would offer money already allocated away.
-  const remainingAmount = currentTransaction.remainingAmount ?? 0;
-  const totalSettled = Math.max(0, (currentTransaction.amount || 0) - remainingAmount);
+  const view = getTransactionDetailView(transaction);
+  const witnesses = (transaction.witnesses ?? []).filter(
+    (w): w is NonNullable<typeof w> => w !== null,
+  ) as Witness[];
 
   return (
     <div className="container mx-auto max-w-3xl p-4 py-8">
@@ -243,473 +87,106 @@ function TransactionDetailPage() {
           <ArrowLeft className="mr-1 h-4 w-4" /> Back to Dashboard
         </Link>
 
-        <div className="flex flex-col gap-3">
-          {/* Row 1: title (wraps) + amount (pinned right) */}
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white leading-tight">
-                <span className="capitalize">
-                  {currentTransaction.type.toLowerCase().replace(/_/g, " ")}
-                </span>{" "}
-                {"—"}{" "}
-                <span className="inline-flex items-center gap-2 flex-wrap">
-                  {currentTransaction.contact?.name || "Personal"}
-                  {currentTransaction.contact?.isSupporter && (
-                    <SupporterBadge className="h-5 px-1.5" />
-                  )}
-                  {currentTransaction.status === "COMPLETED" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
-                      <CheckCircle2 className="w-3 h-3" />
-                      {currentTransaction.type === TransactionType.LoanGiven ||
-                      currentTransaction.type === TransactionType.LoanReceived ||
-                      currentTransaction.type === TransactionType.Escrowed
-                        ? "Settled"
-                        : "Completed"}
-                    </span>
-                  )}
-                  {currentTransaction.status === "CANCELLED" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20">
-                      Cancelled
-                    </span>
-                  )}
-                </span>
-              </h1>
-              <p className="text-neutral-500 dark:text-neutral-400 mt-1 flex items-center gap-2 text-sm">
-                <CalendarDays size={14} />
-                {format(new Date(currentTransaction.date as string), "MMMM d, yyyy")}
-              </p>
-              <OrgAttributionBadge
-                orgSourceTransaction={currentTransaction.orgSourceTransaction}
-                className="mt-2 w-fit"
-              />
-            </div>
-
-            {/* Amount — flex-shrink-0 so it never compresses */}
-            <div className="text-right flex-shrink-0">
-              {currentTransaction.category === AssetCategory.Funds &&
-                currentTransaction.amount !== null && (
-                  <TransactionAmount
-                    type={currentTransaction.type}
-                    amount={currentTransaction.amount}
-                    currency={currentTransaction.currency}
-                    className="text-xl sm:text-2xl"
-                  />
-                )}
-              {totalGifted > 0 && (
-                <div className="text-xs sm:text-sm font-medium text-orange-600 dark:text-orange-400 mt-0.5">
-                  Gifted: {formatCurrency(totalGifted, currentTransaction.currency)}
-                </div>
-              )}
-              {totalRepaid > 0 && (
-                <div className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  Repaid: {formatCurrency(totalRepaid, currentTransaction.currency)}
-                </div>
-              )}
-              {totalRemitted > 0 && (
-                <div className="text-xs sm:text-sm font-medium text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  Remitted: {formatCurrency(totalRemitted, currentTransaction.currency)}
-                </div>
-              )}
-              {(canConvertToGift ||
-                canRecordReturn ||
-                canRecordRemit ||
-                canApplyCredit ||
-                canSettleFromCredit) &&
-                totalSettled > 0 && (
-                  <div className="text-xs sm:text-sm font-medium text-muted-foreground mt-0.5">
-                    Remaining: {formatCurrency(remainingAmount, currentTransaction.currency)}
-                  </div>
-                )}
-              {currentTransaction.category === AssetCategory.Item &&
-                currentTransaction.quantity && (
-                  <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {currentTransaction.quantity} x {currentTransaction.itemName || "Item"}
-                  </div>
-                )}
-            </div>
-          </div>
-
-          {/* Row 2: all actions in one wrapping row */}
-          <div className="flex flex-wrap gap-2">
-            {canRecordReturn && remainingAmount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
-                onClick={() => setIsRecordReturnOpen(true)}
-              >
-                <ArrowRightLeft size={14} />
-                Record Return
-              </Button>
-            )}
-            {canRecordRemit && remainingAmount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
-                onClick={() => setIsRecordRemitOpen(true)}
-              >
-                <ArrowRightLeft size={14} />
-                Record Remittance
-              </Button>
-            )}
-            {canApplyCredit && remainingAmount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
-                onClick={() => setIsAllocateOpen(true)}
-              >
-                <Split size={14} />
-                Apply to obligations
-              </Button>
-            )}
-            {canSettleFromCredit && remainingAmount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800 dark:hover:bg-emerald-950/30"
-                onClick={() => setIsAllocateOpen(true)}
-              >
-                <Split size={14} />
-                Settle from a credit
-              </Button>
-            )}
-            {canConvertToGift && remainingAmount > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1 text-orange-600 border-orange-200 hover:bg-orange-50 dark:border-orange-800 dark:hover:bg-orange-950/30"
-                onClick={() => setIsConvertGiftOpen(true)}
-              >
-                <Gift size={14} />
-                Convert to Gift
-              </Button>
-            )}
-            {transaction.isMirroredFromProject ? (
-              <span className="text-xs text-muted-foreground italic px-1 self-center">
-                Synced from project — edit or delete it from the project page instead
-              </span>
-            ) : transaction.orgSourceTransactionId ? (
-              <span className="text-xs text-muted-foreground italic px-1 self-center">
-                Recorded on behalf of{" "}
-                {transaction.orgSourceTransaction?.organisation?.name ?? "the organisation"} — edit
-                or delete it from the organisation's ledger instead
-              </span>
-            ) : (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1"
-                  onClick={() => setIsEditOpen(true)}
-                >
-                  <Edit2 size={14} />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30"
-                  onClick={() => setIsRemoveDialogOpen(true)}
-                >
-                  <Trash2 size={14} />
-                  Remove
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
+        <TransactionHeader
+          transaction={transaction}
+          view={view}
+          onEdit={() => setIsEditOpen(true)}
+          onRemove={() => setIsRemoveDialogOpen(true)}
+          onConvertGift={() => setIsConvertGiftOpen(true)}
+          onRecordReturn={() => setIsRecordReturnOpen(true)}
+          onRecordRemit={() => setIsRecordRemitOpen(true)}
+          onAllocate={() => setIsAllocateOpen(true)}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-6 min-w-0">
-        {/* Transaction Details Card */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-          <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-            <FileText size={20} className="text-emerald-600" />
-            Details
-          </h3>
+        <TransactionDetailsCard transaction={transaction} />
 
-          <div className="space-y-4">
-            {currentTransaction.parentId && (
-              <div className="rounded-lg bg-neutral-50 p-3 text-sm text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400">
-                {currentTransaction.type === TransactionType.RepaymentMade ||
-                currentTransaction.type === TransactionType.RepaymentReceived ? (
-                  <>
-                    This is a repayment linked to{" "}
-                    <Link
-                      to="/transactions/$id"
-                      params={{ id: currentTransaction.parentId }}
-                      className="text-emerald-600 hover:underline font-medium"
-                    >
-                      the original loan
-                    </Link>
-                    .
-                  </>
-                ) : currentTransaction.type === TransactionType.Remitted ? (
-                  <>
-                    This is a remittance linked to{" "}
-                    <Link
-                      to="/transactions/$id"
-                      params={{ id: currentTransaction.parentId }}
-                      className="text-emerald-600 hover:underline font-medium"
-                    >
-                      the original escrow
-                    </Link>
-                    .
-                  </>
-                ) : (
-                  <>
-                    This transaction is a gift converted from{" "}
-                    <Link
-                      to="/transactions/$id"
-                      params={{ id: currentTransaction.parentId }}
-                      className="text-emerald-600 hover:underline font-medium"
-                    >
-                      another transaction
-                    </Link>
-                    .
-                  </>
-                )}
-              </div>
-            )}
+        <GiftConversionsCard
+          giftConversions={view.giftConversions}
+          fallbackCurrency={transaction.currency}
+        />
 
-            {currentTransaction.description && (
-              <div>
-                <span className="block text-sm font-medium text-neutral-500">Description</span>
-                <p className="mt-1 text-neutral-900 dark:text-neutral-100">
-                  {currentTransaction.description}
-                </p>
-              </div>
-            )}
+        <RepaymentsCard repayments={view.repayments} fallbackCurrency={transaction.currency} />
 
-            {currentTransaction.category === AssetCategory.Item && currentTransaction.itemName && (
-              <div>
-                <span className="block text-sm font-medium text-neutral-500">Item</span>
-                <div className="mt-1 flex items-center gap-2 text-neutral-900 dark:text-neutral-100">
-                  <Package size={16} className="text-neutral-400" />
-                  {currentTransaction.itemName}
-                  {currentTransaction.quantity && (
-                    <span className="text-neutral-500">x{currentTransaction.quantity}</span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <RemittancesCard remittances={view.remittances} fallbackCurrency={transaction.currency} />
 
-        {/* Gift Conversions */}
-        {giftConversions.length > 0 && (
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-              <Gift size={20} className="text-orange-600" />
-              Gift Conversions
-            </h3>
-            <div className="space-y-3">
-              {giftConversions.map((conversion) => (
-                <div
-                  key={conversion.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {format(new Date(conversion.date as string), "MMM d, yyyy")}
-                    </p>
-                    <p className="text-xs text-neutral-500">Gifted back</p>
-                  </div>
-                  <div className="font-semibold text-orange-600">
-                    {formatCurrency(
-                      conversion.amount || 0,
-                      conversion.currency || currentTransaction.currency,
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <AllocationSection
+          title="Applied To"
+          allocations={view.allocationsOut}
+          counterpartOf="target"
+          fallbackCurrency={transaction.currency}
+          reversingId={reversingId}
+          onReverse={handleReverse}
+        />
 
-        {/* Repayments */}
-        {repayments.length > 0 && (
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-              <ArrowRightLeft size={20} className="text-emerald-600" />
-              Repayments
-            </h3>
-            <div className="space-y-3">
-              {repayments.map((repayment) => (
-                <Link
-                  key={repayment.id}
-                  to="/transactions/$id"
-                  params={{ id: repayment.id }}
-                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20 transition-colors"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {format(new Date(repayment.date as string), "MMM d, yyyy")}
-                    </p>
-                    <p className="text-xs text-neutral-500 capitalize">
-                      {repayment.type.toLowerCase().replace(/_/g, " ")}
-                    </p>
-                  </div>
-                  <div className="font-semibold text-emerald-600">
-                    {formatCurrency(
-                      repayment.amount || 0,
-                      repayment.currency || currentTransaction.currency,
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+        <AllocationSection
+          title="Settled From"
+          allocations={view.allocationsIn}
+          counterpartOf="source"
+          fallbackCurrency={transaction.currency}
+          reversingId={reversingId}
+          onReverse={handleReverse}
+        />
 
-        {/* Remittances */}
-        {remittances.length > 0 && (
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-              <ArrowRightLeft size={20} className="text-emerald-600" />
-              Remittances
-            </h3>
-            <div className="space-y-3">
-              {remittances.map((remittance) => (
-                <Link
-                  key={remittance.id}
-                  to="/transactions/$id"
-                  params={{ id: remittance.id }}
-                  className="flex items-center justify-between p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 hover:border-emerald-300 hover:bg-emerald-50/50 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20 transition-colors"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
-                      {format(new Date(remittance.date as string), "MMM d, yyyy")}
-                    </p>
-                    <p className="text-xs text-neutral-500">Remitted</p>
-                  </div>
-                  <div className="font-semibold text-emerald-600">
-                    {formatCurrency(
-                      remittance.amount || 0,
-                      remittance.currency || currentTransaction.currency,
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Applied To — credit drawn out of this record */}
-        {allocationsOut.length > 0 && (
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-              <Split size={20} className="text-emerald-600" />
-              Applied To
-            </h3>
-            <div className="space-y-3">
-              {allocationsOut.map((allocation) => (
-                <AllocationRowCard
-                  key={allocation.id}
-                  allocation={allocation}
-                  counterpart={allocation.targetTransaction}
-                  fallbackCurrency={currentTransaction.currency}
-                  reversing={reversingId === allocation.id}
-                  onReverse={() => handleReverse(allocation.id)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Settled From — credit applied into this record */}
-        {allocationsIn.length > 0 && (
-          <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <h3 className="mb-4 flex items-center gap-2 text-lg font-semibold text-neutral-900 dark:text-white">
-              <Split size={20} className="text-emerald-600" />
-              Settled From
-            </h3>
-            <div className="space-y-3">
-              {allocationsIn.map((allocation) => (
-                <AllocationRowCard
-                  key={allocation.id}
-                  allocation={allocation}
-                  counterpart={allocation.sourceTransaction}
-                  fallbackCurrency={currentTransaction.currency}
-                  reversing={reversingId === allocation.id}
-                  onReverse={() => handleReverse(allocation.id)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Witnesses Section */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <UserPlus size={20} className="text-emerald-600" />
-              Witnesses
-            </h3>
-            <Button variant="outline" size="sm" onClick={() => setIsAddWitnessOpen(true)}>
-              Add Witness
-            </Button>
-          </div>
-          <TransactionWitnessList
-            witnesses={witnesses.filter((w): w is NonNullable<typeof w> => w !== null) as Witness[]}
-            onResend={handleResendWitness}
-            onRemove={handleRemoveWitness}
-            isResendingId={resendingId}
-            isRemovingId={removingWitnessId}
-          />
-        </div>
+        <TransactionWitnessesCard
+          witnesses={witnesses}
+          onAddWitness={() => setIsAddWitnessOpen(true)}
+          resendingId={witnessActions.resendingId}
+          removingWitnessId={witnessActions.removingWitnessId}
+          onResend={witnessActions.handleResendWitness}
+          onRemove={witnessActions.handleRemoveWitness}
+        />
 
         <EditTransactionDialog
-          transaction={currentTransaction}
+          transaction={transaction}
           open={isEditOpen}
           onOpenChange={setIsEditOpen}
         />
 
-        {canRecordReturn && currentTransaction.contact && remainingAmount > 0 && (
+        {view.canRecordReturn && transaction.contact && view.remainingAmount > 0 && (
           <RecordReturnDialog
             open={isRecordReturnOpen}
             onOpenChange={setIsRecordReturnOpen}
             transaction={{
-              id: currentTransaction.id,
-              type: currentTransaction.type,
-              amount: currentTransaction.amount,
-              currency: currentTransaction.currency,
-              contactId: currentTransaction.contact.id,
-              contactName: currentTransaction.contact.name,
-              remainingAmount,
+              id: transaction.id,
+              type: transaction.type,
+              amount: transaction.amount,
+              currency: transaction.currency,
+              contactId: transaction.contact.id,
+              contactName: transaction.contact.name,
+              remainingAmount: view.remainingAmount,
             }}
             onSuccess={refetch}
           />
         )}
 
-        {canRecordRemit && currentTransaction.contact && remainingAmount > 0 && (
+        {view.canRecordRemit && transaction.contact && view.remainingAmount > 0 && (
           <RecordRemitDialog
             open={isRecordRemitOpen}
             onOpenChange={setIsRecordRemitOpen}
             transaction={{
-              id: currentTransaction.id,
-              amount: currentTransaction.amount,
-              currency: currentTransaction.currency,
-              contactId: currentTransaction.contact.id,
-              contactName: currentTransaction.contact.name,
-              remainingAmount,
+              id: transaction.id,
+              amount: transaction.amount,
+              currency: transaction.currency,
+              contactId: transaction.contact.id,
+              contactName: transaction.contact.name,
+              remainingAmount: view.remainingAmount,
             }}
             onSuccess={refetch}
           />
         )}
 
-        {(canApplyCredit || canSettleFromCredit) && remainingAmount > 0 && (
+        {(view.canApplyCredit || view.canSettleFromCredit) && view.remainingAmount > 0 && (
           <AllocationDialog
             open={isAllocateOpen}
             onOpenChange={setIsAllocateOpen}
-            mode={canApplyCredit ? "applyCredit" : "settleFromCredit"}
+            mode={view.canApplyCredit ? "applyCredit" : "settleFromCredit"}
             transaction={{
-              id: currentTransaction.id,
-              currency: currentTransaction.currency,
-              remainingAmount,
-              contactName: currentTransaction.contact?.name,
+              id: transaction.id,
+              currency: transaction.currency,
+              remainingAmount: view.remainingAmount,
+              contactName: transaction.contact?.name,
             }}
             onSuccess={refetch}
           />
@@ -747,116 +224,17 @@ function TransactionDetailPage() {
           isOpen={isConvertGiftOpen}
           onClose={() => setIsConvertGiftOpen(false)}
           transaction={{
-            id: currentTransaction.id,
-            amount: remainingAmount,
-            currency: currentTransaction.currency,
-            type: currentTransaction.type,
-            contactId: currentTransaction.contact?.id,
-            description: currentTransaction.description,
+            id: transaction.id,
+            amount: view.remainingAmount,
+            currency: transaction.currency,
+            type: transaction.type,
+            contactId: transaction.contact?.id,
+            description: transaction.description,
           }}
           onSuccess={() => refetch()}
         />
 
-        {/* History Section */}
-        <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-          <HistoryViewer
-            history={history
-              .filter((h): h is NonNullable<typeof h> => h !== null)
-              .map((h) => ({
-                id: h.id,
-                changeType: h.changeType,
-                createdAt: String(h.createdAt),
-                user: {
-                  id: h.user?.id ?? "unknown",
-                  name: h.user?.name ?? "Unknown",
-                  email: h.user?.email ?? "unknown@example.com",
-                },
-                previousState: (h.previousState ?? null) as Record<string, unknown> | null,
-                newState: (h.newState ?? null) as Record<string, unknown> | null,
-              }))}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/**
- * One allocation link, readable from either end. The counterpart's contact
- * name is the point of the row when the money came from someone else — the
- * "paid by Ade" case that a plain amount would hide.
- */
-function AllocationRowCard({
-  allocation,
-  counterpart,
-  fallbackCurrency,
-  reversing,
-  onReverse,
-}: {
-  allocation: {
-    id: string;
-    amount: number;
-    currency: string;
-    date: unknown;
-    note?: string | null;
-    status: string;
-  };
-  counterpart?: {
-    id: string;
-    type: string;
-    contact?: { id: string; name: string } | null;
-  } | null;
-  fallbackCurrency: string;
-  reversing: boolean;
-  onReverse: () => void;
-}) {
-  const isReversed = allocation.status === "REVERSED";
-
-  return (
-    <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800">
-      <div className="min-w-0">
-        {counterpart ? (
-          <Link
-            to="/transactions/$id"
-            params={{ id: counterpart.id }}
-            className="text-sm font-medium hover:text-emerald-600 transition-colors"
-          >
-            <span className="capitalize">{counterpart.type.toLowerCase().replace(/_/g, " ")}</span>
-            {counterpart.contact?.name ? ` — ${counterpart.contact.name}` : ""}
-          </Link>
-        ) : (
-          <span className="text-sm font-medium">Linked record</span>
-        )}
-        <p className="text-xs text-neutral-500">
-          {format(new Date(allocation.date as string), "MMM d, yyyy")}
-          {allocation.note ? ` · ${allocation.note}` : ""}
-        </p>
-      </div>
-      <div className="flex items-center gap-3 shrink-0">
-        <span
-          className={
-            isReversed
-              ? "font-semibold text-neutral-400 line-through"
-              : "font-semibold text-emerald-600"
-          }
-        >
-          {formatCurrency(allocation.amount, allocation.currency || fallbackCurrency)}
-        </span>
-        {isReversed ? (
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-neutral-500/10 text-neutral-500 border border-neutral-500/20">
-            Reversed
-          </span>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7"
-            onClick={onReverse}
-            disabled={reversing}
-          >
-            {reversing ? "Reversing..." : "Reverse"}
-          </Button>
-        )}
+        <TransactionHistorySection history={transaction.history} />
       </div>
     </div>
   );
