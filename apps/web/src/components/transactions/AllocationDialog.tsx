@@ -2,8 +2,8 @@ import { useQuery } from "@apollo/client/react";
 import { format } from "date-fns";
 import { useEffect, useId, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { AllocationRow } from "@/components/transactions/AllocationRow";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
   Dialog,
@@ -13,28 +13,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { type PickerRow, useAllocationPicker } from "@/hooks/useAllocationPicker";
 import { useAllocations } from "@/hooks/useAllocations";
-import { useAmountInput } from "@/hooks/useAmountInput";
 import {
   GET_ALLOCATABLE_OBLIGATIONS,
   GET_AVAILABLE_CREDITS,
 } from "@/lib/apollo/queries/transactions";
 import { formatCurrency } from "@/lib/utils/formatters";
-import { formatTransactionTypeLabel } from "@/lib/utils/transactionDisplay";
-
-/** A row in the picker: the counterpart endpoint and what is left on it. */
-interface PickerRow {
-  id: string;
-  type: string;
-  currency: string;
-  date: string;
-  description?: string | null;
-  remainingAmount?: number | null;
-  contact?: { id: string; name: string } | null;
-}
 
 interface AllocationDialogProps {
   open: boolean;
@@ -59,84 +46,6 @@ interface AllocationDialogProps {
   onSuccess?: () => void;
 }
 
-const round2 = (value: number) => Math.round(value * 100) / 100;
-
-function AllocationRow({
-  row,
-  currencyCode,
-  checked,
-  amount,
-  cap,
-  onToggle,
-  onAmountChange,
-}: {
-  row: PickerRow;
-  currencyCode: string;
-  checked: boolean;
-  amount: number;
-  cap: number;
-  onToggle: (checked: boolean) => void;
-  onAmountChange: (value: number) => void;
-}) {
-  // Keyed by the amount the parent last pushed in (auto-fill, or a reset), so
-  // the display picks that up without fighting the user's own typing.
-  const { amountDisplay, handleAmountChange, handleBlur } = useAmountInput({
-    initialValue: amount,
-    currencyCode,
-    onChange: onAmountChange,
-  });
-
-  const overCap = checked && amount > cap;
-
-  return (
-    <div className="flex items-start gap-3 rounded-md border p-3">
-      <Checkbox
-        checked={checked}
-        onCheckedChange={(next) => onToggle(next === true)}
-        aria-label={`Select ${formatTransactionTypeLabel(row.type)} of ${formatCurrency(
-          row.remainingAmount ?? 0,
-          currencyCode,
-        )}`}
-      />
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="text-sm font-medium">
-            {formatTransactionTypeLabel(row.type)}
-            {row.contact?.name ? (
-              <span className="text-muted-foreground font-normal"> · {row.contact.name}</span>
-            ) : null}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {format(new Date(row.date), "d MMM yyyy")}
-          </span>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Outstanding {formatCurrency(row.remainingAmount ?? 0, currencyCode)}
-        </p>
-        {checked ? (
-          <div className="flex items-center gap-2 pt-1">
-            <span className="text-xs font-medium text-muted-foreground">{currencyCode}</span>
-            <Input
-              type="text"
-              inputMode="decimal"
-              aria-label={`Amount to apply to ${row.id}`}
-              value={amountDisplay}
-              onChange={handleAmountChange}
-              onBlur={() => handleBlur(amount)}
-              className="h-8 flex-1"
-            />
-          </div>
-        ) : null}
-        {overCap ? (
-          <p className="text-xs text-destructive">
-            Cannot exceed {formatCurrency(cap, currencyCode)}
-          </p>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
 /**
  * Applies a lump sum across accumulated obligations, from either end. Creates
  * no new transaction: one real money movement stays one transaction row and
@@ -155,9 +64,6 @@ export function AllocationDialog({
   const currencyCode = transaction.currency ?? "NGN";
   const pool = transaction.remainingAmount;
 
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const [amounts, setAmounts] = useState<Record<string, number>>({});
-  const [resetKey, setResetKey] = useState(0);
   const [date, setDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [note, setNote] = useState("");
 
@@ -183,80 +89,28 @@ export function AllocationDialog({
 
   const loading = isApplyMode ? obligations.loading : credits.loading;
 
-  // Close→reopen starts clean: a stale tick with a stale amount is the one
-  // mistake this dialog must never make.
+  const {
+    checked,
+    amounts,
+    resetKey,
+    selected,
+    capFor,
+    total,
+    unallocated,
+    canSubmit,
+    toggle,
+    autoFill,
+    setAmount,
+  } = useAllocationPicker(rows, pool, isApplyMode, open);
+
+  // Close→reopen starts clean: a stale date/note is the one mistake this
+  // dialog must never make. (Row selection resets inside useAllocationPicker.)
   useEffect(() => {
     if (!open) {
-      setChecked({});
-      setAmounts({});
       setNote("");
       setDate(format(new Date(), "yyyy-MM-dd"));
-      setResetKey((k) => k + 1);
     }
   }, [open]);
-
-  const selected = rows.filter((row) => checked[row.id]);
-
-  // A row's cap is the pool minus whatever OTHER checked rows have already
-  // claimed from it — not the raw pool. Two rows each defaulting to the full
-  // pool (then only catching the overshoot at the total) left every row
-  // looking individually fine while the total silently went negative.
-  const capFor = (row: PickerRow) => {
-    const committedByOthers = selected
-      .filter((r) => r.id !== row.id)
-      .reduce((sum, r) => sum + (amounts[r.id] ?? 0), 0);
-    return round2(Math.max(0, Math.min(pool - committedByOthers, row.remainingAmount ?? 0)));
-  };
-
-  const total = round2(selected.reduce((sum, row) => sum + (amounts[row.id] ?? 0), 0));
-  const unallocated = round2(pool - total);
-
-  const rowOverCap = selected.some((row) => (amounts[row.id] ?? 0) > capFor(row));
-  const rowEmpty = selected.some((row) => !((amounts[row.id] ?? 0) > 0));
-  const canSubmit = selected.length > 0 && !rowOverCap && !rowEmpty && unallocated >= 0;
-
-  const toggle = (row: PickerRow, next: boolean) => {
-    if (next && !isApplyMode) {
-      // settleFromCredit draws one source across many targets — checking a
-      // second credit here would need a second mutation and break the
-      // all-or-nothing guarantee, so it replaces the prior pick instead of
-      // stacking toward a submit that's blocked anyway. Cap against the raw
-      // pool, not capFor(row) — that reads the about-to-be-replaced
-      // `selected`/`checked` from this render's closure, so it would still
-      // count the row being replaced as "other" competition for the pool.
-      setChecked({ [row.id]: true });
-      setAmounts({ [row.id]: round2(Math.min(pool, row.remainingAmount ?? 0)) });
-      return;
-    }
-    setChecked((prev) => ({ ...prev, [row.id]: next }));
-    // Filling in the default amount only touches this row's own state, so
-    // React updates just this row's controlled input — no need to remount
-    // the whole list (that's reserved for autoFill/close, which really do
-    // want every row's typed-state flag cleared).
-    if (next && amounts[row.id] === undefined) {
-      setAmounts((prev) => ({ ...prev, [row.id]: capFor(row) }));
-    }
-  };
-
-  /** Fills the oldest obligations first until the pool runs out. */
-  const autoFill = () => {
-    let left = pool;
-    const nextChecked: Record<string, boolean> = {};
-    const nextAmounts: Record<string, number> = {};
-    for (const row of [...rows].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-    )) {
-      if (left <= 0) break;
-      const take = round2(Math.min(left, row.remainingAmount ?? 0));
-      if (take <= 0) continue;
-      nextChecked[row.id] = true;
-      nextAmounts[row.id] = take;
-      left = round2(left - take);
-    }
-    setChecked(nextChecked);
-    setAmounts(nextAmounts);
-    setResetKey((k) => k + 1);
-  };
 
   const handleSubmit = async () => {
     try {
@@ -344,7 +198,7 @@ export function AllocationDialog({
                 amount={amounts[row.id] ?? 0}
                 cap={capFor(row)}
                 onToggle={(next) => toggle(row, next)}
-                onAmountChange={(value) => setAmounts((prev) => ({ ...prev, [row.id]: value }))}
+                onAmountChange={(value) => setAmount(row.id, value)}
               />
             ))}
           </div>
