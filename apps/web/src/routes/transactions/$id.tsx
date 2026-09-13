@@ -113,9 +113,11 @@ function TransactionDetailPage() {
   const handleReverse = async (allocationId: string) => {
     setReversingId(allocationId);
     try {
+      // reverseAllocation's mutation already lists "Transaction" (this
+      // page's GET_TRANSACTION) in its refetchQueries — an explicit
+      // refetch() here would just double-fetch the same query.
       await reverseAllocation(allocationId);
       toast.success("Allocation reversed");
-      await refetch();
     } catch (err) {
       console.error(err);
       toast.error("Failed to reverse allocation");

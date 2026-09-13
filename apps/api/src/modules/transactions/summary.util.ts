@@ -37,6 +37,26 @@ export interface TransactionSummary {
   currency: string;
 }
 
+/** Zero-initialized TransactionSummary — one shared shape for every summary aggregator. */
+export function createEmptySummary(currency: string): TransactionSummary {
+  return {
+    totalLoanGiven: 0,
+    totalLoanReceived: 0,
+    totalRepaymentMade: 0,
+    totalRepaymentReceived: 0,
+    totalGiftGiven: 0,
+    totalGiftReceived: 0,
+    totalAdvancePaid: 0,
+    totalAdvanceReceived: 0,
+    totalDepositPaid: 0,
+    totalDepositReceived: 0,
+    totalEscrowed: 0,
+    totalRemitted: 0,
+    netBalance: 0,
+    currency,
+  };
+}
+
 export function computeNetBalance(summary: TransactionSummary): number {
   return (
     summary.totalLoanReceived -

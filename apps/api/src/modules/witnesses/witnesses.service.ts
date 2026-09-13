@@ -682,4 +682,67 @@ export class WitnessesService {
       });
     });
   }
+
+  /**
+   * Resets any ACKNOWLEDGED witness on a transaction to MODIFIED and notifies
+   * them — the same invariant TransactionsService.update() enforces for a
+   * direct field edit. A settlement change (allocate/reverse) can alter a
+   * transaction's outstanding balance and auto-flip its status just as
+   * materially as a field edit, so it must reset witnesses the same way.
+   *
+   * @internal called by TransactionAllocationsService.allocate/reverse
+   */
+  async resetAcknowledgedToModified(
+    transactionId: string,
+    updaterId: string,
+    changeDescriptions: string[],
+  ): Promise<void> {
+    const acknowledgedWitnesses = await this.prisma.witness.findMany({
+      where: { transactionId, status: WitnessStatus.ACKNOWLEDGED },
+      include: { user: true },
+    });
+    if (acknowledgedWitnesses.length === 0) return;
+
+    await this.prisma.witness.updateMany({
+      where: { transactionId, status: WitnessStatus.ACKNOWLEDGED },
+      data: { status: WitnessStatus.MODIFIED, acknowledgedAt: null },
+    });
+
+    const updater = await this.prisma.user.findUnique({
+      where: { id: updaterId },
+    });
+    const updaterName = updater
+      ? `${updater.firstName} ${updater.lastName}`
+      : 'Transaction Owner';
+
+    for (const witness of acknowledgedWitnesses) {
+      if (witness.user && witness.user.email) {
+        this.notificationService
+          .sendWitnessUpdateNotification(
+            witness.user.email,
+            witness.user.firstName || 'Witness',
+            updaterName,
+            changeDescriptions,
+            transactionId,
+          )
+          .catch((err) =>
+            this.logger.error(
+              `Failed to send witness update notification to ${witness.user.email}`,
+              err,
+            ),
+          );
+      }
+
+      this.inAppNotificationsService.createSafely(
+        {
+          userId: witness.userId,
+          ...NotificationTemplates.witnessTransactionModified(
+            updaterName,
+            transactionId,
+          ),
+        },
+        `witness transaction modified (${witness.userId})`,
+      );
+    }
+  }
 }
