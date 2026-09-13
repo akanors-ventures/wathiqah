@@ -154,7 +154,7 @@ export function AllocationDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isApplyMode ? "Apply to obligations" : "Settle from a credit"}</DialogTitle>
           <DialogDescription>
