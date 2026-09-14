@@ -44,7 +44,6 @@ type EndpointRow = {
   createdById: string;
   contactId: string | null;
   parentId: string | null;
-  isMirroredFromProject: boolean;
   orgSourceTransactionId: string | null;
   contact?: { linkedUserId: string | null } | null;
 };
@@ -659,8 +658,12 @@ export class TransactionAllocationsService {
 
   /**
    * Shared body of the two pickers: scope, hygiene filters, then drop anything
-   * with nothing left on it. Capped at 50 — these feed a checkbox list, not a
-   * report.
+   * with nothing left on it. Capped — these feed a checkbox list, not a
+   * report — but generous enough that an active contact's real obligations
+   * don't get pushed off the end by date-ordering alone: `contactId` is
+   * optional on every caller (cross-contact settlement is a real use case),
+   * so this can span a user's entire ledger, and project-mirrored rows now
+   * compete for the same slots as ordinary ones.
    */
   private async findAllocatable(
     userId: string,
@@ -677,13 +680,12 @@ export class TransactionAllocationsService {
         status: { not: TransactionStatus.CANCELLED },
         parentId: null,
         orgSourceTransactionId: null,
-        isMirroredFromProject: false,
         ...(contactId ? { contactId } : {}),
         ...(currency ? { currency } : {}),
       },
       include: { contact: true },
       orderBy: { date: 'desc' },
-      take: 50,
+      take: 200,
     });
 
     const settled = await this.transactionSettlementService.loadSettledAmounts(
@@ -735,7 +737,13 @@ export class TransactionAllocationsService {
     return byId;
   }
 
-  /** Shared usability rules: FUNDS, live, not a mirror, and writable. */
+  /**
+   * Shared usability rules: FUNDS, live, not an org-personal reflection, and
+   * writable. A project-synced transaction is allowed through here — its
+   * remainingAmount is derived the same way as any other row (settlement.util
+   * + TransactionSettlementService), and the project page reads that same
+   * live figure, so allocating against it can't desync the two views.
+   */
   private async assertEndpointUsable(
     row: EndpointRow,
     userId: string,
@@ -755,11 +763,6 @@ export class TransactionAllocationsService {
     if (row.orgSourceTransactionId) {
       throw new BadRequestException(
         'This is a personal-ledger reflection of an organisation transaction. Record allocations from the organisation instead.',
-      );
-    }
-    if (row.isMirroredFromProject) {
-      throw new BadRequestException(
-        'This transaction is synced from a project — edit it from the project page instead',
       );
     }
     await this.assertWriteAuthority(row, userId, orgId);

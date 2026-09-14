@@ -574,7 +574,14 @@ export class TransactionsService {
     // repayment/remittance is first created.
     const isLifecycleParent = isLifecycleObligationType(mirrored.type);
     let alreadySettled = 0;
+
+    // Lock and validate immediately before the write, not before it: a
+    // concurrent allocate() takes its own FOR UPDATE lock on this same row
+    // and could commit a new allocation in the gap between an earlier read
+    // and this write. update() guards the identical race the same way —
+    // lock, re-read settled under that lock, then write, back-to-back.
     if (isLifecycleParent) {
+      await prisma.$queryRaw`SELECT id FROM "transactions" WHERE id = ${transactionId} FOR UPDATE`;
       // Allocation-inclusive: this same figure is handed to
       // recomputeParentLoanStatus as preloadedSettledAmount below, so a
       // children-only value here would make a fully-settled parent never
