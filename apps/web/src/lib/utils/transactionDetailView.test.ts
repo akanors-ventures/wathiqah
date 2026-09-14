@@ -110,11 +110,11 @@ describe("getTransactionDetailView", () => {
     expect(settleView.canSettleFromCredit).toBe(false);
   });
 
-  it("blocks both allocation capabilities for a project-mirrored transaction", () => {
+  it("still allows allocation for a project-mirrored transaction — only edit/delete redirect to the project page", () => {
     const view = getTransactionDetailView(
       makeTransaction({ type: TransactionType.Escrowed, isMirroredFromProject: true }),
     );
-    expect(view.canApplyCredit).toBe(false);
+    expect(view.canApplyCredit).toBe(true);
   });
 
   it("blocks all settlement capabilities for an ITEM-category transaction", () => {

@@ -180,6 +180,88 @@ describe('TransactionAllocationsService', () => {
     });
   });
 
+  describe('project-mirrored transactions', () => {
+    // Regression: a loan created under a project and linked to a contact
+    // used to be permanently unallocatable, both as source and target — the
+    // isMirroredFromProject check existed to keep edit/delete on the project
+    // page, not to block settlement. remainingAmount is derived the same way
+    // for every transaction, so the project page stays correct automatically.
+    it('settles a project-synced loan as the allocation target', async () => {
+      seedTx({
+        id: 'loan-proj',
+        type: 'LOAN_GIVEN',
+        amount: 200,
+        isMirroredFromProject: true,
+      });
+
+      const [link] = await service.allocate(
+        {
+          sourceTransactionId: 'esc-1',
+          allocations: [{ targetTransactionId: 'loan-proj', amount: 200 }],
+        },
+        FAWAZ,
+        null,
+      );
+
+      expect(link.targetTransactionId).toBe('loan-proj');
+      expect(prisma.transactions.get('loan-proj')?.status).toBe('COMPLETED');
+    });
+
+    it('applies a project-synced credit pool against an ordinary obligation', async () => {
+      seedTx({
+        id: 'esc-proj',
+        type: 'ESCROWED',
+        amount: 200,
+        isMirroredFromProject: true,
+      });
+
+      const [link] = await service.allocate(
+        {
+          sourceTransactionId: 'esc-proj',
+          allocations: [{ targetTransactionId: 'loan-1', amount: 200 }],
+        },
+        FAWAZ,
+        null,
+      );
+
+      expect(link.sourceTransactionId).toBe('esc-proj');
+      expect(prisma.transactions.get('loan-1')?.status).toBe('COMPLETED');
+    });
+
+    // The reported symptom: a project loan linked to a contact never even
+    // reached the picker, so there was no "apply from a credit" option to
+    // offer in the first place.
+    it('surfaces a project-synced loan in the allocatable-obligations picker', async () => {
+      seedTx({
+        id: 'loan-proj',
+        type: 'LOAN_GIVEN',
+        amount: 200,
+        isMirroredFromProject: true,
+      });
+
+      const obligations = await service.allocatableObligations(
+        'esc-1',
+        FAWAZ,
+        null,
+      );
+
+      expect(obligations.map((o) => o.id)).toContain('loan-proj');
+    });
+
+    it('surfaces a project-synced credit pool in the available-credits picker', async () => {
+      seedTx({
+        id: 'esc-proj',
+        type: 'ESCROWED',
+        amount: 200,
+        isMirroredFromProject: true,
+      });
+
+      const credits = await service.availableCredits(FAWAZ, null);
+
+      expect(credits.map((c) => c.id)).toContain('esc-proj');
+    });
+  });
+
   describe('caps', () => {
     it('rejects more than the source has left unapplied', async () => {
       seedTx({ id: 'loan-big', type: 'LOAN_GIVEN', amount: 900 });
@@ -387,18 +469,6 @@ describe('TransactionAllocationsService', () => {
       });
       await expect(attempt('loan-mirror')).rejects.toThrow(
         /personal-ledger reflection/,
-      );
-    });
-
-    it('rejects a project-synced transaction', async () => {
-      seedTx({
-        id: 'loan-proj',
-        type: 'LOAN_GIVEN',
-        amount: 200,
-        isMirroredFromProject: true,
-      });
-      await expect(attempt('loan-proj')).rejects.toThrow(
-        /synced from a project/,
       );
     });
 
