@@ -205,6 +205,17 @@ export class TransactionSettlementService {
     transactionId: string,
     userId: string,
   ): Promise<void> {
+    // allocate() locks every endpoint it touches via the identical
+    // `SELECT ... FOR UPDATE` on the transactions table before creating a
+    // TransactionAllocation row. Taking that same lock here first serialises
+    // against it: an allocate() call that commits concurrently is guaranteed
+    // visible to the read below, and one still in flight blocks until this
+    // transaction finishes — either way, no allocation created against this
+    // row can slip past this read unvoided. Without it, a delete/cancel
+    // racing a concurrent allocate() could cascade away (on delete) or leave
+    // permanently ACTIVE (on cancel) an allocation this method never saw.
+    await tx.$queryRaw`SELECT id FROM "transactions" WHERE id = ${transactionId} FOR UPDATE`;
+
     const active = await tx.transactionAllocation.findMany({
       where: {
         status: 'ACTIVE',

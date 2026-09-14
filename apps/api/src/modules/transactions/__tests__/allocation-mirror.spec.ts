@@ -246,6 +246,8 @@ describe('Allocation × mirrors, cancellation and deletion', () => {
       });
     });
 
+    afterEach(() => jest.restoreAllMocks());
+
     const allocatePersonal = () =>
       allocations.allocate(
         {
@@ -275,6 +277,31 @@ describe('Allocation × mirrors, cancellation and deletion', () => {
             h.changeType === 'ALLOCATION_VOIDED',
         ),
       ).toHaveLength(1);
+    });
+
+    // Regression: voidAllocationsFor used to read active allocations with a
+    // plain findMany, no lock — a concurrent allocate() (which does take a
+    // FOR UPDATE lock on this same row before creating its
+    // TransactionAllocation) could commit a new allocation in the gap between
+    // that read and the delete/cancel that follows, and the FK's
+    // onDelete: Cascade would silently drop it, un-voided. voidAllocationsFor
+    // now takes the identical lock before its read, serialising against
+    // allocate() the same way syncMirroredAmount and update() already do for
+    // their own writes.
+    it('locks the row before reading its active allocations, ahead of a delete', async () => {
+      const lockSpy = jest.spyOn(prisma, '$queryRaw');
+      const findManySpy = jest.spyOn(prisma.transactionAllocation, 'findMany');
+
+      await allocatePersonal();
+      lockSpy.mockClear();
+      findManySpy.mockClear();
+
+      await transactions.remove('esc-p', FAWAZ, null);
+
+      expect(lockSpy).toHaveBeenCalled();
+      const lockOrder = lockSpy.mock.invocationCallOrder[0];
+      const findManyOrder = findManySpy.mock.invocationCallOrder[0];
+      expect(lockOrder).toBeLessThan(findManyOrder);
     });
 
     it('voids the allocations when the obligation is cancelled rather than deleted', async () => {

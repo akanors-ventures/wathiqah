@@ -658,8 +658,12 @@ export class TransactionAllocationsService {
 
   /**
    * Shared body of the two pickers: scope, hygiene filters, then drop anything
-   * with nothing left on it. Capped at 50 — these feed a checkbox list, not a
-   * report.
+   * with nothing left on it. Capped — these feed a checkbox list, not a
+   * report — but generous enough that an active contact's real obligations
+   * don't get pushed off the end by date-ordering alone: `contactId` is
+   * optional on every caller (cross-contact settlement is a real use case),
+   * so this can span a user's entire ledger, and project-mirrored rows now
+   * compete for the same slots as ordinary ones.
    */
   private async findAllocatable(
     userId: string,
@@ -681,7 +685,7 @@ export class TransactionAllocationsService {
       },
       include: { contact: true },
       orderBy: { date: 'desc' },
-      take: 50,
+      take: 200,
     });
 
     const settled = await this.transactionSettlementService.loadSettledAmounts(
