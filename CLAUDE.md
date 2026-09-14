@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Testing
 
-- Run targeted backend tests from the api directory: `cd apps/api && npx jest --testPathPattern="<pattern>" --no-coverage`
+- Run targeted backend tests from the api directory: `cd apps/api && npx jest --testPathPatterns="<pattern>" --no-coverage` (plural flag — `--testPathPattern` errors: "Option ... was replaced by --testPathPatterns").
 - `pnpm --filter api test -- --testPathPattern=<x>` mangles args in worktrees — use the `cd apps/api && npx jest` form instead.
 - In test files, use `as unknown as T` double-cast to access private members — never `as any` and never eslint-disable comments to suppress `no-explicit-any`.
 - When using `jest.spyOn`, always add `afterEach(() => jest.restoreAllMocks())` in the same describe block to prevent cross-test mock leakage.
@@ -310,6 +310,10 @@ Role-gated platform administration surface. Backend module: `apps/api/src/module
 ### HTTP Controllers & Auth
 - HTTP controllers are **unauthenticated by default** — auth is GraphQL-only via `GqlAuthGuard`; no `@Public()` decorator exists or is needed
 - NestJS global prefix is `/api` — all HTTP routes are under `/api/`, critical when constructing webhook URLs
+
+### Transaction Settlement — Locking Pattern
+- Any write that validates against or mutates settled/allocated amounts on a `Transaction` row (amount shrink, void-on-delete/cancel) must take `SELECT ... FOR UPDATE` on that row immediately before the validation read, not earlier — `TransactionAllocationsService.allocate()` takes the same lock before creating a `TransactionAllocation`, and a stale pre-lock read lets a concurrent allocation land in the gap. `computeOutstanding`'s `Math.max(0, ...)` clamp hides the resulting over-settlement permanently, so it never surfaces as an error. See `transactions.service.ts`'s `update()` for the reference pattern; `syncMirroredAmount` and `TransactionSettlementService.voidAllocationsFor` follow the same shape.
+- Prisma test mocks for `TransactionsService`/`TransactionSettlementService` need `$queryRaw: jest.fn().mockResolvedValue([])` or lock-taking code throws `TypeError: tx.$queryRaw is not a function`.
 
 ### Notifications
 - `SubscriptionModule` is `@Global()` — `SubscriptionService` is injectable anywhere without adding it to module imports
