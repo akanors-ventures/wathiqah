@@ -550,6 +550,7 @@ describe('TransactionsService - Pagination', () => {
       witness: { updateMany: jest.Mock };
       user: { findUnique: jest.Mock };
       $transaction: jest.Mock;
+      $queryRaw: jest.Mock;
     };
 
     const orgRow = {
@@ -595,6 +596,7 @@ describe('TransactionsService - Pagination', () => {
         witness: { updateMany: jest.fn() },
         user: { findUnique: jest.fn() },
         $transaction: jest.fn((fn) => fn(accessPrisma)),
+        $queryRaw: jest.fn().mockResolvedValue([]),
       });
       const module = await Test.createTestingModule({
         providers: [

@@ -747,7 +747,14 @@ export class ProjectContactLinkService {
       where: { id },
       include: {
         project: true,
-        transaction: { include: { witnesses: true, conversions: true } },
+        transaction: {
+          include: {
+            witnesses: true,
+            conversions: true,
+            allocationsOut: { where: { status: 'ACTIVE' } },
+            allocationsIn: { where: { status: 'ACTIVE' } },
+          },
+        },
       },
     });
     if (!existing) {
@@ -788,6 +795,21 @@ export class ProjectContactLinkService {
         'The linked contact transaction has repayment history recorded against it and cannot be deleted.',
       );
     }
+    // Deleting straight through would silently void these via
+    // deleteMirroredTransaction's own voidAllocationsFor call — reopening
+    // whatever this settled and, for a credit pool, freeing money the
+    // project owner may not realise was ever attached to this row, since the
+    // allocation could have been recorded from the contact ledger rather
+    // than this project page. Same "meaningful history, block instead of
+    // silently unwinding it" treatment as witnesses/conversions above.
+    if (
+      existing.transaction.allocationsOut.length > 0 ||
+      existing.transaction.allocationsIn.length > 0
+    ) {
+      throw new ForbiddenException(
+        'This transaction has an active allocation to or from a credit or obligation. Reverse the allocation from the transaction page before deleting it.',
+      );
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const txClient = tx as Prisma.TransactionClient;
@@ -813,7 +835,14 @@ export class ProjectContactLinkService {
       where: { projectId },
       include: {
         witnesses: true,
-        transaction: { include: { witnesses: true, conversions: true } },
+        transaction: {
+          include: {
+            witnesses: true,
+            conversions: true,
+            allocationsOut: { where: { status: 'ACTIVE' } },
+            allocationsIn: { where: { status: 'ACTIVE' } },
+          },
+        },
       },
     });
 
@@ -831,12 +860,28 @@ export class ProjectContactLinkService {
       if (pt.transaction && pt.transaction.conversions.length > 0) {
         return true;
       }
+      // Only the project-originated-linked case, not isMirroredFromContact:
+      // that branch below deletes via TransactionsService.remove(), which
+      // intentionally allows deleting an allocated transaction (silently
+      // voiding the allocation) the same as it does everywhere else in the
+      // app. The project-originated case instead routes to
+      // removeProjectOriginated, which blocks on active allocations — this
+      // pre-check has to agree with that per-row guard or a bulk project
+      // delete could partially succeed before hitting it mid-loop.
+      if (
+        !pt.isMirroredFromContact &&
+        pt.transaction &&
+        (pt.transaction.allocationsOut.length > 0 ||
+          pt.transaction.allocationsIn.length > 0)
+      ) {
+        return true;
+      }
       return false;
     });
 
     if (blocked.length > 0) {
       throw new ForbiddenException(
-        `Cannot delete this project: ${blocked.length} transaction(s) have witnesses or repayment history and must be resolved first.`,
+        `Cannot delete this project: ${blocked.length} transaction(s) have witnesses, repayment history, or an active allocation and must be resolved first.`,
       );
     }
 

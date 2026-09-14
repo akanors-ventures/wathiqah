@@ -115,8 +115,7 @@ export function getTransactionDetailView(transaction: TransactionDetail): Transa
   // receives from one. The server enforces the opposite-sign rule either way —
   // these flags only decide which button to offer.
   const eligibility = getAllocationEligibility(transaction.type, transaction.category);
-  const eligibleForAllocation =
-    !isPersonalMirror && !transaction.isMirroredFromProject && !transaction.parentId;
+  const eligibleForAllocation = !isPersonalMirror && !transaction.parentId;
 
   const canApplyCredit = eligibleForAllocation && eligibility === "applyCredit";
   const canSettleFromCredit = eligibleForAllocation && eligibility === "settleFromCredit";

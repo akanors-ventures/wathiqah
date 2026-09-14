@@ -366,6 +366,37 @@ describe('TransactionsService — project-mirror guards', () => {
       });
     });
 
+    // Regression: this check used to read settled amount once, outside any
+    // lock, well before the write — a concurrent allocate() (which does take
+    // a FOR UPDATE lock on the same transactions row before creating its
+    // TransactionAllocation) could land in that gap, and the shrink-guard
+    // would validate against an already-stale settled figure. syncMirroredAmount
+    // now takes the identical lock immediately before re-reading settled and
+    // writing, matching how update() guards the same race for ordinary rows.
+    it('locks the row before validating settled amount, so the check cannot run against a stale read', async () => {
+      mockPrismaService.transaction.findUnique.mockResolvedValue({
+        ...baseTransaction,
+        isMirroredFromProject: true,
+        type: TransactionType.LOAN_GIVEN,
+        parentId: null,
+        amount: 1000,
+      });
+      mockPrismaService.transaction.findMany.mockResolvedValue([]);
+
+      await service.syncMirroredAmount(
+        mockPrismaService as never,
+        TX_ID,
+        900,
+        USER_ID,
+      );
+
+      expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
+      const lockOrder = mockPrismaService.$queryRaw.mock.invocationCallOrder[0];
+      const updateOrder =
+        mockPrismaService.transaction.update.mock.invocationCallOrder[0];
+      expect(lockOrder).toBeLessThan(updateOrder);
+    });
+
     it('recomputes its own settlement status when the mirror is a lifecycle parent (loan/escrow)', async () => {
       mockPrismaService.transaction.findUnique
         .mockResolvedValueOnce({

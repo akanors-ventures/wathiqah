@@ -168,7 +168,7 @@ function ProjectDetailsPage() {
       toast.success("Transaction removed successfully");
       setDeletingTx(null);
     } catch (err) {
-      toast.error("Failed to remove transaction");
+      toast.error(err instanceof Error ? err.message : "Failed to remove transaction");
       console.error(err);
     }
   };
